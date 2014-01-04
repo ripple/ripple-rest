@@ -2,9 +2,9 @@
 
 A set of tools to simply connect to the Ripple network. The components are:
 
-1. [ripple-simple.js Library](README.md#1-ripple-simple-js-library)
+1. [ripple-simple.js Library](README.md#1-ripple-simplejs-library)
 2. [Simplified REST API](README.md#2-simplified-rest-api)
-3. [Command Line Interface](README.md#3-command-line-interface)
+3. [Command Line Tools](README.md#3-command-line-Tools)
 
 
 
