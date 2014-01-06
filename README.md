@@ -193,6 +193,8 @@ var simply = new Simple({
 [how should we handle this? i'm thinking of having some kind of standardized db client that expects `save`, `read`, `list`, and `search` functions or something like that]
 
 
+
+
 ## 2. Simplified REST API
 
 This is an Express.js app that utilizes `ripple-simple.js` to provide robust transaction submission, definitive transaction confirmation, and account activity monitoring over HTTP.
@@ -203,10 +205,16 @@ The API accepts JSON commands POSTed to routes following the form `/simply/sendP
 
 
 
+
+
 ## 3. Command Line Tools
 
-Similar to the Simplified REST API, this toolset provides a command line interface to the `ripple-simple.js` functions.
+Similar to the Simplified REST API, this toolset and daemon provides a command line interface to the `ripple-simple.js` functions.
+
+In the future, the Command Line Tools daemon will provide support for multiple users and accounts running on the same machine.
 
 [should the commands and formats be different for the command line?]
+
+[could the Command Line Tools just be another interface attached to the same daemon that will support the REST API?]
 
 
