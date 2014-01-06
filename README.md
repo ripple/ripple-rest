@@ -48,11 +48,11 @@ simply.stopMonitoringAccount(rpAddress);
 
 ### Core features
 
-1. Simplified transaction formats
-2. Robust transaction submission 
-3. Definitive transaction confirmation
-4. Account activity monitoring
-5. Optional connection to persistent data store
+1. [Simplified transaction formats](README.md#1-simplified-transaction-formats)
+2. [Robust transaction submission](README.md#2-robust-transaction-submission)
+3. [Definitive transaction confirmation](README.md#3-definitive-transaction-confirmation)
+4. [Account activity monitoring](README.md#4-account-activity-monitoring)
+5. [Optional connection to persistent data store](README.md#5-optional-connection-to-persistent-data-store)
 
 
 
