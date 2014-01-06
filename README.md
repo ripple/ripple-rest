@@ -15,36 +15,17 @@ A set of tools to simply connect to the Ripple network. The components are:
 Built on top of [`ripple-lib`](https://github.com/ripple/ripple-lib/), this library simplifies Ripple transaction submission and account activity analysis.
 
 
-
-### Including in Node.js
-
-```js
-var ripple = require('ripple-simple');
-
-var simply = new ripple.Simply({
-	srcAddress: 'rHb9CJAWyB4rj91VRWn96DkukG4bwdtyTh'
-});
-```
-
-
-
-### Including in a webpage
-
-TODO
-
-
-
 ### Core features
 
-* Simplified transaction formats
-* Robust transaction submission 
-* Definitive transaction confirmation
-* Account activity monitoring
-* Optional connection to persistent data store
+1. Simplified transaction formats
+2. Robust transaction submission 
+3. Definitive transaction confirmation
+4. Account activity monitoring
+5. Optional connection to persistent data store
 
 
 
-#### Simplified transaction formats
+#### 1. Simplified transaction formats
 
 ##### Simplified Payment Transaction
 
@@ -60,17 +41,62 @@ TODO
 }
 ```
 
-Available parameters:
+###### Standard parameters
 
 * srcAddress
 * dstAddress
 * srcAmount
 * dstAmount
+
+###### Advanced parameters
+
+* slippage
 * srcTag
 * srcID
 * dstTag
 * dstID
 * srcBalances
+* txPaths
+* expireAfter // time or ledger_index?
+
+
+
+
+##### Simplified Trade Transaction
+
+TODO
+
+##### Simplified Trust Transaction
+
+TODO
+
+
+
+
+#### 2. Robust transaction submission
+
+```js
+simply.sendPayment({
+	// Simplified Payment Transaction
+}, function(err, res){
+	// See below for err and res formats
+});
+```
+
+##### `err` format
+
+
+##### `res` format
+
+
+
+#### 3. Definitive transaction confirmation
+
+
+#### 4. Account activity monitoring
+
+
+#### 5. Optional connection to persistent data store
 
 
 
