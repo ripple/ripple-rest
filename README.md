@@ -74,7 +74,7 @@ simply.stopMonitoringAccount(rpAddress);
 
 ###### Standard parameters
 
-* `srcAddress`
+* `srcAddress` (optional if Simple is instantiated with `accounts`)
 * `dstAddress`
 * `srcAmount`
 * `dstAmount`
@@ -89,6 +89,8 @@ simply.stopMonitoringAccount(rpAddress);
 * `srcBalances`
 * `txPaths`
 * `expireAfter` // time or ledger_index?
+
+[what other options do we need?]
 
 
 ##### Simplified Order Transaction
@@ -177,7 +179,7 @@ simply.getNextTransaction(txHash, function(transaction){
 
 #### 5. Optional connection to persistent data store
 
-The `simply` instance can be created with a connection to a persistent database to maintain the pending transaction queue and account activity log even if the process dies.
+The `Simple` instance can be created with a connection to a persistent database to maintain the pending transaction queue and account activity log even if the process dies.
 
 
 ```js
