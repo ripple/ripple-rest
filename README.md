@@ -17,7 +17,7 @@ Built on top of [`ripple-lib`](https://github.com/ripple/ripple-lib/), this libr
 ```js
 var Simple = require('ripple-simple');
 
-var simply = new Simple({
+var simply = new RippleRippleSimple({
 	// Simple options
 });
 
@@ -192,7 +192,7 @@ The `Simple` instance can be created with a connection to a persistent database 
 
 
 ```js
-var simply = new Simple({
+var simply = new RippleSimple({
 	db: ...
 });
 ```
