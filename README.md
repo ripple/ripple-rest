@@ -14,6 +14,30 @@ A set of tools to simply connect to the Ripple network. The components are:
 
 Built on top of [`ripple-lib`](https://github.com/ripple/ripple-lib/), this library simplifies Ripple transaction submission and account activity analysis.
 
+```js
+var simply = require('ripple-simple');
+
+// Simple Transaction Submission
+
+simply.sendPayment(SimplePayment, callback);
+
+simply.createOrder(SimpleOrder, callback);
+
+simply.setTrust(SimpleTrust, callback);
+
+
+// Simple Account Activity Analysis
+
+simply.monitorAccount(rpAddress, function(transaction){ ... });
+
+simply.confirmTransaction(txHash, function(status){ ... });
+
+simply.getTransaction(txHash, function(transaction){ ... });
+
+simply.getNextTransaction(txHash, function(transaction){ ... });
+
+```
+
 
 ### Core features
 
@@ -31,7 +55,7 @@ Built on top of [`ripple-lib`](https://github.com/ripple/ripple-lib/), this libr
 
 ```js
 {
-	srcAddress: 'rHb9CJAWyB4rj91VRWn96DkukG4bwdtyTh', // optional if ripple.Simply is intialized with srcAddress
+	srcAddress: 'rHb9CJAWyB4rj91VRWn96DkukG4bwdtyTh',
 	dstAddress: 'rpvfJ4mR6QQAeogpXEKnuyGBx8mYCSnYZi',
 	dstAmount: {
 		value: 100.0,
@@ -43,26 +67,24 @@ Built on top of [`ripple-lib`](https://github.com/ripple/ripple-lib/), this libr
 
 ###### Standard parameters
 
-* srcAddress
-* dstAddress
-* srcAmount
-* dstAmount
+* `srcAddress`
+* `dstAddress`
+* `srcAmount`
+* `dstAmount`
 
 ###### Advanced parameters
 
-* slippage
-* srcTag
-* srcID
-* dstTag
-* dstID
-* srcBalances
-* txPaths
-* expireAfter // time or ledger_index?
+* `slippage`
+* `srcTag`
+* `srcID`
+* `dstTag`
+* `dstID`
+* `srcBalances`
+* `txPaths`
+* `expireAfter` // time or ledger_index?
 
 
-
-
-##### Simplified Trade Transaction
+##### Simplified Order Transaction
 
 TODO
 
@@ -83,22 +105,63 @@ simply.sendPayment({
 });
 ```
 
+```js
+simply.createOrder({
+	// Simplified 
+}, function(err, res){
+	
+});
+```
+
+`ripple-simple.js` will submit transactions to the Ripple network and monitor
+
 ##### `err` format
 
+[which errors should this throw, which should it handle?]
 
 ##### `res` format
+
+[should this return 'submitted' or wait until it is processed and return 'processed'?]
 
 
 
 #### 3. Definitive transaction confirmation
 
+`ripple-simple.js` will definitively confirm whether particular transactions have entered the Ripple ledger, are pending submission or validation, or have failed.
+
+```js
+simply.confirmTransaction(txHash, function(status){
+	
+});
+```
+
+```js
+simply.getTransaction(txHash, function(transaction){
+	
+});
+```
+
 
 #### 4. Account activity monitoring
+
+`ripple-simple.js` can be used to monitor the Ripple network for incoming, outgoing, or other transactions that affect a particular account.
+
+```js
+simply.monitorAccount(srcAddress, function(transaction){
+	
+});
+```
+
+```js
+simply.getNextTransaction(txHash, function(transaction){
+	
+});
+```
 
 
 #### 5. Optional connection to persistent data store
 
-
+The `simply` instance can be created with a connection to a persistent database to maintain the pending transaction queue and account activity log even if the process dies.
 
 
 
