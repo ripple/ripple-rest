@@ -43,6 +43,13 @@ simply.monitorAccount(rpAddress, function(message){ ... });
 
 simply.stopMonitoringAccount(rpAddress);
 
+
+// Simple Server Monitoring
+
+simply.getTransactionQueue(function(pendingTransactions){ ... });
+
+simply.getServerStatus(function(status){ ... });
+
 ```
 
 
