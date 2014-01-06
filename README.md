@@ -164,6 +164,8 @@ simply.getTransaction(txHash, function(transaction){
 
 `ripple-simple.js` can be used to monitor the Ripple network for incoming, outgoing, or other transactions that affect a particular account.
 
+[should i include the message functions Arthur laid out in the Ripple Cookbook here? like `scan`, `mark`, and `info`]
+
 ```js
 simply.monitorAccount(srcAddress, function(message){
 	
