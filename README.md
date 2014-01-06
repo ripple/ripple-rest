@@ -28,7 +28,7 @@ simply.sendPayment(SimplePayment, callback);
 
 simply.createOrder(SimpleOrder, callback);
 
-simply.setTrust(SimpleTrust, callback);
+simply.setTrustline(SimpleTrust, callback);
 
 
 // Simple Account Activity Analysis
@@ -39,7 +39,7 @@ simply.getTransaction(txHash, function(transaction){ ... });
 
 simply.getNextTransaction(txHash, function(transaction){ ... });
 
-simply.monitorAccount(rpAddress, function(transaction){ ... });
+simply.monitorAccount(rpAddress, function(message){ ... });
 
 simply.stopMonitoringAccount(rpAddress);
 
@@ -104,6 +104,8 @@ TODO
 
 #### 2. Robust transaction submission
 
+`ripple-simple.js` will submit transactions to the Ripple network and monitor newly closed ledgers to definitively confirm that the transaction has been validated and written into the ledger. If the transaction submission fails it will throw an error or, if the error is not due to the transaction being invalid, it will try again until the transaction is definitively confirmed.
+
 ```js
 simply.sendPayment({
 	// Simplified Payment Transaction
@@ -114,13 +116,20 @@ simply.sendPayment({
 
 ```js
 simply.createOrder({
-	// Simplified 
+	// Simplified Order Transaction
 }, function(err, res){
 	
 });
 ```
 
-`ripple-simple.js` will submit transactions to the Ripple network and monitor
+```js
+simply.setTrustline({
+	// Simplified Trustline Transaction
+}, function(err, res){
+	
+});
+```
+
 
 ##### `err` format
 
@@ -154,7 +163,7 @@ simply.getTransaction(txHash, function(transaction){
 `ripple-simple.js` can be used to monitor the Ripple network for incoming, outgoing, or other transactions that affect a particular account.
 
 ```js
-simply.monitorAccount(srcAddress, function(transaction){
+simply.monitorAccount(srcAddress, function(message){
 	
 });
 ```
@@ -173,23 +182,27 @@ The `simply` instance can be created with a connection to a persistent database 
 
 ```js
 var simply = new Simple({
-	db: {
-
-	} 
+	db: ...
 });
 ```
+
+[how should we handle this? i'm thinking of having some kind of standardized db client that expects `save`, `read`, `list`, and `search` functions or something like that]
 
 
 ## 2. Simplified REST API
 
 This is an Express.js app that utilizes `ripple-simple.js` to provide robust transaction submission, definitive transaction confirmation, and account activity monitoring over HTTP.
 
+The API accepts JSON commands POSTed to routes following the form `/simply/sendPayment`. Commands all have the same names as `ripple-simple.js` library functions and expect the JSON objects submitted to have the same options as specified in the library's docs.
 
+[should there be a single route with different methods or is this way easier?] 
 
 
 
 ## 3. Command Line Tools
 
-Similar to the Simplified REST API, this toolset provides an interface to the `ripple-simple.js` functions.
+Similar to the Simplified REST API, this toolset provides a command line interface to the `ripple-simple.js` functions.
+
+[should the commands and formats be different for the command line?]
 
 
