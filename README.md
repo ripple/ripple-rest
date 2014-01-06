@@ -15,7 +15,12 @@ A set of tools to simply connect to the Ripple network. The components are:
 Built on top of [`ripple-lib`](https://github.com/ripple/ripple-lib/), this library simplifies Ripple transaction submission and account activity analysis.
 
 ```js
-var simply = require('ripple-simple');
+var Simple = require('ripple-simple');
+
+var simply = new Simple({
+	// Simple options
+});
+
 
 // Simple Transaction Submission
 
@@ -163,6 +168,14 @@ simply.getNextTransaction(txHash, function(transaction){
 
 The `simply` instance can be created with a connection to a persistent database to maintain the pending transaction queue and account activity log even if the process dies.
 
+
+```js
+var simply = new Simple({
+	db: {
+
+	} 
+});
+```
 
 
 ## 2. Simplified REST API
