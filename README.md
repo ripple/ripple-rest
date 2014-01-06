@@ -33,13 +33,15 @@ simply.setTrust(SimpleTrust, callback);
 
 // Simple Account Activity Analysis
 
-simply.monitorAccount(rpAddress, function(transaction){ ... });
-
 simply.confirmTransaction(txHash, function(status){ ... });
 
 simply.getTransaction(txHash, function(transaction){ ... });
 
 simply.getNextTransaction(txHash, function(transaction){ ... });
+
+simply.monitorAccount(rpAddress, function(transaction){ ... });
+
+simply.stopMonitoringAccount(rpAddress);
 
 ```
 
