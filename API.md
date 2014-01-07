@@ -27,17 +27,17 @@ OR
 ```
 
 ##### `txType` values:
-	+ `'paymentIncoming'`
-	+ `'paymentOutgoingConfirmation'`
-	+ `'paymentOutgoingCancellation'`
-	+ `'paymentRippledThrough'`
-	+ `'orderPlaced'`
-	+ `'orderTaken'`
-	+ `'orderCancelled'`
-	+ `'trustlineIncoming'`
-	+ `'trustlineOutgoing'`
-	+ `'accountSet'`
-	+ `'none'`
++ `'paymentIncoming'`
++ `'paymentOutgoingConfirmation'`
++ `'paymentOutgoingCancellation'`
++ `'paymentRippledThrough'`
++ `'orderPlaced'`
++ `'orderTaken'`
++ `'orderCancelled'`
++ `'trustlineIncoming'`
++ `'trustlineOutgoing'`
++ `'accountSet'`
++ `'none'`
 
 ### GET /api/v1/address/:address/payment/:txHash
 
