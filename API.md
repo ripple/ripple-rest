@@ -63,7 +63,7 @@ OR
 		currency: 'XRP',
 		issuer: ''
 	},
-	txStatus: 'tx_queued'
+	txStatus: 'tx_processed'
 
 	// Generated fields:
 	txHash: '61DE29B67CD4E2EAB171D4E5982B34511DB0E9FC00458834F5C05A4686597F4E',
