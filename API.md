@@ -72,7 +72,7 @@ See API Reference for all available fields.
 
 -----------
 
-### GET /api/v1/address/:address/next_tx/:txHash
+### GET /api/v1/address/:address/nextTx/:txHash
 
 *should you be able to query by srcTxID or txSeqNumber?*
 
