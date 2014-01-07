@@ -106,10 +106,10 @@ Either or both of the `src` and `dst` sets of values can be specified, depending
 	3. I’m willing to pay __no more than__ 5 USD. I want Bob to receive __no more than__ 5 USD, and Bob is willing to accept __no less than__ 4.95 USD
 		```js
 		{
-			srcValue: '5'
+			srcValue: '0'
 			srcCurrency: 'USD',
 			srcIssuer: 'r...',
-			srcSlippage: '0'
+			srcSlippage: '5'
 
 			dstValue: '5',
 			dstCurrency: 'USD',
