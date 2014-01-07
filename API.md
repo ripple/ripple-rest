@@ -51,9 +51,13 @@ __Response:__
 	dstTag: '120923965',
 
 	// Generated Values
-	tx_status: 'tx_queued'
+	txSstatus: 'tx_queued',
+	txHash: '61DE29B67CD4E2EAB171D4E5982B34511DB0E9FC00458834F5C05A4686597F4E',
+	txPrevHash: '510D7756D27B7C41108F3EC2D9C8045D2AA5D7DE7E864CDAB1E9D170497D6B2B',
+	txFee: '0.00001',
+	txSequence: 117
 
-	// TODO are the other generated values generated immediately?
+	// Additional fields will be added once transaction is written into the Ripple ledger
 }
 
 ```
@@ -119,6 +123,8 @@ __Response:__
 	txPrevHash: '510D7756D27B7C41108F3EC2D9C8045D2AA5D7DE7E864CDAB1E9D170497D6B2B',
 	txFee: '0.00001',
 	txSequence: 117,
+
+	// Parsed From Transaction Ledger Entry
 	txValidated: true,
 	txLedger: 4296180,
 	txTimestamp: 1389099822,
