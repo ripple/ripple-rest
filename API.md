@@ -21,10 +21,10 @@
 | `dstAddress`  | yes | Ripple address |
 | `dstValue`    | [see Notes below](API.md#notes-on-srcvalue-srccurrency-srcissuer-dstvalue-dstcurrency-dstissuer) | string representation of floating point number | Amount recipient will receive (e.g. `'100.0'`)
 | `dstCurrency` | [see Notes below](API.md#notes-on-srcvalue-srccurrency-srcissuer-dstvalue-dstcurrency-dstissuer) | string | Currency that recipient will receive (e.g. `'USD'` or `'XRP'`, note that for non-`'XRP'` values recipient must have a trustline in this currency)
-| `dstIssuer`   | [see Notes below](API.md#notes-on-srcvalue-srccurrency-srcissuer-dstvalue-dstcurrency-dstissuer) | gateway Ripple address or `''` for XRP | string | Issuer of currency that recipient will receive (note that for currencies other than `'XRP'` recipient must have a trustline with this gateway)
-| `srcValue`	| [see Notes below](API.md#notes-on-srcvalue-srccurrency-srcissuer-dstvalue-dstcurrency-dstissuer) | string representation of floating point number | Amount you will send (e.g. `'100.0'`) 
-| `srcCurrency` | [see Notes below](API.md#notes-on-srcvalue-srccurrency-srcissuer-dstvalue-dstcurrency-dstissuer) | string | Currency that you will send (e.g. `'USD'` or `'XRP'`)
-| `srcIssuer`   | [see Notes below](API.md#notes-on-srcvalue-srccurrency-srcissuer-dstvalue-dstcurrency-dstissuer) | gateway Ripple address or `''` for XRP
+| `dstIssuer`   | [see Notes below](API.md#notes-on-srcvalue-srccurrency-srcissuer-dstvalue-dstcurrency-dstissuer) | gateway Ripple address or `''` for XRP | Issuer of currency that recipient will receive (note that for currencies other than `'XRP'` recipient must have a trustline with this gateway)
+| `srcValue`	| [see Notes below](API.md#notes-on-srcvalue-srccurrency-srcissuer-dstvalue-dstcurrency-dstissuer) | string representation of floating point number | Amount that will be sent (e.g. `'100.0'`) 
+| `srcCurrency` | [see Notes below](API.md#notes-on-srcvalue-srccurrency-srcissuer-dstvalue-dstcurrency-dstissuer) | string | Currency that will be sent (e.g. `'USD'` or `'XRP'`)
+| `srcIssuer`   | [see Notes below](API.md#notes-on-srcvalue-srccurrency-srcissuer-dstvalue-dstcurrency-dstissuer) | gateway Ripple address or `''` for XRP | Issuer of currency that will be sent
 | `srcSlippage` | no, defaults to `'0'`| string representation of floating point number | Source account will never send more than `srcValue` + `srcSlippage`
 | `dstSlippage` | no, defaults to `'0'`| string representation of floating point number | Destination account will never receive less than `dstValue` - `dstSlippage`
 | `srcTag` 		| no, defaults to `''` | string representation of a UINT32 for 'sub-accounts' of the address
