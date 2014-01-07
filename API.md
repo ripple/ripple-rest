@@ -2,7 +2,7 @@
 
 ## Resources
 
-### GET /api/v1/address/:address/next_tx/:txHash
+### GET /api/v1/address/:address/nextTx/:txHash
 
 #### Request JSON
 
@@ -12,7 +12,7 @@ None
 
 ```js
 {
-	txType: 'paymentIncoming',
+	txType: 'paymentIncoming', // see below for txType values
 	txSeqNumber: 70,
 	txHash: '70DF19B67CD4E2EAB171D4E5982B34511DB0E9FC00458834F5C05A4686597F4E'
 }
@@ -27,16 +27,16 @@ OR
 ```
 
 * `txType` - one of the following:
-	+ paymentIncoming
-	+ paymentOutgoingConfirmation
-	+ paymentOutgoingCancellation
-	+ paymentRippledThrough
-	+ orderPlaced
-	+ orderTaken
-	+ orderCancelled
-	+ trustlineIncoming
-	+ trustlineOutgoing
-	+ none
+	+ `'paymentIncoming'`
+	+ `'paymentOutgoingConfirmation'`
+	+ `'paymentOutgoingCancellation'`
+	+ `'paymentRippledThrough'`
+	+ `'orderPlaced'`
+	+ `'orderTaken'`
+	+ `'orderCancelled'`
+	+ `'trustlineIncoming'`
+	+ `'trustlineOutgoing'`
+	+ `'none'`
 
 ### GET /api/v1/address/:address/payment/:txHash
 
