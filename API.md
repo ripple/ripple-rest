@@ -51,14 +51,14 @@
 
 | Field         | Required | Description
 |---------------|----------|----------
-| `srcSlippage` | no, defaults to `'0'`| Source account will never send more than `srcValue` + `srcSlippage`
-| `dstSlippage` | no, defaults to `'0'`| Destination account will never receive less than `dstValue` - `dstSlippage`
-| `srcTag` 		| no, defaults to `''` | UINT32 that refers to 'sub-accounts' of the source address
-| `dstTag` 		| no, defaults to `''` | UINT32 that Refers to 'sub-accounts' of the destination address
-| `srcID`  		| no, defaults to `''` | Used for sender accounting *(not currently stored in Ripple Network Ledger)*
-| `dstID`  		| no, defaults to `''` | Used for recipient accounting and invoicing
-| `txPaths` 	| no, defaults to `''` | Supply paths from manual path-find
-| `srcBalances` | no, defaults to `''` | For hosted wallets, supply a string representation of array of amount objects in priority order
+| `srcSlippage` | no, default: `'0'`| Source account will never send more than `srcValue` + `srcSlippage`
+| `dstSlippage` | no, default: `'0'`| Destination account will never receive less than `dstValue` - `dstSlippage`
+| `srcTag` 		| no, default: `''` | UINT32 that refers to 'sub-accounts' of the source address
+| `dstTag` 		| no, default: `''` | UINT32 that Refers to 'sub-accounts' of the destination address
+| `srcID`  		| no, default: `''` | Used for sender accounting *(not currently stored in Ripple Network Ledger)*
+| `dstID`  		| no, default: `''` | Used for recipient accounting and invoicing
+| `txPaths` 	| no, default: `''` | Supply paths from manual path-find
+| `srcBalances` | no, default: `''` | For hosted wallets, supply a string representation of array of amount objects in priority order
 
 
 ##### *Notes on `srcValue`, `srcCurrency`, `srcIssuer`, `dstValue`, `dstCurrency`, `dstIssuer`
