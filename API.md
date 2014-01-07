@@ -27,17 +27,17 @@
 | `srcIssuer`   | [see Notes below](API.md#notes-on-srcvalue-srccurrency-srcissuer-dstvalue-dstcurrency-dstissuer) | gateway Ripple address or `''` for XRP | Issuer of currency that will be sent
 | `srcSlippage` | no, defaults to `'0'`| string representation of floating point number | Source account will never send more than `srcValue` + `srcSlippage`
 | `dstSlippage` | no, defaults to `'0'`| string representation of floating point number | Destination account will never receive less than `dstValue` - `dstSlippage`
-| `srcTag` 		| no, defaults to `''` | string representation of a UINT32 for 'sub-accounts' of the address
-| `dstTag` 		| no, defaults to `''` | string representation of a UINT32 for 'sub-accounts' of the address
+| `srcTag` 		| no, defaults to `''` | string representation of a UINT32 | Refers to 'sub-accounts' of the source address
+| `dstTag` 		| no, defaults to `''` | string representation of a UINT32 | Refers to 'sub-accounts' of the destination address
 | `srcID`  		| no, defaults to `''` | string | Used for sender accounting *(not currently stored in Ripple Network Ledger)*
 | `dstID`  		| no, defaults to `''` | string | Used for recipient accounting and invoicing
 | `txPaths` 	| no, defaults to `''` | string | Supply paths from manual path-find
 | `srcBalances` | no, defaults to `''` | string | For hosted wallets, supply a string representation of array of amount objects in priority order
 
 
-##### Notes on `srcValue`, `srcCurrency`, `srcIssuer`, `dstValue`, `dstCurrency`, `dstIssuer`
+##### *Notes on `srcValue`, `srcCurrency`, `srcIssuer`, `dstValue`, `dstCurrency`, `dstIssuer`
 
-`src` AND/OR `dst` values can be specified, depending on which of the following circumstances the payment fits into:
+Either or both of the `src` and `dst` sets of values can be specified, depending on which of the following circumstances the payment fits into:
 * __Send (sender pays for conversion and fees)__
 	1. "I want Bob to receive __exactly__ 5 USD. I’m willing to spend __no more than__ 5 USD."
 		```js
@@ -54,10 +54,27 @@
 		}
 		```
 	2. I want Bob to receive __exactly__ 5 USD. I’m willing to spend __any amount__ of USD.
-		+ `srcAmount`: `{ value: '', currency: 'USD', issuer: 'r...' }`
-		+ `dstAmount`: `{ value: '5',   currency: 'USD', issuer: 'r...' }`
+		```js
+		{
+			srcValue: '' // the srcValue field could be omitted or the srcSlippage set to a very high value
+			srcCurrency: 'USD',
+			srcIssuer: 'r...',
+
+			dstValue: '5',
+			dstCurrency: 'USD',
+			dstIssuer: 'r...',
+			dstSlippage: '0'
+		}
+		```
 	3. I want Bob to receive __exactly__ 5 USD. I’m willing to spend __any amount__ of __any currency__.
-		+ `dstAmount`: `{ value: '5',   currency: 'USD', issuer: 'r...' }`
+		```js
+		{
+			dstValue: '5',
+			dstCurrency: 'USD',
+			dstIssuer: 'r...',
+			dstSlippage: '0'
+		}
+		```
 * __Pay (receiver pays for conversion and fees)__
 	1. I’m willing to pay __exactly__ 5 USD. I want Bob to receive __any amount__ of USD.
 		+ `srcAmount`: `{ value: '5', currency: 'USD', issuer: 'r...' }`
