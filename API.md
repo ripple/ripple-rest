@@ -74,7 +74,7 @@ See API Reference for all available fields.
 
 ### GET /api/v1/address/:address/nextTx/:txHash
 
-*should you be able to query by srcTxID or txSeqNumber?*
+*TODO: should you be able to query by srcTxID or txSeqNumber?*
 
 
 __Route:__ `/api/v1/address/rHb9CJAWyB4rj91VRWn96DkukG4bwdtyTh/nextTx/510D7756D27B7C41108F3EC2D9C8045D2AA5D7DE7E864CDAB1E9D170497D6B2B` 
