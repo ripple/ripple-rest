@@ -87,8 +87,8 @@ __Response:__
 	txType: 'paymentIncoming',
 	txPrevHash: '510D7756D27B7C41108F3EC2D9C8045D2AA5D7DE7E864CDAB1E9D170497D6B2B',
 	txHash: '70DF19B67CD4E2EAB171D4E5982B34511DB0E9FC00458834F5C05A4686597F4E'
-	txSeqNumber: 70,
-	srcTxID: 115,
+	txSeqNumber: '70',
+	srcTxID: '115',
 	txResult: 'tesSUCCESS'
 }
 ```
@@ -98,7 +98,7 @@ __Response:__
 	txType: 'none',
 	txPrevHash: '70DF19B67CD4E2EAB171D4E5982B34511DB0E9FC00458834F5C05A4686597F4E',
 	txHash: '',
-	txSeqNumber: 70,
+	txSeqNumber: '70',
 	txResult: ''
 }
 ```
@@ -108,8 +108,8 @@ __Response:__
 	txType: 'paymentFailed',
 	txPrevHash: '510D7756D27B7C41108F3EC2D9C8045D2AA5D7DE7E864CDAB1E9D170497D6B2B',
 	txHash: '70DF19B67CD4E2EAB171D4E5982B34511DB0E9FC00458834F5C05A4686597F4E', // TODO: would it report the hash?
-	txSeqNumber: 70,
-	srcTxID: 115,
+	txSeqNumber: '70',
+	srcTxID: '115',
 	txResult: 'tecUNFUNDED_PAYMENT'
 }
 ```
@@ -152,9 +152,9 @@ __Response:__
 	txSequence: '117'
 
 	// Parsed From Transaction Ledger Entry
-	txValidated: true,
-	txLedger: 4296180,
-	txTimestamp: 1389099822,
+	txValidated: 'true',
+	txLedger: '4296180',
+	txTimestamp: '1389099822',
 	txResult: 'tesSUCCESS',
 	srcDebit: '3.157',
 	dstCredit: '100'
