@@ -1,4 +1,4 @@
-# `ripple-simple.js` RESTful API Quickstart
+# Simplified Payment API Quickstart
 
 ## Resources
 
