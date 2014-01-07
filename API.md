@@ -10,10 +10,6 @@
 
 ### GET /api/v1/address/:address/nextTx/:txHash
 
-#### Request JSON
-
-None
-
 #### Response JSON
 
 ```js
@@ -50,20 +46,16 @@ OR
 
 ### GET /api/v1/address/:address/payment/:txHash
 
-#### Request JSON
-
-None
-
 #### Response JSON
 
 ```js
 {
-	
+
 }
 ```
 OR
 
-`HTTP 404 Error`
+`HTTP 404 Error` if transaction does not exist or has not been processed and written into the Ripple ledger
 
 
 -----------
@@ -71,6 +63,8 @@ OR
 ### POST /api/v1/address/:address/payment/:signingKey
 
 #### Request JSON
+
+
 
 ```js
 {
