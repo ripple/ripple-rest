@@ -34,8 +34,8 @@ OR
 + `'orderPlaced'`
 + `'orderTaken'`
 + `'orderCancelled'`
-+ `'trustlineIncoming'`
-+ `'trustlineOutgoing'`
++ `'trustlineChangeIncoming'`
++ `'trustlineChangeOutgoing'`
 + `'accountSet'`
 + `'none'`
 
