@@ -1,12 +1,10 @@
-# `ripple-simple.js` RESTful API
+# `ripple-simple.js` RESTful API Quickstart
 
 ## Resources
 
 1. [POST /api/v1/address/:address/payment/:accountSecret](API.md#post-apiv1addressaddresspaymentaccountsecret) - Submit payment
 2. [GET /api/v1/address/:address/nextTx/:txHash](API.md#get-apiv1addressaddressnexttxtxhash) - Get next transaction for an account
 3. [GET /api/v1/address/:address/payment/:txHash](API.md#get-apiv1addressaddresspaymenttxhash) - Get specific transaction for an account
-
-## Fields Reference
 
 -----------
 
@@ -60,6 +58,8 @@ __Data:__
 
 ```
 
+See API Reference for all available fields.
+
 -----------
 
 ### GET /api/v1/address/:address/next_tx/:txHash
@@ -86,22 +86,7 @@ OR
 }
 ```
 
-##### `txType` values:
-+ `'paymentIncoming'`
-+ `'paymentOutgoingConfirmation'`
-+ `'paymentOutgoingCancellation'`
-+ `'paymentRippledThrough'`
-+ `'orderPlaced'`
-+ `'orderTaken'`
-+ `'orderCancelled'`
-+ `'trustlineChangeIncoming'`
-+ `'trustlineChangeOutgoing'`
-+ `'accountSet'`
-+ `'none'`
-
-
-
-
+See API Reference for all available fields.
 
 -----------
 
@@ -149,5 +134,6 @@ OR
 
 `HTTP 404 Error` if transaction does not exist or has not been processed and written into the Ripple ledger
 
+See Reference for all available fields.
 
 -----------
