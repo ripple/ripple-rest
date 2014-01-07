@@ -6,6 +6,8 @@
 2. [GET /api/v1/address/:address/payment/:txHash](API.md#get-apiv1addressaddresspaymenttxhash)
 3. [POST /api/v1/address/:address/payment/:signingKey](API.md#post-apiv1addressaddresspaymentsigningkey)
 
+-----------
+
 ### GET /api/v1/address/:address/nextTx/:txHash
 
 #### Request JSON
@@ -44,7 +46,7 @@ OR
 + `'none'`
 
 
-
+-----------
 
 ### GET /api/v1/address/:address/payment/:txHash
 
@@ -62,5 +64,8 @@ OR
 `HTTP 404 Error`
 
 
+-----------
 
 ### POST /api/v1/address/:address/payment/:signingKey
+
+-----------
