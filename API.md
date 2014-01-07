@@ -10,8 +10,6 @@
 
 ### POST /api/v1/address/:address/payment/:accountSecret
 
-#### POST Data Example
-
 __Route:__ /api/v1/address/rHb9CJAWyB4rj91VRWn96DkukG4bwdtyT/payment/s...
 
 __Data:__
@@ -33,7 +31,7 @@ __Data:__
 }
 ```
 
-#### POST Response Example
+__Response:__
 
 ```js
 {
@@ -64,9 +62,10 @@ See API Reference for all available fields.
 
 ### GET /api/v1/address/:address/next_tx/:txHash
 
-#### Response JSON
 
-Example for `/api/v1/address/:address/nextTx/510D7756D27B7C41108F3EC2D9C8045D2AA5D7DE7E864CDAB1E9D170497D6B2B`: 
+__Route:__ `/api/v1/address/rHb9CJAWyB4rj91VRWn96DkukG4bwdtyTh/nextTx/510D7756D27B7C41108F3EC2D9C8045D2AA5D7DE7E864CDAB1E9D170497D6B2B`: 
+
+__Response:__
 ```js
 {
 	txPrevHash: '510D7756D27B7C41108F3EC2D9C8045D2AA5D7DE7E864CDAB1E9D170497D6B2B',
@@ -91,7 +90,9 @@ See API Reference for all available fields.
 
 ### GET /api/v1/address/:address/payment/:txHash
 
-#### Response JSON
+__Route:__ /api/v1/address/rHb9CJAWyB4rj91VRWn96DkukG4bwdtyTh/payment/61DE29B67CD4E2EAB171D4E5982B34511DB0E9FC00458834F5C05A4686597F4E
+
+__Response:__
 
 ```js
 {
