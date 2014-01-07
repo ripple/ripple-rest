@@ -77,14 +77,46 @@ Either or both of the `src` and `dst` sets of values can be specified, depending
 		```
 * __Pay (receiver pays for conversion and fees)__
 	1. I’m willing to pay __exactly__ 5 USD. I want Bob to receive __any amount__ of USD.
-		+ `srcAmount`: `{ value: '5', currency: 'USD', issuer: 'r...' }`
-		+ `dstAmount`: `{ value: '',   currency: 'USD', issuer: 'r...' }`
+		```js
+		{
+			srcValue: '5'
+			srcCurrency: 'USD',
+			srcIssuer: 'r...',
+			srcSlippage: '0'
+
+			dstValue: '', // the dstValue field could be omitted or the dstSlippage set to a very high value
+			dstCurrency: 'USD',
+			dstIssuer: 'r...',
+		}
+		```
 	2. I’m willing to pay __no more than__ 5 USD. I want Bob to receive __no more than__ 5 USD.
-		+ `srcAmount`: `{ value: '<5', currency: 'USD', issuer: 'r...' }`
-		+ `dstAmount`: `{ value: '<5',   currency: 'USD', issuer: 'r...' }`
+		```js
+		{
+			srcValue: '0'
+			srcCurrency: 'USD',
+			srcIssuer: 'r...',
+			srcSlippage: '5'
+
+			dstValue: '5',
+			dstCurrency: 'USD',
+			dstIssuer: 'r...',
+			dstSlippage: '0'
+		}
+		```
 	3. I’m willing to pay __no more than__ 5 USD. I want Bob to receive __no more than__ 5 USD, and Bob is willing to accept __no less than__ 4.95 USD
-		+ `srcAmount`: `{ value: '<5', currency: 'USD', issuer: 'r...' }`
-		+ `dstAmount`: `{ value: '4.95-5',   currency: 'USD', issuer: 'r...' }`
+		```js
+		{
+			srcValue: '5'
+			srcCurrency: 'USD',
+			srcIssuer: 'r...',
+			srcSlippage: '0'
+
+			dstValue: '5',
+			dstCurrency: 'USD',
+			dstIssuer: 'r...',
+			dstSlippage: '0.05'
+		}
+		```
 
 
 
