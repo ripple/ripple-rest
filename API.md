@@ -26,7 +26,7 @@ OR
 }
 ```
 
-* `txType` - one of the following:
+##### `txType` values:
 	+ `'paymentIncoming'`
 	+ `'paymentOutgoingConfirmation'`
 	+ `'paymentOutgoingCancellation'`
@@ -36,6 +36,7 @@ OR
 	+ `'orderCancelled'`
 	+ `'trustlineIncoming'`
 	+ `'trustlineOutgoing'`
+	+ `'accountSet'`
 	+ `'none'`
 
 ### GET /api/v1/address/:address/payment/:txHash
