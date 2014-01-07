@@ -51,7 +51,9 @@ __Response:__
 	dstTag: '120923965',
 
 	// Generated Values
-	// TODO: what goes here immediately?
+	tx_status: 'tx_queued'
+
+	// TODO are the other generated values generated immediately?
 }
 
 ```
@@ -112,6 +114,7 @@ __Response:__
 	dstTag: '120923965',
 
 	// Generated Values
+	txStatus: 'tx_processed',
 	txHash: '61DE29B67CD4E2EAB171D4E5982B34511DB0E9FC00458834F5C05A4686597F4E',
 	txPrevHash: '510D7756D27B7C41108F3EC2D9C8045D2AA5D7DE7E864CDAB1E9D170497D6B2B',
 	txFee: '0.00001',
