@@ -6,6 +6,8 @@
 2. [GET /api/v1/address/:address/nextTx/:txHash](API.md#get-apiv1addressaddressnexttxtxhash) - Get next transaction for an account
 3. [GET /api/v1/address/:address/payment/:txHash](API.md#get-apiv1addressaddresspaymenttxhash) - Get specific transaction for an account
 
+
+
 -----------
 
 ### POST /api/v1/address/:address/payment/:accountSecret
@@ -22,7 +24,7 @@ __Data:__
 	srcCurrency: 'USD',
 	srcIssuer: 'rvYAfWj5gh67oV6fW32ZzP3Aw4Eubs59B',
 	srcSlippage: '0.50',
-	srcTxID: '115',
+	srcTxID: '115', // Only for RTS purposes, not saved into the Ripple ledger
 	srcTag: '2409238',
 
 	dstValue: '100',
@@ -64,7 +66,8 @@ __Response:__
 	dstTag: '120923965',
 
 	// Generated Values
-	txSstatus: 'tx_queued',
+	txType: 'paymentOutgoing',
+	txStatus: 'tx_queued',
 	txHash: '61DE29B67CD4E2EAB171D4E5982B34511DB0E9FC00458834F5C05A4686597F4E',
 	txPrevHash: '510D7756D27B7C41108F3EC2D9C8045D2AA5D7DE7E864CDAB1E9D170497D6B2B',
 	txFee: '0.00001',
@@ -76,6 +79,8 @@ __Response:__
 ```
 
 See API Reference for all available fields.
+
+
 
 -----------
 
@@ -91,7 +96,7 @@ __Response:__
 ... if payment succeeded:
 ```js
 {
-	txType: 'paymentIncoming',
+	txType: 'paymentOutgoing',
 	txResult: 'tesSUCCESS'
 	txPrevHash: '510D7756D27B7C41108F3EC2D9C8045D2AA5D7DE7E864CDAB1E9D170497D6B2B',
 	txHash: '70DF19B67CD4E2EAB171D4E5982B34511DB0E9FC00458834F5C05A4686597F4E'
@@ -124,6 +129,8 @@ __Response:__
 
 See API Reference for all available fields.
 
+
+
 -----------
 
 ### GET /api/v1/address/:address/payment/:txHash
@@ -153,19 +160,21 @@ __Response:__
 	dstTag: '120923965',
 
 	// Generated Values
-	txSstatus: 'tx_queued',
+	txType: 'paymentOutgoing',
+	txStatus: 'tx_processed',
 	txHash: '61DE29B67CD4E2EAB171D4E5982B34511DB0E9FC00458834F5C05A4686597F4E',
 	txPrevHash: '510D7756D27B7C41108F3EC2D9C8045D2AA5D7DE7E864CDAB1E9D170497D6B2B',
 	txFee: '0.00001',
-	txSequence: '117'
+	txSequence: '117',
 
 	// Parsed From Transaction Ledger Entry
 	txValidated: 'true',
-	txLedger: '4296180',
-	txTimestamp: '1389099822',
+	txLedgerSeq: '4296180',
+	txLedgerHash: '39F6636E8D6CC8DEB5B6EE5C43FAEEBF42FF609B7D3D875E0B276BA650E2242A',
+	txTimestamp: '1389099822', // Unix timestamp, not Ripple epoch
 	txResult: 'tesSUCCESS',
-	srcDebit: '3.157',
-	dstCredit: '100'
+	srcSent: '3.157',
+	dstReceived: '100'
 }
 ```
 OR
