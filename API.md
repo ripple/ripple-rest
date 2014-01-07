@@ -57,7 +57,7 @@ __Response:__
 	txFee: '0.00001',
 	txSequence: 117
 
-	// Additional fields will be added once transaction is written into the Ripple ledger
+	// Additional fields will be added once transaction is processed and written into the Ripple ledger
 }
 
 ```
