@@ -2,6 +2,10 @@
 
 ## Resources
 
+1. [GET /api/v1/address/:address/nextTx/:txHash](API.md#get-apiv1addressaddressnexttxtxhash)
+2. [GET /api/v1/address/:address/payment/:txHash](API.md#get-apiv1addressaddresspaymenttxhash)
+3. [POST /api/v1/address/:address/payment/:signingKey](API.md#post-apiv1addressaddresspaymentsigningkey)
+
 ### GET /api/v1/address/:address/nextTx/:txHash
 
 #### Request JSON
@@ -39,6 +43,24 @@ OR
 + `'accountSet'`
 + `'none'`
 
+
+
+
 ### GET /api/v1/address/:address/payment/:txHash
+
+#### Request JSON
+
+None
+
+#### Response JSON
+
+```js
+
+```
+OR
+
+`HTTP 404 Error`
+
+
 
 ### POST /api/v1/address/:address/payment/:signingKey
