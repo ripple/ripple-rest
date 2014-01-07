@@ -10,7 +10,7 @@
 
 ### POST /api/v1/address/:address/payment/:accountSecret
 
-__Route:__ /api/v1/address/rHb9CJAWyB4rj91VRWn96DkukG4bwdtyT/payment/s...
+__Route:__ `/api/v1/address/rHb9CJAWyB4rj91VRWn96DkukG4bwdtyT/payment/s...`
 
 __Data:__
 ```js
@@ -128,7 +128,7 @@ See API Reference for all available fields.
 
 ### GET /api/v1/address/:address/payment/:txHash
 
-__Route:__ /api/v1/address/rHb9CJAWyB4rj91VRWn96DkukG4bwdtyTh/payment/70DF19B67CD4E2EAB171D4E5982B34511DB0E9FC00458834F5C05A4686597F4E
+__Route:__ `/api/v1/address/rHb9CJAWyB4rj91VRWn96DkukG4bwdtyTh/payment/70DF19B67CD4E2EAB171D4E5982B34511DB0E9FC00458834F5C05A4686597F4E`
 
 __Response:__
 
