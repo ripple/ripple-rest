@@ -2,126 +2,74 @@
 
 ## Resources
 
-1. [GET /api/v1/address/:address/nextTx/:txHash](API.md#get-apiv1addressaddressnexttxtxhash) - Get next transaction for an account
-2. [GET /api/v1/address/:address/payment/:txHash](API.md#get-apiv1addressaddresspaymenttxhash) - Get specific transaction for an account
-3. [POST /api/v1/address/:address/payment/:signingKey](API.md#post-apiv1addressaddresspaymentsigningkey) - Submit payment
+1. [POST /api/v1/address/:address/payment/:signingKey](API.md#post-apiv1addressaddresspaymentsigningkey) - Submit payment
+2. [GET /api/v1/address/:address/nextTx/:txHash](API.md#get-apiv1addressaddressnexttxtxhash) - Get next transaction for an account
+3. [GET /api/v1/address/:address/payment/:txHash](API.md#get-apiv1addressaddresspaymenttxhash) - Get specific transaction for an account
 
------------
-
-### GET /api/v1/address/:address/nextTx/:txHash
-
-#### Response JSON
-
-```js
-{
-	txType: 'paymentIncoming', // see below for txType values
-	txSeqNumber: 70,
-	txHash: '70DF19B67CD4E2EAB171D4E5982B34511DB0E9FC00458834F5C05A4686597F4E'
-}
-```
-OR
-```js
-{
-	txType: 'none',
-	txSeqNumber: -1,
-	txHash: ''
-}
-```
-
-##### `txType` values:
-+ `'paymentIncoming'`
-+ `'paymentOutgoingConfirmation'`
-+ `'paymentOutgoingCancellation'`
-+ `'paymentRippledThrough'`
-+ `'orderPlaced'`
-+ `'orderTaken'`
-+ `'orderCancelled'`
-+ `'trustlineChangeIncoming'`
-+ `'trustlineChangeOutgoing'`
-+ `'accountSet'`
-+ `'none'`
 
 
 -----------
 
-### GET /api/v1/address/:address/payment/:txHash
-
-#### Response JSON
-
-```js
-{
-	// Original fields:
-	srcAddress: 'rHb9CJAWyB4rj91VRWn96DkukG4bwdtyTh',
-	dstAddress: 'rpvfJ4mR6QQAeogpXEKnuyGBx8mYCSnYZi',
-	srcAmount: {
-		value: '<3.00',
-		currency: 'USD',
-		issuer: 'r...'
-	},
-	dstAmount: {
-		value: '100',
-		currency: 'XRP',
-		issuer: ''
-	},
-	txStatus: 'tx_processed'
-
-	// Generated fields:
-	txHash: '61DE29B67CD4E2EAB171D4E5982B34511DB0E9FC00458834F5C05A4686597F4E',
-	txFee: '10',
-	txSequence: 117,
-	txValidated: true,
-	txLedger: 4296180,
-	txTimestamp: 1389099822,
-	txResult: 'tesSUCCESS',
-	srcDebit: {
-		value: '2.97',
-		currency: 'USD',
-		issuer: 'r...'
-	},
-	dstCredit: {
-		value: '100',
-		currency: 'XRP',
-		issuer: ''
-	}
-}
-```
-OR
-
-`HTTP 404 Error` if transaction does not exist or has not been processed and written into the Ripple ledger
+### POST /api/v1/address/:address/payment/:accountSecret
 
 
------------
+#### POST Parameters
 
-### POST /api/v1/address/:address/payment/:signingKey
+| Field         | Required | Type      | Description
+|---------------|----------|-----------|----------
+| `srcAddress`  | yes | Ripple address |
+| `dstAddress`  | yes | Ripple address |
+| `dstValue`    | yes if `srcValue`, `srcCurrency`, and `srcIssuer` are not set | string representation of floating point number | Amount recipient will receive (e.g. `'100.0'`)
+| `dstCurrency` | yes if `srcValue`, `srcCurrency`, and `srcIssuer` are not set | string | Currency that recipient will receive (e.g. `'USD'` or `'XRP'`, note that for non-`'XRP'` values recipient must have a trustline in this currency)
+| `dstIssuer`   | yes if `srcValue`, `srcCurrency`, and `srcIssuer` are not set | gateway Ripple address or `''` for XRP | string | Issuer of currency that recipient will receive (note that for currencies other than `'XRP'` recipient must have a trustline with this gateway)
+| `srcValue`	| yes if `dstValue`, `dstCurrency`, and `dstIssuer` are not set | string representation of floating point number | Amount you will send (e.g. `'100.0'`) 
+| `srcCurrency` | yes if `dstValue`, `dstCurrency`, and `dstIssuer` are not set | string | Currency that you will send (e.g. `'USD'` or `'XRP'`)
+| `srcIssuer`   | yes if `dstValue`, `dstCurrency`, and `dstIssuer` are not set | gateway Ripple address or `''` for XRP
+| `srcSlippage` | no, defaults to `'0'`| string representation of floating point number | Source account will never send more than `srcValue` + `srcSlippage`
+| `dstSlippage` | no, defaults to `'0'`| string representation of floating point number | Destination account will never receive less than `dstValue` - `dstSlippage`
+| `srcTag` 		| no, defaults to `''` | string representation of a UINT32 for 'sub-accounts' of the address
+| `dstTag` 		| no, defaults to `''` | string representation of a UINT32 for 'sub-accounts' of the address
+| `srcID`  		| no, defaults to `''` | string | Used for sender accounting *(not currently stored in Ripple Network Ledger)*
+| `dstID`  		| no, defaults to `''` | string | Used for recipient accounting and invoicing
+| `txPaths` 	| no, defaults to `''` | string | Supply paths from manual path-find
+| `srcBalances` | no, defaults to `''` | string | For hosted wallets, supply a string representation of array of amount objects in priority order
 
-#### Request JSON
 
+Example:
 ```js
 {
 	srcAddress: 'rHb9CJAWyB4rj91VRWn96DkukG4bwdtyTh',
 	dstAddress: 'rpvfJ4mR6QQAeogpXEKnuyGBx8mYCSnYZi',
-	// see below for notes about srcAmount and dstAmount
-	srcAmount: {
-		value: '<3.00',
-		currency: 'USD',
-		issuer: 'rvYAfWj5gh67oV6fW32ZzP3Aw4Eubs59B'
-	},
-	dstAmount: {
-		value: '100',
-		currency: 'XRP',
-		issuer: ''
-	}
+
+	srcValue: '3.00',
+	srcCurrency: 'USD',
+	srcIssuer: 'r...',
+	srcSlippage: '0.01',
+
+	dstValue: '100',
+	dstCurrency: 'XRP',
+	dstIssuer: '',
 }
 ```
 
-##### Required Parameters
-+ `srcAddress`
-+ `dstAddress`
-+ `srcAmount` AND/OR `dstAmount` - one or both can be specified, depending on which of the following circumstances the payment fits into:
+##### Notes on `srcValue`, `srcCurrency`, `srcIssuer`, `dstValue`, `dstCurrency`, `dstIssuer`
+
+`src` AND/OR `dst` values can be specified, depending on which of the following circumstances the payment fits into:
 	* __Send (sender pays for conversion and fees)__
-		1. I want Bob to receive __exactly__ 5 USD. I’m willing to spend __no more than__ 5 USD.
-			+ `srcAmount`: `{ value: '<5', currency: 'USD', issuer: 'r...' }`
-			+ `dstAmount`: `{ value: '5',   currency: 'USD', issuer: 'r...' }`
+		1. "I want Bob to receive __exactly__ 5 USD. I’m willing to spend __no more than__ 5 USD."
+			```js
+			{
+				srcValue: '5'
+				srcCurrency: 'USD',
+				srcIssuer: 'r...',
+				srcSlippage: '0'
+
+				dstValue: '5',
+				dstCurrency: 'USD',
+				dstIssuer: 'r...',
+				dstSlippage: '0'
+			}
+			```
 		2. I want Bob to receive __exactly__ 5 USD. I’m willing to spend __any amount__ of USD.
 			+ `srcAmount`: `{ value: '', currency: 'USD', issuer: 'r...' }`
 			+ `dstAmount`: `{ value: '5',   currency: 'USD', issuer: 'r...' }`
@@ -137,26 +85,6 @@ OR
 		3. I’m willing to pay __no more than__ 5 USD. I want Bob to receive __no more than__ 5 USD, and Bob is willing to accept __no less than__ 4.95 USD
 			+ `srcAmount`: `{ value: '<5', currency: 'USD', issuer: 'r...' }`
 			+ `dstAmount`: `{ value: '4.95-5',   currency: 'USD', issuer: 'r...' }`
-
-###### Amount Object Rules
-+ amounts can be left undefined
-+ if defined, amount objects must always have fields for `value`, `currency`, and `issuer`
-+ in the case of XRP, `issuer` is `''` (the empty string)
-+ `value` strings can take the following forms (where `'#'` indicates a positive floating point number) :
-	* `''` - equates to `'>0'`
-	* `'#'` - exact value
-	* `'#-#'` - range of values (inclusive)
-	* `'<#'` - less than (inclusive)
-	* `'>#'` - greater than (inclusive)
-
-##### Optional Parameters
-+ `srcTag` - TODO: what is the format for the tags and IDs?
-+ `dstTag`
-+ `srcID`
-+ `dstID`
-+ `srcBalances` - for hosted wallets, supply an array of amount objects in priority order (e.g. `[{value: '978.50', currency: 'USD', issuer: 'r...'}, {value: '513', currency: 'EUR', issuer: 'r...'}]` to have an account's USD balance be considered before its EUR balance)
-+ `txPaths` - supply paths from manual path-find
-	* TODO: what is the format for these?
 
 
 
@@ -183,5 +111,98 @@ OR
 ```
 
 TODO: if the transaction has only been queued by the time the API sends the response (which seems probable) should we have it just return the status and the txHash? Also, if the txFee changes before the transaction is processed and written into the ledger, won't the hash change? If the hash changes, how will the client look up the status of a transaction they submitted a little while ago?
+
+
+
+
+-----------
+
+### GET /api/v1/address/:address/next_tx/:txHash
+
+#### Response JSON
+
+Example for `/api/v1/address/:address/nextTx/510D7756D27B7C41108F3EC2D9C8045D2AA5D7DE7E864CDAB1E9D170497D6B2B`: 
+```js
+{
+	txPrevHash: '510D7756D27B7C41108F3EC2D9C8045D2AA5D7DE7E864CDAB1E9D170497D6B2B',
+	txHash: '70DF19B67CD4E2EAB171D4E5982B34511DB0E9FC00458834F5C05A4686597F4E'
+	txSeqNumber: 70,
+	txType: 'paymentIncoming' // see below for txType values
+
+}
+```
+OR
+```js
+{
+	txPrevHash: '70DF19B67CD4E2EAB171D4E5982B34511DB0E9FC00458834F5C05A4686597F4E',
+	txHash: '',
+	txSeqNumber: -1,
+	txType: 'none'
+}
+```
+
+##### `txType` values:
++ `'paymentIncoming'`
++ `'paymentOutgoingConfirmation'`
++ `'paymentOutgoingCancellation'`
++ `'paymentRippledThrough'`
++ `'orderPlaced'`
++ `'orderTaken'`
++ `'orderCancelled'`
++ `'trustlineChangeIncoming'`
++ `'trustlineChangeOutgoing'`
++ `'accountSet'`
++ `'none'`
+
+
+
+
+
+-----------
+
+### GET /api/v1/address/:address/payment/:txHash
+
+#### Response JSON
+
+```js
+{
+	// Original fields:
+	srcAddress: 'rHb9CJAWyB4rj91VRWn96DkukG4bwdtyTh',
+	dstAddress: 'rpvfJ4mR6QQAeogpXEKnuyGBx8mYCSnYZi',
+	srcValue: 3.00,
+	srcCurrency: 'USD',
+	srcIssuer: 'r...',
+	srcSlippage: 0.01,
+	dstValue: 100,
+	dstCurrency: 'XRP',
+	dstIssuer: '',
+
+	txStatus: 'tx_processed',
+
+	// Generated fields:
+	txHash: '61DE29B67CD4E2EAB171D4E5982B34511DB0E9FC00458834F5C05A4686597F4E',
+	txPrevHash: '510D7756D27B7C41108F3EC2D9C8045D2AA5D7DE7E864CDAB1E9D170497D6B2B',
+	txFee: '10',
+	txSequence: 117,
+	txValidated: true,
+	txLedger: 4296180,
+	txTimestamp: 1389099822,
+	txResult: 'tesSUCCESS',
+	srcDebit: {
+		value: '2.97',
+		currency: 'USD',
+		issuer: 'r...'
+	},
+	dstCredit: {
+		value: '100',
+		currency: 'XRP',
+		issuer: ''
+	}
+}
+```
+OR
+
+`HTTP 404 Error` if transaction does not exist or has not been processed and written into the Ripple ledger
+
 
 -----------
