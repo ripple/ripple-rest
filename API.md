@@ -31,6 +31,13 @@ __Data:__
 	dstSlippage: '0',
 	dstTxID: '238',
 	dstTag: '120923965'
+
+	/**
+	 * Not yet supported:
+	 *
+	 * srcBalances,
+	 * txPaths
+	 */
 }
 ```
 
@@ -85,33 +92,33 @@ __Response:__
 ```js
 {
 	txType: 'paymentIncoming',
+	txResult: 'tesSUCCESS'
 	txPrevHash: '510D7756D27B7C41108F3EC2D9C8045D2AA5D7DE7E864CDAB1E9D170497D6B2B',
 	txHash: '70DF19B67CD4E2EAB171D4E5982B34511DB0E9FC00458834F5C05A4686597F4E'
 	txSeqNumber: '70',
-	srcTxID: '115',
-	txResult: 'tesSUCCESS'
+	srcTxID: '115'
 }
 ```
 ... or if that transaction hasn't been processed yet:
 ```js
 {
 	txType: 'none',
+	txResult: '',
 	txPrevHash: '70DF19B67CD4E2EAB171D4E5982B34511DB0E9FC00458834F5C05A4686597F4E',
 	txHash: '',
 	txSeqNumber: '70',
-	srcTxID: '115',
-	txResult: ''
+	srcTxID: '115'
 }
 ```
 ... or if that payment failed:
 ```js
 {
 	txType: 'paymentFailed',
+	txResult: 'tecUNFUNDED_PAYMENT'
 	txPrevHash: '510D7756D27B7C41108F3EC2D9C8045D2AA5D7DE7E864CDAB1E9D170497D6B2B',
 	txHash: '70DF19B67CD4E2EAB171D4E5982B34511DB0E9FC00458834F5C05A4686597F4E', // TODO: would it report the hash?
 	txSeqNumber: '70',
-	srcTxID: '115',
-	txResult: 'tecUNFUNDED_PAYMENT'
+	srcTxID: '115'
 }
 ```
 
