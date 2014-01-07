@@ -22,11 +22,14 @@ __Data:__
 	srcCurrency: 'USD',
 	srcIssuer: 'rvYAfWj5gh67oV6fW32ZzP3Aw4Eubs59B',
 	srcSlippage: '0.50',
+	srcTxID: '115',
+	srcTag: '2409238',
 
 	dstValue: '100',
 	dstCurrency: 'XRP',
 	dstIssuer: '',
 	dstSlippage: '0',
+	dstTxID: '238',
 	dstTag: '120923965'
 }
 ```
@@ -43,11 +46,14 @@ __Response:__
 	srcCurrency: 'USD',
 	srcIssuer: 'rvYAfWj5gh67oV6fW32ZzP3Aw4Eubs59B',
 	srcSlippage: '0.50',
+	srcTxID: '115',
+	srcTag: '2409238',
 
 	dstValue: '100',
 	dstCurrency: 'XRP',
 	dstIssuer: '',
 	dstSlippage: '0',
+	dstTxID: '238',
 	dstTag: '120923965',
 
 	// Generated Values
@@ -55,7 +61,7 @@ __Response:__
 	txHash: '61DE29B67CD4E2EAB171D4E5982B34511DB0E9FC00458834F5C05A4686597F4E',
 	txPrevHash: '510D7756D27B7C41108F3EC2D9C8045D2AA5D7DE7E864CDAB1E9D170497D6B2B',
 	txFee: '0.00001',
-	txSequence: 117
+	txSequence: '117'
 
 	// Additional fields will be added once transaction is processed and written into the Ripple ledger
 }
@@ -68,25 +74,43 @@ See API Reference for all available fields.
 
 ### GET /api/v1/address/:address/next_tx/:txHash
 
+*should you be able to query by srcTxID or txSeqNumber?*
+
 
 __Route:__ `/api/v1/address/rHb9CJAWyB4rj91VRWn96DkukG4bwdtyTh/nextTx/510D7756D27B7C41108F3EC2D9C8045D2AA5D7DE7E864CDAB1E9D170497D6B2B` 
 
 __Response:__
+
+... if payment succeeded:
 ```js
 {
+	txType: 'paymentIncoming',
 	txPrevHash: '510D7756D27B7C41108F3EC2D9C8045D2AA5D7DE7E864CDAB1E9D170497D6B2B',
 	txHash: '70DF19B67CD4E2EAB171D4E5982B34511DB0E9FC00458834F5C05A4686597F4E'
 	txSeqNumber: 70,
-	txType: 'paymentIncoming'
+	srcTxID: 115,
+	txResult: 'tesSUCCESS'
 }
 ```
-OR (if that is the most recent transaction)
+... or if that transaction hasn't been processed yet:
 ```js
 {
+	txType: 'none',
 	txPrevHash: '70DF19B67CD4E2EAB171D4E5982B34511DB0E9FC00458834F5C05A4686597F4E',
 	txHash: '',
-	txSeqNumber: -1,
-	txType: 'none'
+	txSeqNumber: 70,
+	txResult: ''
+}
+```
+... or if that payment failed:
+```js
+{
+	txType: 'paymentFailed',
+	txPrevHash: '510D7756D27B7C41108F3EC2D9C8045D2AA5D7DE7E864CDAB1E9D170497D6B2B',
+	txHash: '70DF19B67CD4E2EAB171D4E5982B34511DB0E9FC00458834F5C05A4686597F4E', // TODO: would it report the hash?
+	txSeqNumber: 70,
+	srcTxID: 115,
+	txResult: 'tecUNFUNDED_PAYMENT'
 }
 ```
 
@@ -96,7 +120,7 @@ See API Reference for all available fields.
 
 ### GET /api/v1/address/:address/payment/:txHash
 
-__Route:__ /api/v1/address/rHb9CJAWyB4rj91VRWn96DkukG4bwdtyTh/payment/61DE29B67CD4E2EAB171D4E5982B34511DB0E9FC00458834F5C05A4686597F4E
+__Route:__ /api/v1/address/rHb9CJAWyB4rj91VRWn96DkukG4bwdtyTh/payment/70DF19B67CD4E2EAB171D4E5982B34511DB0E9FC00458834F5C05A4686597F4E
 
 __Response:__
 
@@ -110,19 +134,22 @@ __Response:__
 	srcCurrency: 'USD',
 	srcIssuer: 'rvYAfWj5gh67oV6fW32ZzP3Aw4Eubs59B',
 	srcSlippage: '0.50',
+	srcTxID: '115',
+	srcTag: '2409238',
 
 	dstValue: '100',
 	dstCurrency: 'XRP',
 	dstIssuer: '',
 	dstSlippage: '0',
+	dstTxID: '238',
 	dstTag: '120923965',
 
 	// Generated Values
-	txStatus: 'tx_processed',
+	txSstatus: 'tx_queued',
 	txHash: '61DE29B67CD4E2EAB171D4E5982B34511DB0E9FC00458834F5C05A4686597F4E',
 	txPrevHash: '510D7756D27B7C41108F3EC2D9C8045D2AA5D7DE7E864CDAB1E9D170497D6B2B',
 	txFee: '0.00001',
-	txSequence: 117,
+	txSequence: '117'
 
 	// Parsed From Transaction Ledger Entry
 	txValidated: true,
