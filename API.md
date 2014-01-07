@@ -2,9 +2,9 @@
 
 ## Resources
 
-1. [GET /api/v1/address/:address/nextTx/:txHash](API.md#get-apiv1addressaddressnexttxtxhash)
-2. [GET /api/v1/address/:address/payment/:txHash](API.md#get-apiv1addressaddresspaymenttxhash)
-3. [POST /api/v1/address/:address/payment/:signingKey](API.md#post-apiv1addressaddresspaymentsigningkey)
+1. [GET /api/v1/address/:address/nextTx/:txHash](API.md#get-apiv1addressaddressnexttxtxhash) - Get next transaction for an account
+2. [GET /api/v1/address/:address/payment/:txHash](API.md#get-apiv1addressaddresspaymenttxhash) - Get specific transaction for an account
+3. [POST /api/v1/address/:address/payment/:signingKey](API.md#post-apiv1addressaddresspaymentsigningkey) - Submit payment
 
 -----------
 
@@ -57,7 +57,9 @@ None
 #### Response JSON
 
 ```js
-
+{
+	
+}
 ```
 OR
 
@@ -67,5 +69,21 @@ OR
 -----------
 
 ### POST /api/v1/address/:address/payment/:signingKey
+
+#### Request JSON
+
+```js
+{
+
+}
+```
+
+#### Response JSON
+
+```js
+{
+
+}
+```
 
 -----------
