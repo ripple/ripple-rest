@@ -12,19 +12,43 @@
 
 ### POST /api/v1/address/:address/payment/:accountSecret
 
+#### Example
 
-#### POST Parameters
+```js
+{
+	srcAddress: 'rHb9CJAWyB4rj91VRWn96DkukG4bwdtyTh',
+	dstAddress: 'rpvfJ4mR6QQAeogpXEKnuyGBx8mYCSnYZi',
+
+	srcValue: '3',
+	srcCurrency: 'USD',
+	srcIssuer: 'rvYAfWj5gh67oV6fW32ZzP3Aw4Eubs59B',
+	srcSlippage: '0.50',
+
+	dstValue: '100',
+	dstCurrency: 'XRP',
+	dstIssuer: '',
+	dstSlippage: '0',
+	dstTag: '120923965'
+}
+```
+
+#### POST Data (required parameters)
+
+| Field         | Required | Description
+|---------------|----------|----------
+| `srcAddress`  | yes | Ripple address of sender
+| `dstAddress`  | yes | Ripple address of recipient
+| `dstValue`    | [see Notes below](API.md#notes-on-srcvalue-srccurrency-srcissuer-dstvalue-dstcurrency-dstissuer) | Amount recipient will receive (e.g. `'100.0'`)
+| `dstCurrency` | [see Notes below](API.md#notes-on-srcvalue-srccurrency-srcissuer-dstvalue-dstcurrency-dstissuer) | Currency that recipient will receive
+| `dstIssuer`   | [see Notes below](API.md#notes-on-srcvalue-srccurrency-srcissuer-dstvalue-dstcurrency-dstissuer) | Ripple address of issuer of currency that recipient will receive or `''` for XRP
+| `srcValue`	| [see Notes below](API.md#notes-on-srcvalue-srccurrency-srcissuer-dstvalue-dstcurrency-dstissuer) | Amount that will be sent (e.g. `'100.0'`) 
+| `srcCurrency` | [see Notes below](API.md#notes-on-srcvalue-srccurrency-srcissuer-dstvalue-dstcurrency-dstissuer) | Currency that will be sent (e.g. `'USD'` or `'XRP'`)
+| `srcIssuer`   | [see Notes below](API.md#notes-on-srcvalue-srccurrency-srcissuer-dstvalue-dstcurrency-dstissuer) | Ripple address of issuer of currency that will be sent
+
+#### Optional Parameters
 
 | Field         | Required | Type      | Description
 |---------------|----------|-----------|----------
-| `srcAddress`  | yes | Ripple address |
-| `dstAddress`  | yes | Ripple address |
-| `dstValue`    | [see Notes below](API.md#notes-on-srcvalue-srccurrency-srcissuer-dstvalue-dstcurrency-dstissuer) | string representation of floating point number | Amount recipient will receive (e.g. `'100.0'`)
-| `dstCurrency` | [see Notes below](API.md#notes-on-srcvalue-srccurrency-srcissuer-dstvalue-dstcurrency-dstissuer) | string | Currency that recipient will receive (e.g. `'USD'` or `'XRP'`, note that for non-`'XRP'` values recipient must have a trustline in this currency)
-| `dstIssuer`   | [see Notes below](API.md#notes-on-srcvalue-srccurrency-srcissuer-dstvalue-dstcurrency-dstissuer) | gateway Ripple address or `''` for XRP | Issuer of currency that recipient will receive (note that for currencies other than `'XRP'` recipient must have a trustline with this gateway)
-| `srcValue`	| [see Notes below](API.md#notes-on-srcvalue-srccurrency-srcissuer-dstvalue-dstcurrency-dstissuer) | string representation of floating point number | Amount that will be sent (e.g. `'100.0'`) 
-| `srcCurrency` | [see Notes below](API.md#notes-on-srcvalue-srccurrency-srcissuer-dstvalue-dstcurrency-dstissuer) | string | Currency that will be sent (e.g. `'USD'` or `'XRP'`)
-| `srcIssuer`   | [see Notes below](API.md#notes-on-srcvalue-srccurrency-srcissuer-dstvalue-dstcurrency-dstissuer) | gateway Ripple address or `''` for XRP | Issuer of currency that will be sent
 | `srcSlippage` | no, defaults to `'0'`| string representation of floating point number | Source account will never send more than `srcValue` + `srcSlippage`
 | `dstSlippage` | no, defaults to `'0'`| string representation of floating point number | Destination account will never receive less than `dstValue` - `dstSlippage`
 | `srcTag` 		| no, defaults to `''` | string representation of a UINT32 | Refers to 'sub-accounts' of the source address
