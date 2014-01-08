@@ -160,6 +160,7 @@ simply.confirmTransaction(txHash, function(status){
 });
 ```
 
+
 ```js
 simply.getTransaction(txHash, function(transaction){
 	
@@ -196,6 +197,11 @@ var simply = new RippleSimple({
 	db: ...
 });
 ```
+
+- tx queue
+- subscribe is list of accounts and last txHash
+- record of all transactions involving account
+
 
 [how should we handle this? i'm thinking of having some kind of standardized db client that expects `save`, `read`, `list`, and `search` functions or something like that]
 
