@@ -5,7 +5,6 @@ var expect = require('chai').expect,
   fs = require('fs'),
   accounts;
 
-console.log(__dirname);
 
 describe('This testing suite will use 2 real Ripple accounts to test transaction submission and confirmation', function(){
 
@@ -32,6 +31,7 @@ describe('This testing suite will use 2 real Ripple accounts to test transaction
     expect(accounts[0]).to.have.property('secret');
     expect(accounts[1]).to.have.property('secret');
 
+
   });
 
 
@@ -41,20 +41,24 @@ describe('This testing suite will use 2 real Ripple accounts to test transaction
 
   describe('RippleInterface', function(){
 
+
     describe('.submitRippleTx', function(){
 
       // TODO add other transaction type tests
 
       it('should complete a simple XRP payment', function(){
+
         rinterface.submitRippleTx({
-          TransactionType: 'payment',
+          TransactionType: 'Payment',
           Account: accounts[0].address,
           Destination: accounts[1].address,
           Amount: '100', // XRP Drops
         }, accounts[0].secret, function(res){
+
           expect(res).to.be.ok;
           expect(res).to.have.property('result');
-          // expect(res.result)
+          expect(res.result).to.equal('tesSUCCESS');
+
         });
       });
 
