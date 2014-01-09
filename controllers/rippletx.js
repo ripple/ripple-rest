@@ -12,10 +12,10 @@ exports.getTx = function (req, res) {
     txHash = req.param('txHash');
 
 
-  console.log('GET tx: ' + txHash + ' for address: ' + address);
+  // console.log('GET tx: ' + txHash + ' for address: ' + address);
 
 
-  rinterface.rippleGetTx(txHash, function(err, result){
+  rinterface.getRippleTx(txHash, function(err, result){
     if (err) {
       res.send(500, { error: err });
       return;
@@ -35,14 +35,9 @@ exports.submitTx = function (req, res) {
     tx = req.body;
 
 
-  console.log('address: ' + address, ' trying to submit tx: ' + JSON.stringify(tx));
+  // console.log('address: ' + address, ' trying to submit tx: ' + JSON.stringify(tx));
 
-
-  rinterface.rippleSubmitTx({
-    address: address,
-    secret: secret,
-    tx: tx
-  }, function(err, result){
+  rinterface.submitRippleTx(tx, secret, function(err, result){
     if (err) {
       res.send(500, { error: err });
       return;

@@ -9,10 +9,18 @@ module.exports = function(grunt) {
 			jshintrc: '.jshintrc'
 		},
 		simplemocha: {
-      all: {
-        src: ['test/*.js'],
+      local: {
+        src: ['test/local/*.js'],
         options: {
-          globals: ['should'],
+          timeout: 3000,
+          ignoreLeaks: false,
+          ui: 'bdd',
+          reporter: 'spec'
+        }
+      },
+      realmoney: {
+        src: ['test/realmoney/*.js'],
+        options: {
           timeout: 3000,
           ignoreLeaks: false,
           ui: 'bdd',
@@ -23,7 +31,7 @@ module.exports = function(grunt) {
 		watch: {
 			scripts: {
 				files: jsfiles,
-				tasks: ['jshint', 'simplemocha'],
+				tasks: ['jshint', 'simplemocha:local'],
 				options: {
 					interrupt: true
 				}
@@ -35,7 +43,8 @@ module.exports = function(grunt) {
 	grunt.loadNpmTasks('grunt-contrib-jshint');
 	grunt.loadNpmTasks('grunt-simple-mocha');
 
-	grunt.registerTask('default', ['jshint']);
-	grunt.registerTask('test', ['jshint', 'simplemocha']);
+	grunt.registerTask('default', ['jshint', 'simplemocha:local']);
+	grunt.registerTask('test', ['jshint', 'simplemocha:local']);
+  grunt.registerTask('realmoneytest', ['jshint', 'simplemocha:local', 'simplemocha:realmoney']);
 
 };
