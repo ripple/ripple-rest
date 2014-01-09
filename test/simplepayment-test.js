@@ -56,7 +56,7 @@ describe('SimplePayment', function(){
 
         dstValue: '100',
         dstCurrency: 'XRP'
-      }).isValid()).to.be.false;
+      }).isValid()).to.throw(Error);
 
     });
 

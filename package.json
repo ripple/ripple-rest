@@ -29,6 +29,7 @@
   "dependencies": {
     "express": "~3.4.7",
     "ripple-lib": "*",
-    "node-validator": "~0.1.1"
+    "node-validator": "~0.1.1",
+    "validator": "~3.0.0"
   }
 }
