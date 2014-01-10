@@ -6,39 +6,43 @@ var RippleInterface = require('../lib/rippleinterface'),
 rinterface = new RippleInterface(config.remoteOptions);
 
 
-exports.getTx = function (req, res) {
+module.exports.getTx = function (req, res) {
 
   var address = req.param('address'),
     txHash = req.param('txHash');
 
 
-  // console.log('GET tx: ' + txHash + ' for address: ' + address);
+  console.log('GET tx: ' + txHash + ' for address: ' + address);
 
 
-  rinterface.getRippleTx(txHash, function(err, result){
+  rinterface.getRippleTx(address, txHash, function(err, result){
     if (err) {
-      res.send(500, { error: err });
+      console.log('err: ' + err.message);
+
+      res.send(500, { err: err.message });
       return;
     }
 
     res.send(200, result);
+
   });
 
 };
 
 
 
-exports.submitTx = function (req, res) {
+module.exports.submitTx = function (req, res) {
 
   var address = req.param('address'),
     secret = req.param('secret'),
     tx = req.body;
 
 
-  // console.log('address: ' + address, ' trying to submit tx: ' + JSON.stringify(tx));
+  console.log('POST address: ' + address, ' trying to submit tx: ' + JSON.stringify(tx));
 
   rinterface.submitRippleTx(tx, secret, function(err, result){
     if (err) {
+      console.log('submitTx got err: ' + err);
       res.send(500, { error: err });
       return;
     }

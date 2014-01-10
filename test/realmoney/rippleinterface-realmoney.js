@@ -31,7 +31,6 @@ describe('This testing suite will use 2 real Ripple accounts to test transaction
     expect(accounts[0]).to.have.property('secret');
     expect(accounts[1]).to.have.property('secret');
 
-
   });
 
 
@@ -41,23 +40,33 @@ describe('This testing suite will use 2 real Ripple accounts to test transaction
 
   describe('RippleInterface', function(){
 
+    var accountsText = fs.readFileSync(__dirname + '/../../accounts.json', {encoding: 'utf8'});
+      accounts = JSON.parse(accountsText);
+
+    it('needs accounts.json', function(){
+      expect(accounts.length).to.be.at.least(2);
+    });
+
 
     describe('.submitRippleTx', function(){
 
       // TODO add other transaction type tests
 
-      it('should complete a simple XRP payment', function(){
+      it('should complete a simple XRP payment', function(done){
+
+        this.timeout(10000);
 
         rinterface.submitRippleTx({
-          TransactionType: 'Payment',
-          Account: accounts[0].address,
-          Destination: accounts[1].address,
-          Amount: '100', // XRP Drops
-        }, accounts[0].secret, function(res){
-
+          type: 'Payment',
+          from: accounts[0].address,
+          to: accounts[1].address,
+          amount: '1XRP', 
+        }, accounts[0].secret, function(err, res){
+          expect(err).to.be.null;
           expect(res).to.be.ok;
-          expect(res).to.have.property('result');
-          expect(res.result).to.equal('tesSUCCESS');
+          expect(res.engine_result).to.equal('tesSUCCESS');
+
+          done();
 
         });
       });

@@ -1,6 +1,7 @@
+
 module.exports = function(grunt) {
 
-	var jsfiles = ['*.js', 'lib/*.js', 'test/*.js'];
+	var jsfiles = ['*.js', 'lib/*.js', 'controllers/*.js', 'test/local/*.js'];
 
 	grunt.initConfig({
 		pkg: grunt.file.readJSON('package.json'),
@@ -31,20 +32,39 @@ module.exports = function(grunt) {
 		watch: {
 			scripts: {
 				files: jsfiles,
-				tasks: ['jshint', 'simplemocha:local'],
+				tasks: ['jshint', 'simplemocha:local', 'express:app:stop', 'express:app'],
 				options: {
 					interrupt: true
 				}
 			}
-		}
+		},
+    express: {
+      options: {
+        port: 5990,
+        // spawn: false,
+        background: false
+      },
+      app: {
+        options: {
+          script: 'app.js'        
+        }
+      }
+    }
 	});
 
+
+
+  /* Load tasks */
 	grunt.loadNpmTasks('grunt-contrib-watch');
+  grunt.loadNpmTasks('grunt-express-server');
 	grunt.loadNpmTasks('grunt-contrib-jshint');
 	grunt.loadNpmTasks('grunt-simple-mocha');
 
-	grunt.registerTask('default', ['jshint', 'simplemocha:local']);
+
+  /* Register tasks */
+	grunt.registerTask('default', ['watch']);
 	grunt.registerTask('test', ['jshint', 'simplemocha:local']);
   grunt.registerTask('realmoneytest', ['jshint', 'simplemocha:local', 'simplemocha:realmoney']);
 
 };
+
