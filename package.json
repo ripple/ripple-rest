@@ -33,6 +33,7 @@
     "ripple-lib": "*",
     "node-validator": "~0.1.1",
     "validator": "~3.0.0",
-    "underscore": "~1.5.2"
+    "underscore": "~1.5.2",
+    "db-migrate": "~0.6.3"
   }
 }
