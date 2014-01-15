@@ -1,0 +1,9 @@
+{
+  "dev": {
+    "driver": "pg",
+    "user": "postgres",
+    "password": "password",
+    "host": "127.0.0.1",
+    "database": "ripple_simple"
+  }
+}

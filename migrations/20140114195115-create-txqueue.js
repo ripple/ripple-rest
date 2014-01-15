@@ -3,16 +3,17 @@ var type = dbm.dataType;
 
 exports.up = function(db, callback) {
   db.createTable('txqueue', {
-    initialHash: {type: 'string', primaryKey: true, notNull: true, unique: true},
+    id: {type: 'int', autoIncrement: true, primaryKey: true},
+    initialHash: {type: 'string'},
     submittedAtTime: {type: 'timestamp'},
     submittedAtLedger: {type: 'int'},
     srcAddress: {type: 'string'},
-    txStatus: {type: 'string'},
+    txState: {type: 'string'},
     txResult: {type: 'string'},
     txFinalHash: {type: 'string'}
-  });
+  }, callback);
 };
 
 exports.down = function(db, callback) {
-
+  db.dropTable('txqueue', callback)
 };
