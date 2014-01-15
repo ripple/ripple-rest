@@ -3,14 +3,22 @@ var type = dbm.dataType;
 
 exports.up = function(db, callback) {
   db.createTable('txqueue', {
+
+    /* Auto-generated */
     id: {type: 'int', autoIncrement: true, primaryKey: true},
-    initialHash: {type: 'string'},
+
+    /* Added initially */
+    initialHash: {type: 'text'},
     submittedAtTime: {type: 'timestamp'},
     submittedAtLedger: {type: 'int'},
-    srcAddress: {type: 'string'},
-    txState: {type: 'string'},
-    txResult: {type: 'string'},
-    txFinalHash: {type: 'string'}
+    srcAddress: {type: 'text'},
+    txType: {type: 'text'},
+    txState: {type: 'text'}, // Updated after submission
+
+    /* Added after submission */
+    txResult: {type: 'text'},
+    txHash: {type: 'text'}
+
   }, callback);
 };
 
