@@ -1,7 +1,8 @@
 var express = require('express'),
   app = express();
 
-var RippleTxCtrl = require('./controllers/rippletx');
+var RippleTxCtrl = require('./controllers/rippleTxCtrl'),
+  NotificationQueueCtrl = require('./controllers/notificationQueueCtrl');
 
 /* Express middleware */
 app.use(express.bodyParser());

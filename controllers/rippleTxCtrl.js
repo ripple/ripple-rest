@@ -14,8 +14,9 @@ module.exports.getTx = function (req, res) {
 
   console.log('GET tx: ' + txHash + ' for address: ' + address);
 
+  // TODO how should we use the address?
 
-  rinterface.getRippleTx(address, txHash, function(err, result){
+  rinterface.getRippleTx(txHash, function(err, result){
     if (err) {
       console.log('err: ' + err.message);
 
@@ -40,14 +41,20 @@ module.exports.submitTx = function (req, res) {
 
   console.log('POST address: ' + address, ' trying to submit tx: ' + JSON.stringify(tx));
 
-  rinterface.submitRippleTx(tx, secret, function(err, result){
+  rinterface.submitRippleTx(tx, secret, function(err, initialHash){
     if (err) {
       console.log('submitTx got err: ' + err);
-      res.send(500, { error: err });
+      res.send(500, { 
+        state: 'error', 
+        error: err 
+      });
       return;
     }
 
-    res.send(200, result);
+    res.send(200, {
+      state: 'submitted',
+      notificationId: initialHash
+    });
   });
 
 };
