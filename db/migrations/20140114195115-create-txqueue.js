@@ -9,7 +9,7 @@ exports.up = function(db, callback) {
 
     /* Added initially */
     initialHash: {type: 'text'},
-    submittedAtTime: {type: 'timestamp'},
+    submittedAtTime: {type: 'datetime'},
     submittedAtLedger: {type: 'int'},
     srcAddress: {type: 'text'},
     txType: {type: 'text'},

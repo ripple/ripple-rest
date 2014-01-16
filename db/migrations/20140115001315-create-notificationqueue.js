@@ -7,11 +7,12 @@ exports.up = function(db, callback) {
     id: {type: 'int', autoIncrement: true, primaryKey: true},
 
     /* rippled fields */
-    srcAddress: {type: 'text'},
     txHash: {type: 'text'},
     txResult: {type: 'text'},
+    inLedger: {type: 'int'},
 
     /* ripple-simple fields */
+    notificationAddress: {type: 'text'},
     txType: {type: 'text'},
     txDirection: {type: 'text'},
     txState: {type: 'text'},
