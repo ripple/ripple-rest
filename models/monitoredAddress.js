@@ -2,22 +2,13 @@ var sequelize = require('sequelize'),
   config = require('../config') || {},
   db = require('../db/sequelizeConnect')(config.env || 'dev');
 
-var MonitoredAddress = db.define('MonitoredAddress', {
+var MonitoredAddress = db.define('monitored_addresses', {
 
-  /* Auto-generated */
-  id: { 
-    type: sequelize.INTEGER,
-    primaryKey: true,
-    autoIncrement: true,
-    notNull: true,
-    unique: true,
-  },
-
-  notificationAddress: sequelize.TEXT,
+  notificationAddress: {type: sequelize.TEXT, primaryKey: true, notNull: true},
   monitorIncoming: {type: sequelize.BOOLEAN, defaultValue: true},
   monitorOutgoing: {type: sequelize.BOOLEAN, defaultValue: true},
 
-  singleTxHash: sequelize.TEXT
+  singleTxHash: {type: sequelize.TEXT, primaryKey: true, defaultValue: ''}
 
 
 }, {

@@ -2,19 +2,10 @@ var sequelize = require('sequelize'),
   config = require('../config'),
   db = require('../db/sequelizeConnect')(config.env || 'dev');
 
-var OutboundTx = db.define('OutboundTx', {
-
-  /* Auto-generated */
-  id: { 
-    type: sequelize.INTEGER,
-    primaryKey: true,
-    autoIncrement: true,
-    notNull: true,
-    unique: true,
-  },
+var OutboundTx = db.define('outbound_txs', {
 
   /* Added initially */
-  initialHash: sequelize.TEXT,
+  initialHash: {type: sequelize.TEXT, primaryKey: true, notNull: true},
   submittedAtTime: sequelize.DATE,
   submittedAtLedger: sequelize.INTEGER,
   srcAddress: sequelize.TEXT,

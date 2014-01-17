@@ -7,9 +7,11 @@ function createDb (env) {
     env = 'dev';
   }
 
-  var db = new Sequelize(dbConfig.database, dbConfig.user, dbConfig.password, {
+  console.log('connecting to db: ' + dbConfig[env].database + ' as user: ' + dbConfig[env].user);
+
+  var db = new Sequelize(dbConfig[env].database, dbConfig[env].user, dbConfig[env].password, {
     dialect: "postgres",
-    host: dbConfig.host,
+    host: dbConfig[env].host,
     port: 5432,
     omitNull: true,
     native: true,

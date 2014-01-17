@@ -2,24 +2,15 @@ var sequelize = require('sequelize'),
   config = require('../config') || {},
   db = require('../db/sequelizeConnect')(config.env || 'dev');
 
-var Notification = db.define('Notification', {
-
-  /* Auto-generated */
-  id: { 
-    type: sequelize.INTEGER,
-    primaryKey: true,
-    autoIncrement: true,
-    notNull: true,
-    unique: true,
-  },
+var Notification = db.define('notifications', {
 
   /* rippled fields */
-  txHash: sequelize.TEXT,
+  txHash: {type: sequelize.TEXT, primaryKey: true, notNull: true},
   txResult: sequelize.TEXT,
   inLedger: sequelize.INTEGER,
 
   /* ripple-simple fields */
-  notificationAddress: sequelize.TEXT,
+  notificationAddress: {type: sequelize.TEXT, primaryKey: true, notNull: true},
   txType: sequelize.TEXT,
   txDirection: sequelize.TEXT,
   txState: sequelize.TEXT,

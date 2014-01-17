@@ -3,7 +3,7 @@
     "driver": "pg",
     "user": "postgres",
     "password": "password",
-    "host": "127.0.0.1",
+    "host": "localhost",
     "database": "ripple_simple"
   }
 }

@@ -1,3 +1,5 @@
+module.exports.env = 'dev';
+
 module.exports.remoteOptions = {
   local_signing: true,
   servers: [{

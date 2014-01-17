@@ -2,17 +2,18 @@ var dbm = require('db-migrate');
 var type = dbm.dataType;
 
 exports.up = function(db, callback) {
-  db.createTable('notificationqueue', {
+  db.createTable('notifications', {
     /* Auto-generated */
-    id: {type: 'int', autoIncrement: true, primaryKey: true},
+    createdAt: {type: 'timestamp'},
+    updatedAt: {type: 'timestamp'},
 
     /* rippled fields */
-    txHash: {type: 'text'},
+    '"txHash"': {type: 'text', primaryKey: true},
     txResult: {type: 'text'},
     inLedger: {type: 'int'},
 
     /* ripple-simple fields */
-    notificationAddress: {type: 'text'},
+    '"notificationAddress"': {type: 'text', primaryKey: true},
     txType: {type: 'text'},
     txDirection: {type: 'text'},
     txState: {type: 'text'},
@@ -24,5 +25,5 @@ exports.up = function(db, callback) {
 };
 
 exports.down = function(db, callback) {
-  db.dropTable('notificationqueue', callback);
+  db.dropTable('notifications', callback);
 };
