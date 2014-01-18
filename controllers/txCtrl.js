@@ -3,6 +3,7 @@ var txLib = require('../lib/tx'),
 
 function TxCtrl (remote) {
   this.remote = remote;
+  console.log('TxCtrl instantiated with ' + this.remote._online_state + ' remote');
 }
 
 // TODO validate all options
@@ -28,6 +29,9 @@ TxCtrl.prototype.getTx = function(req, res) {
 TxCtrl.prototype.getNextNotification = function(req, res) {
   var address = req.param('address'),
     prevTxHash = req.param('prevTxHash');
+
+  console.log('getNextNotification has remote: ' + this.remote);
+
 
   txLib.getNextNotification(this.remote, {
     address: address, 

@@ -37,7 +37,7 @@ module.exports = function(grunt) {
         // nodeArgs: ['--debug'],
         ignoredFiles: ['node_modules/**'],
         watchedExtensions: ['js', 'json'],
-        watchedFolders: ['.', 'lib', 'controllers', 'models', 'db'],
+        watchedFolders: ['./', 'lib/', 'controllers/', 'models/', 'db/'],
         legacyWatch: true,
         env: {
           PORT: '5900'
