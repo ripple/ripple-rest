@@ -1,7 +1,7 @@
 
 module.exports = function(grunt) {
 
-	var jsfiles = ['*.js', 'lib/*.js', 'controllers/*.js', 'test/local/*.js'];
+	var jsfiles = ['*.js', 'lib/*.js', 'controllers/*.js', 'test/**/*.js'];
 
 	grunt.initConfig({
 		pkg: grunt.file.readJSON('package.json'),
@@ -11,16 +11,7 @@ module.exports = function(grunt) {
 		},
 		simplemocha: {
       local: {
-        src: ['test/local/*.js'],
-        options: {
-          timeout: 3000,
-          ignoreLeaks: false,
-          ui: 'bdd',
-          reporter: 'spec'
-        }
-      },
-      realmoney: {
-        src: ['test/realmoney/*.js'],
+        src: ['test/lib/*', 'test/controllers/*'],
         options: {
           timeout: 3000,
           ignoreLeaks: false,
@@ -32,39 +23,45 @@ module.exports = function(grunt) {
 		watch: {
 			scripts: {
 				files: jsfiles,
-				tasks: ['jshint', 'simplemocha:local', 'express:app:stop', 'express:app'],
+				tasks: ['jshint', 'simplemocha:local'],
 				options: {
 					interrupt: true
 				}
 			}
 		},
-    express: {
+    nodemon: {
+    dev: {
       options: {
-        port: 5990,
-        // spawn: false,
-        background: false
-      },
-      app: {
-        options: {
-          script: 'app.js'        
-        }
+        file: 'app.js',
+        args: ['dev'],
+        // nodeArgs: ['--debug'],
+        ignoredFiles: ['node_modules/**'],
+        watchedExtensions: ['js', 'json'],
+        watchedFolders: ['.', 'lib', 'controllers', 'models', 'db'],
+        legacyWatch: true,
+        env: {
+          PORT: '5900'
+        },
+        cwd: __dirname
       }
     }
+  }
+    
 	});
 
 
 
   /* Load tasks */
 	grunt.loadNpmTasks('grunt-contrib-watch');
-  grunt.loadNpmTasks('grunt-express-server');
+  grunt.loadNpmTasks('grunt-nodemon');
 	grunt.loadNpmTasks('grunt-contrib-jshint');
 	grunt.loadNpmTasks('grunt-simple-mocha');
 
 
   /* Register tasks */
-	grunt.registerTask('default', ['watch']);
+	grunt.registerTask('default', ['jshint', 'nodemon']);
+  grunt.registerTask('dev', ['jshint', 'simplemocha:local', 'nodemon']);
 	grunt.registerTask('test', ['jshint', 'simplemocha:local']);
-  grunt.registerTask('realmoneytest', ['jshint', 'simplemocha:local', 'simplemocha:realmoney']);
 
 };
 
