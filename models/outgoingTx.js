@@ -2,11 +2,10 @@ var sequelize = require('sequelize'),
   config = require('../config'),
   db = require('../db/sequelizeConnect')(config.env || 'dev');
 
-var OutboundTx = db.define('outbound_txs', {
+var OutgoingTx = db.define('outgoing_transactions', {
 
   /* Added initially */
   initialHash: {type: sequelize.TEXT, primaryKey: true, notNull: true},
-  submittedAtTime: sequelize.DATE,
   submittedAtLedger: sequelize.INTEGER,
   srcAddress: sequelize.TEXT,
   txType: sequelize.TEXT,
@@ -20,7 +19,7 @@ var OutboundTx = db.define('outbound_txs', {
 
 });
 
-module.exports = OutboundTx;
+module.exports = OutgoingTx;
 
 
 

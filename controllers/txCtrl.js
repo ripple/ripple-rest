@@ -12,7 +12,7 @@ function TxCtrl (remote) {
       var address = req.param('address'),
         txHash = req.param('txHash');
 
-      txLib(remote, txHash, function(err, tx){
+      txLib.getTx(remote, txHash, function(err, tx){
         if (err) {
           errorHandler(res, err);
           return;

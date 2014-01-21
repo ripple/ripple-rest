@@ -25,12 +25,16 @@ app.all('*', function(req, res, next) {
 
 
 /* Routes */
+app.get('/api/v1/status', function(req, res){
+  res.send(remote._connected);
+});
 app.get('/api/v1/address/:address/tx/:txHash', TxCtrl.getTx);
+app.get('/api/v1/address/:address/next_notification', TxCtrl.getNextNotification);
 app.get('/api/v1/address/:address/next_notification/:prevTxHash', TxCtrl.getNextNotification);
 app.post('/api/v1/address/:address/tx/', TxCtrl.submitTx);
 
 
-var port = process.env.PORT || 5990
+var port = process.env.PORT || 5990;
 app.listen(port);
 console.log('Listening on port: ' + port);
 
