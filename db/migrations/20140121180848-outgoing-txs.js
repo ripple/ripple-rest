@@ -2,7 +2,7 @@ var dbm = require('db-migrate');
 var type = dbm.dataType;
 
 exports.up = function(db, callback) {
-  db.createTable('outbound_txs', {
+  db.createTable('outgoing_txs', {
 
     /* Auto-generated */
     createdAt: {type: 'timestamp'},
@@ -24,5 +24,5 @@ exports.up = function(db, callback) {
 };
 
 exports.down = function(db, callback) {
-  db.dropTable('outbound_txs', callback)
+  db.dropTable('outgoing_txs', callback)
 };

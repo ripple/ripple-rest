@@ -10,14 +10,17 @@ module.exports = function(grunt) {
 			jshintrc: '.jshintrc'
 		},
 		simplemocha: {
-      local: {
-        src: ['test/lib/*', 'test/controllers/*'],
-        options: {
+      options: {
           timeout: 3000,
           ignoreLeaks: false,
           ui: 'bdd',
           reporter: 'spec'
-        }
+        },
+      local: {
+        src: ['test/**/*-test.js']
+      },
+      realmoney: {
+        src: ['test/**/*-test-realmoney.js']
       }
 		},
 		watch: {

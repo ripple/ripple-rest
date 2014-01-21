@@ -13,9 +13,10 @@
 	"maxparams": 3,
 	"maxdepth": 3,
 	"maxstatements": 4,
+  "maxlen": 100,
 
 	"loopfunc": true,
-	"maxerr": 100,
+	"maxerr": 90,
 
 	"globals": {
 		"node": true,
