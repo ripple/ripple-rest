@@ -30,12 +30,9 @@ app.get('/api/v1/address/:address/next_notification/:prevTxHash', TxCtrl.getNext
 app.post('/api/v1/address/:address/tx/', TxCtrl.submitTx);
 
 
-
-app.listen(5990);
-console.log('Listening on port: ' + 5990);
-
-
-
+var port = process.env.PORT || 5990
+app.listen(port);
+console.log('Listening on port: ' + port);
 
 /* Export for testing purposes */
 module.exports = app;
