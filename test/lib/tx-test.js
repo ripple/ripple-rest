@@ -90,5 +90,48 @@ describe('lib/tx.js', function(){
   });
 
 
+  describe('.submitTx()', function(){
+
+    it('should respond with an error if given an invalid srcAddress', function(){
+      txLib.submitTx(connectedRemote, {
+        srcAddress: '',
+        secret: '',
+        txJson: {
+          type: 'payment',
+          from: 'rNw4ozCG514KEjPs5cDrqEcdsi31Jtfm5r',
+          to: 'rKXCummUHnenhYudNb9UoJ4mGBR75vFcgz',
+          amount: '1XRP'
+        }
+      }, function(err, res){
+        expect(err).to.be.ok;
+        expect(res).not.to.be.ok;
+      });
+    });
+
+    it('should respond with an error if given an invalid secret', function(){
+      txLib.submitTx(connectedRemote, {
+        srcAddress: 'rNw4ozCG514KEjPs5cDrqEcdsi31Jtfm5r',
+        secret: '',
+        txJson: {
+          type: 'payment',
+          from: 'rNw4ozCG514KEjPs5cDrqEcdsi31Jtfm5r',
+          to: 'rKXCummUHnenhYudNb9UoJ4mGBR75vFcgz',
+          amount: '1XRP'
+        }
+      }, function(err, res){
+        expect(err).to.be.ok;
+        expect(res).not.to.be.ok;
+      });
+    });
+
+    // it('should respond with an error if given an invalid transaction', function(){
+
+    // });
+
+    // TODO add more tests
+
+  });
+
+
 });
 
