@@ -24,7 +24,7 @@ app.all('*', function(req, res, next) {
 });
 
 
-/* Routes */
+/* Server Routes */
 app.get('/api/v1/status', function(req, res){
   if (remote._connected) {
     res.send('connected');
@@ -32,11 +32,14 @@ app.get('/api/v1/status', function(req, res){
     res.send('disconnected');
   }
 });
+
+/* Ripple Tx Routes */
 app.get('/api/v1/address/:address/tx/:txHash', TxCtrl.getTx);
 app.get('/api/v1/address/:address/next_notification', TxCtrl.getNextNotification);
 app.get('/api/v1/address/:address/next_notification/:prevTxHash', TxCtrl.getNextNotification);
 app.post('/api/v1/address/:address/tx/', TxCtrl.submitTx);
 
+/* Simplified Payment Routes */
 
 var port = process.env.PORT || 5990;
 app.listen(port);
