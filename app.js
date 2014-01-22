@@ -11,7 +11,9 @@ remote.once('connect', function(){
 });
 
 /* Initialize controllers */
-var TxCtrl = require('./controllers/txCtrl')(remote);
+var TxCtrl = require('./controllers/txCtrl')(remote),
+  PaymentCtrl = require('./controllers/paymentCtrl')(remote);
+
 
 /* Express middleware */
 app.use(express.json());
@@ -40,6 +42,10 @@ app.get('/api/v1/address/:address/next_notification/:prevTxHash', TxCtrl.getNext
 app.post('/api/v1/address/:address/tx/', TxCtrl.submitTx);
 
 /* Simplified Payment Routes */
+app.get('/api/v1/address/:address/payments/:txHash', PaymentCtrl.getPayment);
+app.post('/api/v1/address/:address/payments', PaymentCtrl.submitPayment);
+
+
 
 var port = process.env.PORT || 5990;
 app.listen(port);
