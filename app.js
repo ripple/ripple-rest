@@ -26,7 +26,11 @@ app.all('*', function(req, res, next) {
 
 /* Routes */
 app.get('/api/v1/status', function(req, res){
-  res.send(remote._connected);
+  if (remote._connected) {
+    res.send('connected');
+  } else {
+    res.send('disconnected');
+  }
 });
 app.get('/api/v1/address/:address/tx/:txHash', TxCtrl.getTx);
 app.get('/api/v1/address/:address/next_notification', TxCtrl.getNextNotification);
