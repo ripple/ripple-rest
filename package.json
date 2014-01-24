@@ -28,7 +28,9 @@
     "grunt-simple-mocha": "*",
     "grunt-express": "~1.2.1",
     "grunt-express-server": "~0.4.11",
-    "grunt-nodemon": "~0.1.2"
+    "grunt-nodemon": "~0.1.2",
+    "sinon": "~1.7.3",
+    "sinon-chai": "~2.4.0"
   },
   "dependencies": {
     "express": "~3.4.7",
@@ -41,6 +43,7 @@
     "pg": "~2.11.0",
     "sequelize-postgres": "~2.0.0-beta.2",
     "async": "~0.2.9",
-    "lodash": "~2.4.1"
+    "lodash": "~2.4.1",
+    "bignum": "~0.6.2"
   }
 }

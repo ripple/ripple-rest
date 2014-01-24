@@ -6,8 +6,8 @@ module.exports = function(res, error) {
 
   var err_obj = {
     success: false,
-    error: (typeof error === 'string' ? error : error.error || error.message),
-    message: (typeof error === 'string' ? '' : error.message)
+    error: error.message || error.engine_result || error,
+    message: error.message || error.engine_result_message || error
   };
 
   res.send(err_obj);

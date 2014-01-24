@@ -15,7 +15,10 @@ function createDb (env) {
     port: 5432,
     omitNull: true,
     native: true,
-    protocol: 'postgres'
+    protocol: 'postgres',
+    define: {
+      underscored: true
+    }
   });
 
   db.authenticate()

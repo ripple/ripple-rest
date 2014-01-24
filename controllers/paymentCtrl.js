@@ -42,7 +42,6 @@ function PaymentCtrl (remote) {
         secret: secret
       }, function(err, initial_hash){
         if (err) {
-          console.log('submitPayment error: ' + err);
           errorHandler(res, err);
           return;
         }
