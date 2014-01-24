@@ -45,10 +45,10 @@ describe('lib/tx.js', function(){
 
   describe('.getNextNotification()', function(){
 
-    it('should respond with an error if the prevTxHash is invalid', function(done){
+    it('should respond with an error if the prev_tx_hash is invalid', function(done){
       txLib.getNextNotification(connectedRemote,{
         address: 'rLpq5RcRzA8FU1yUqEPW4xfsdwon7casuM',
-        prevTxHash: 'blah'
+        prev_tx_hash: 'blah'
       }, function(err, res){
         expect(err).to.be.ok;
         expect(res).not.to.be.ok;
@@ -59,7 +59,7 @@ describe('lib/tx.js', function(){
     it('should respond with an error if the address is invalid', function(done){
       txLib.getNextNotification(connectedRemote,{
         address: 'blah',
-        prevTxHash: 'CFB414D4BEA0F9B69B9203F5BE15A68E2ECAFCB63FD562646FF7C750A6A6DEBF'
+        prev_tx_hash: 'CFB414D4BEA0F9B69B9203F5BE15A68E2ECAFCB63FD562646FF7C750A6A6DEBF'
       }, function(err, res){
         expect(err).to.be.ok;
         expect(res).not.to.be.ok;
@@ -67,10 +67,10 @@ describe('lib/tx.js', function(){
       });
     });
 
-    it('should respond with the next notification if it is given a valid prevTxHash and address', function(done){
+    it('should respond with the next notification if it is given a valid prev_tx_hash and address', function(done){
       txLib.getNextNotification(connectedRemote, {
         address: 'rLpq5RcRzA8FU1yUqEPW4xfsdwon7casuM',
-        prevTxHash: 'CFB414D4BEA0F9B69B9203F5BE15A68E2ECAFCB63FD562646FF7C750A6A6DEBF'
+        prev_tx_hash: 'CFB414D4BEA0F9B69B9203F5BE15A68E2ECAFCB63FD562646FF7C750A6A6DEBF'
       }, function(err, res){
         expect(err).not.to.be.ok;
         expect(res).to.have.keys([
@@ -92,11 +92,11 @@ describe('lib/tx.js', function(){
 
   describe('.submitTx()', function(){
 
-    it('should respond with an error if given an invalid srcAddress', function(){
+    it('should respond with an error if given an invalid src_address', function(){
       txLib.submitTx(connectedRemote, {
-        srcAddress: '',
+        src_address: '',
         secret: '',
-        txJson: {
+        tx_json: {
           type: 'payment',
           from: 'rNw4ozCG514KEjPs5cDrqEcdsi31Jtfm5r',
           to: 'rKXCummUHnenhYudNb9UoJ4mGBR75vFcgz',
@@ -110,9 +110,9 @@ describe('lib/tx.js', function(){
 
     it('should respond with an error if given an invalid secret', function(){
       txLib.submitTx(connectedRemote, {
-        srcAddress: 'rNw4ozCG514KEjPs5cDrqEcdsi31Jtfm5r',
+        src_address: 'rNw4ozCG514KEjPs5cDrqEcdsi31Jtfm5r',
         secret: '',
-        txJson: {
+        tx_json: {
           type: 'payment',
           from: 'rNw4ozCG514KEjPs5cDrqEcdsi31Jtfm5r',
           to: 'rKXCummUHnenhYudNb9UoJ4mGBR75vFcgz',

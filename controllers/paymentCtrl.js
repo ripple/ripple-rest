@@ -9,12 +9,12 @@ function PaymentCtrl (remote) {
 
     getPayment: function(req, res) {
 
-      var srcAddress = req.param('address'), 
-       txHash = req.param('txHash');
+      var src_address = req.param('address'), 
+       tx_hash = req.param('tx_hash');
 
-      paymentLib.getPayment(remote, txHash, function(err, payment){
+      paymentLib.getPayment(remote, tx_hash, function(err, payment){
         if (err) {
-          errorHandler(err);
+          errorHandler(res, err);
           return;
         }
 
@@ -28,27 +28,28 @@ function PaymentCtrl (remote) {
 
     submitPayment: function(req, res) {
 
-      var srcAddress = req.param('address'),
-        paymentJson = req.body.payment || req.body.paymentJson || req.body,
+      var src_address = req.param('address'),
+        payment_json = req.body.payment || req.body.payment_json || req.body,
         secret = req.body.secret;
 
-      if (paymentJson.secret) {
-        delete paymentJson.secret;
+      if (payment_json.secret) {
+        delete payment_json.secret;
       }
 
       paymentLib.submitPayment(remote, {
-        srcAddress: srcAddress,
-        paymentJson: paymentJson,
+        src_address: src_address,
+        payment_json: payment_json,
         secret: secret
-      }, function(err, initialHash){
+      }, function(err, initial_hash){
         if (err) {
-          errorHandler(err);
+          console.log('submitPayment error: ' + err);
+          errorHandler(res, err);
           return;
         }
 
         res.send({
           success: true,
-          submissionToken: initialHash
+          confirmation_token: initial_hash
         });
 
       });

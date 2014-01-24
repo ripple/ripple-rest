@@ -10,9 +10,9 @@ function TxCtrl (remote) {
     getTx: function(req, res) {
 
       var address = req.param('address'),
-        txHash = req.param('txHash');
+        tx_hash = req.param('tx_hash');
 
-      txLib.getTx(remote, txHash, function(err, tx){
+      txLib.getTx(remote, tx_hash, function(err, tx){
         if (err) {
           errorHandler(res, err);
           return;
@@ -26,41 +26,19 @@ function TxCtrl (remote) {
       });
     },
 
-    getNextNotification: function(req, res) {
-
-      var address = req.param('address'),
-        prevTxHash = req.param('prevTxHash');
-
-      txLib.getNextNotification(remote, {
-        address: address, 
-        prevTxHash: prevTxHash
-      }, function(err, nextNotification){
-        if (err) {
-          errorHandler(res, err);
-          return;
-        }
-
-        res.send({
-          success: true,
-          notification: nextNotification
-        });
-
-      });
-    },
-
     submitTx: function(req, res) {
 
-      var srcAddress = req.param('address'),
+      var src_address = req.param('address'),
         secret = req.body.secret,
-        txJson = req.body.tx || req.body.txJson || req.body;
+        tx_json = req.body.tx || req.body.tx_json || req.body;
 
-      // console.log('submitTx: ' + JSON.stringify(txJson));
+      // console.log('submitTx: ' + JSON.stringify(tx_json));
 
       txLib.submitTx(remote, {
-        srcAddress: srcAddress,
+        src_address: src_address,
         secret: secret,
-        txJson: txJson
-      }, function(err, initialHash){
+        tx_json: tx_json
+      }, function(err, initial_hash){
         if (err) {
           errorHandler(res, err);
           return;
@@ -68,7 +46,7 @@ function TxCtrl (remote) {
 
         res.send({
           success: true,
-          submissionToken: initialHash
+          confirmation_token: initial_hash
         });
 
       });
