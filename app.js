@@ -17,7 +17,7 @@ remote.once('connect', function(){
 
   /* Initialize controllers */
   var TxCtrl = require('./controllers/txCtrl')(remote),
-    NotificationCtrl = require('./controllers/notificationCtrl')(remote),
+    NotificationCtrl = require('./controllers/notificationCtrl')(remote, { port: process.env.PORT || 5990 }),
     PaymentCtrl = require('./controllers/paymentCtrl')(remote);
 
 

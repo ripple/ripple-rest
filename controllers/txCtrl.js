@@ -3,7 +3,7 @@ var txLib = require('../lib/tx'),
 
 // TODO validate all options
 
-function TxCtrl (remote) {
+function TxCtrl (remote, opts) {
   
   return {
 

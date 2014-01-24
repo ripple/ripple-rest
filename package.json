@@ -44,6 +44,6 @@
     "sequelize-postgres": "~2.0.0-beta.2",
     "async": "~0.2.9",
     "lodash": "~2.4.1",
-    "bignum": "~0.6.2"
+    "bignumber.js": "~1.3.0"
   }
 }

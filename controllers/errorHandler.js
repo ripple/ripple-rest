@@ -2,7 +2,7 @@ module.exports = function(res, error) {
 
   // TODO categorize and format errors
 
-  console.log('error: ' + JSON.stringify(err_obj));
+  console.log('Error: ' + JSON.stringify(err_obj));
 
   var err_obj = {
     success: false,
