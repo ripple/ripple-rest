@@ -3,7 +3,7 @@ var request = require('request'),
   accounts = require('../accounts.json');
 
 var prev_tx_hash,
-  this_tx_hash;
+  tx_url;
 
 async.series([
 
@@ -41,6 +41,8 @@ async.series([
           value: '1',
           currency: 'XRP'
         },
+        // flag_partial_payment: true,
+        // flag_no_direct_ripple: true,
         secret: accounts[0].secret
       }
     }, function(err, message, res){
@@ -80,18 +82,18 @@ async.series([
       url: 'http://localhost:5990/api/v1/addresses/' + accounts[0].address + '/next_notification/' + prev_tx_hash
     }, function(err, message, res){
         console.log('GET next_notification... err: ' + err + ' res: ' + res + '\n');
-        this_tx_hash = JSON.parse(res).notification.tx_hash;
+        tx_url = JSON.parse(res).notification.tx_url;
         callback();
       });
   },
 
 
-  // function(callback) {
-  //   request.get({
-  //     url: 'http://localhost:5990/api/v1/addresses/' + accounts[0].address + '/payments/' + this_tx_hash
-  //   }, function(err, message, res){
-  //     console.log('GET payment... err: ' + err + ' res: ' + res + '\n');
-  //   })
-  // }
+  function(callback) {
+    request.get({
+      url: tx_url
+    }, function(err, message, res){
+      console.log('GET payment... err: ' + err + ' res: ' + res + '\n');
+    });
+  }
 
 ]);
