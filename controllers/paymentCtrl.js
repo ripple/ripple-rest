@@ -3,7 +3,9 @@ var paymentLib = require('../lib/payment'),
 
 // TODO validate all options
 
-function PaymentCtrl (remote, opts) {
+function PaymentCtrl (opts) {
+
+  var remote = opts.remote;
 
   return {
 

@@ -3,7 +3,11 @@ var notificationLib = require('../lib/notification'),
 
 // TODO validate all options
 
-function NotificationCtrl (remote, opts) {
+function NotificationCtrl (opts) {
+
+  var remote = opts.remote,
+    OutgoingTx = opts.OutgoingTx,
+    port = opts.port;
   
   return {
 
@@ -12,7 +16,9 @@ function NotificationCtrl (remote, opts) {
       var address = req.param('address'),
         prev_tx_hash = req.param('prev_tx_hash');
 
-      notificationLib.getNextNotification(remote, {
+      notificationLib.getNextNotification({
+        remote: remote,
+        OutgoingTx: OutgoingTx,
         address: address, 
         prev_tx_hash: prev_tx_hash
       }, function(err, notification){
@@ -21,7 +27,7 @@ function NotificationCtrl (remote, opts) {
           return;
         }
 
-        notification.tx_url = req.protocol + '://' + req.host + (opts.port ? (':' + opts.port) : '') + '/api/v1' + notification.tx_url;
+        notification.tx_url = req.protocol + '://' + req.host + (port ? (':' + port) : '') + '/api/v1' + notification.tx_url;
 
         res.send({
           success: true,

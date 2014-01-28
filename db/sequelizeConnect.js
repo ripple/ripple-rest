@@ -7,8 +7,6 @@ function createDb (env) {
     env = 'dev';
   }
 
-  // console.log('connecting to db: ' + dbConfig[env].database + ' as user: ' + dbConfig[env].user);
-
   var db = new Sequelize(dbConfig[env].database, dbConfig[env].user, dbConfig[env].password, {
     dialect: "postgres",
     host: dbConfig[env].host,
@@ -23,7 +21,7 @@ function createDb (env) {
 
   db.authenticate()
     .error(function(err){
-      throw(err);
+      throw(new Error('Cannot connect to postgres db: ' + err));
     })
     .success(function(){
       console.log('Connected to postgres db');

@@ -15,10 +15,23 @@ remote.once('connect', function(){
 
   console.log('Connected to ripple-lib');
 
+  /* Initialize models */
+  var OutgoingTx = require('./models/outgoingTx');
+
+
   /* Initialize controllers */
-  var TxCtrl = require('./controllers/txCtrl')(remote),
-    NotificationCtrl = require('./controllers/notificationCtrl')(remote, { port: process.env.PORT || 5990 }),
-    PaymentCtrl = require('./controllers/paymentCtrl')(remote);
+  var TxCtrl = require('./controllers/txCtrl')({
+    remote: remote, 
+    OutgoingTx: OutgoingTx
+  }),
+  NotificationCtrl = require('./controllers/notificationCtrl')({
+    remote: remote, 
+    port: process.env.PORT || 5990, 
+    OutgoingTx: OutgoingTx 
+  }),
+  PaymentCtrl = require('./controllers/paymentCtrl')({
+    remote: remote
+  });
 
 
   /* Express middleware */
