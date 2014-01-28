@@ -3,9 +3,11 @@ var paymentLib = require('../lib/payment'),
 
 // TODO validate all options
 
-function PaymentCtrl (opts) {
+module.exports = function (opts) {
 
-  var remote = opts.remote;
+  var remote = opts.remote,
+    OutgoingTx = opts.OutgoingTx;
+
 
   return {
 
@@ -14,7 +16,10 @@ function PaymentCtrl (opts) {
       var src_address = req.param('address'), 
        tx_hash = req.param('tx_hash');
 
-      paymentLib.getPayment(remote, tx_hash, function(err, payment){
+      paymentLib.getPayment({
+        remote: remote, 
+        hash: tx_hash
+      }, function(err, payment){
         if (err) {
           errorHandler(res, err);
           return;
@@ -38,7 +43,9 @@ function PaymentCtrl (opts) {
         delete payment_json.secret;
       }
 
-      paymentLib.submitPayment(remote, {
+      paymentLib.submitPayment({
+        remote: remote,
+        OutgoingTx: OutgoingTx,
         src_address: src_address,
         payment_json: payment_json,
         secret: secret
@@ -58,6 +65,4 @@ function PaymentCtrl (opts) {
 
   };
 
-}
-
-module.exports = PaymentCtrl;
+};

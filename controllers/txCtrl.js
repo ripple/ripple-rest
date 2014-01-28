@@ -3,7 +3,7 @@ var txLib = require('../lib/tx'),
 
 // TODO validate all options
 
-function TxCtrl (opts) {
+module.exports = function (opts) {
 
   var remote = opts.remote,
     OutgoingTx = opts.OutgoingTx;
@@ -15,7 +15,10 @@ function TxCtrl (opts) {
       var address = req.param('address'),
         tx_hash = req.param('tx_hash');
 
-      txLib.getTx(remote, tx_hash, function(err, tx){
+      txLib.getTx({
+        remote: remote, 
+        hash: tx_hash
+      }, function(err, tx){
         if (err) {
           errorHandler(res, err);
           return;
@@ -35,9 +38,9 @@ function TxCtrl (opts) {
         secret = req.body.secret,
         tx_json = req.body.tx || req.body.tx_json || req.body;
 
-      // console.log('submitTx: ' + JSON.stringify(tx_json));
-
-      txLib.submitTx(remote, {
+      txLib.submitTx({
+        remote: remote,
+        OutgoingTx: OutgoingTx,
         src_address: src_address,
         secret: secret,
         tx_json: tx_json
@@ -56,7 +59,4 @@ function TxCtrl (opts) {
     }
 
   };
-}
-
-
-module.exports = TxCtrl;
+};

@@ -1,7 +1,8 @@
 var express = require('express'),
   app = express(),
   ripple = require('ripple-lib'),
-  config = require('./config');
+  config = require('./config'),
+  OutgoingTx = require('./models/outgoingTx');
 
 /* Connect to ripple-lib */
 var remote = new ripple.Remote(config.remoteOptions);
@@ -12,11 +13,8 @@ remote.on('error', function(err){
 });
 
 remote.once('connect', function(){
-
   console.log('Connected to ripple-lib');
 
-  /* Initialize models */
-  var OutgoingTx = require('./models/outgoingTx');
 
 
   /* Initialize controllers */
@@ -26,12 +24,15 @@ remote.once('connect', function(){
   }),
   NotificationCtrl = require('./controllers/notificationCtrl')({
     remote: remote, 
-    port: process.env.PORT || 5990, 
-    OutgoingTx: OutgoingTx 
+    OutgoingTx: OutgoingTx,
+    port: process.env.PORT || 5990
   }),
   PaymentCtrl = require('./controllers/paymentCtrl')({
-    remote: remote
+    remote: remote,
+    OutgoingTx: OutgoingTx
   });
+
+
 
 
   /* Express middleware */
@@ -45,6 +46,8 @@ remote.once('connect', function(){
   });
 
 
+
+
   /* Server Routes */
   app.get('/api/v1/status', function(req, res){
     if (remote._connected) {
@@ -54,17 +57,21 @@ remote.once('connect', function(){
     }
   });
 
+
   /* Ripple Tx Routes */
   app.get('/api/v1/addresses/:address/txs/:tx_hash', TxCtrl.getTx);
   app.post('/api/v1/addresses/:address/txs/', TxCtrl.submitTx);
+
 
   /* Notifications */
   app.get('/api/v1/addresses/:address/next_notification', NotificationCtrl.getNextNotification);
   app.get('/api/v1/addresses/:address/next_notification/:prev_tx_hash', NotificationCtrl.getNextNotification);
 
+
   /* Payments */
   app.get('/api/v1/addresses/:address/payments/:tx_hash', PaymentCtrl.getPayment);
   app.post('/api/v1/addresses/:address/payments', PaymentCtrl.submitPayment);
+
 
   // app.post('/api/v1/addresses/:address/payments/options', PaymentCtrl.paymentOptions);
 
@@ -75,6 +82,3 @@ remote.once('connect', function(){
 
 });
 
-
-/* Export for testing purposes */
-module.exports = app;

@@ -3,12 +3,12 @@ var notificationLib = require('../lib/notification'),
 
 // TODO validate all options
 
-function NotificationCtrl (opts) {
+module.exports = function(opts) {
 
   var remote = opts.remote,
     OutgoingTx = opts.OutgoingTx,
-    port = opts.port;
-  
+    port = opts.port;  
+
   return {
 
     getNextNotification: function(req, res) {
@@ -27,7 +27,11 @@ function NotificationCtrl (opts) {
           return;
         }
 
-        notification.tx_url = req.protocol + '://' + req.host + (port ? (':' + port) : '') + '/api/v1' + notification.tx_url;
+        if (notification.tx_url) {
+          notification.tx_url = req.protocol + '://' + req.host + (port ? (':' + port) : '') + '/api/v1' + notification.tx_url;
+        } else {
+          notification.tx_url = '';
+        }
 
         res.send({
           success: true,
@@ -37,6 +41,5 @@ function NotificationCtrl (opts) {
       });
     }
   };
-}
 
-module.exports = NotificationCtrl;
+};

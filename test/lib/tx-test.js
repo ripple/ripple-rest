@@ -1,7 +1,6 @@
 /*jshint expr: true*/
 var expect = require('chai').expect,
   ripple = require('ripple-lib'),
-  testConfig = require('../testConfig'),
   txLib = require('../../lib/tx');
 
 describe('lib/tx', function(){
