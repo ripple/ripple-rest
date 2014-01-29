@@ -33,22 +33,23 @@ module.exports = function(grunt) {
 			}
 		},
     nodemon: {
-    dev: {
-      options: {
-        file: 'app.js',
-        // args: ['dev'],
-        // nodeArgs: ['--debug'],
-        ignoredFiles: ['node_modules/**'],
-        watchedExtensions: ['js', 'json'],
-        watchedFolders: ['./', 'lib/', 'controllers/', 'models/', 'db/'],
-        legacyWatch: true,
-        env: {
-          PORT: '5900'
-        },
-        cwd: __dirname
+      dev: {
+        options: {
+          file: 'app.js',
+          // args: ['dev'],
+          // nodeArgs: ['--debug'],
+          ignoredFiles: ['node_modules/**'],
+          watchedExtensions: ['js', 'json'],
+          watchedFolders: ['./', 'lib/', 'controllers/', 'models/', 'db/'],
+          legacyWatch: true,
+          env: {
+            PORT: '5900',
+            NODE_ENV: 'development'
+          },
+          cwd: __dirname
+        }
       }
     }
-  }
     
 	});
 

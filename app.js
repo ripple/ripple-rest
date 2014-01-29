@@ -4,6 +4,9 @@ var express = require('express'),
   config = require('./config'),
   OutgoingTx = require('./models/outgoingTx');
 
+var port = process.env.PORT || 5990,
+  environment = process.env.NODE_ENV;
+
 /* Connect to ripple-lib */
 var remote = new ripple.Remote(config.remoteOptions);
 remote.connect();
@@ -25,12 +28,15 @@ remote.once('connect', function(){
   NotificationCtrl = require('./controllers/notificationCtrl')({
     remote: remote, 
     OutgoingTx: OutgoingTx,
-    port: process.env.PORT || 5990
+    port: port,
+    environment: environment
   }),
   PaymentCtrl = require('./controllers/paymentCtrl')({
     remote: remote,
     OutgoingTx: OutgoingTx
   });
+
+
 
 
 
@@ -76,9 +82,9 @@ remote.once('connect', function(){
   // app.post('/api/v1/addresses/:address/payments/options', PaymentCtrl.paymentOptions);
 
 
-  var port = process.env.PORT || 5990;
+  
   app.listen(port);
-  console.log('Listening on port: ' + port);
+  console.log('Listening on port ' + port + ' in ' + environment + ' mode');
 
 });
 
