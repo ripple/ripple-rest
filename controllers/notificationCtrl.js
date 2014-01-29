@@ -7,7 +7,8 @@ module.exports = function(opts) {
 
   var remote = opts.remote,
     OutgoingTx = opts.OutgoingTx,
-    port = opts.port;  
+    port = opts.port,
+    environment = opts.environment;  
 
   return {
 
@@ -28,7 +29,7 @@ module.exports = function(opts) {
         }
 
         if (notification.tx_url) {
-          notification.tx_url = req.protocol + '://' + req.host + (port ? (':' + port) : '') + '/api/v1' + notification.tx_url;
+          notification.tx_url = req.protocol + '://' + req.host + (port && environment === 'development' ? (':' + port) : '') + '/api/v1' + notification.tx_url;
         } else {
           notification.tx_url = '';
         }

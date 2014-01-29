@@ -757,10 +757,6 @@ describe('lib/tx', function(){
 
   describe('.submitTx()', function(){
 
-    it('TODO: Add tests for .submitTx()', function(){
-      throw(new Error('No tests!'));
-    });
-
     // it('should accept transactions in JSON format', function(){
     //   txLib.submitTx({
 
