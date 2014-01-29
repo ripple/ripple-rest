@@ -3,20 +3,19 @@
 A simplified interface to the Ripple network through a Javascript library and RESTful API.
 
 
-## Installation
+## Setup
 
 1. Clone repository 
 2. `npm install`
 3. `node app.js`
+
+A sample version of the API can also be found at `http://ripple-simple.herokuapp.com`. Please note that all data is transmitted insecurely so you should __only submit transactions on test accounts__. Sending your account secret over an unencrypted connection is a *very bad idea*.
 
 ## Testing
 
 `grunt test`
 
 ## Available API Routes
-
-A sample version of the API can be found at `http://ripple-simple.herokuapp.com`. Please note that all data is transmitted insecurely so you should __only submit transactions on test accounts__. Sending your account secret over an unencrypted connection is a very bad idea.
-
 
 
 ### GET /api/v1/addresses/:address/next_notification
