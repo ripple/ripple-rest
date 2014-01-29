@@ -51,6 +51,24 @@ Response:
     }
 }
 ```
+Or if there are no new notifications:
+```js
+{
+    "success": true,
+    "notification": {
+        "address": "rKXCummUHnenhYudNb9UoJ4mGBR75vFcgz",
+        "type": "none",
+        "tx_direction": "",
+        "tx_state": "empty", // or "pending" if still waiting for outgoing transactions to clear
+        "tx_result": "",
+        "tx_ledger": "",
+        "tx_hash": "",
+        "tx_timestamp": ,
+        "tx_url": "",
+        "confirmation_token": ""
+    }
+}
+```
 
 ### GET /api/v1/addresses/:address/payments/:tx_hash
 
@@ -136,8 +154,16 @@ Response:
     "confirmation_token": "55BA3440B1AAFFB64E51F497EFDF2022C90EDB171BBD979F04685904E38A89B7"
 }
 ```
+Or if there is a problem with the transaction:
+```js
+{
+  "success": false,
+  "error": "tecPATH_DRY",
+  "message": "Path could not send partial amount. Please ensure that the src_address has sufficient funds (in the src_amount currency, if specified) to execute this transaction."
+}
+```
 
-Note: save the `confirmation_token` to check for transaction confirmation by matching that against new `notification`s.
+Note: save the `confirmation_token` to check for transaction confirmation by matching that against new `notification`'s.
 
 
 ### GET /api/v1/status
@@ -175,7 +201,7 @@ Response:
 }
 ```
 
-Note: save the `confirmation_token` to check for transaction confirmation by matching that against new `notification`s.
+Note: save the `confirmation_token` to check for transaction confirmation by matching that against new `notification`'s.
 
 
 
