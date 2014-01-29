@@ -20,7 +20,7 @@ To install `ripple-simple` locally:
 
 ## Testing
 
-`grunt test`
+`npm test`
 
 ## Available API Routes
 
