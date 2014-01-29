@@ -52,7 +52,9 @@ remote.once('connect', function(){
   });
 
 
-
+  app.get('/', function(req, res){
+    res.send('API Server OK');
+  });
 
   /* Server Routes */
   app.get('/api/v1/status', function(req, res){
@@ -82,7 +84,6 @@ remote.once('connect', function(){
   // app.post('/api/v1/addresses/:address/payments/options', PaymentCtrl.paymentOptions);
 
 
-  
   app.listen(port);
   console.log('Listening on port ' + port + ' in ' + environment + ' mode');
 
