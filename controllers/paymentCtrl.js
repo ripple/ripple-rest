@@ -44,6 +44,8 @@ module.exports = function (opts) {
         delete payment_json.secret;
       }
 
+      console.log('paymentCtrl.submitPayment got: ', src_address, payment);
+
       paymentLib.submitPayment({
         remote: remote,
         OutgoingTx: OutgoingTx,
