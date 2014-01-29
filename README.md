@@ -17,42 +17,6 @@ A simplified interface to the Ripple network through a Javascript library and RE
 
 A sample version of the API can be found at `http://ripple-simple.herokuapp.com`. Please note that all data is transmitted insecurely so you should __only submit transactions on test accounts__. Sending your account secret over an unencrypted connection is a very bad idea.
 
-### GET /api/v1/status
-
-Response:
-`connected` or `disconnected`
-
-
-
-### GET /api/v1/addresses/:address/txs/:tx_hash
-
-Gets a particular transaction in the standard Ripple transaction JSON format
-
-
-
-### POST /api/v1/addresses/:address/txs/
-
-Post a transaction in the standard Ripple transaction format.
-
-Request JSON:
-```js
-{
-  type: "payment"
-  from: "r...",
-  to: "r...",
-  amount: "1XRP"
-}
-```
-
-Response:
-```js
-{
-  success: true,
-  confirmation_token: "..."
-}
-```
-
-Note: save the `confirmation_token` to check for transaction confirmation by matching that against new `notification`s.
 
 
 ### GET /api/v1/addresses/:address/next_notification
@@ -170,6 +134,42 @@ Response:
 Note: save the `confirmation_token` to check for transaction confirmation by matching that against new `notification`s.
 
 
+### GET /api/v1/status
+
+Response:
+`connected` or `disconnected`
+
+
+
+### GET /api/v1/addresses/:address/txs/:tx_hash
+
+Gets a particular transaction in the standard Ripple transaction JSON format
+
+
+
+### POST /api/v1/addresses/:address/txs/
+
+Post a transaction in the standard Ripple transaction format.
+
+Request JSON:
+```js
+{
+  type: "payment"
+  from: "r...",
+  to: "r...",
+  amount: "1XRP"
+}
+```
+
+Response:
+```js
+{
+  success: true,
+  confirmation_token: "..."
+}
+```
+
+Note: save the `confirmation_token` to check for transaction confirmation by matching that against new `notification`s.
 
 
 
