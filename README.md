@@ -5,11 +5,18 @@ A simplified interface to the Ripple network through a Javascript library and RE
 
 ## Setup
 
-1. Clone repository 
-2. `npm install`
-3. `node app.js`
-
 A sample version of the API can also be found at `http://ripple-simple.herokuapp.com`. Please note that all data is transmitted insecurely so you should __only submit transactions on test accounts__. Sending your account secret over an unencrypted connection is a *very bad idea*.
+
+To install `ripple-simple` locally:
+
+1. Clone repository and `cd` into it
+2. [Download](http://www.postgresql.org/download/) and install PostgreSQL and setup a user
+3. Set Node environment variable `DATABASE_URL` to point to PostgreSQL: `export DATABASE_URL=postgres://{username}:{password}@{host}:{port}/{database}?native=true`
+4. `db-migrate up -m db/migrations --config db/database.json`
+5. `npm install`
+6. `node app.js`
+
+
 
 ## Testing
 

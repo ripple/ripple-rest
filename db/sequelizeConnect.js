@@ -23,19 +23,7 @@ function createDb (env) {
     })
     
   } else {
-
-    var db = new Sequelize(dbConfig[env].database, dbConfig[env].user, dbConfig[env].password, {
-      dialect: "postgres",
-      host: dbConfig[env].host,
-      port: 5432,
-      omitNull: true,
-      native: true,
-      protocol: 'postgres',
-      define: {
-        underscored: true
-      }
-    });
-  
+    throw(new Error('Must set node environment variable DATABASE_URL to connect to PostgreSQL'));
   }
 
   db.authenticate()
