@@ -16,7 +16,10 @@ function createDb (env) {
       port:     match[4],
       host:     match[3],
       logging:  true,
-      native: true
+      native: true,
+      define: {
+        underscored: true
+      }
     })
     
   } else {
