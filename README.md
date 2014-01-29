@@ -115,7 +115,7 @@ Request JSON:
   dst_amount: {
     value: ".001",
     currency: "XRP",
-    issuer: "
+    issuer: ""
   },
   // flag_partial_payment: true,
   // flag_no_direct_ripple: true,
