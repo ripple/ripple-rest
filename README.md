@@ -126,24 +126,26 @@ Submit a payment in the simplified format.
 Request JSON:
 ```js
 {
-  src_address: "r...",
-  // src_tag: ",
-  dst_address: "r...",
-  // dst_tag: ",
-  // src_amount: {
-  //   value: ".0001",
-  //   currency: "USD",
-  //   issuer: "rvYAfWj5gh67oV6fW32ZzP3Aw4Eubs59B"
-  // },
-  // src_slippage: "0.00005",
-  dst_amount: {
-    value: ".001",
-    currency: "XRP",
-    issuer: ""
-  },
-  // flag_partial_payment: true,
-  // flag_no_direct_ripple: true,
-  secret: "s..."
+  secret: "s...",
+  payment: {
+    src_address: "r...",
+    // src_tag: ",
+    dst_address: "r...",
+    // dst_tag: "",
+    // src_amount: {
+    //   value: ".0001",
+    //   currency: "USD",
+    //   issuer: "rvYAfWj5gh67oV6fW32ZzP3Aw4Eubs59B"
+    // },
+    // src_slippage: "0.00005",
+    dst_amount: {
+      value: ".001",
+      currency: "XRP",
+      issuer: ""
+    },
+    // flag_partial_payment: true,
+    // flag_no_direct_ripple: true
+  }
 }
 ```
 

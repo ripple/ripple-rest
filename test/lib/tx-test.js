@@ -779,6 +779,5 @@ describe('lib/tx', function(){
 
   });
 
-
 });
 

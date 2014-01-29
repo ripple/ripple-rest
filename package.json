@@ -30,7 +30,8 @@
     "grunt-express-server": "~0.4.11",
     "grunt-nodemon": "~0.1.2",
     "sinon": "~1.7.3",
-    "sinon-chai": "~2.4.0"
+    "sinon-chai": "~2.4.0",
+    "clone": "~0.1.11"
   },
   "dependencies": {
     "express": "~3.4.7",

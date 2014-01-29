@@ -21,7 +21,7 @@ async.series([
 
   function(callback) {
     request.get({
-      url: host + 'api/v1/addresses/' + accounts[0].address + '/next_notification/'
+      url: host + 'api/v1/addresses/' + accounts[1].address + '/next_notification/'
     }, function(err, message, res){
         console.log('GET next_notification... err: ' + err + ' res: ' + res + '\n');
         prev_tx_hash = JSON.parse(res).notification.tx_hash;
@@ -31,23 +31,24 @@ async.series([
 
   function(callback) {
 
-    console.log('POSTing payment from ' + accounts[0].address + ' to ' + accounts[1].address);
+    console.log('POSTing payment from ' + accounts[1].address + ' to ' + accounts[0].address);
 
     request.post({
       url: host + 'api/v1/addresses/' + accounts[1].address + '/payments/',
       json: {
         src_address: accounts[1].address,
         dst_address: accounts[0].address,
-        src_amount: {
-          value: '.0001',
+        // src_amount: {
+        //   value: '.0001',
+        //   currency: 'XRP',
+        //   issuer: ''
+        // },
+        dst_amount: {
+          value: '.001',
           currency: 'XRP',
           issuer: ''
         },
-        dst_amount: {
-          value: '.001',
-          currency: 'USD'
-        },
-        flag_partial_payment: true,
+        // flag_partial_payment: true,
         // flag_no_direct_ripple: true,
         secret: accounts[1].secret
       }
@@ -85,7 +86,7 @@ async.series([
 
   function(callback) {
     request.get({
-      url: host + 'api/v1/addresses/' + accounts[0].address + '/next_notification/' + prev_tx_hash
+      url: host + 'api/v1/addresses/' + accounts[1].address + '/next_notification/' + prev_tx_hash
     }, function(err, message, res){
         console.log('GET next_notification... err: ' + err + ' res: ' + res + '\n');
         tx_url = JSON.parse(res).notification.tx_url;
