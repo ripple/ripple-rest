@@ -11,10 +11,12 @@ To install `ripple-simple` locally:
 
 1. Clone repository and `cd` into it
 2. [Download](http://www.postgresql.org/download/) and install PostgreSQL and setup a user
+3. Set Node environment variable `NODE_ENV` to `development`, `staging`, or `production`: `export NODE_ENV=development`
 3. Set Node environment variable `DATABASE_URL` to point to PostgreSQL: `export DATABASE_URL=postgres://{username}:{password}@{host}:{port}/{database}?native=true`
 4. `db-migrate up -m db/migrations --config db/database.json`
 5. `npm install`
 6. `node app.js`
+7. If the `NODE_ENV` is set to `development` the server will by default accept requests at `http://localhost:5990/api/v1/...`
 
 
 
