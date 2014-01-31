@@ -1,11 +1,11 @@
 # `ripple-simple.js`
 
-A simplified RESTful API for interfacing with the (Ripple Network)[http://ripple.com].
+A simplified RESTful API for interfacing with the [Ripple Network](http://ripple.com).
 
 
 ## Setup
 
-A sample version of the API can also be found at `http://ripple-simple.herokuapp.com`. Please note that all data is transmitted insecurely so you should __only submit transactions on test accounts__. Sending your account secret over an unencrypted connection is a *very bad idea*.
+A sample version of the API can also be found at [`http://ripple-simple.herokuapp.com`]. Please note that all data is transmitted insecurely so you should __only submit transactions on test accounts__. Sending your account secret over an unencrypted connection is a *very bad idea*.
 
 To install `ripple-simple` locally:
 
@@ -26,18 +26,18 @@ To install `ripple-simple` locally:
 
 ## Available API Routes
 
-1. (Notifications)[#1-notifications]
-    + (GET /api/v1/addresses/:address/next_notification)[#get-apiv1addressesaddressnext_notification]
-    + (GET /api/v1/addresses/:address/next_notification/:prev_tx_hash)[#get-apiv1addressesaddressnext_notificationprev_tx_hash]
-2. (Payments)[#2-payments]
-    + (GET /api/v1/addresses/:address/payments/options)[#get-apiv1addressesaddresspaymentsoptions]
-    + (POST /api/v1/addresses/:address/payments)[#post-apiv1addressesaddresspayments]
-    + (GET /api/v1/addresses/:address/payments/:tx_hash)[#get-apiv1addressesaddresspaymentstx_hash]
-3. (Standard Ripple Transactions)[#3-standard-ripple-transactions]
-    + (GET /api/v1/addresses/:address/txs/:tx_hash)[#get-apiv1addressesaddresstxstx_hash]
-    + (POST /api/v1/addresses/:address/txs/)[#post-apiv1addressesaddresstxs]
-4. (Server Info)[#4-server-info]
-    + (GET /api/v1/status)[#get-apiv1status]
+1. [Notifications](#1-notifications)
+    + [GET /api/v1/addresses/:address/next_notification](#get-apiv1addressesaddressnext_notification)
+    + [GET /api/v1/addresses/:address/next_notification/:prev_tx_hash](#get-apiv1addressesaddressnext_notificationprev_tx_hash)
+2. [Payments](#2-payments)
+    + [GET /api/v1/addresses/:address/payments/options](#get-apiv1addressesaddresspaymentsoptions)
+    + [POST /api/v1/addresses/:address/payments](#post-apiv1addressesaddresspayments)
+    + [GET /api/v1/addresses/:address/payments/:tx_hash](#get-apiv1addressesaddresspaymentstx_hash)
+3. [Standard Ripple Transactions](#3-standard-ripple-transactions)
+    + [GET /api/v1/addresses/:address/txs/:tx_hash](#get-apiv1addressesaddresstxstx_hash)
+    + [POST /api/v1/addresses/:address/txs/](#post-apiv1addressesaddresstxs)
+4. [Server Info](#4-server-info)
+    + [GET /api/v1/status](#get-apiv1status)
 
 
 
@@ -102,7 +102,7 @@ __________
 
 #### GET /api/v1/addresses/:address/payments/options
 
-Get payment options for a given set of options (a.k.a. Ripple path-find). Each of the resulting payment objects can be submitted directly to `POST /api/v1/addresses/:address/payments`.
+Get payment options for a given set of options (a.k.a. Ripple path-find). Each of the resulting payment objects can be submitted directly to [`POST /api/v1/addresses/:address/payments`](#post-apiv1addressesaddresspayments).
 
 Request Query String Parameters:
 + `src_address` - *Required*
