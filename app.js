@@ -1,14 +1,14 @@
 var express = require('express'),
   app = express(),
   ripple = require('ripple-lib'),
-  config = require('./config'),
+  serverConfig = require('./serverConfig'),
   OutgoingTx = require('./models/outgoingTx');
 
 var port = process.env.PORT || 5990,
   environment = process.env.NODE_ENV;
 
 /* Connect to ripple-lib */
-var remote = new ripple.Remote(config.remoteOptions);
+var remote = new ripple.Remote(serverConfig);
 remote.connect();
 
 remote.on('error', function(err){
