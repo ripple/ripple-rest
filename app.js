@@ -1,14 +1,17 @@
 var express = require('express'),
   app = express(),
   ripple = require('ripple-lib'),
-  serverConfig = require('./serverConfig'),
+  config = require('./config.json'),
   OutgoingTx = require('./models/outgoingTx');
 
 var port = process.env.PORT || 5990,
   environment = process.env.NODE_ENV;
 
 /* Connect to ripple-lib */
-var remote = new ripple.Remote(serverConfig);
+if (!config.rippled_opts) {
+  throw(new Error('config.json must include "rippled_opts" to connect to the Ripple Network'));
+}
+var remote = new ripple.Remote(config.rippled_opts);
 remote.connect();
 
 remote.on('error', function(err){
