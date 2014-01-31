@@ -22,12 +22,19 @@ To install `ripple-simple` locally:
 
 `npm test`
 
+
+
 ## Available API Routes
+
+
 
 
 ### GET /api/v1/addresses/:address/next_notification
 
 Get the most recent notification for a particular account. See next route details for response format.
+
+
+
 
 ### GET /api/v1/addresses/:address/next_notification/:prev_tx_hash
 
@@ -69,6 +76,83 @@ Or if there are no new notifications:
     }
 }
 ```
+
+
+
+
+### GET /api/v1/addresses/:address/payments/options
+
+Get payment options for a given set of options (a.k.a. Ripple path-find). Each of the resulting payment objects can be submitted directly to `POST /api/v1/addresses/:address/payments`.
+
+Request Query String Parameters
++ `src_address` - *Required*
++ `dst_address` - *Required*
++ `dst_amount` - *Required*, Amount string in the form `"1/USD/r..."` or `"1/XRP"` 
+
+Response:
+```js
+{
+    "success": true,
+    "payments": [{
+        /* Simplified Payment Object */
+    }, ...]
+}
+```
+
+
+
+### POST /api/v1/addresses/:address/payments
+
+Submit a payment in the simplified format.
+
+Request JSON:
+```js
+{
+  secret: "s...",
+  payment: {
+    src_address: "r...",
+    // src_tag: ",
+    dst_address: "r...",
+    // dst_tag: "",
+    // src_amount: {
+    //   value: ".0001",
+    //   currency: "USD",
+    //   issuer: "rvYAfWj5gh67oV6fW32ZzP3Aw4Eubs59B"
+    // },
+    // src_slippage: "0.00005",
+    dst_amount: {
+      value: ".001",
+      currency: "XRP",
+      issuer: ""
+    },
+    // invoice_id: "",
+    // paths: [],
+    // flag_partial_payment: true,
+    // flag_no_direct_ripple: true
+  }
+}
+```
+
+Response:
+```js
+{
+    "success": true,
+    "confirmation_token": "55BA3440B1AAFFB64E51F497EFDF2022C90EDB171BBD979F04685904E38A89B7"
+}
+```
+Or if there is a problem with the transaction:
+```js
+{
+  "success": false,
+  "error": "tecPATH_DRY",
+  "message": "Path could not send partial amount. Please ensure that the src_address has sufficient funds (in the src_amount currency, if specified) to execute this transaction."
+}
+```
+
+Note: save the `confirmation_token` to check for transaction confirmation by matching that against new `notification`'s.
+
+
+
 
 ### GET /api/v1/addresses/:address/payments/:tx_hash
 
@@ -119,53 +203,6 @@ Response:
 }
 ```
 
-### POST /api/v1/addresses/:address/payments
-
-Submit a payment in the simplified format.
-
-Request JSON:
-```js
-{
-  secret: "s...",
-  payment: {
-    src_address: "r...",
-    // src_tag: ",
-    dst_address: "r...",
-    // dst_tag: "",
-    // src_amount: {
-    //   value: ".0001",
-    //   currency: "USD",
-    //   issuer: "rvYAfWj5gh67oV6fW32ZzP3Aw4Eubs59B"
-    // },
-    // src_slippage: "0.00005",
-    dst_amount: {
-      value: ".001",
-      currency: "XRP",
-      issuer: ""
-    },
-    // flag_partial_payment: true,
-    // flag_no_direct_ripple: true
-  }
-}
-```
-
-Response:
-```js
-{
-    "success": true,
-    "confirmation_token": "55BA3440B1AAFFB64E51F497EFDF2022C90EDB171BBD979F04685904E38A89B7"
-}
-```
-Or if there is a problem with the transaction:
-```js
-{
-  "success": false,
-  "error": "tecPATH_DRY",
-  "message": "Path could not send partial amount. Please ensure that the src_address has sufficient funds (in the src_amount currency, if specified) to execute this transaction."
-}
-```
-
-Note: save the `confirmation_token` to check for transaction confirmation by matching that against new `notification`'s.
 
 
 ### GET /api/v1/status
@@ -175,9 +212,11 @@ Response:
 
 
 
+
 ### GET /api/v1/addresses/:address/txs/:tx_hash
 
 Gets a particular transaction in the standard Ripple transaction JSON format
+
 
 
 
