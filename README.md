@@ -5,7 +5,7 @@ A simplified RESTful API for interfacing with the [Ripple Network](http://ripple
 
 ## Setup
 
-A sample version of the API can also be found at [`http://ripple-simple.herokuapp.com`]. Please note that all data is transmitted insecurely so you should __only submit transactions on test accounts__. Sending your account secret over an unencrypted connection is a *very bad idea*.
+A sample version of the API can also be found at [`http://ripple-simple.herokuapp.com`](http://ripple-simple.herokuapp.com). Please note that all data is transmitted insecurely so you should __only submit transactions on test accounts__. Sending your account secret over an unencrypted connection is a *very bad idea*.
 
 To install `ripple-simple` locally:
 
@@ -22,7 +22,9 @@ To install `ripple-simple` locally:
 
 `npm test`
 
+## Bugs
 
+__This API is still in beta.__ Please open issues for any problems you encounter.
 
 ## Available API Routes
 
