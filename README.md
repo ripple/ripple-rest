@@ -84,10 +84,10 @@ Or if there are no new notifications:
 
 Get payment options for a given set of options (a.k.a. Ripple path-find). Each of the resulting payment objects can be submitted directly to `POST /api/v1/addresses/:address/payments`.
 
-Request Query String Parameters
+Request Query String Parameters:
 + `src_address` - *Required*
 + `dst_address` - *Required*
-+ `dst_amount` - *Required*, Amount string in the form `"1/USD/r..."` or `"1/XRP"` 
++ `dst_amount` - *Required*, Amount string in the form `"1+USD+r..."` or `"1+XRP"` 
 
 Response:
 ```js
@@ -96,6 +96,14 @@ Response:
     "payments": [{
         /* Simplified Payment Object */
     }, ...]
+}
+```
+Or if no paths can be found:
+```js
+{
+    "success": false,
+    "error": "No paths found",
+    "message": "Please ensure that the src_address has sufficient funds to exectue the payment. If it does there may be insufficient liquidity in the network to execute this payment right now"
 }
 ```
 
@@ -179,6 +187,7 @@ Response:
             "issuer": ""
         },
         "dst_slippage": "0",
+        "invoice_id": "",
         "paths": [],
         "flag_no_direct_ripple": false,
         "flag_partial_payment": false,
