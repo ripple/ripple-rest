@@ -176,7 +176,7 @@ Or if there is a problem with the transaction:
 ```js
 {
   "success": false,
-  "error": "tecPATH_DRY",
+  "error": "tecPATH_DRY", // A full list of error codes can be found at https://ripple.com/wiki/Transaction_errors
   "message": "Path could not send partial amount. Please ensure that the src_address has sufficient funds (in the src_amount currency, if specified) to execute this transaction."
 }
 ```
