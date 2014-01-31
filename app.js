@@ -34,6 +34,9 @@ remote.once('connect', function(){
   PaymentCtrl = require('./controllers/paymentCtrl')({
     remote: remote,
     OutgoingTx: OutgoingTx
+  }),
+  PathfindCtrl = require('./controllers/pathfindCtrl')({
+    remote: remote
   });
 
 
@@ -76,12 +79,16 @@ remote.once('connect', function(){
   app.get('/api/v1/addresses/:address/next_notification/:prev_tx_hash', NotificationCtrl.getNextNotification);
 
 
+  /* Pathfinding */
+  app.get('/api/v1/addresses/:address/payments/options', PathfindCtrl.getPathFind);
+
+
   /* Payments */
   app.get('/api/v1/addresses/:address/payments/:tx_hash', PaymentCtrl.getPayment);
   app.post('/api/v1/addresses/:address/payments', PaymentCtrl.submitPayment);
 
+  
 
-  // app.post('/api/v1/addresses/:address/payments/options', PaymentCtrl.paymentOptions);
 
 
   app.listen(port);
