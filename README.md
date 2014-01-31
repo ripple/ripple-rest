@@ -77,6 +77,7 @@ Response:
 }
 ```
 Or if there are no new notifications:
+(Note the `"type": "none"` and `"tx_state": "empty"` or `"tx_state": "pending"`)
 ```js
 {
     "success": true,
