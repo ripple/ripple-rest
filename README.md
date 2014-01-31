@@ -9,7 +9,7 @@ A sample version of the API can also be found at [`http://ripple-simple.herokuap
 
 To install `ripple-simple` locally:
 
-1. Clone repository and `cd` into it
+1. Clone repository and `cd` into it (and make sure you have [`Node.js`](http://nodejs.org/) installed)
 2. [Download](http://www.postgresql.org/download/) and install PostgreSQL and setup a user
 3. Set Node environment variable `NODE_ENV` to `development`, `staging`, or `production`: `export NODE_ENV=development`
 3. Set Node environment variable `DATABASE_URL` to point to PostgreSQL: `export DATABASE_URL=postgres://{username}:{password}@{host}:{port}/{database}?native=true`
