@@ -1,6 +1,6 @@
 # `ripple-simple.js`
 
-A simplified interface to the Ripple network through a Javascript library and RESTful API.
+A simplified RESTful API for interfacing with the (Ripple Network)[http://ripple.com].
 
 
 ## Setup
@@ -26,17 +26,33 @@ To install `ripple-simple` locally:
 
 ## Available API Routes
 
+1. (Notifications)[#1-notifications]
+    + (GET /api/v1/addresses/:address/next_notification)[#get-apiv1addressesaddressnext_notification]
+    + (GET /api/v1/addresses/:address/next_notification/:prev_tx_hash)[#get-apiv1addressesaddressnext_notificationprev_tx_hash]
+2. (Payments)[#2-payments]
+    + (GET /api/v1/addresses/:address/payments/options)[#get-apiv1addressesaddresspaymentsoptions]
+    + (POST /api/v1/addresses/:address/payments)[#post-apiv1addressesaddresspayments]
+    + (GET /api/v1/addresses/:address/payments/:tx_hash)[#get-apiv1addressesaddresspaymentstx_hash]
+3. (Standard Ripple Transactions)[#3-standard-ripple-transactions]
+    + (GET /api/v1/addresses/:address/txs/:tx_hash)[#get-apiv1addressesaddresstxstx_hash]
+    + (POST /api/v1/addresses/:address/txs/)[#post-apiv1addressesaddresstxs]
+4. (Server Info)[#4-server-info]
+    + (GET /api/v1/status)[#get-apiv1status]
 
 
 
-### GET /api/v1/addresses/:address/next_notification
+### 1. Notifications
+
+__________
+
+#### GET /api/v1/addresses/:address/next_notification
 
 Get the most recent notification for a particular account. See next route details for response format.
 
 
+__________
 
-
-### GET /api/v1/addresses/:address/next_notification/:prev_tx_hash
+#### GET /api/v1/addresses/:address/next_notification/:prev_tx_hash
 
 Get the next notification after the given `:prev_tx_hash` for a particular accounts.
 
@@ -77,10 +93,14 @@ Or if there are no new notifications:
 }
 ```
 
+__________
+
+### 2. Payments
 
 
+__________
 
-### GET /api/v1/addresses/:address/payments/options
+#### GET /api/v1/addresses/:address/payments/options
 
 Get payment options for a given set of options (a.k.a. Ripple path-find). Each of the resulting payment objects can be submitted directly to `POST /api/v1/addresses/:address/payments`.
 
@@ -107,9 +127,9 @@ Or if no paths can be found:
 }
 ```
 
+__________
 
-
-### POST /api/v1/addresses/:address/payments
+#### POST /api/v1/addresses/:address/payments
 
 Submit a payment in the simplified format.
 
@@ -160,9 +180,9 @@ Or if there is a problem with the transaction:
 Note: save the `confirmation_token` to check for transaction confirmation by matching that against new `notification`'s.
 
 
+__________
 
-
-### GET /api/v1/addresses/:address/payments/:tx_hash
+#### GET /api/v1/addresses/:address/payments/:tx_hash
 
 Get a particular payment for a particular account.
 
@@ -212,24 +232,22 @@ Response:
 }
 ```
 
+__________
+
+### 3. Generic Ripple Transactions
 
 
-### GET /api/v1/status
+__________
 
-Response:
-`connected` or `disconnected`
-
-
-
-
-### GET /api/v1/addresses/:address/txs/:tx_hash
+#### GET /api/v1/addresses/:address/txs/:tx_hash
 
 Gets a particular transaction in the standard Ripple transaction JSON format
 
 
 
+__________
 
-### POST /api/v1/addresses/:address/txs/
+#### POST /api/v1/addresses/:address/txs/
 
 Post a transaction in the standard Ripple transaction format.
 
@@ -252,6 +270,20 @@ Response:
 ```
 
 Note: save the `confirmation_token` to check for transaction confirmation by matching that against new `notification`'s.
+
+
+__________
+
+### 4. Server Info
+
+__________
+
+#### GET /api/v1/status
+
+Response:
+`connected` or `disconnected`
+
+__________
 
 
 

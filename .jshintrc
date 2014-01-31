@@ -13,7 +13,7 @@
 	"maxparams": 3,
 	"maxdepth": 3,
 	"maxstatements": 4,
-  "maxlen": 100,
+  "maxlen": 90,
 
 	"loopfunc": true,
 	"maxerr": 90,
