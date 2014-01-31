@@ -27,7 +27,7 @@ To install `ripple-simple` locally:
 ## Available API Routes
 
 1. [Notifications](#1-notifications)
-    + `[GET /api/v1/addresses/:address/next_notification](#get-apiv1addressesaddressnext_notification)`
+    + [`GET /api/v1/addresses/:address/next_notification`](#get-apiv1addressesaddressnext_notification)
     + [GET /api/v1/addresses/:address/next_notification/:prev_tx_hash](#get-apiv1addressesaddressnext_notificationprev_tx_hash)
 2. [Payments](#2-payments)
     + [GET /api/v1/addresses/:address/payments/options](#get-apiv1addressesaddresspaymentsoptions)
