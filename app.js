@@ -56,7 +56,7 @@ remote.once('connect', function(){
 
 
   app.get('/', function(req, res){
-    res.send('API Server OK');
+    res.send('Welcome to the ripple-simple API. \n\nPlease see https://github.com/emschwartz/ripple-simple for available commands');
   });
 
   /* Server Routes */
