@@ -1,3 +1,5 @@
+var fs = require('fs');
+var https = require('https');
 var express = require('express'),
   app = express(),
   ripple = require('ripple-lib'),
@@ -85,8 +87,12 @@ app.post('/api/v1/addresses/:address/payments', PaymentCtrl.submitPayment);
 
 
 
+var sslOptions = {
+  key: fs.readFileSync('./certs/server.key'),
+  cert: fs.readFileSync('./certs/server.crt')
+};
 
+https.createServer(sslOptions, app).listen(port);
 
-app.listen(port);
 console.log('Listening on port ' + port + ' in ' + environment + ' mode');
 
