@@ -17,6 +17,7 @@ module.exports = function (opts) {
 
       txLib.getTx({
         remote: remote, 
+        address: address,
         hash: tx_hash
       }, function(err, tx){
         if (err) {

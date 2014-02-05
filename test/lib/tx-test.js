@@ -7,7 +7,14 @@ describe('lib/tx', function(){
   describe('.getTx()', function(){
 
     var remote = {
-        _connected: true,
+        constructor: {
+          name: 'Remote'
+        },
+        _getServer: function(){
+          return {
+            _lastLedgerClose: Date.now()
+          };
+        },
         requestTx: function(tx_hash, callback) {
           if (tx_hash === '5A29096700281645BCBA74CD9E6D893A3C2937D14E6CA5FDD85313D7185B3533') {
             callback(null, {
