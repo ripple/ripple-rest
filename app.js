@@ -40,6 +40,9 @@ remote.once('connect', function(){
   }),
   PathfindCtrl = require('./controllers/pathfindCtrl')({
     remote: remote
+  }),
+  StatusCtrl = require('./controllers/statusCtrl')({
+    remote: remote
   });
 
 
@@ -58,18 +61,8 @@ remote.once('connect', function(){
   });
 
 
-  app.get('/', function(req, res){
-    res.send('Welcome to the ripple-simple API. \n\nPlease see https://github.com/emschwartz/ripple-simple for available commands');
-  });
-
-  /* Server Routes */
-  app.get('/api/v1/status', function(req, res){
-    if (remote._connected) {
-      res.send('connected');
-    } else {
-      res.send('disconnected');
-    }
-  });
+  app.get('/', StatusCtrl.getStatus);
+  app.get('/api/v1/status', StatusCtrl.getStatus);
 
 
   /* Ripple Tx Routes */
