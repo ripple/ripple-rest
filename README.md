@@ -292,7 +292,7 @@ __________
 
 ### 3. Generic Ripple Transactions
 
-These are transactions formatted by [`ripple-lib`](https://github.com/ripple/ripple-lib/). The submission formats are determined by the [`ripple-lib` Transaction class](https://github.com/ripple/ripple-lib/blob/develop/src/js/ripple/transaction.js).
+These are transactions formatted by [`ripple-lib`](https://github.com/ripple/ripple-lib/). The submission formats are determined by the [`ripple-lib` Transaction class](https://github.com/ripple/ripple-lib/blob/develop/src/js/ripple/transaction.js). The retrieval formats are documented on the [Ripple wiki](https://ripple.com/wiki/Transaction_Format).
 
 Additional commands for this API are in development to reduce the need to use these Generic Ripple Transaction commands.
 
