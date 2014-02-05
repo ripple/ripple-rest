@@ -14,12 +14,14 @@ module.exports = function (opts) {
     getPayment: function(req, res) {
 
       var src_address = req.param('address'), 
-       tx_hash = req.param('tx_hash');
+       tx_hash = req.param('tx_hash'),
+       ledger_index = req.query.ledger_index || req.query.ledger || req.query.in_ledger;
 
       paymentLib.getPayment({
         remote: remote, 
-        hash: tx_hash,
-        address: src_address
+        tx_hash: tx_hash,
+        address: src_address,
+        ledger_index: ledger_index
       }, function(err, payment){
         if (err) {
           errorHandler(res, err);

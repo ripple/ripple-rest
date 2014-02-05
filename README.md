@@ -74,7 +74,7 @@ Response:
         "tx_ledger": 4696959,
         "tx_hash": "55BA3440B1AAFFB64E51F497EFDF2022C90EDB171BBD979F04685904E38A89B7",
         "tx_timestamp": 1391025100000,
-        "tx_url": "http://ripple-simple.herokuapp.com/api/v1/addresses/rKXCummUHnenhYudNb9UoJ4mGBR75vFcgz/payments/55BA3440B1AAFFB64E51F497EFDF2022C90EDB171BBD979F04685904E38A89B7",
+        "tx_url": "http://ripple-simple.herokuapp.com/api/v1/addresses/rKXCummUHnenhYudNb9UoJ4mGBR75vFcgz/payments/55BA3440B1AAFFB64E51F497EFDF2022C90EDB171BBD979F04685904E38A89B7?in_ledger=4696959",
         "confirmation_token": "55BA3440B1AAFFB64E51F497EFDF2022C90EDB171BBD979F04685904E38A89B7"
     }
 }
@@ -274,9 +274,12 @@ Note: save the `confirmation_token` to check for transaction confirmation by mat
 
 __________
 
-#### GET /api/v1/addresses/:address/payments/:tx_hash
+#### GET /api/v1/addresses/:address/payments/:tx_hash?
 
 Get a particular payment for a particular account.
+
+Query string parameters:
++ `in_ledger` - *Optional*, specify the index of the ledger containing the transaction for significantly faster lookup times. If it is not specified it will search through the account's history, from the most recent transactions to the oldest, looking for the given `tx_hash` 
 
 Response:
 ```js
