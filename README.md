@@ -347,27 +347,28 @@ Response:
   "rippled_server_status": {
     "info": {
       "build_version": "0.21.0-rc2",
-      "complete_ledgers": "32570-4804882",
-      "hostid": "NEAT",
+      "complete_ledgers": "32570-4805506",
+      "hostid": "BUSH",
       "last_close": {
-        "converge_time_s": 3.008,
-        "proposers": 4
+        "converge_time_s": 2.011,
+        "proposers": 5
       },
       "load_factor": 1,
       "peers": 51,
-      "pubkey_node": "n9KmrBnGoyVf89WYdiAnvGnKFaVqjLdAYjKrBuvg2r8pMxGPp6MF",
+      "pubkey_node": "n9KNUUntNaDqvMVMKZLPHhGaWZDnx7soeUiHjeQE8ejR45DmHyfx",
       "server_state": "full",
       "validated_ledger": {
         "age": 2,
         "base_fee_xrp": 0.00001,
-        "hash": "01F862ED791ED35C2D75DDFEF14787E624C38F61CD8F2EB74A47F5763525B1C0",
+        "hash": "2B79CECB06A500A2FB92F4FB610D33A20CF8D7FB39F2C2C7C3A6BD0D75A1884A",
         "reserve_base_xrp": 20,
         "reserve_inc_xrp": 5,
-        "seq": 4804882
+        "seq": 4805506
       },
       "validation_quorum": 3
     }
-  }
+  },
+  "api_documentation_url": "https://github.com/emschwartz/ripple-simple"
 }
 ```
 Or if the server is not connected to the Ripple Network:
