@@ -18,10 +18,8 @@ module.exports = function(opts) {
         status.api_documentation_url = 'https://github.com/emschwartz/ripple-simple';
 
         res.json(status);
+        
       });
-
     }
-
   };
-
 };

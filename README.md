@@ -104,12 +104,97 @@ __________
 
 ### 2. Payments
 
+The payments commands use the `Simplified Payment Object` format, which expects the fields defined below on submission and is returned with additional fields added once it has been processed.
+
+#### The `Simplified Payment Object`
+
+The submission format is as follows (optional fields are commented out):
+```js
+{
+    /* User Specified */
+
+    "src_address": "rKXCummUHnenhYudNb9UoJ4mGBR75vFcgz",
+    // "src_tag": "",
+    // "src_amount": {
+    //     "value": "0.001",
+    //     "currency": "XRP",
+    //     "issuer": ""
+    // },
+    // "src_slippage": "0",
+    "dst_address": "rNw4ozCG514KEjPs5cDrqEcdsi31Jtfm5r",
+    // "dst_tag": "",
+    "dst_amount": {
+        "value": "0.001",
+        "currency": "XRP",
+        "issuer": ""
+    },
+    // "dst_slippage": "0",
+
+    /* Advanced Options */
+
+    // "invoice_id": "",
+    // "paths": [],
+    // "flag_no_direct_ripple": false,
+    // "flag_partial_payment": false
+}
+```
+
+When a payment is confirmed in the Ripple ledger, it will have additional fields added:
+```js
+{
+    /* User Specified */
+
+    "src_address": "rKXCummUHnenhYudNb9UoJ4mGBR75vFcgz",
+    "src_tag": "",
+    "src_amount": {
+        "value": "0.001",
+        "currency": "XRP",
+        "issuer": ""
+    },
+    "src_slippage": "0",
+    "dst_address": "rNw4ozCG514KEjPs5cDrqEcdsi31Jtfm5r",
+    "dst_tag": "",
+    "dst_amount": {
+        "value": "0.001",
+        "currency": "XRP",
+        "issuer": ""
+    },
+    "dst_slippage": "0",
+
+    /* Advanced Options */
+
+    "invoice_id": "",
+    "paths": [],
+    "flag_no_direct_ripple": false,
+    "flag_partial_payment": false,
+
+    /* Generated After Validation */
+
+    "tx_direction": "outgoing",
+    "tx_state": "confirmed",
+    "tx_result": "tesSUCCESS",
+    "tx_ledger": 4696959,
+    "tx_hash": "55BA3440B1AAFFB64E51F497EFDF2022C90EDB171BBD979F04685904E38A89B7",
+    "tx_timestamp": 1391025100000,
+    "tx_fee": "0.000012",
+    "tx_src_bals_dec": [{
+        "value": "-0.001012",
+        "currency": "XRP",
+        "issuer": ""
+    }],
+    "tx_dst_bals_inc": [{
+        "value": "0.001",
+        "currency": "XRP",
+        "issuer": ""
+    }]
+}
+```
 
 __________
 
 #### GET /api/v1/addresses/:address/payments/options
 
-Get payment options for a given set of options (a.k.a. Ripple path-find). Each of the resulting payment objects can be submitted directly to [`POST /api/v1/addresses/:address/payments`](#post-apiv1addressesaddresspayments).
+Generate possible payments for a given set of parameters. This is a wrapper around the [Ripple path-find command](https://ripple.com/wiki/RPC_API#path_find) that returns an array of [`Simplified Payment Objects`](#the-simplified-payment-object), which can be submitted directly to [`POST /api/v1/addresses/:address/payments`](#post-apiv1addressesaddresspayments).
 
 Request Query String Parameters:
 + `src_address` - *Required*
@@ -138,7 +223,7 @@ __________
 
 #### POST /api/v1/addresses/:address/payments
 
-Submit a payment in the simplified format.
+Submit a payment in the [`Simplified Payment Object`](#the-simplified-payment-object) format.
 
 Request JSON:
 ```js
@@ -198,43 +283,7 @@ Response:
 {
     "success": true,
     "payment": {
-        "src_address": "rKXCummUHnenhYudNb9UoJ4mGBR75vFcgz",
-        "src_tag": "",
-        "src_amount": {
-            "value": "0.001",
-            "currency": "XRP",
-            "issuer": ""
-        },
-        "src_slippage": "0",
-        "dst_address": "rNw4ozCG514KEjPs5cDrqEcdsi31Jtfm5r",
-        "dst_tag": "",
-        "dst_amount": {
-            "value": "0.001",
-            "currency": "XRP",
-            "issuer": ""
-        },
-        "dst_slippage": "0",
-        "invoice_id": "",
-        "paths": [],
-        "flag_no_direct_ripple": false,
-        "flag_partial_payment": false,
-        "tx_direction": "outgoing",
-        "tx_state": "confirmed",
-        "tx_result": "tesSUCCESS",
-        "tx_ledger": 4696959,
-        "tx_hash": "55BA3440B1AAFFB64E51F497EFDF2022C90EDB171BBD979F04685904E38A89B7",
-        "tx_timestamp": 1391025100000,
-        "tx_fee": "0.000012",
-        "tx_src_bals_dec": [{
-            "value": "-0.001012",
-            "currency": "XRP",
-            "issuer": ""
-        }],
-        "tx_dst_bals_inc": [{
-            "value": "0.001",
-            "currency": "XRP",
-            "issuer": ""
-        }]
+        /* Simplified Payment Object */
     }
 }
 ```
@@ -243,6 +292,9 @@ __________
 
 ### 3. Generic Ripple Transactions
 
+These are transactions formatted by [`ripple-lib`](https://github.com/ripple/ripple-lib/). The submission formats are determined by the [`ripple-lib` Transaction class](https://github.com/ripple/ripple-lib/blob/develop/src/js/ripple/transaction.js).
+
+Additional commands for this API are in development to reduce the need to use these Generic Ripple Transaction commands.
 
 __________
 
@@ -316,6 +368,14 @@ Response:
       "validation_quorum": 3
     }
   }
+}
+```
+Or if the server is not connected to the Ripple Network:
+```js
+{
+  "success": false,
+  "error": "Cannot connect to the Ripple network. Please check your internet connection and server settings and try again.",
+  "message": "Cannot connect to the Ripple network. Please check your internet connection and server settings and try again."
 }
 ```
 
