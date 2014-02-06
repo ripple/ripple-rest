@@ -15,7 +15,7 @@ To install `ripple-rest` locally:
 4. `db-migrate up -m db/migrations --config db/database.json`
 5. `npm install`
 6. Configure `config.json` to point to your `rippled`
-7. `node app.js`
+7. `node server.js`
 
 
 

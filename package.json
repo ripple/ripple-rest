@@ -11,7 +11,7 @@
     "type": "git",
     "url": "https://github.com/emschwartz/ripple-simple.git"
   },
-  "main": "./app.js",
+  "main": "./server.js",
   "keywords": [
     "ripple",
     "ripple-lib",
