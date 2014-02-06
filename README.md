@@ -46,7 +46,10 @@ __This API is still in beta.__ Please open issues for any problems you encounter
 
 ### 1. Notifications
 
-The `notification` object follows this format:
+#### The `Notification Object`
+
+If there is a new `notification` for an account, it will come in this format:
+
 ```js
 {
   "address": "rKXCummUHnenhYudNb9UoJ4mGBR75vFcgz",
@@ -84,6 +87,16 @@ __________
 
 Retrieve the most recent notification for a particular account from the connected rippled.
 
+Response:
+```js
+{
+    "success": true,
+    "notification": { 
+      /* Notification Object */ 
+    }
+}
+```
+
 __________
 
 #### GET /api/v1/addresses/:address/next_notification/:prev_tx_hash
@@ -105,7 +118,7 @@ Or if there are no new notifications:
 {
     "success": true,
     "notification": { 
-      /* Notification Object with "type": "none" and "tx_state" either "empty" or "pending" 
+      /* Notification Object with "type": "none" and "tx_state" either "empty" or "pending" */
     }
 }
 ```
