@@ -1,7 +1,6 @@
 {
   "PORT": 5990,
   "NODE_ENV": "development",
-  "HOST": "localhost",
   "ssl": {
     "key_path": "./certs/server.key",
     "cert_path": "./certs/server.crt"
