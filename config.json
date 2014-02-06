@@ -1,5 +1,12 @@
 {
-  "rippled_opts": {
+  "PORT": 5990,
+  "NODE_ENV": "development",
+  "HOST": "localhost",
+  "ssl": {
+    "key_path": "./certs/server.key",
+    "cert_path": "./certs/server.crt"
+  },
+  "rippled": {
     "local_signing": true,
     "servers": [{
       "host": "s_west.ripple.com",

@@ -1,19 +1,52 @@
-var fs = require('fs');
-var https = require('https');
-var express = require('express'),
+var nconf = require('nconf'), 
+  sequelizeConnect = require('./db/sequelizeConnect'),
+  fs = require('fs'),
+  express = require('express'),
+  https = require('https'),
   app = express(),
-  ripple = require('ripple-lib'),
-  config = require('./config.json'),
-  OutgoingTx = require('./models/outgoingTx');
+  ripple = require('ripple-lib');
 
-var port = process.env.PORT || 5990,
-  environment = process.env.NODE_ENV;
+
+
+/* Process Configuration Options */
+nconf
+  .argv()
+  .env()
+  .file({ file: './config.json' })
+  .defaults({
+    "PORT": 5990,
+    "NODE_ENV": "development",
+    "HOST": "localhost",
+    "rippled": {
+      "local_signing": true,
+      "servers": [{
+        "host": "s_west.ripple.com",
+        "port": 443,
+        "secure": true
+      }]
+    }
+  });
+
+
+
+/* Connect to db */
+var db = sequelizeConnect({
+  DATABASE_URL: nconf.get('DATABASE_URL')
+});
+
+
+
+/* Initialize models */
+var OutgoingTx = require('./models/outgoingTx')(db);
+
+
 
 /* Connect to ripple-lib */
-if (!config.rippled_opts) {
-  throw(new Error('config.json must include "rippled_opts" to connect to the Ripple Network'));
+if (!nconf.get('rippled')) {
+  throw(new Error('config.json must include "rippled" to connect to the Ripple Network'));
 }
-var remote = new ripple.Remote(config.rippled_opts);
+
+var remote = new ripple.Remote(nconf.get('rippled'));
 remote.connect();
 
 remote.on('error', function(err){
@@ -22,7 +55,12 @@ remote.on('error', function(err){
 
 remote.once('connect', function(){
   console.log('Connected to ripple-lib');
+
+  remote.once('ledger_closed', function(){
+    console.log('Connected to remote rippled at: ', remote._getServer()._opts.url);
+  });
 });
+
 
 
 /* Initialize controllers */
@@ -33,8 +71,8 @@ var TxCtrl = require('./controllers/txCtrl')({
 NotificationCtrl = require('./controllers/notificationCtrl')({
   remote: remote, 
   OutgoingTx: OutgoingTx,
-  port: port,
-  environment: environment
+  port: nconf.get('PORT'),
+  environment: nconf.get('NODE_ENV')
 }),
 PaymentCtrl = require('./controllers/paymentCtrl')({
   remote: remote,
@@ -49,9 +87,6 @@ StatusCtrl = require('./controllers/statusCtrl')({
 
 
 
-
-
-
 /* Express middleware */
 app.use(express.json());
 app.use(express.urlencoded());
@@ -61,6 +96,10 @@ app.all('*', function(req, res, next) {
   res.header("Access-Control-Allow-Headers", "X-Requested-With");
   next();
 });
+
+
+
+/* Routes */
 
 /* Status */
 app.get('/', StatusCtrl.getStatus);
@@ -87,12 +126,30 @@ app.post('/api/v1/addresses/:address/payments', PaymentCtrl.submitPayment);
 
 
 
-var sslOptions = {
-  key: fs.readFileSync('./certs/server.key'),
-  cert: fs.readFileSync('./certs/server.crt')
-};
+/* Configure SSL, if desired */
+if (nconf.get('ssl')) {
 
-https.createServer(sslOptions, app).listen(port);
+  var key_path = nconf.get('ssl').key_path || './certs/server.key',
+    cert_path = nconf.get('ssl').cert_path || './certs/server.crt';
 
-console.log('Listening on port ' + port + ' in ' + environment + ' mode');
+  if (!fs.existsSync(key_path)) {
+    throw(new Error('Must provide key file and a key_path in the config.json in order to use SSL'));
+  }
+
+  if (!fs.existsSync(cert_path)) {
+    throw(new Error('Must provide certificate file and a cert_path in the config.json in order to use SSL'));
+  }
+
+  var sslOptions = {
+    key: fs.readFileSync(key_path),
+    cert: fs.readFileSync(cert_path)
+  };
+
+  https.createServer(sslOptions, app).listen(nconf.get('PORT'));
+  console.log('ripple-rest available at: https://' + nconf.get('HOST') + ':' + nconf.get('PORT'));
+
+} else {
+  app.listen(nconf.get('PORT'));
+  console.log('ripple-rest available at: http://' + nconf.get('HOST') + ':' + nconf.get('PORT'));
+}
 
