@@ -15,7 +15,7 @@ module.exports = function(opts) {
           return;
         }
 
-        status.api_documentation_url = 'https://github.com/emschwartz/ripple-simple';
+        status.api_documentation_url = 'https://github.com/ripple/ripple-rest';
 
         res.json(status);
         
