@@ -25,6 +25,12 @@ module.exports = function(res, error) {
     err_obj.message = err_obj.message + ' Please ensure that the src_address has sufficient XRP to pay the fee. If it does, please report this error, this service should handle setting the proper fee.';
   }
 
+  if (err_obj.error === err_obj.message) {
+    var err_array = err_obj.error.split('.');
+    err_obj.error = err_array[0];
+    err_obj.message = err_array.slice(1).join('.') + '.';
+  }
+
 
 
   console.log('Error: ', err_obj);
