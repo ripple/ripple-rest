@@ -16,7 +16,6 @@ nconf
   .defaults({
     "PORT": 5990,
     "NODE_ENV": "development",
-    "HOST": "localhost",
     "rippled": {
       "local_signing": true,
       "servers": [{
