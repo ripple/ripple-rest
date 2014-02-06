@@ -1,6 +1,0 @@
-[submodule "ripple-account-history"]
-	path = ripple-account-history
-	url = git@github.com:stevenzeiler/ripple-account-history.git
-[submodule "ripple-address-listener"]
-	path = ripple-address-listener
-	url = https://github.com/stevenzeiler/ripple-address-listener

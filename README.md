@@ -1,23 +1,21 @@
-# `ripple-simple.js`
+# `ripple-rest`
 
 A simplified RESTful API for interfacing with the [Ripple Network](http://ripple.com).
 
 
 ## Setup
 
-A sample version of the API can also be found at [`http://ripple-simple.herokuapp.com`](http://ripple-simple.herokuapp.com). Please note that all data is transmitted insecurely so you should __only submit transactions on test accounts__. Sending your account secret over an unencrypted connection is a *very bad idea*.
+A test version of the API can be found at [`https://ripple-rest.herokuapp.com`](https://ripple-rest.herokuapp.com). Even though it supports HTTPS connections, __only submit transactions from test accounts__, we make __NO GUARANTEES__ about the security of your secret keys on this server.
 
-To install `ripple-simple` locally:
+To install `ripple-rest` locally:
 
-1. Clone repository and `cd` into it (and make sure you have [`Node.js`](http://nodejs.org/) installed)
+1. Clone repository (and make sure you have [`Node.js`](http://nodejs.org/) installed)
 2. [Download](http://www.postgresql.org/download/) and install PostgreSQL and setup a user
-3. Set Node environment variable `NODE_ENV` to `development`, `staging`, or `production`: `export NODE_ENV=development`
-3. Set Node environment variable `DATABASE_URL` to point to PostgreSQL: `export DATABASE_URL=postgres://{username}:{password}@{host}:{port}/{database}?native=true`
+3. `npm install -g db-migrate`
 4. `db-migrate up -m db/migrations --config db/database.json`
 5. `npm install`
 6. Configure `config.json` to point to your `rippled`
 7. `node app.js`
-8. If the `NODE_ENV` is set to `development` the server will by default accept requests at `http://localhost:5990/api/v1/...`
 
 
 
@@ -52,14 +50,14 @@ __________
 
 #### GET /api/v1/addresses/:address/next_notification
 
-Get the most recent notification for a particular account. See next route details for response format.
+Retrieve the most recent notification for a particular account from the connected rippled. See next route details for response format.
 
 
 __________
 
 #### GET /api/v1/addresses/:address/next_notification/:prev_tx_hash
 
-Get the next notification after the given `:prev_tx_hash` for a particular accounts.
+Retrieve the next notification after the given `:prev_tx_hash` for a particular account from the connected rippled.
 
 Response:
 ```js
@@ -74,7 +72,7 @@ Response:
         "tx_ledger": 4696959,
         "tx_hash": "55BA3440B1AAFFB64E51F497EFDF2022C90EDB171BBD979F04685904E38A89B7",
         "tx_timestamp": 1391025100000,
-        "tx_url": "http://ripple-simple.herokuapp.com/api/v1/addresses/rKXCummUHnenhYudNb9UoJ4mGBR75vFcgz/payments/55BA3440B1AAFFB64E51F497EFDF2022C90EDB171BBD979F04685904E38A89B7?in_ledger=4696959",
+        "tx_url": "http://ripple-rest.herokuapp.com/api/v1/addresses/rKXCummUHnenhYudNb9UoJ4mGBR75vFcgz/payments/55BA3440B1AAFFB64E51F497EFDF2022C90EDB171BBD979F04685904E38A89B7?in_ledger=4696959",
         "confirmation_token": "55BA3440B1AAFFB64E51F497EFDF2022C90EDB171BBD979F04685904E38A89B7"
     }
 }
@@ -371,7 +369,7 @@ Response:
       "validation_quorum": 3
     }
   },
-  "api_documentation_url": "https://github.com/emschwartz/ripple-simple"
+  "api_documentation_url": "https://github.com/ripple/ripple-rest"
 }
 ```
 Or if the server is not connected to the Ripple Network:
