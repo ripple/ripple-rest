@@ -27,7 +27,7 @@ module.exports = function(opts) {
               '')
           };          
         } else {
-          errorHandler(res, new Error('Invalid parameter: dst_amount. Must be astring in the form \'1/USD/r...\' or an object in the form { value: \'1\', currency: \'XRP\', issuer: \' }'));
+          errorHandler(res, new Error('Invalid parameter: dst_amount. Must be astring in the form \'1+USD+r...\' or an object in the form { value: \'1\', currency: \'XRP\', issuer: \' }'));
           return;
         }
 
@@ -36,7 +36,7 @@ module.exports = function(opts) {
         dst_amount = dst_amount_param;
 
       } else {
-        errorHandler(res, new Error('Invalid parameter: dst_amount. Must be a string in the form \'1/USD/r...\' or an object in the form { value: \'1\', currency: \'XRP\', issuer: \' }'));
+        errorHandler(res, new Error('Invalid parameter: dst_amount. Must be a string in the form \'1+USD+r...\' or an object in the form { value: \'1\', currency: \'XRP\', issuer: \' }'));
         return;
       }
 
