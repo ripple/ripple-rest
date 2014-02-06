@@ -46,12 +46,43 @@ __This API is still in beta.__ Please open issues for any problems you encounter
 
 ### 1. Notifications
 
+The `notification` object follows this format:
+```js
+{
+  "address": "rKXCummUHnenhYudNb9UoJ4mGBR75vFcgz",
+  "type": "payment",
+  "tx_direction": "outgoing",
+  "tx_state": "confirmed",
+  "tx_result": "tesSUCCESS",
+  "tx_ledger": 4696959,
+  "tx_hash": "55BA3440B1AAFFB64E51F497EFDF2022C90EDB171BBD979F04685904E38A89B7",
+  "tx_timestamp": 1391025100000,
+  "tx_url": "http://ripple-rest.herokuapp.com/api/v1/addresses/rKXCummUHnenhYudNb9UoJ4mGBR75vFcgz/payments/55BA3440B1AAFFB64E51F497EFDF2022C90EDB171BBD979F04685904E38A89B7?in_ledger=4696959",
+  "confirmation_token": "55BA3440B1AAFFB64E51F497EFDF2022C90EDB171BBD979F04685904E38A89B7"
+}
+```
+
+If there are no new notifications for a particular account, it will follow this format:
+```js
+{
+  "address": "rKXCummUHnenhYudNb9UoJ4mGBR75vFcgz",
+  "type": "none",
+  "tx_direction": "",
+  "tx_state": "empty", // or "pending" if still waiting for outgoing transactions to clear
+  "tx_result": "",
+  "tx_ledger": "",
+  "tx_hash": "",
+  "tx_timestamp": ,
+  "tx_url": "",
+  "confirmation_token": ""
+}
+```
+
 __________
 
 #### GET /api/v1/addresses/:address/next_notification
 
-Retrieve the most recent notification for a particular account from the connected rippled. See next route details for response format.
-
+Retrieve the most recent notification for a particular account from the connected rippled.
 
 __________
 
@@ -63,37 +94,18 @@ Response:
 ```js
 {
     "success": true,
-    "notification": {
-        "address": "rKXCummUHnenhYudNb9UoJ4mGBR75vFcgz",
-        "type": "payment",
-        "tx_direction": "outgoing",
-        "tx_state": "confirmed",
-        "tx_result": "tesSUCCESS",
-        "tx_ledger": 4696959,
-        "tx_hash": "55BA3440B1AAFFB64E51F497EFDF2022C90EDB171BBD979F04685904E38A89B7",
-        "tx_timestamp": 1391025100000,
-        "tx_url": "http://ripple-rest.herokuapp.com/api/v1/addresses/rKXCummUHnenhYudNb9UoJ4mGBR75vFcgz/payments/55BA3440B1AAFFB64E51F497EFDF2022C90EDB171BBD979F04685904E38A89B7?in_ledger=4696959",
-        "confirmation_token": "55BA3440B1AAFFB64E51F497EFDF2022C90EDB171BBD979F04685904E38A89B7"
+    "notification": { 
+      /* Notification Object */ 
     }
 }
 ```
 Or if there are no new notifications:
 
-(Note the `"type": "none"` and `"tx_state": "empty"` or `"tx_state": "pending"`)
 ```js
 {
     "success": true,
-    "notification": {
-        "address": "rKXCummUHnenhYudNb9UoJ4mGBR75vFcgz",
-        "type": "none",
-        "tx_direction": "",
-        "tx_state": "empty", // or "pending" if still waiting for outgoing transactions to clear
-        "tx_result": "",
-        "tx_ledger": "",
-        "tx_hash": "",
-        "tx_timestamp": ,
-        "tx_url": "",
-        "confirmation_token": ""
+    "notification": { 
+      /* Notification Object with "type": "none" and "tx_state" either "empty" or "pending" 
     }
 }
 ```
@@ -223,6 +235,8 @@ __________
 
 Submit a payment in the [`Simplified Payment Object`](#the-simplified-payment-object) format.
 
+__DO NOT SUBMIT YOUR SECRET TO AN UNTRUSTED REST API SERVER__ -- this is the key to your account and your money. If you are using the test server provided, only use test accounts to submit payments.
+
 Request JSON:
 ```js
 {
@@ -311,13 +325,18 @@ __________
 
 Post a transaction in the standard Ripple transaction format.
 
+__DO NOT SUBMIT YOUR SECRET TO AN UNTRUSTED REST API SERVER__ -- this is the key to your account and your money. If you are using the test server provided, only use test accounts to submit payments.
+
 Request JSON:
 ```js
 {
-  type: "payment"
-  from: "r...",
-  to: "r...",
-  amount: "1XRP"
+  secret: "s...",
+  tx: {
+    type: "payment"
+    from: "r...",
+    to: "r...",
+    amount: "1XRP"
+  }
 }
 ```
 

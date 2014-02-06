@@ -20,6 +20,9 @@
     "rest",
     "restful"
   ],
+  "engines": {
+    "node": "~0.10.22"
+  },
   "devDependencies": {
     "mocha": "*",
     "chai": "*",
