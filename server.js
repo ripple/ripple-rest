@@ -123,7 +123,7 @@ app.get('/api/v1/addresses/:address/payments/options', PathfindCtrl.getPathFind)
 app.get('/api/v1/addresses/:address/payments/:tx_hash', PaymentCtrl.getPayment);
 app.post('/api/v1/addresses/:address/payments', PaymentCtrl.submitPayment);
 
-console.log('ssl: ', nconf.get('ssl'));
+console.log('ssl: ', typeof nconf.get('ssl'), nconf.get('ssl'));
 
 /* Configure SSL, if desired */
 if (nconf.get('ssl')) {
