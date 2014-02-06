@@ -1,5 +1,5 @@
 {
-  "name": "ripple-simple",
+  "name": "ripple-rest",
   "version": "0.0.1",
   "author": "Evan Schwartz <evan@ripple.com>",
   "description": "A simplified interface to the Ripple network through a Javascript library and RESTful API",
@@ -9,10 +9,11 @@
   },
   "repository": {
     "type": "git",
-    "url": "https://github.com/emschwartz/ripple-simple.git"
+    "url": "https://github.com/ripple/ripple-rest.git"
   },
-  "main": "./server.js",
+  "main": "server.js",
   "keywords": [
+    "ripple-rest",
     "ripple",
     "ripple-lib",
     "payments",
