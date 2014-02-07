@@ -1,5 +1,7 @@
 # `ripple-rest` API Reference
 
+This is a reference for all of the available API routes. See the [Guide](GUIDE.md) for a walkthrough of how this API is intended to be used.
+
 1. [Notifications](#1-notifications)
     + [`GET /api/v1/addresses/:address/next_notification`](#get-apiv1addressesaddressnext_notification)
     + [`GET /api/v1/addresses/:address/next_notification/:prev_tx_hash`](#get-apiv1addressesaddressnext_notificationprev_tx_hash)

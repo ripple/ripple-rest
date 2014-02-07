@@ -2,6 +2,7 @@
 
 A simplified RESTful API for interfacing with the [Ripple Network](http://ripple.com).
 
+See the [Guide](docs/GUIDE.md) and the [API Reference](docs/REF.md) for details on how to use the API.
 
 ## Setup
 
