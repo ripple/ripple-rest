@@ -1,9 +1,8 @@
 /*jshint expr: true*/
 var expect = require('chai').expect,
+  sinon = require('sinon'),
   remoteConnectLib = require('../../lib/remoteConnect'),
   ripple = require('ripple-lib');
-
-console.log(ripple);
 
 describe('lib/remoteConnect', function(){
 
@@ -33,19 +32,23 @@ describe('lib/remoteConnect', function(){
 
     it('should respond with an error if it cannot connect to the network within 10 seconds', function(done){
 
-      this.timeout(11000);
+      var clock = sinon.useFakeTimers(0, "setTimeout");
 
       var remote = new ripple.Remote({
-        constructor: {
-          name: 'Remote'
-        }
       });
+
+      remote.connect = function(){
+        clock.tick(10000);
+      };
+
       remoteConnectLib.ensureConnected(remote, function(err, res){
         expect(err).to.exist;
         expect(err.message).to.equal('Cannot connect to the Ripple network. Please check your internet connection and server settings and try again.');
         expect(res).not.to.exist;
         done();
       });
+
+      clock.restore();
 
     });
 
