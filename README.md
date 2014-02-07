@@ -408,6 +408,7 @@ Let's say my account is `rNw4ozCG514KEjPs5cDrqEcdsi31Jtfm5r`.
   }
   ```
   Notice that a number of fields have been added to what I originally submitted (all of those that start with `tx_...`).
+  These tell me how the transaction actually appeared in the ledger, including how much money came out of my account (in `tx_src_bals_dec`, which includes the network fee).
 
 
 
