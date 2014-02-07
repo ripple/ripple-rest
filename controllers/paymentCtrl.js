@@ -39,18 +39,18 @@ module.exports = function (opts) {
     submitPayment: function(req, res) {
 
       var src_address = req.param('address'),
-        payment_json = req.body.payment || req.body.payment_json || req.body,
+        payment = req.body.payment || req.body.payment_json || req.body,
         secret = req.body.secret;
 
-      if (payment_json.secret) {
-        delete payment_json.secret;
+      if (payment.secret) {
+        delete payment.secret;
       }
 
       paymentLib.submitPayment({
         remote: remote,
         OutgoingTx: OutgoingTx,
         src_address: src_address,
-        payment_json: payment_json,
+        payment: payment,
         secret: secret
       }, function(err, initial_hash){
         if (err) {
