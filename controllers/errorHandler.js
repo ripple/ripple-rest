@@ -30,9 +30,9 @@ module.exports = function(res, error) {
   }
 
   if (err_obj.error === err_obj.message) {
-    var err_array = err_obj.error.split('.');
+    var err_array = err_obj.error.split('. ');
     err_obj.error = err_array[0];
-    err_obj.message = err_array.slice(1).join('.') + '.';
+    err_obj.message = err_array.slice(1).join('. ') + '.';
   }
 
 

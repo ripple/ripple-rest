@@ -2,6 +2,10 @@
 
 This is a reference for all of the available API routes. See the [Guide](GUIDE.md) for a walkthrough of how this API is intended to be used.
 
+----------
+
+## Available API Routes
+
 1. [Notifications](#1-notifications)
     + [`GET /api/v1/addresses/:address/next_notification`](#get-apiv1addressesaddressnext_notification)
     + [`GET /api/v1/addresses/:address/next_notification/:prev_tx_hash`](#get-apiv1addressesaddressnext_notificationprev_tx_hash)
@@ -15,7 +19,7 @@ This is a reference for all of the available API routes. See the [Guide](GUIDE.m
 4. [Server Info](#4-server-info)
     + [`GET /api/v1/status`](#get-apiv1status)
 
-
+----------
 
 ### 1. Notifications
 
@@ -383,8 +387,8 @@ Or if the server is not connected to the Ripple Network:
 ```js
 {
   "success": false,
-  "error": "Cannot connect to the Ripple network. Please check your internet connection and server settings and try again.",
-  "message": "Cannot connect to the Ripple network. Please check your internet connection and server settings and try again."
+  "error": "Cannot connect to the Ripple network.",
+  "message": "Please check your internet connection and server settings and try again."
 }
 ```
 
