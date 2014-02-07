@@ -1,6 +1,8 @@
 {
   "PORT": 5990,
   "NODE_ENV": "development",
+  "HOST": "localhost",
+  "DATABASE_URL": "postgres://user:password@localhost:5432/ripple_rest",
   "ssl": {
     "key_path": "./certs/server.key",
     "cert_path": "./certs/server.crt"
