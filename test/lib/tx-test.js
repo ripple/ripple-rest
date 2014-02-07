@@ -1,6 +1,7 @@
 /*jshint expr: true*/
 var expect = require('chai').expect,
   clone = require('clone'),
+  equal = require('deep-equal'),
   txLib = require('../../lib/tx');
 
 describe('lib/tx', function(){
@@ -25,9 +26,9 @@ describe('lib/tx', function(){
 
           if (opts.account === 'rNw4ozCG514KEjPs5cDrqEcdsi31Jtfm5r') {
 
-            if (opts.limit === 20 && opts.offset === 0) {
+            if (opts.limit === 20 && !opts.marker) {
               callback(null, clone(account_tx_0));
-            } else if (opts.limit === 20 && opts.offset === 20) {
+            } else if (opts.limit === 20 && equal(opts.marker, {"ledger": 4696951, "seq": 0 })) {
               callback(null, clone(account_tx_20));
             } else {
               callback(new Error('Options not supported'));
