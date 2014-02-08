@@ -40,7 +40,7 @@ module.exports = function (opts) {
 
       var src_address = req.param('address'),
         payment = req.body.payment || req.body.payment_json || req.body,
-        secret = req.body.secret;
+        secret = req.body.secret;     
 
       if (payment.secret) {
         delete payment.secret;
