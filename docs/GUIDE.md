@@ -35,12 +35,13 @@ This retrieves the most recent `notification` on my account:
     "tx_ledger": 4716034,
     "tx_hash": "EC19E24AA51D39E809597A5DCF3A7E253F98C27FE3287CB919319A5C59AD8302",
     "tx_timestamp": 1391130630000,
-    "tx_url": "http://ripple-rest.herokuapp.com:49598/api/v1/addresses/rKXCummUHnenhYudNb9UoJ4mGBR75vFcgz/payments/EC19E24AA51D39E809597A5DCF3A7E253F98C27FE3287CB919319A5C59AD8302?in_ledger=4716034",
+    "tx_url": "http://ripple-rest.herokuapp.com:49598/api/v1/addresses/rKXCummUHnenhYudNb9UoJ4mGBR75vFcgz/payments/EC19E24AA51D39E809597A5DCF3A7E253F98C27FE3287CB919319A5C59AD8302?ledger=4716034",
+    "next_notification_url": "http://ripple-rest.herokuapp.com:49598/api/v1/addresses/rKXCummUHnenhYudNb9UoJ4mGBR75vFcgz/next_notification/EC19E24AA51D39E809597A5DCF3A7E253F98C27FE3287CB919319A5C59AD8302?ledger=4716034"
     "confirmation_token": ""
   }
 }
 ```
-If I want more information about that payment I can follow the link at `tx_url`. Otherwise I'll take the `tx_hash` and move to the next step.
+If I want more information about that payment I can follow the link at `tx_url`. Otherwise I'll follow the `next_notification_url` and move to the next step.
 
 
 ----------
@@ -64,6 +65,7 @@ If there is no next `notification` I'll see:
     "tx_hash": "",
     "tx_timestamp": "",
     "tx_url": "",
+    "next_notification_url": "http://ripple-rest.herokuapp.com:49598/api/v1/addresses/rKXCummUHnenhYudNb9UoJ4mGBR75vFcgz/next_notification/EC19E24AA51D39E809597A5DCF3A7E253F98C27FE3287CB919319A5C59AD8302?ledger=4716034"
     "confirmation_token": ""
   }
 }
@@ -94,7 +96,8 @@ This time there is a new `notification` so I'll see:
     "tx_ledger": 4716041,
     "tx_hash": "8DFC1A7FBB60472CBEE9211D4DA44A5A42542729C9472D6B582302C77F31D95B",
     "tx_timestamp": 1391130660000,
-    "tx_url": "http://ripple-rest.herokuapp.com:49598/api/v1/addresses/rKXCummUHnenhYudNb9UoJ4mGBR75vFcgz/payments/8DFC1A7FBB60472CBEE9211D4DA44A5A42542729C9472D6B582302C77F31D95B?in_ledger=4716041",
+    "tx_url": "http://ripple-rest.herokuapp.com:49598/api/v1/addresses/rKXCummUHnenhYudNb9UoJ4mGBR75vFcgz/payments/8DFC1A7FBB60472CBEE9211D4DA44A5A42542729C9472D6B582302C77F31D95B?ledger=4716041",
+    "next_notification_url": "http://ripple-rest.herokuapp.com:49598/api/v1/addresses/rKXCummUHnenhYudNb9UoJ4mGBR75vFcgz/next_notification/8DFC1A7FBB60472CBEE9211D4DA44A5A42542729C9472D6B582302C77F31D95B?ledger=4716034",
     "confirmation_token": ""
   }
 }
@@ -285,7 +288,8 @@ When I see a notification like this, where the `confirmation_token` matches what
     "tx_ledger": 4850743,
     "tx_hash": "81D48826FA84B0B83902CA3BFE49E2503A5BA1069B214D492AE6AB145B6C4781",
     "tx_timestamp": 1391792990000,
-    "tx_url": "https://ripple-rest.herokuapp.com:49598/api/v1/addresses/rNw4ozCG514KEjPs5cDrqEcdsi31Jtfm5r/payments/81D48826FA84B0B83902CA3BFE49E2503A5BA1069B214D492AE6AB145B6C4781?in_ledger=4850743",
+    "tx_url": "https://ripple-rest.herokuapp.com:49598/api/v1/addresses/rNw4ozCG514KEjPs5cDrqEcdsi31Jtfm5r/payments/81D48826FA84B0B83902CA3BFE49E2503A5BA1069B214D492AE6AB145B6C4781?ledger=4850743",
+    "next_notification_url": "https://ripple-rest.herokuapp.com:49598/api/v1/addresses/rNw4ozCG514KEjPs5cDrqEcdsi31Jtfm5r/next_notification/81D48826FA84B0B83902CA3BFE49E2503A5BA1069B214D492AE6AB145B6C4781?ledger=4850743"
     "confirmation_token": "81D48826FA84B0B83902CA3BFE49E2503A5BA1069B214D492AE6AB145B6C4781"
   }
 }
@@ -296,7 +300,7 @@ To fetch the exact details of the transaction I can follow the `tx_url` link.
 
 #### 7. Retrieving the details of a confirmed payment
 
-Command: `GET /api/v1/addresses/rNw4ozCG514KEjPs5cDrqEcdsi31Jtfm5r/payments/81D48826FA84B0B83902CA3BFE49E2503A5BA1069B214D492AE6AB145B6C4781?in_ledger=4850743`
+Command: `GET /api/v1/addresses/rNw4ozCG514KEjPs5cDrqEcdsi31Jtfm5r/payments/81D48826FA84B0B83902CA3BFE49E2503A5BA1069B214D492AE6AB145B6C4781?ledger=4850743`
 
 ```js
 {

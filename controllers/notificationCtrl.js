@@ -15,13 +15,15 @@ module.exports = function(opts) {
     getNextNotification: function(req, res) {
 
       var address = req.param('address'),
-        prev_tx_hash = req.param('prev_tx_hash');
+        prev_tx_hash = req.param('prev_tx_hash'),
+        ledger_index = req.query.ledger || req.query.ledger_index;
 
       notificationLib.getNextNotification({
         remote: remote,
         OutgoingTx: OutgoingTx,
         address: address, 
-        prev_tx_hash: prev_tx_hash
+        prev_tx_hash: prev_tx_hash,
+        ledger_index: ledger_index
       }, function(err, notification){
         if (err) {
           errorHandler(res, err);
@@ -32,6 +34,12 @@ module.exports = function(opts) {
           notification.tx_url = req.protocol + '://' + req.host + (port && environment === 'development' ? (':' + port) : '') + '/api/v1' + notification.tx_url;
         } else {
           notification.tx_url = '';
+        }
+
+        if (notification.next_notification_url) {
+          notification.next_notification_url = req.protocol + '://' + req.host + (port && environment === 'development' ? (':' + port) : '') + '/api/v1' + notification.next_notification_url;
+        } else {
+          notification.next_notification_url = '';
         }
 
         res.send({

@@ -38,6 +38,7 @@ If there is a new `notification` for an account, it will come in this format:
   "tx_hash": "55BA3440B1AAFFB64E51F497EFDF2022C90EDB171BBD979F04685904E38A89B7",
   "tx_timestamp": 1391025100000,
   "tx_url": "http://ripple-rest.herokuapp.com/api/v1/addresses/rKXCummUHnenhYudNb9UoJ4mGBR75vFcgz/payments/55BA3440B1AAFFB64E51F497EFDF2022C90EDB171BBD979F04685904E38A89B7?in_ledger=4696959",
+  "next_notification_url": "http://ripple-rest.herokuapp.com/api/v1/addresses/rKXCummUHnenhYudNb9UoJ4mGBR75vFcgz/next_notification/55BA3440B1AAFFB64E51F497EFDF2022C90EDB171BBD979F04685904E38A89B7?ledger=4696959"
   "confirmation_token": "55BA3440B1AAFFB64E51F497EFDF2022C90EDB171BBD979F04685904E38A89B7"
 }
 ```
@@ -74,6 +75,8 @@ Response:
 }
 ```
 
+
+__NOTE:__ This command relies on the connected `rippled`'s historical database so it may not work properly on a newly started `rippled` server.
 __________
 
 #### GET /api/v1/addresses/:address/next_notification/:prev_tx_hash
@@ -100,6 +103,8 @@ Or if there are no new notifications:
 }
 ```
 
+
+__NOTE:__ This command relies on the connected `rippled`'s historical database so it may not work properly on a newly started `rippled` server.
 __________
 
 ### 2. Payments
@@ -295,6 +300,9 @@ Response:
 }
 ```
 
+
+__NOTE:__ This command relies on the connected `rippled`'s historical database so it may not work properly on a newly started `rippled` server.
+
 __________
 
 ### 3. Generic Ripple Transactions
@@ -310,6 +318,8 @@ __________
 Gets a particular transaction in the standard Ripple transaction JSON format
 
 
+
+__NOTE:__ This command relies on the connected `rippled`'s historical database so it may not work properly on a newly started `rippled` server.
 
 __________
 
