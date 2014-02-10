@@ -47,7 +47,7 @@ if (!nconf.get('rippled')) {
 /* Connect to ripple-lib */
 var remoteOpts = nconf.get('rippled');
 
-remoteOpts.store = {
+remoteOpts.storage = {
   loadAccounts: function(callback) {
   },
 
