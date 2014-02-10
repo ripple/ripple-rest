@@ -30,9 +30,9 @@ __This API is still in beta.__ Please open issues for any problems you encounter
 
 ## API Object Formats
 
-1. [Amount](REF.md#1-amount)
-2. [Payment](REF.md#2-payment)
-3. [Notification](REF.md#3-notification)
+1. [Amount](docs/REF.md#1-amount)
+2. [Payment](docs/REF.md#2-payment)
+3. [Notification](docs/REF.md#3-notification)
 
 ## Available API Routes
 
