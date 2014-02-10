@@ -145,10 +145,10 @@ if (typeof nconf.get('ssl') === 'object') {
   };
 
   https.createServer(sslOptions, app).listen(nconf.get('PORT'));
-  console.log('ripple-rest available at: https://' + nconf.get('HOST') + ':' + nconf.get('PORT'));
+  console.log('ripple-rest available over HTTPS at port:' + nconf.get('PORT'));
 
 } else {
   app.listen(nconf.get('PORT'));
-  console.log('ripple-rest available at: http://' + nconf.get('HOST') + ':' + nconf.get('PORT'));
+  console.log('ripple-rest available over unsecured HTTP at port:' + nconf.get('PORT'));
 }
 

@@ -169,7 +169,7 @@ When a payment is confirmed in the Ripple ledger, it will have additional fields
     /* Advanced Options */
 
     "invoice_id": "",
-    "paths": [],
+    "paths": "[]",
     "flag_no_direct_ripple": false,
     "flag_partial_payment": false,
 
@@ -204,7 +204,6 @@ Generate possible payments for a given set of parameters. This is a wrapper arou
 __NOTE:__ This command may be quite slow. If the command times out, please try it again.
 
 Request Query String Parameters:
-+ `src_address` - *Required*
 + `dst_address` - *Required*
 + `dst_amount` - *Required*, Amount string in the form `"1+USD+r..."` or `"1+XRP"` 
 

@@ -116,7 +116,7 @@ This step is optional but I can call it before submitting a payment to have the 
 
 Let's say I want to send `rKXCummUHnenhYudNb9UoJ4mGBR75vFcgz` 0.10 USD.
 I'll use these query string parameters for this command:
-`?src_address=rNw4ozCG514KEjPs5cDrqEcdsi31Jtfm5r&dst_address=rKXCummUHnenhYudNb9UoJ4mGBR75vFcgz&dst_amount=0.1+USD`
+`?dst_address=rKXCummUHnenhYudNb9UoJ4mGBR75vFcgz&dst_amount=0.1+USD`
 
 And I see this in return:
 ```js
@@ -141,90 +141,7 @@ And I see this in return:
       },
       "dst_slippage": "0",
       "invoice_id": "",
-      "paths": [
-        [
-          {
-            "currency": "USD",
-            "issuer": "rvYAfWj5gh67oV6fW32ZzP3Aw4Eubs59B",
-            "type": 48,
-            "type_hex": "0000000000000030"
-          },
-          {
-            "account": "rvYAfWj5gh67oV6fW32ZzP3Aw4Eubs59B",
-            "type": 1,
-            "type_hex": "0000000000000001"
-          }
-        ],
-        [
-          {
-            "currency": "USD",
-            "issuer": "r9Dr5xwkeLegBeXq6ujinjSBLQzQ1zQGjH",
-            "type": 48,
-            "type_hex": "0000000000000030"
-          },
-          {
-            "account": "r9Dr5xwkeLegBeXq6ujinjSBLQzQ1zQGjH",
-            "type": 1,
-            "type_hex": "0000000000000001"
-          },
-          {
-            "account": "rUjbzuRoQagHet3XnygZkfaTFTFkMoD3YG",
-            "type": 1,
-            "type_hex": "0000000000000001"
-          },
-          {
-            "account": "rvYAfWj5gh67oV6fW32ZzP3Aw4Eubs59B",
-            "type": 1,
-            "type_hex": "0000000000000001"
-          }
-        ],
-        [
-          {
-            "currency": "USD",
-            "issuer": "r9Dr5xwkeLegBeXq6ujinjSBLQzQ1zQGjH",
-            "type": 48,
-            "type_hex": "0000000000000030"
-          },
-          {
-            "account": "r9Dr5xwkeLegBeXq6ujinjSBLQzQ1zQGjH",
-            "type": 1,
-            "type_hex": "0000000000000001"
-          },
-          {
-            "account": "rBKV8bnCuYz9gj2CDaGi8WDvP4tX8p2mbc",
-            "type": 1,
-            "type_hex": "0000000000000001"
-          },
-          {
-            "account": "rvYAfWj5gh67oV6fW32ZzP3Aw4Eubs59B",
-            "type": 1,
-            "type_hex": "0000000000000001"
-          }
-        ],
-        [
-          {
-            "currency": "USD",
-            "issuer": "r9Dr5xwkeLegBeXq6ujinjSBLQzQ1zQGjH",
-            "type": 48,
-            "type_hex": "0000000000000030"
-          },
-          {
-            "account": "r9Dr5xwkeLegBeXq6ujinjSBLQzQ1zQGjH",
-            "type": 1,
-            "type_hex": "0000000000000001"
-          },
-          {
-            "account": "r3MeEnYZY9fAd5pGjAWf4dfJsQBVY9FZRL",
-            "type": 1,
-            "type_hex": "0000000000000001"
-          },
-          {
-            "account": "rvYAfWj5gh67oV6fW32ZzP3Aw4Eubs59B",
-            "type": 1,
-            "type_hex": "0000000000000001"
-          }
-        ]
-      ],
+      "paths": "[[{\"currency\":\"USD\",\"issuer\":\"rvYAfWj5gh67oV6fW32ZzP3Aw4Eubs59B\",\"type\":48,\"type_hex\":\"0000000000000030\"},{\"account\":\"rvYAfWj5gh67oV6fW32ZzP3Aw4Eubs59B\",\"type\":1,\"type_hex\":\"0000000000000001\"}],[{\"currency\":\"USD\",\"issuer\":\"r9Dr5xwkeLegBeXq6ujinjSBLQzQ1zQGjH\",\"type\":48,\"type_hex\":\"0000000000000030\"},{\"account\":\"r9Dr5xwkeLegBeXq6ujinjSBLQzQ1zQGjH\",\"type\":1,\"type_hex\":\"0000000000000001\"},{\"account\":\"rUjbzuRoQagHet3XnygZkfaTFTFkMoD3YG\",\"type\":1,\"type_hex\":\"0000000000000001\"},{\"account\":\"rvYAfWj5gh67oV6fW32ZzP3Aw4Eubs59B\",\"type\":1,\"type_hex\":\"0000000000000001\"}],[{\"currency\":\"USD\",\"issuer\":\"r9Dr5xwkeLegBeXq6ujinjSBLQzQ1zQGjH\",\"type\":48,\"type_hex\":\"0000000000000030\"},{\"account\":\"r9Dr5xwkeLegBeXq6ujinjSBLQzQ1zQGjH\",\"type\":1,\"type_hex\":\"0000000000000001\"},{\"account\":\"rBKV8bnCuYz9gj2CDaGi8WDvP4tX8p2mbc\",\"type\":1,\"type_hex\":\"0000000000000001\"},{\"account\":\"rvYAfWj5gh67oV6fW32ZzP3Aw4Eubs59B\",\"type\":1,\"type_hex\":\"0000000000000001\"}],[{\"currency\":\"USD\",\"issuer\":\"r9Dr5xwkeLegBeXq6ujinjSBLQzQ1zQGjH\",\"type\":48,\"type_hex\":\"0000000000000030\"},{\"account\":\"r9Dr5xwkeLegBeXq6ujinjSBLQzQ1zQGjH\",\"type\":1,\"type_hex\":\"0000000000000001\"},{\"account\":\"r3MeEnYZY9fAd5pGjAWf4dfJsQBVY9FZRL\",\"type\":1,\"type_hex\":\"0000000000000001\"},{\"account\":\"rvYAfWj5gh67oV6fW32ZzP3Aw4Eubs59B\",\"type\":1,\"type_hex\":\"0000000000000001\"}]]",
       "flag_partial_payment": false,
       "flag_no_direct_ripple": false
     }
@@ -323,90 +240,7 @@ Command: `GET /api/v1/addresses/rNw4ozCG514KEjPs5cDrqEcdsi31Jtfm5r/payments/81D4
     },
     "dst_slippage": "0",
     "invoice_id": "",
-    "paths": [
-      [
-        {
-          "currency": "USD",
-          "issuer": "rvYAfWj5gh67oV6fW32ZzP3Aw4Eubs59B",
-          "type": 48,
-          "type_hex": "0000000000000030"
-        },
-        {
-          "account": "rvYAfWj5gh67oV6fW32ZzP3Aw4Eubs59B",
-          "type": 1,
-          "type_hex": "0000000000000001"
-        }
-      ],
-      [
-        {
-          "currency": "USD",
-          "issuer": "r9Dr5xwkeLegBeXq6ujinjSBLQzQ1zQGjH",
-          "type": 48,
-          "type_hex": "0000000000000030"
-        },
-        {
-          "account": "r9Dr5xwkeLegBeXq6ujinjSBLQzQ1zQGjH",
-          "type": 1,
-          "type_hex": "0000000000000001"
-        },
-        {
-          "account": "rUjbzuRoQagHet3XnygZkfaTFTFkMoD3YG",
-          "type": 1,
-          "type_hex": "0000000000000001"
-        },
-        {
-          "account": "rvYAfWj5gh67oV6fW32ZzP3Aw4Eubs59B",
-          "type": 1,
-          "type_hex": "0000000000000001"
-        }
-      ],
-      [
-        {
-          "currency": "USD",
-          "issuer": "r9Dr5xwkeLegBeXq6ujinjSBLQzQ1zQGjH",
-          "type": 48,
-          "type_hex": "0000000000000030"
-        },
-        {
-          "account": "r9Dr5xwkeLegBeXq6ujinjSBLQzQ1zQGjH",
-          "type": 1,
-          "type_hex": "0000000000000001"
-        },
-        {
-          "account": "rBKV8bnCuYz9gj2CDaGi8WDvP4tX8p2mbc",
-          "type": 1,
-          "type_hex": "0000000000000001"
-        },
-        {
-          "account": "rvYAfWj5gh67oV6fW32ZzP3Aw4Eubs59B",
-          "type": 1,
-          "type_hex": "0000000000000001"
-        }
-      ],
-      [
-        {
-          "currency": "USD",
-          "issuer": "r9Dr5xwkeLegBeXq6ujinjSBLQzQ1zQGjH",
-          "type": 48,
-          "type_hex": "0000000000000030"
-        },
-        {
-          "account": "r9Dr5xwkeLegBeXq6ujinjSBLQzQ1zQGjH",
-          "type": 1,
-          "type_hex": "0000000000000001"
-        },
-        {
-          "account": "r3MeEnYZY9fAd5pGjAWf4dfJsQBVY9FZRL",
-          "type": 1,
-          "type_hex": "0000000000000001"
-        },
-        {
-          "account": "rvYAfWj5gh67oV6fW32ZzP3Aw4Eubs59B",
-          "type": 1,
-          "type_hex": "0000000000000001"
-        }
-      ]
-    ],
+    "paths": "[[{\"currency\":\"USD\",\"issuer\":\"rvYAfWj5gh67oV6fW32ZzP3Aw4Eubs59B\",\"type\":48,\"type_hex\":\"0000000000000030\"},{\"account\":\"rvYAfWj5gh67oV6fW32ZzP3Aw4Eubs59B\",\"type\":1,\"type_hex\":\"0000000000000001\"}],[{\"currency\":\"USD\",\"issuer\":\"r9Dr5xwkeLegBeXq6ujinjSBLQzQ1zQGjH\",\"type\":48,\"type_hex\":\"0000000000000030\"},{\"account\":\"r9Dr5xwkeLegBeXq6ujinjSBLQzQ1zQGjH\",\"type\":1,\"type_hex\":\"0000000000000001\"},{\"account\":\"rUjbzuRoQagHet3XnygZkfaTFTFkMoD3YG\",\"type\":1,\"type_hex\":\"0000000000000001\"},{\"account\":\"rvYAfWj5gh67oV6fW32ZzP3Aw4Eubs59B\",\"type\":1,\"type_hex\":\"0000000000000001\"}],[{\"currency\":\"USD\",\"issuer\":\"r9Dr5xwkeLegBeXq6ujinjSBLQzQ1zQGjH\",\"type\":48,\"type_hex\":\"0000000000000030\"},{\"account\":\"r9Dr5xwkeLegBeXq6ujinjSBLQzQ1zQGjH\",\"type\":1,\"type_hex\":\"0000000000000001\"},{\"account\":\"rBKV8bnCuYz9gj2CDaGi8WDvP4tX8p2mbc\",\"type\":1,\"type_hex\":\"0000000000000001\"},{\"account\":\"rvYAfWj5gh67oV6fW32ZzP3Aw4Eubs59B\",\"type\":1,\"type_hex\":\"0000000000000001\"}],[{\"currency\":\"USD\",\"issuer\":\"r9Dr5xwkeLegBeXq6ujinjSBLQzQ1zQGjH\",\"type\":48,\"type_hex\":\"0000000000000030\"},{\"account\":\"r9Dr5xwkeLegBeXq6ujinjSBLQzQ1zQGjH\",\"type\":1,\"type_hex\":\"0000000000000001\"},{\"account\":\"r3MeEnYZY9fAd5pGjAWf4dfJsQBVY9FZRL\",\"type\":1,\"type_hex\":\"0000000000000001\"},{\"account\":\"rvYAfWj5gh67oV6fW32ZzP3Aw4Eubs59B\",\"type\":1,\"type_hex\":\"0000000000000001\"}]]",
     "flag_no_direct_ripple": false,
     "flag_partial_payment": false,
     "tx_direction": "outgoing",

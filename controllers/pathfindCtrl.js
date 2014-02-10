@@ -9,7 +9,7 @@ module.exports = function(opts) {
 
     getPathFind: function(req, res) {
 
-      var src_address = req.query.src_address,
+      var src_address = req.param('address'),
         dst_address = req.query.dst_address,
         dst_amount_param = req.query.dst_amount,
         dst_amount;
