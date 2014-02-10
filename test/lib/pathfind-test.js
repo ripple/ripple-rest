@@ -66,18 +66,7 @@ describe('lib/pathfind', function(){
         },
         dst_slippage: '0',
         invoice_id: '',
-        paths: [
-          [{
-              'currency': 'BTC',
-              'issuer': 'rvYAfWj5gh67oV6fW32ZzP3Aw4Eubs59B',
-              'type': 48,
-              'type_hex': '0000000000000030'
-          }, {
-              'account': 'rvYAfWj5gh67oV6fW32ZzP3Aw4Eubs59B',
-              'type': 1,
-              'type_hex': '0000000000000001'
-          }]
-        ],
+        paths: "[[{\"currency\":\"BTC\",\"issuer\":\"rvYAfWj5gh67oV6fW32ZzP3Aw4Eubs59B\",\"type\":48,\"type_hex\":\"0000000000000030\"},{\"account\":\"rvYAfWj5gh67oV6fW32ZzP3Aw4Eubs59B\",\"type\":1,\"type_hex\":\"0000000000000001\"}]]",
         flag_partial_payment: false,
         flag_no_direct_ripple: false
       }, {
@@ -98,13 +87,7 @@ describe('lib/pathfind', function(){
         },
         dst_slippage: '0',
         invoice_id: '',
-        paths: [
-          [{
-            'account': 'rvYAfWj5gh67oV6fW32ZzP3Aw4Eubs59B',
-            'type': 1,
-            'type_hex': '0000000000000001'
-          }]
-        ],
+        paths: "[[{\"account\":\"rvYAfWj5gh67oV6fW32ZzP3Aw4Eubs59B\",\"type\":1,\"type_hex\":\"0000000000000001\"}]]",
         flag_partial_payment: false,
         flag_no_direct_ripple: false
       }]);
@@ -207,17 +190,7 @@ describe('lib/pathfind', function(){
         },
         dst_slippage: '0',
         invoice_id: '',
-        paths: [
-          [{
-            "account": "rvYAfWj5gh67oV6fW32ZzP3Aw4Eubs59B",
-            "type": 1,
-            "type_hex": "0000000000000001"
-          }, {
-            "currency": "XRP",
-            "type": 16,
-            "type_hex": "0000000000000010"
-          }]
-        ],
+        paths: "[[{\"account\":\"rvYAfWj5gh67oV6fW32ZzP3Aw4Eubs59B\",\"type\":1,\"type_hex\":\"0000000000000001\"},{\"currency\":\"XRP\",\"type\":16,\"type_hex\":\"0000000000000010\"}]]",
         flag_partial_payment: false,
         flag_no_direct_ripple: false
       }, {
@@ -238,17 +211,7 @@ describe('lib/pathfind', function(){
         },
         dst_slippage: '0',
         invoice_id: '',
-        paths: [
-          [{
-            "account": "rnuF96W4SZoCJmbHYBFoJZpR8eCaxNvekK",
-            "type": 1,
-            "type_hex": "0000000000000001"
-          }, {
-            "currency": "XRP",
-            "type": 16,
-            "type_hex": "0000000000000010"
-          }]
-        ],
+        paths: "[[{\"account\":\"rnuF96W4SZoCJmbHYBFoJZpR8eCaxNvekK\",\"type\":1,\"type_hex\":\"0000000000000001\"},{\"currency\":\"XRP\",\"type\":16,\"type_hex\":\"0000000000000010\"}]]",
         flag_partial_payment: false,
         flag_no_direct_ripple: false
       }, {
@@ -269,17 +232,7 @@ describe('lib/pathfind', function(){
         },
         dst_slippage: '0',
         invoice_id: '',
-        paths: [
-          [{
-            "account": "rvYAfWj5gh67oV6fW32ZzP3Aw4Eubs59B",
-            "type": 1,
-            "type_hex": "0000000000000001"
-          }, {
-            "currency": "XRP",
-            "type": 16,
-            "type_hex": "0000000000000010"
-          }]
-        ],
+        paths: "[[{\"account\":\"rvYAfWj5gh67oV6fW32ZzP3Aw4Eubs59B\",\"type\":1,\"type_hex\":\"0000000000000001\"},{\"currency\":\"XRP\",\"type\":16,\"type_hex\":\"0000000000000010\"}]]",
         flag_partial_payment: false,
         flag_no_direct_ripple: false
       }, {
@@ -300,17 +253,7 @@ describe('lib/pathfind', function(){
         },
         dst_slippage: '0',
         invoice_id: '',
-        paths: [
-          [{
-            "account": "rMwjYedjc7qqtKYVLiAccJSmCwih4LnE2q",
-            "type": 1,
-            "type_hex": "0000000000000001"
-          }, {
-            "currency": "XRP",
-            "type": 16,
-            "type_hex": "0000000000000010"
-          }]
-        ],
+        paths: "[[{\"account\":\"rMwjYedjc7qqtKYVLiAccJSmCwih4LnE2q\",\"type\":1,\"type_hex\":\"0000000000000001\"},{\"currency\":\"XRP\",\"type\":16,\"type_hex\":\"0000000000000010\"}]]",
         flag_partial_payment: false,
         flag_no_direct_ripple: false
       }]);
@@ -406,18 +349,7 @@ describe('lib/pathfind', function(){
         },
         dst_slippage: '0',
         invoice_id: '',
-        paths: [
-          [{
-            "currency": "USD",
-            "issuer": "rvYAfWj5gh67oV6fW32ZzP3Aw4Eubs59B",
-            "type": 48,
-            "type_hex": "0000000000000030"
-          }, {
-            "account": "rvYAfWj5gh67oV6fW32ZzP3Aw4Eubs59B",
-            "type": 1,
-            "type_hex": "0000000000000001"
-          }]
-        ],
+        paths: "[[{\"currency\":\"USD\",\"issuer\":\"rvYAfWj5gh67oV6fW32ZzP3Aw4Eubs59B\",\"type\":48,\"type_hex\":\"0000000000000030\"},{\"account\":\"rvYAfWj5gh67oV6fW32ZzP3Aw4Eubs59B\",\"type\":1,\"type_hex\":\"0000000000000001\"}]]",
         flag_partial_payment: false,
         flag_no_direct_ripple: false
       }, {
@@ -438,22 +370,7 @@ describe('lib/pathfind', function(){
         },
         dst_slippage: '0',
         invoice_id: '',
-        paths: [
-          [{
-            "account": "rvYAfWj5gh67oV6fW32ZzP3Aw4Eubs59B",
-            "type": 1,
-            "type_hex": "0000000000000001"
-          }, {
-            "currency": "USD",
-            "issuer": "rvYAfWj5gh67oV6fW32ZzP3Aw4Eubs59B",
-            "type": 48,
-            "type_hex": "0000000000000030"
-          }, {
-            "account": "rvYAfWj5gh67oV6fW32ZzP3Aw4Eubs59B",
-            "type": 1,
-            "type_hex": "0000000000000001"
-          }]
-        ],
+        paths: "[[{\"account\":\"rvYAfWj5gh67oV6fW32ZzP3Aw4Eubs59B\",\"type\":1,\"type_hex\":\"0000000000000001\"},{\"currency\":\"USD\",\"issuer\":\"rvYAfWj5gh67oV6fW32ZzP3Aw4Eubs59B\",\"type\":48,\"type_hex\":\"0000000000000030\"},{\"account\":\"rvYAfWj5gh67oV6fW32ZzP3Aw4Eubs59B\",\"type\":1,\"type_hex\":\"0000000000000001\"}]]",
         flag_partial_payment: false,
         flag_no_direct_ripple: false
       }, {
@@ -474,22 +391,7 @@ describe('lib/pathfind', function(){
         },
         dst_slippage: '0',
         invoice_id: '',
-        paths: [
-          [{
-            "account": "rnuF96W4SZoCJmbHYBFoJZpR8eCaxNvekK",
-            "type": 1,
-            "type_hex": "0000000000000001"
-          }, {
-            "currency": "USD",
-            "issuer": "rvYAfWj5gh67oV6fW32ZzP3Aw4Eubs59B",
-            "type": 48,
-            "type_hex": "0000000000000030"
-          }, {
-            "account": "rvYAfWj5gh67oV6fW32ZzP3Aw4Eubs59B",
-            "type": 1,
-            "type_hex": "0000000000000001"
-          }]
-        ],
+        paths: "[[{\"account\":\"rnuF96W4SZoCJmbHYBFoJZpR8eCaxNvekK\",\"type\":1,\"type_hex\":\"0000000000000001\"},{\"currency\":\"USD\",\"issuer\":\"rvYAfWj5gh67oV6fW32ZzP3Aw4Eubs59B\",\"type\":48,\"type_hex\":\"0000000000000030\"},{\"account\":\"rvYAfWj5gh67oV6fW32ZzP3Aw4Eubs59B\",\"type\":1,\"type_hex\":\"0000000000000001\"}]]",
         flag_partial_payment: false,
         flag_no_direct_ripple: false
       }]);
