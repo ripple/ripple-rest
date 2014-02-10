@@ -22,6 +22,8 @@ For details on all of the available API routes see the [API Reference](REF.md).
 
 Command: `GET /api/v1/addresses/rNw4ozCG514KEjPs5cDrqEcdsi31Jtfm5r/next_notification`
 
+Reference Link: [`GET /api/v1/addresses/:address/next_notification`](REF.md#get-apiv1addressesaddressnext_notification)
+
 This retrieves the most recent `notification` on my account:
 ```js
 {
@@ -41,6 +43,8 @@ This retrieves the most recent `notification` on my account:
   }
 }
 ```
+(See the API Reference for details on the [`Notification` object format](REF.md#3-notification))
+
 If I want more information about that payment I can follow the link at `tx_url`. Otherwise I'll follow the `next_notification_url` and move to the next step.
 
 
@@ -50,6 +54,8 @@ If I want more information about that payment I can follow the link at `tx_url`.
 #### 2. Checking the next notification (when there is no new notification)
 
 Command: `GET /api/v1/addresses/rNw4ozCG514KEjPs5cDrqEcdsi31Jtfm5r/next_notification/EC19E24AA51D39E809597A5DCF3A7E253F98C27FE3287CB919319A5C59AD8302`
+
+Reference Link: [`GET /api/v1/addresses/:address/next_notification/:prev_tx_hash`](REF.md#get-apiv1addressesaddressnext_notificationprev_tx_hash)
 
 If there is no next `notification` I'll see:
 ```js
@@ -70,6 +76,8 @@ If there is no next `notification` I'll see:
   }
 }
 ```
+(See the API Reference for details on the [`Notification` object format](REF.md#3-notification))
+
 Because the `type` is `none` and the `tx_state` is `empty`, that means there is no next notification (yet) and there are no transactions pending in the outgoing queue. A `tx_state` of `pending` would indicate that there are still transactions waiting for confirmation.
 
 
@@ -82,6 +90,8 @@ If I see there is no new `notification` I'll wait a second and then call the sam
 #### 3. Checking the next notification (when there is a new notification)
 
 Command: `GET /api/v1/addresses/rNw4ozCG514KEjPs5cDrqEcdsi31Jtfm5r/next_notification/EC19E24AA51D39E809597A5DCF3A7E253F98C27FE3287CB919319A5C59AD8302`
+
+Reference Link: [`GET /api/v1/addresses/:address/next_notification/:prev_tx_hash`](REF.md#get-apiv1addressesaddressnext_notificationprev_tx_hash)
 
 This time there is a new `notification` so I'll see:
 ```js
@@ -111,6 +121,8 @@ Now I'll leave my `next_notification` polling process continue while I go and su
 #### 4. Determining payment options (optional)
 
 Command: `GET /api/v1/addresses/rNw4ozCG514KEjPs5cDrqEcdsi31Jtfm5r/payments/options`
+
+Reference Link: [`GET /api/v1/addresses/:address/payments/options`](REF.md#get-apiv1addressesaddresspaymentsoptions)
 
 This step is optional but I can call it before submitting a payment to have the Ripple network determine possible options for the payment I want to make.
 
@@ -161,7 +173,9 @@ If I had more currencies, I would see multiple `payment` objects come back in th
 
 #### 5. Submitting a payment
 
-Command: `POST /api/v1/addresses/:address/txs/`
+Command: `POST /api/v1/addresses/rNw4ozCG514KEjPs5cDrqEcdsi31Jtfm5r/payments/`
+
+Reference Link: [`POST /api/v1/addresses/:address/payments`](REF.md#post-apiv1addressesaddresspayments)
 
 Now I'll submit the following to this route:
 ```js
@@ -192,6 +206,8 @@ To definitively confirm that it was written into the Ripple ledger, I just need 
 
 Command: `GET /api/v1/addresses/rNw4ozCG514KEjPs5cDrqEcdsi31Jtfm5r/next_notification/EC19E24AA51D39E809597A5DCF3A7E253F98C27FE3287CB919319A5C59AD8302`
 
+Reference Link: [`GET /api/v1/addresses/:address/next_notification/:prev_tx_hash`](REF.md#get-apiv1addressesaddressnext_notificationprev_tx_hash)
+
 When I see a notification like this, where the `confirmation_token` matches what I was given on submission and the `tx_state` is `confirmed`, I know my payment went through:
 ```js
 {
@@ -218,6 +234,8 @@ To fetch the exact details of the transaction I can follow the `tx_url` link.
 #### 7. Retrieving the details of a confirmed payment
 
 Command: `GET /api/v1/addresses/rNw4ozCG514KEjPs5cDrqEcdsi31Jtfm5r/payments/81D48826FA84B0B83902CA3BFE49E2503A5BA1069B214D492AE6AB145B6C4781?ledger=4850743`
+
+Reference Link: [`GET /api/v1/addresses/:address/payments/:tx_hash`](REF.md#get-apiv1addressesaddresspaymentstx_hash)
 
 ```js
 {
@@ -267,5 +285,7 @@ Command: `GET /api/v1/addresses/rNw4ozCG514KEjPs5cDrqEcdsi31Jtfm5r/payments/81D4
   }
 }
 ```
+(See the API Reference for details on the [`Payment` object format](REF.md#2-payment))
+
 Notice that a number of fields have been added to what I originally submitted (all of those that start with `tx_...`).
 These tell me how the transaction actually appeared in the ledger, including how much money came out of my account (in `tx_src_bals_dec`, which includes the network fee).

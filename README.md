@@ -2,7 +2,7 @@
 
 A simplified RESTful API for interfacing with the [Ripple Network](http://ripple.com).
 
-See the [Guide](docs/GUIDE.md) and the [API Reference](docs/REF.md) for details on how to use the API.
+See the [__Guide__](docs/GUIDE.md) and the [__API Reference__](docs/REF.md) for details on how to use the API.
 
 ## Setup
 
@@ -27,6 +27,12 @@ To install `ripple-rest` locally:
 ## Bugs
 
 __This API is still in beta.__ Please open issues for any problems you encounter.
+
+## API Object Formats
+
+1. [Amount](REF.md#1-amount)
+2. [Payment](REF.md#2-payment)
+3. [Notification](REF.md#3-notification)
 
 ## Available API Routes
 
