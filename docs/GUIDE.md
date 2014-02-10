@@ -2,7 +2,7 @@
 
 This guide walks through how you can use `ripple-rest` to submit a payment and monitor for its confirmation in the Ripple ledger.
 
-For details on all of the available API routes see the [API Reference](REF.md).
+See the [__API Reference__](REF.md) for details on all available API Routes.
 
 ----------
 
@@ -71,7 +71,7 @@ If there is no next `notification` I'll see:
     "tx_hash": "",
     "tx_timestamp": "",
     "tx_url": "",
-    "next_notification_url": "http://ripple-rest.herokuapp.com:49598/api/v1/addresses/rKXCummUHnenhYudNb9UoJ4mGBR75vFcgz/next_notification/EC19E24AA51D39E809597A5DCF3A7E253F98C27FE3287CB919319A5C59AD8302?ledger=4716034"
+    "next_notification_url": "http://ripple-rest.herokuapp.com:49598/api/v1/addresses/rKXCummUHnenhYudNb9UoJ4mGBR75vFcgz/next_notification/EC19E24AA51D39E809597A5DCF3A7E253F98C27FE3287CB919319A5C59AD8302?ledger=4716034",
     "confirmation_token": ""
   }
 }

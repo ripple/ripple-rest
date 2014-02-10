@@ -2,7 +2,7 @@
 
 This is a reference for the [__Object Formats__](#object-formats) and [__Available API Routes__](#available-api-routes).
 
-See the [Guide](GUIDE.md) for a walkthrough of how this API is intended to be used.
+See the [__Guide__](GUIDE.md) for a walkthrough of how this API is intended to be used.
 
 
 
@@ -338,6 +338,7 @@ Or if there is a problem with the transaction:
   "message": "Path could not send partial amount. Please ensure that the src_address has sufficient funds (in the src_amount currency, if specified) to execute this transaction."
 }
 ```
+More information about transaction errors can be found on the [Ripple Wiki](https://ripple.com/wiki/Transaction_errors).
 
 Note: save the `confirmation_token` to check for transaction confirmation by matching that against new `notification`'s.
 
