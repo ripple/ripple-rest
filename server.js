@@ -54,7 +54,7 @@ remoteOpts.storage = {
   loadAccount: function(account, callback) {
   },
 
-  saveAccount: function(account, callback) {
+  saveAccount: function(account, data) {
   }
 }
 
