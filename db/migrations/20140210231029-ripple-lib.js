@@ -17,5 +17,5 @@ exports.up = function(db, callback) {
 };
 
 exports.down = function(db, callback) {
-  db.dropTable('ripple_lib_queued_transactions');
+  db.dropTable('ripple_lib_queued_transactions', {ifExists: true}, callback);
 };

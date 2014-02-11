@@ -23,5 +23,5 @@ exports.up = function(db, callback) {
 };
 
 exports.down = function(db, callback) {
-  db.dropTable('outgoing_transactions', callback)
+  db.dropTable('outgoing_transactions', {ifExists: true}, callback)
 };

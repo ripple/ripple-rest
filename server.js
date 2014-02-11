@@ -23,7 +23,6 @@ var express          = require('express');
 var app              = express();
 
 
-
 /* Process Configuration Options */
 nconf
   .argv()
@@ -47,18 +46,15 @@ if (!nconf.get('rippled')) {
 }
 
 
-
 /* Connect to db */
 var db = sequelizeConnect({
   DATABASE_URL: nconf.get('DATABASE_URL')
 });
 
+
 /* Initialize models */
-var OutgoingTx = require('./models/outgoingTx')(db),
-  RippleLibQueuedTx = require('./models/RippleLibQueuedTx')(db);
-
-
-
+var OutgoingTx = require('./models/outgoingTx')(db);
+var RippleLibQueuedTx = require('./models/RippleLibQueuedTx')(db);
 
 
 /* Connect to ripple-lib */
@@ -90,7 +86,6 @@ remote.on('connect', function() {
 });
 
 remote.connect();
-
 
 
 /* Initialize controllers */
@@ -132,6 +127,7 @@ app.all('*', function(req, res, next) {
   next();
 });
 
+
 /* Routes */
 
 /* Status */
@@ -152,6 +148,7 @@ app.get('/api/v1/addresses/:address/payments/options', PathfindCtrl.getPathFind)
 /* Payments */
 app.get('/api/v1/addresses/:address/payments/:tx_hash', PaymentCtrl.getPayment);
 app.post('/api/v1/addresses/:address/payments', PaymentCtrl.submitPayment);
+
 
 /* Configure SSL, if desired */
 if (typeof nconf.get('ssl') === 'object') {
@@ -179,4 +176,3 @@ if (typeof nconf.get('ssl') === 'object') {
     console.log('ripple-rest available over unsecured HTTP at port:' + nconf.get('PORT'));
   });
 }
-
