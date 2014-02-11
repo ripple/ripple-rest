@@ -11,12 +11,13 @@ A test version of the API can be found at [`https://ripple-rest.herokuapp.com`](
 To install `ripple-rest` locally:
 
 1. Clone repository (and make sure you have [`Node.js`](http://nodejs.org/) installed)
-2. [Download](http://www.postgresql.org/download/) and install PostgreSQL and setup a user
-3. `npm install -g db-migrate`
-4. `db-migrate up -m db/migrations --config db/database.json`
-5. `npm install`
-6. Configure `config.json` or your environment variables to point to your rippled and PostgreSQL database
-7. `node server.js`
+2. [Download](http://www.postgresql.org/download/) and install PostgreSQL, setup a user, and setup a database
+3. Set the environment variable `DATABASE_URL` or the `config.json` and `db/database.json` files to point to your PostgreSQL instance
+4. `npm install -g db-migrate`
+5. `db-migrate up -m db/migrations --config db/database.json`
+6. `npm install`
+7. Configure `config.json` or your environment variables to point to your rippled and PostgreSQL database
+8. `node server.js`
 
 
 

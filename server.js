@@ -1,4 +1,4 @@
-
+/* Dependencies */
 require('rconsole');
 
 console.set({
@@ -22,6 +22,8 @@ var sequelizeConnect = require('./db/sequelizeConnect');
 var express          = require('express');
 var app              = express();
 
+
+
 /* Process Configuration Options */
 nconf
   .argv()
@@ -44,20 +46,32 @@ if (!nconf.get('rippled')) {
   throw new Error('config.json must include "rippled" to connect to the Ripple Network');
 }
 
+
+
+/* Connect to db */
+var db = sequelizeConnect({
+  DATABASE_URL: nconf.get('DATABASE_URL')
+});
+
+/* Initialize models */
+var OutgoingTx = require('./models/outgoingTx')(db),
+  RippleLibQueuedTx = require('./models/RippleLibQueuedTx')(db);
+
+
+
+
+
 /* Connect to ripple-lib */
 var remoteOpts = nconf.get('rippled');
 
-remoteOpts.storage = {
-  loadAccounts: function(callback) {
-  },
+/* Setup ripple-lib persistence */
+remoteOpts.storage = require('./lib/rippleLibStorage')({
+  db: db,
+  RippleLibQueuedTx: RippleLibQueuedTx
+});
 
-  loadAccount: function(account, callback) {
-  },
 
-  saveAccount: function(account, callback) {
-  }
-}
-
+/* Connect to ripple-lib Remote */
 var remote = new ripple.Remote(remoteOpts);
 
 remote.on('error', function(err) {
@@ -77,13 +91,7 @@ remote.on('connect', function() {
 
 remote.connect();
 
-/* Connect to db */
-var db = sequelizeConnect({
-  DATABASE_URL: nconf.get('DATABASE_URL')
-});
 
-/* Initialize models */
-var OutgoingTx = require('./models/outgoingTx')(db);
 
 /* Initialize controllers */
 var TxCtrl = require('./controllers/txCtrl')({
