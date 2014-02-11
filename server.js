@@ -54,7 +54,7 @@ var db = sequelizeConnect({
 
 /* Initialize models */
 var OutgoingTx = require('./models/outgoingTx')(db);
-var RippleLibQueuedTx = require('./models/RippleLibQueuedTx')(db);
+var RippleLibQueuedTx = require('./models/rippleLibQueuedTx')(db);
 
 
 /* Connect to ripple-lib */
