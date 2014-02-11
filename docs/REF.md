@@ -340,8 +340,9 @@ Or if there is a problem with the transaction:
 ```
 More information about transaction errors can be found on the [Ripple Wiki](https://ripple.com/wiki/Transaction_errors).
 
-Note: save the `confirmation_token` to check for transaction confirmation by matching that against new `notification`'s.
+Save the `confirmation_token` to check for transaction confirmation by matching that against new `notification`'s.
 
+Payments cannot be cancelled once they are submitted.
 
 __________
 
@@ -417,8 +418,9 @@ Response:
 }
 ```
 
-Note: save the `confirmation_token` to check for transaction confirmation by matching that against new `notification`'s.
+Save the `confirmation_token` to check for transaction confirmation by matching that against new `notification`'s.
 
+Transactions cannot be cancelled once they are submitted.
 
 __________
 
