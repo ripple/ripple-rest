@@ -8,17 +8,25 @@ See the [__Guide__](docs/GUIDE.md) and the [__API Reference__](docs/REF.md) for 
 
 A test version of the API can be found at [`https://ripple-rest.herokuapp.com`](https://ripple-rest.herokuapp.com). Even though it supports HTTPS connections, __only submit transactions from test accounts__, we make __NO GUARANTEES__ about the security of your secret keys on this server.
 
-To install `ripple-rest` locally:
+To install `ripple-rest` locally for the first time:
 
-1. Clone repository (and make sure you have [`Node.js`](http://nodejs.org/) installed)
-2. [Download](http://www.postgresql.org/download/) and install PostgreSQL, setup a user, and setup a database
-3. Set the environment variable `DATABASE_URL` or the `config.json` and `db/database.json` files to point to your PostgreSQL instance
-4. `npm install -g db-migrate`
-5. `db-migrate up -m db/migrations --config db/database.json`
-6. `npm install`
-7. Configure `config.json` or your environment variables to point to your rippled and PostgreSQL database
-8. `node server.js`
+1. Make sure you have [`Node.js`](http://nodejs.org/) and [PostgreSQL](http://www.postgresql.org/download/) installed.
+2. Clone this repository
+3. Setup a user and a database in PostgreSQL (see this [Getting Started Guide](http://www.postgresql.org/docs/9.3/static/tutorial-start.html) for more information on creating a database with PostgreSQL)
+4. Set the configuration option `DATABASE_URL` to point to your database either by modifying the `config.json` file or by using environment variables. `DATABASE_URL` should follow the format: `postgres://{username}:{password}@{host}:{port -- default: 5432}/{database}
+5. `npm install -g db-migrate`
+6. `db-migrate up -m db/migrations --config db/database.json`
+7. `npm install`
+8. Configure `config.json` or your environment variables to point to your rippled
+9. `node server.js`
 
+To update your version of `ripple-rest`:
+
+1. From the `ripple-rest` directory, run `git pull`
+2. `db-migrate down -m db/migrations --config db/database.json`
+3. `db-migrate up -m db/migrations --config db/database.json`
+4. `npm install`
+5. `node server.js`
 
 
 ## Testing
