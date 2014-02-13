@@ -14,8 +14,7 @@ module.exports = function (opts) {
     getPayment: function(req, res) {
 
       var src_address = req.param('address'), 
-       tx_hash = req.param('tx_hash'),
-       ledger_index = req.query.ledger_index || req.query.ledger || req.query.in_ledger;
+       tx_hash = req.param('tx_hash');
 
       paymentLib.getPayment({
         remote: remote, 

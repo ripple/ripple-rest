@@ -15,15 +15,13 @@ module.exports = function(opts) {
     getNextNotification: function(req, res) {
 
       var address = req.param('address'),
-        prev_tx_hash = req.param('prev_tx_hash'),
-        ledger_index = req.query.ledger || req.query.ledger_index;
+        prev_tx_hash = req.param('prev_tx_hash');
 
       notificationLib.getNextNotification({
         remote: remote,
         OutgoingTx: OutgoingTx,
         address: address, 
-        prev_tx_hash: prev_tx_hash,
-        ledger_index: ledger_index
+        prev_tx_hash: prev_tx_hash
       }, function(err, notification){
         if (err) {
           errorHandler(res, err);

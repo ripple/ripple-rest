@@ -13,14 +13,12 @@ module.exports = function (opts) {
     getTx: function(req, res) {
 
       var address = req.param('address'),
-        tx_hash = req.param('tx_hash'),
-        ledger_index = req.query.ledger_index || req.query.ledger || req.query.in_ledger;
+        tx_hash = req.param('tx_hash');
 
       txLib.getTx({
         remote: remote, 
         address: address,
-        hash: tx_hash,
-        ledger_index: ledger_index
+        hash: tx_hash
       }, function(err, tx){
         if (err) {
           errorHandler(res, err);

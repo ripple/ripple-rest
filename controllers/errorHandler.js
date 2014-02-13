@@ -1,17 +1,29 @@
 module.exports = function(res, error) {
 
-  // TODO categorize and format errors
+  console.log('Error: ', error);
+  if (error.stack) {
+    console.log(error.stack);
+  }
 
   var err_obj = {
     success: false,
-    error: error.error || error.message || error.engine_result || error,
-    message: error.remote || error.message || error.engine_result_message || error
+    error: (error.remote ? error.remote.error : null) || error.error || error.message || error.engine_result || error,
+    message: (error.remote ? error.remote.error_message : null) || error.error_message || error.message || error.engine_result_message || error
   };
+
 
   /* Handle ripple-lib errors */
   if (err_obj.error === 'remoteError') {
-    err_obj.error = 'Internal Error';
-    err_obj.message = 'ripple-lib reported an error. If the problem persists, please try restarting the server. Error: ' + err_obj.message;
+
+    if (err_obj.message === 'Account not found.') {
+
+      err_obj.error = 'Account not found';
+      err_obj.message = 'Please ensure that this is a valid account and has an XRP balance.';
+
+    } else {
+      err_obj.error = 'Internal Error';
+      err_obj.message = 'ripple-lib reported an error. If the problem persists, please try restarting the server. Error: ' + JSON.stringify(err_obj.message);
+    }
   }
 
 
@@ -35,12 +47,6 @@ module.exports = function(res, error) {
     err_obj.message = err_array.slice(1).join('. ');
   }
 
-
-
-  console.log('Error: ', err_obj);
-  if (error.stack) {
-    console.log(error.stack);
-  }
 
   res.send(err_obj);
 

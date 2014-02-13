@@ -70,21 +70,30 @@ remoteOpts.storage = require('./lib/rippleLibStorage')({
 /* Connect to ripple-lib Remote */
 var remote = new ripple.Remote(remoteOpts);
 
+var connect_timeout = setTimeout(function(){
+  throw(new Error('Cannot connect to the given rippled. Please ensure that the rippled is configured correctly and that the configuration points to the right port. rippled options: ' + JSON.stringify(nconf.get('rippled'))));
+}, 20000);
+
 remote.on('error', function(err) {
-  console.error('ripple-lib Remote error: ' + err);
+  console.error('ripple-lib Remote error: ', err);
 });
 
 remote.on('disconnect', function() {
-  console.log('Disconnected from ripple-lib');
+  console.log('Disconnected from rippled');
 });
 
 remote.on('connect', function() {
-  console.log('Connected to ripple-lib');
+  clearTimeout(connect_timeout);
+  console.log('Waiting for confirmation of ripple connection...');
   remote.once('ledger_closed', function() {
-    console.log('Connected to remote rippled at: ', remote._getServer()._opts.url);
+    if (remote._getServer()) {
+      console.log('Connected to rippled server at: ', remote._getServer()._opts.url);
+      console.log('ripple-rest server ready');
+    }
   });
 });
 
+console.log('Connecting to the Ripple Network...');
 remote.connect();
 
 
@@ -169,10 +178,10 @@ if (typeof nconf.get('ssl') === 'object') {
   };
 
   https.createServer(sslOptions, app).listen(nconf.get('PORT'), function() {
-    console.log('ripple-rest available over HTTPS at port:' + nconf.get('PORT'));
+    console.log('ripple-rest listening over HTTPS at port:' + nconf.get('PORT'));
   });
 } else {
   app.listen(nconf.get('PORT'), function() {
-    console.log('ripple-rest available over unsecured HTTP at port:' + nconf.get('PORT'));
+    console.log('ripple-rest listening over unsecured HTTP at port:' + nconf.get('PORT'));
   });
 }
