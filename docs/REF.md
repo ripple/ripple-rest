@@ -166,8 +166,8 @@ If there is a new `notification` for an account, it will come in this format:
   "tx_ledger": 4696959,
   "tx_hash": "55BA3440B1AAFFB64E51F497EFDF2022C90EDB171BBD979F04685904E38A89B7",
   "tx_timestamp": 1391025100000,
-  "tx_url": "http://ripple-rest.herokuapp.com/api/v1/addresses/rKXCummUHnenhYudNb9UoJ4mGBR75vFcgz/payments/55BA3440B1AAFFB64E51F497EFDF2022C90EDB171BBD979F04685904E38A89B7?in_ledger=4696959",
-  "next_notification_url": "http://ripple-rest.herokuapp.com/api/v1/addresses/rKXCummUHnenhYudNb9UoJ4mGBR75vFcgz/next_notification/55BA3440B1AAFFB64E51F497EFDF2022C90EDB171BBD979F04685904E38A89B7?ledger=4696959"
+  "tx_url": "http://ripple-rest.herokuapp.com/api/v1/addresses/rKXCummUHnenhYudNb9UoJ4mGBR75vFcgz/payments/55BA3440B1AAFFB64E51F497EFDF2022C90EDB171BBD979F04685904E38A89B7",
+  "next_notification_url": "http://ripple-rest.herokuapp.com/api/v1/addresses/rKXCummUHnenhYudNb9UoJ4mGBR75vFcgz/next_notification/55BA3440B1AAFFB64E51F497EFDF2022C90EDB171BBD979F04685904E38A89B7"
   "confirmation_token": "55BA3440B1AAFFB64E51F497EFDF2022C90EDB171BBD979F04685904E38A89B7"
 }
 ```
@@ -189,13 +189,14 @@ If there are no new notifications, the empty `Notification` object will be retur
   "tx_hash": "",
   "tx_timestamp": ,
   "tx_url": "",
-  "next_notification_url": "http://ripple-rest.herokuapp.com/api/v1/addresses/rKXCummUHnenhYudNb9UoJ4mGBR75vFcgz/next_notification/55BA3440B1AAFFB64E51F497EFDF2022C90EDB171BBD979F04685904E38A89B7?ledger=4696959
+  "next_notification_url": "http://ripple-rest.herokuapp.com/api/v1/addresses/rKXCummUHnenhYudNb9UoJ4mGBR75vFcgz/next_notification/55BA3440B1AAFFB64E51F497EFDF2022C90EDB171BBD979F04685904E38A89B7",
   "confirmation_token": ""
 }
 ```
 + `type` will be `none` if there are no new notifications
 + `tx_state` will be `pending` if there are still transactions waiting to clear and `empty` otherwise
 + `next_notification_url` will be provided whether there are new notifications or not so that that field can always be used to query the API for new notifications.
+
 
 ----------
 
@@ -232,6 +233,17 @@ Response:
     "success": true,
     "notification": { 
       /* Notification */ 
+    }
+}
+```
+
+Or if there are no new notifications :
+
+```js
+{
+    "success": true,
+    "notification": { 
+      /* Notification with "type": "none" and "tx_state" either "empty" or "pending" */
     }
 }
 ```
@@ -346,14 +358,11 @@ Payments cannot be cancelled once they are submitted.
 
 __________
 
-#### GET /api/v1/addresses/:address/payments/:tx_hash?
+#### GET /api/v1/addresses/:address/payments/:tx_hash
 
 Get a particular payment for a particular account.
 
 This uses the [`Payment` Object format](#2-payment).
-
-Query string parameters:
-+ `in_ledger` - *Optional*, specify the index of the ledger containing the transaction for significantly faster lookup times. If it is not specified it will search through the account's history, from the most recent transactions to the oldest, looking for the given `tx_hash` 
 
 Response:
 ```js
@@ -381,9 +390,6 @@ __________
 #### GET /api/v1/addresses/:address/txs/:tx_hash
 
 Gets a particular transaction in the standard Ripple transaction JSON format.
-
-Query string parameters:
-+ `in_ledger` - *Optional*, specify the index of the ledger containing the transaction for significantly faster lookup times. If it is not specified it will search through the account's history, from the most recent transactions to the oldest, looking for the given `tx_hash` 
 
 __NOTE:__ This command relies on the connected `rippled`'s historical database so it may not work properly on a newly started `rippled` server.
 

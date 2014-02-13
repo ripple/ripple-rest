@@ -20,6 +20,7 @@ To install `ripple-rest` locally for the first time:
 8. Configure `config.json` or your environment variables to point to your rippled
 9. `node server.js`
 
+
 To update your version of `ripple-rest`:
 
 1. From the `ripple-rest` directory, run `git pull`

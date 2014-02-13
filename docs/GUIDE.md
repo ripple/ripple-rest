@@ -47,6 +47,27 @@ This retrieves the most recent `notification` on my account:
 
 If I want more information about that payment I can follow the link at `tx_url`. Otherwise I'll follow the `next_notification_url` and move to the next step.
 
+If I call this command while connected to a `rippled` that does not have a full historical database, I will get back a notification that looks like this:
+
+```js
+{
+  "success": true,
+  "notification": {
+    "address": "rKXCummUHnenhYudNb9UoJ4mGBR75vFcgz",
+    "type": "",
+    "tx_direction": "",
+    "tx_state": "",
+    "tx_result": "",
+    "tx_ledger": ,
+    "tx_hash": "EC19E24AA51D39E809597A5DCF3A7E253F98C27FE3287CB919319A5C59AD8302",
+    "tx_timestamp": ,
+    "tx_url": "",
+    "next_notification_url": "http://ripple-rest.herokuapp.com:49598/api/v1/addresses/rKXCummUHnenhYudNb9UoJ4mGBR75vFcgz/next_notification/EC19E24AA51D39E809597A5DCF3A7E253F98C27FE3287CB919319A5C59AD8302"
+    "confirmation_token": ""
+  }
+}
+```
+
 
 ----------
 

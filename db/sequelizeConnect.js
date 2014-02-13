@@ -23,10 +23,10 @@ module.exports = function(opts) {
 
   db.authenticate()
     .error(function(err){
-      throw(new Error('Cannot connect to postgres db: ' + err));
+      throw(new Error('Cannot connect to PostgreSQL database. Please ensure that PostgreSQL is running on your machine. Error: ' + err));
     })
     .success(function(){
-      console.log('Connected to PostgreSQL db');
+      console.log('Connected to PostgreSQL database');
     });
 
   return db;
