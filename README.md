@@ -10,24 +10,17 @@ A test version of the API can be found at [`https://ripple-rest.herokuapp.com`](
 
 To install `ripple-rest` locally for the first time:
 
-1. Make sure you have [`Node.js`](http://nodejs.org/) and [PostgreSQL](http://www.postgresql.org/download/) installed.
-2. Clone this repository
-3. Setup a user and a database in PostgreSQL (see this [Getting Started Guide](http://www.postgresql.org/docs/9.3/static/tutorial-start.html) for more information on creating a database with PostgreSQL)
-4. Set the configuration option `DATABASE_URL` to point to your database either by modifying the `config.json` file or by using environment variables. `DATABASE_URL` should follow the format: `postgres://{username}:{password}@{host}:{port -- default: 5432}/{database}
-5. `npm install -g db-migrate`
-6. `db-migrate up -m db/migrations --config db/database.json`
-7. `npm install`
-8. Configure `config.json` or your environment variables to point to your rippled
-9. `node server.js`
+1. Clone repository and make sure you have [`Node.js`](http://nodejs.org/) and [PostgreSQL](http://www.postgresql.org/download/) installed
+2. Configure the `config.json` or environment variables to point to your `rippled` and PostgreSQL instance
+3. `npm install; ./node_modules/grunt-cli/bin/grunt dbsetup`
+4. `node server.js`
 
 
 To update your version of `ripple-rest`:
 
 1. From the `ripple-rest` directory, run `git pull`
-2. `db-migrate down -m db/migrations --config db/database.json`
-3. `db-migrate up -m db/migrations --config db/database.json`
-4. `npm install`
-5. `node server.js`
+2. `npm install; ./node_modules/grunt-cli/bin/grunt dbsetup`
+3. `node server.js`
 
 
 ## Testing
