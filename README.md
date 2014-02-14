@@ -8,19 +8,12 @@ See the [__Guide__](docs/GUIDE.md) and the [__API Reference__](docs/REF.md) for 
 
 A test version of the API can be found at [`https://ripple-rest.herokuapp.com`](https://ripple-rest.herokuapp.com). Even though it supports HTTPS connections, __only submit transactions from test accounts__, we make __NO GUARANTEES__ about the security of your secret keys on this server.
 
-To install `ripple-rest` locally for the first time:
+#### To install or update `ripple-rest` locally:
 
-1. Clone repository and make sure you have [`Node.js`](http://nodejs.org/) and [PostgreSQL](http://www.postgresql.org/download/) installed
-2. Configure the `config.json` or environment variables to point to your `rippled` and PostgreSQL instance
-3. `npm install; ./node_modules/grunt-cli/bin/grunt dbsetup`
-4. `node server.js`
-
-
-To update your version of `ripple-rest`:
-
-1. From the `ripple-rest` directory, run `git pull`
-2. `npm install; ./node_modules/grunt-cli/bin/grunt dbsetup`
-3. `node server.js`
+1. Run `git clone https://github.com/ripple/ripple-rest.git` to install for the first time or `git pull` to update and make sure you have [`Node.js`](http://nodejs.org/) and [PostgreSQL](http://www.postgresql.org/download/) installed
+2. Configure the `config.json` or the environment variables to point to your `rippled` and PostgreSQL instance
+3. Run `npm install; ./node_modules/grunt-cli/bin/grunt dbsetup`
+4. Run `node server.js` to start the server
 
 
 ## Testing

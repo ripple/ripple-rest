@@ -1,5 +1,9 @@
-var fs    = require('fs');
-var nconf = require('nconf');
+var fs      = require('fs');
+var nconf   = require('nconf');
+var pg      = require('pg');
+var async   = require('async');
+var dbCheck = require('./lib/dbCheck');
+
 
 /* Load Configuration */
 nconf
@@ -8,6 +12,10 @@ nconf
   .file({ file: './config.json' });
 
 module.exports = function(grunt) {
+
+  // Temporary fix for a bug in a dependency
+  grunt.utils = grunt.util;
+
 
 	var jsfiles = ['*.js', 'lib/*.js', 'controllers/*.js', 'test/**/*.js'];
 
@@ -92,6 +100,116 @@ module.exports = function(grunt) {
 	grunt.registerTask('default', ['jshint', 'nodemon']);
   grunt.registerTask('dev', ['jshint', 'simplemocha:local', 'nodemon']);
 	grunt.registerTask('test', ['jshint', 'simplemocha:local']);
+  grunt.registerTask('dbsetup', ['pgconfig', 'dbcheckorcreate', 'dbclean']);
+
+  /* Setup grunt-pg options */
+  grunt.registerTask('pgconfig', 'Setup PostgreSQL database', function(){
+    
+    var db_url = nconf.get('DATABASE_URL');
+
+    if (!db_url) {
+      grunt.fail.fatal(new Error('Must supply DATABASE_URL in the form: postgres://{user}:{password}@{host}:{port}/{database}'));
+    }
+
+    var connection = dbCheck.parseUrl(db_url);
+
+    var createuser_opts = {};
+    createuser_opts[connection.user] = {
+      user: connection.user + ' CREATEDB PASSWORD \'' + connection.password + '\'' ,
+      connection: {
+        host: connection.host,
+        port: connection.port,
+        user: 'postgres'
+      }
+    };
+
+    grunt.config.set('pgcreateuser', createuser_opts);
+
+    var createdb_opts = {};
+    createdb_opts[connection.database] = {
+      name: connection.database,
+      owner: connection.user,
+      connection: {
+        host: connection.host,
+        port: connection.port,
+        user: connection.user,
+        password: connection.password
+      }
+    };
+
+    grunt.config.set('pgcreatedb', createdb_opts);
+    
+  });
+
+  /* Check if user and database already exist, if not create them */ 
+  grunt.registerTask('dbcheckorcreate', 'Create user and database if they do not already exist', function(){
+
+    var done = this.async();
+
+    var db_url = nconf.get('DATABASE_URL');
+
+    if (!db_url) {
+      grunt.fail.fatal(new Error('Must supply DATABASE_URL in the form: postgres://{user}:{password}@{host}:{port}/{database}'));
+    }
+
+    // Check user and database, create one or both if they do not already exist
+
+    dbCheck.userExists(db_url, function(err, exists){
+      if (err) {
+        grunt.fail.fatal(err);
+      }
+
+      if (exists) {
+
+        dbCheck.databaseExists(db_url, function(err, exists){
+          if (err) {
+            grunt.fail.fatal(err);
+          }
+
+          if (exists) {
+
+            grunt.log.writeln('User and database already exist. Continuing');
+            done();
+
+          } else {
+
+            // Create database
+            grunt.log.writeln('User exists but database does not. Creating database');
+            grunt.task.run('pgcreatedb');
+            done();
+          }
+        });
+
+      } else {
+
+        // Try connecting as postgres user
+
+        var connection = dbCheck.parseUrl(db_url),
+          modified_connection = 'postgres://postgres' + '@' + connection.host + ':' + connection.port;
+
+        dbCheck.userExists(db_url, function(err, exists){
+          if (err) {
+            grunt.fail.fatal(err);
+          }
+
+          if (exists) {
+
+            grunt.log.writeln('User and database do not yet exist. Creating both with default user postgres');
+            grunt.task.run('pgcreateuser', 'pgcreatedb');
+            done();
+
+          } else {
+
+            grunt.fail.fatal('Cannot connect to PostgreSQL with user: ' + connection.user + ' or default user postgres');
+            done();
+
+          }
+        });
+      }
+    });
+  });
+
+  /* Clean database by running migrate:down and then up */
   grunt.registerTask('dbclean', 'Clean db and re-apply all migrations', function () {
     grunt.log.writeln('Running db-migrate down for all migrations');
     var files = fs.readdirSync('db/migrations');
@@ -101,136 +219,5 @@ module.exports = function(grunt) {
     grunt.log.writeln('Running db-migrate up for all migrations');
     grunt.task.run('migrate:up');
   });
-
-  /* Task to parse database options and save them to grunt config */
-  grunt.registerTask('dbparseopts', 'Parse database options', function(){
-
-    var done = this.async();
-
-    var db_url = nconf.get('DATABASE_URL'),
-      postgres = nconf.get('postgres'),
-      host,
-      port,
-      user,
-      password,
-      database,
-      postgres;
-
-    if (db_url && db_url.match(/postgres:\/\/([^:]+):([^@]+)@([^:]+):(\d+)\/(.+)/)) {
-
-      grunt.log.writeln('Using DATABASE_URL: ' + db_url);
-      
-      var match = db_url.match(/postgres:\/\/([^:]+):([^@]+)@([^:]+):(\d+)\/(.+)/);
-      host = match[3];
-      port = match[4];
-      user = match[1];
-      password = match[2];
-      database = match[5];
-
-    } else if (postgres) {
-
-      grunt.log.writeln('Using postgres options: ' + JSON.stringify(postgres));
-      host = postgres.host;
-      port = postgres.port;
-      user = postgres.user;
-      password = postgres.password;
-      database = postgres.database;
-
-      if (!(host && port && user && password && database)) {
-        throw(new Error('postgres must contain "host", "port", "user", "password", "database"'));
-      }
-
-    } else {
-      grunt.fail.fatal(new Error('Must supply either "DATABASE_URL" or "postgres" options to run dbsetup'));
-    }
-
-    db_opts = {
-      host: host,
-      port: port,
-      user: user,
-      password: password,
-      database: database
-    };
-
-    // Make options globally available
-    grunt.config.set('db_opts', db_opts);
-
-    if (db_url) {
-      done();
-    } else {
-      var postgres_url = 'postgres://' + user + ':' + password + '@' + host + ':' + port + '/' + database;
-      nconf.set('DATABASE_URL', postgres_url);
-      nconf.save(function(err){
-        if (err) {
-          grunt.fail.warn(new Error('Cannot save DATABASE_URL to config.json, please run "export DATABASE_URL=' + postgres_url + '"'));
-        }
-        var config = fs.readFileSync('config.json', {encoding: 'utf8'});
-        console.log(JSON.parse(config));
-
-        grunt.log.writeln('Removed postgres from config.json');
-        grunt.log.writeln('Saved DATABASE_URL to config.json');
-
-        // Set migration options
-        var migrate_opts = grunt.config.get('migrate');
-        if (!migrate_opts.options) {
-          migrate_opts.options = {};
-        }
-        if (!migrate_opts.options.env) {
-          migrate_opts.options.env = {};
-        }
-        if (!migrate_opts.options.env.DATABASE_URL) {
-          migrate_opts.options.env.DATABASE_URL = nconf.get('DATABASE_URL');
-        }
-
-        done();
-      });
-    }
-  });
-
-  grunt.registerTask('pgconfig', 'Setup PostgreSQL database', function(){
-    
-    var done = this.async();
-
-    if (nconf.get('postgres').created) {
-      grunt.log.writeln('Database already exists, skipping user and database creation');
-      done();
-    } else {
-
-      var db_opts = grunt.config.get('db_opts');
-
-      var createuser_opts = {};
-      createuser_opts[db_opts.user] = {
-        user: db_opts.user + ' CREATEDB PASSWORD \'' + db_opts.password + '\'' ,
-        connection: {
-          host: db_opts.host,
-          port: db_opts.port,
-          user: 'postgres'
-        }
-      };
-
-      grunt.config.set('pgcreateuser', createuser_opts);
-
-      var createdb_opts = {};
-      createdb_opts[db_opts.database] = {
-        name: db_opts.database,
-        owner: db_opts.user,
-        connection: {
-          host: db_opts.host,
-          port: db_opts.port,
-          user: db_opts.user,
-          password: db_opts.password
-        }
-      };
-
-      grunt.config.set('pgcreatedb', createdb_opts);
-
-      grunt.task.run('pgcreateuser:' + db_opts.user, 'pgcreatedb:' + db_opts.database);
-      nconf.set('postgres:created', true);
-      nconf.save();
-      done();
-    }
-  });
-  
-  grunt.registerTask('dbsetup', ['dbparseopts', 'pgconfig', 'dbclean']);
 };
 
