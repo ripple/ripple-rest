@@ -120,7 +120,7 @@ module.exports = function(grunt) {
       connection: {
         host: connection.host,
         port: connection.port,
-        user: 'postgres'
+        user: nconf.get('USER') || 'postgres'
       }
     };
 
@@ -186,7 +186,7 @@ module.exports = function(grunt) {
         // Try connecting as postgres user
 
         var connection = dbCheck.parseUrl(db_url),
-          modified_connection = 'postgres://postgres' + '@' + connection.host + ':' + connection.port;
+          modified_connection = 'postgres://' + (nconf.get('USER') || 'postgres') + '@' + connection.host + ':' + connection.port;
 
         dbCheck.userExists(db_url, function(err, exists){
           if (err) {
@@ -219,8 +219,9 @@ module.exports = function(grunt) {
 
   /* Clean database by running migrate:down and then up */
   grunt.registerTask('dbclean', 'Clean db and re-apply all migrations', function () {
+
     grunt.log.writeln('Running db-migrate down for all migrations');
-    var files = fs.readdirSync('db/migrations');
+    var files = fs.readdirSync('./db/migrations');
     for (var i = 0; i < files.length; i++) {
       grunt.task.run('migrate:down');
     }
