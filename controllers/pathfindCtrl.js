@@ -10,8 +10,8 @@ module.exports = function(opts) {
     getPathFind: function(req, res) {
 
       var src_address = req.param('address'),
-        dst_address = req.query.dst_address,
-        dst_amount_param = req.query.dst_amount,
+        dst_address = req.param('dst_address'),
+        dst_amount_param = req.param('dst_amount')
         dst_amount;
 
       if (typeof dst_amount_param === 'string') {
@@ -27,16 +27,12 @@ module.exports = function(opts) {
               '')
           };          
         } else {
-          errorHandler(res, new Error('Invalid parameter: dst_amount. Must be astring in the form \'1+USD+r...\' or an object in the form { value: \'1\', currency: \'XRP\', issuer: \' }'));
+          errorHandler(res, new Error('Invalid parameter: dst_amount. Must be astring in the form \'1+USD+r...\''));
           return;
         }
 
-      } else if (typeof dst_amount_param === 'object') {
-
-        dst_amount = dst_amount_param;
-
       } else {
-        errorHandler(res, new Error('Invalid parameter: dst_amount. Must be a string in the form \'1+USD+r...\' or an object in the form { value: \'1\', currency: \'XRP\', issuer: \' }'));
+        errorHandler(res, new Error('Invalid parameter: dst_amount. Must be a string in the form \'1+USD+r...\''));
         return;
       }
 

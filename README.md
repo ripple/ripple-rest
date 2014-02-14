@@ -37,7 +37,7 @@ __This API is still in beta.__ Please open issues for any problems you encounter
     + [`GET /api/v1/addresses/:address/next_notification`](docs/REF.md#get-apiv1addressesaddressnext_notification)
     + [`GET /api/v1/addresses/:address/next_notification/:prev_tx_hash`](docs/REF.md#get-apiv1addressesaddressnext_notificationprev_tx_hash)
 2. [Payments](docs/REF.md#2-payments)
-    + [`GET /api/v1/addresses/:address/payments/options`](docs/REF.md#get-apiv1addressesaddresspaymentsoptions)
+    + [`GET /api/v1/addresses/:address/payments/:dst_address/:dst_amount`](docs/REF.md#get-apiv1addressesaddresspaymentsdst_addressdst_amount)
     + [`POST /api/v1/addresses/:address/payments`](docs/REF.md#post-apiv1addressesaddresspayments)
     + [`GET /api/v1/addresses/:address/payments/:tx_hash`](docs/REF.md#get-apiv1addressesaddresspaymentstx_hash)
 3. [Standard Ripple Transactions](docs/REF.md#3-standard-ripple-transactions)

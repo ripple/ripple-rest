@@ -151,7 +151,7 @@ app.get('/api/v1/addresses/:address/next_notification', NotificationCtrl.getNext
 app.get('/api/v1/addresses/:address/next_notification/:prev_tx_hash', NotificationCtrl.getNextNotification);
 
 /* Pathfinding */
-app.get('/api/v1/addresses/:address/payments/options', PathfindCtrl.getPathFind);
+app.get('/api/v1/addresses/:address/payments/:dst_address/:dst_amount', PathfindCtrl.getPathFind);
 
 /* Payments */
 app.get('/api/v1/addresses/:address/payments/:tx_hash', PaymentCtrl.getPayment);

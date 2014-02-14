@@ -141,17 +141,14 @@ Now I'll leave my `next_notification` polling process continue while I go and su
 
 #### 4. Determining payment options (optional)
 
-Command: `GET /api/v1/addresses/rNw4ozCG514KEjPs5cDrqEcdsi31Jtfm5r/payments/options`
+Command: `GET /api/v1/addresses/rNw4ozCG514KEjPs5cDrqEcdsi31Jtfm5r/payments/rKXCummUHnenhYudNb9UoJ4mGBR75vFcgz/0.10+USD`
 
-Reference Link: [`GET /api/v1/addresses/:address/payments/options`](REF.md#get-apiv1addressesaddresspaymentsoptions)
+Reference Link: [`GET /api/v1/addresses/:address/payments/:dst_address/:dst_amount`](docs/REF.md#get-apiv1addressesaddresspaymentsdst_addressdst_amount)
 
 This step is optional but I can call it before submitting a payment to have the Ripple network determine possible options for the payment I want to make.
 
 Let's say I want to send `rKXCummUHnenhYudNb9UoJ4mGBR75vFcgz` 0.10 USD.
-I'll use these query string parameters for this command:
-`?dst_address=rKXCummUHnenhYudNb9UoJ4mGBR75vFcgz&dst_amount=0.1+USD`
-
-And I see this in return:
+I'll make a call to this endpoint to determine the possible payment paths and I see this in return:
 ```js
 {
   "success": true,

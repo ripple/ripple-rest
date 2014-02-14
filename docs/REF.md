@@ -93,30 +93,7 @@ The full set of fields accepted on `Payment` submission is as follows:
 When a payment is confirmed in the Ripple ledger, it will have additional fields added:
 ```js
 {
-    /* User Specified */
-
-    "src_address": "rKXCummUHnenhYudNb9UoJ4mGBR75vFcgz",
-    "src_tag": "",
-    "src_amount": {
-        "value": "0.001",
-        "currency": "XRP",
-        "issuer": ""
-    },
-    "src_slippage": "0",
-    "dst_address": "rNw4ozCG514KEjPs5cDrqEcdsi31Jtfm5r",
-    "dst_tag": "",
-    "dst_amount": {
-        "value": "0.001",
-        "currency": "XRP",
-        "issuer": ""
-    },
-
-    /* Advanced Options */
-
-    "invoice_id": "",
-    "paths": "[]",
-    "flag_no_direct_ripple": false,
-    "flag_partial_payment": false,
+    /* ... */
 
     /* Generated After Validation */
 
@@ -206,7 +183,7 @@ If there are no new notifications, the empty `Notification` object will be retur
     + [`GET /api/v1/addresses/:address/next_notification`](#get-apiv1addressesaddressnext_notification)
     + [`GET /api/v1/addresses/:address/next_notification/:prev_tx_hash`](#get-apiv1addressesaddressnext_notificationprev_tx_hash)
 2. [Payments](#2-payments)
-    + [`GET /api/v1/addresses/:address/payments/options`](#get-apiv1addressesaddresspaymentsoptions)
+    + [`GET /api/v1/addresses/:address/payments/:dst_address/:dst_amount`](docs/REF.md#get-apiv1addressesaddresspaymentsdst_addressdst_amount)
     + [`POST /api/v1/addresses/:address/payments`](#post-apiv1addressesaddresspayments)
     + [`GET /api/v1/addresses/:address/payments/:tx_hash`](#get-apiv1addressesaddresspaymentstx_hash)
 3. [Standard Ripple Transactions](#3-standard-ripple-transactions)
@@ -279,24 +256,22 @@ Or if there are no new notifications:
 ```
 
 
-__NOTE:__ This command relies on the connected `rippled`'s historical database so it may not work properly on a newly started `rippled` server.
+__NOTE:__ This command relies on the connected `rippled`'s historical database so it may respond with an error even for a valid transaction hash if run on a newly started `rippled` server without full history.
 __________
 
 ### 2. Payments
 
 __________
 
-#### GET /api/v1/addresses/:address/payments/options
+#### `GET /api/v1/addresses/:address/payments/:dst_address/:dst_amount`
 
 Generate possible payments for a given set of parameters. This is a wrapper around the [Ripple path-find command](https://ripple.com/wiki/RPC_API#path_find) that returns an array of [`Payment Objects`](#2-payment), which can be submitted directly to [`POST /api/v1/addresses/:address/payments`](#post-apiv1addressesaddresspayments).
 
 This uses the [`Payment` Object format](#2-payment).
 
-__NOTE:__ This command may be quite slow. If the command times out, please try it again.
+The `:dst_amount` parameter uses `+` to separate the `value`, `currency`, and `issuer` fields. For XRP the format is `0.1+XRP` and for other currencies it is `0.1+USD+r...`, where the `r...` is the Ripple address of the currency's issuer.
 
-Request Query String Parameters:
-+ `dst_address` - *Required*
-+ `dst_amount` - *Required*, Amount string in the form `"1+USD+r..."` or `"1+XRP"` 
+__NOTE:__ This command may be quite slow. If the command times out, please try it again.
 
 Response:
 ```js
@@ -372,17 +347,21 @@ Response:
     }
 }
 ```
+Or if the payment cannot be found in the connected `rippled`'s historical database:
+```js
+{
+  "success": false,
+  "error": "Cannot locate transaction.",
+  "message": "This may be the result of an incomplete rippled historical database or that transaction may not exist."
+}
+```
 
 
-__NOTE:__ This command relies on the connected `rippled`'s historical database so it may not work properly on a newly started `rippled` server.
+__NOTE:__ This command relies on the connected `rippled`'s historical database so it may respond with an error even for a valid transaction hash if run on a newly started `rippled` server without full history.
 
 __________
 
 ### 3. Generic Ripple Transactions
-
-These are transactions formatted by [`ripple-lib`](https://github.com/ripple/ripple-lib/). The submission formats are determined by the [`ripple-lib` Transaction class](https://github.com/ripple/ripple-lib/blob/develop/src/js/ripple/transaction.js). The retrieval formats are documented on the [Ripple wiki](https://ripple.com/wiki/Transaction_Format).
-
-Additional commands for this API are in development to reduce the need to use these Generic Ripple Transaction commands.
 
 __________
 
@@ -390,7 +369,79 @@ __________
 
 Gets a particular transaction in the standard Ripple transaction JSON format.
 
-__NOTE:__ This command relies on the connected `rippled`'s historical database so it may not work properly on a newly started `rippled` server.
+```js
+{
+  "success": true,
+  "tx": {
+    "Account": "rKXCummUHnenhYudNb9UoJ4mGBR75vFcgz",
+    "Amount": "1000",
+    "Destination": "rNw4ozCG514KEjPs5cDrqEcdsi31Jtfm5r",
+    "Fee": "12",
+    "Flags": 0,
+    "Sequence": 8,
+    "SigningPubKey": "025B32A54BFA33FB781581F49B235C0E2820C929FF41E677ADA5D3E53CFBA46332",
+    "TransactionType": "Payment",
+    "TxnSignature": "304602210093232CDAD8EACB4075F80767FEED2126DFFD02E38B31C90F6FC06402454506ED022100D6E71C90CC42F1632761614055608996E8C866094E8933D1AE642528140D63E6",
+    "hash": "55BA3440B1AAFFB64E51F497EFDF2022C90EDB171BBD979F04685904E38A89B7",
+    "inLedger": 4696959,
+    "ledger_index": 4696959,
+    "meta": {
+      "AffectedNodes": [
+        {
+          "ModifiedNode": {
+            "FinalFields": {
+              "Account": "rKXCummUHnenhYudNb9UoJ4mGBR75vFcgz",
+              "Balance": "173504506",
+              "Flags": 0,
+              "OwnerCount": 1,
+              "Sequence": 9
+            },
+            "LedgerEntryType": "AccountRoot",
+            "LedgerIndex": "58D2E252AE8842B950C960B6BC7A3319762F1C66E3C35985A3B160479EFEDF23",
+            "PreviousFields": {
+              "Balance": "173505518",
+              "Sequence": 8
+            },
+            "PreviousTxnID": "E787C5FA1130C13F400271188401DE3D1C28D87A957241B65E69162D2F4CACBC",
+            "PreviousTxnLgrSeq": 4696951
+          }
+        },
+        {
+          "ModifiedNode": {
+            "FinalFields": {
+              "Account": "rNw4ozCG514KEjPs5cDrqEcdsi31Jtfm5r",
+              "Balance": "26419669",
+              "Flags": 0,
+              "OwnerCount": 1,
+              "Sequence": 86
+            },
+            "LedgerEntryType": "AccountRoot",
+            "LedgerIndex": "FA39C6EC43AA870B5E9ED592EF683CC1134DB60746C54A997B6BEAE366EF04C9",
+            "PreviousFields": {
+              "Balance": "26418669"
+            },
+            "PreviousTxnID": "E787C5FA1130C13F400271188401DE3D1C28D87A957241B65E69162D2F4CACBC",
+            "PreviousTxnLgrSeq": 4696951
+          }
+        }
+      ],
+      "TransactionIndex": 0,
+      "TransactionResult": "tesSUCCESS"
+    },
+    "validated": true
+  }
+}
+```
+Or if the transaction cannot be found in the connected `rippled`'s historical database:
+```js
+{
+  "success": false,
+  "error": "Cannot locate transaction.",
+  "message": "This may be the result of an incomplete rippled historical database or that transaction may not exist."
+}
+```
+
+__NOTE:__ This command relies on the connected `rippled`'s historical database so it may respond with an error even for a valid transaction hash if run on a newly started `rippled` server without full history.
 
 __________
 
