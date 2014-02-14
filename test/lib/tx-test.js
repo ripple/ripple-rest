@@ -28,7 +28,6 @@ describe('lib/tx', function(){
         }
       };
 
-
     it('should respond with an error if given no hash', function(done){
       txLib.getTx({}, function(err, res){
         expect(err).to.exist;
