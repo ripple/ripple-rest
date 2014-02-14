@@ -145,7 +145,6 @@ app.get('/api/v1/status', StatusCtrl.getStatus);
 
 /* Ripple Txs */
 app.get('/api/v1/addresses/:address/txs/:tx_hash', TxCtrl.getTx);
-app.post('/api/v1/addresses/:address/txs/', TxCtrl.submitTx);
 
 /* Notifications */
 app.get('/api/v1/addresses/:address/next_notification', NotificationCtrl.getNextNotification);

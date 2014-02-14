@@ -211,7 +211,6 @@ If there are no new notifications, the empty `Notification` object will be retur
     + [`GET /api/v1/addresses/:address/payments/:tx_hash`](#get-apiv1addressesaddresspaymentstx_hash)
 3. [Standard Ripple Transactions](#3-standard-ripple-transactions)
     + [`GET /api/v1/addresses/:address/txs/:tx_hash`](#get-apiv1addressesaddresstxstx_hash)
-    + [`POST /api/v1/addresses/:address/txs/`](#post-apiv1addressesaddresstxs)
 4. [Server Info](#4-server-info)
     + [`GET /api/v1/status`](#get-apiv1status)
 
@@ -392,41 +391,6 @@ __________
 Gets a particular transaction in the standard Ripple transaction JSON format.
 
 __NOTE:__ This command relies on the connected `rippled`'s historical database so it may not work properly on a newly started `rippled` server.
-
-__________
-
-#### POST /api/v1/addresses/:address/txs/
-
-Post a transaction in the standard Ripple transaction format.
-
-__DO NOT SUBMIT YOUR SECRET TO AN UNTRUSTED REST API SERVER__ -- this is the key to your account and your money. If you are using the test server provided, only use test accounts to submit payments.
-
-Request JSON for Payments:
-```js
-{
-  secret: "s...",
-  tx: {
-    type: "payment"
-    from: "r...",
-    to: "r...",
-    amount: "1XRP"
-  }
-}
-```
-Other available formats are those accepted by the [`ripple-lib` Transaction class](https://github.com/ripple/ripple-lib/blob/develop/src/js/ripple/transaction.js#L455-L692).
-
-
-Response:
-```js
-{
-  success: true,
-  confirmation_token: "..."
-}
-```
-
-Save the `confirmation_token` to check for transaction confirmation by matching that against new `notification`'s.
-
-Transactions cannot be cancelled once they are submitted.
 
 __________
 

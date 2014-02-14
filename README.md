@@ -41,6 +41,5 @@ __This API is still in beta.__ Please open issues for any problems you encounter
     + [`GET /api/v1/addresses/:address/payments/:tx_hash`](docs/REF.md#get-apiv1addressesaddresspaymentstx_hash)
 3. [Standard Ripple Transactions](docs/REF.md#3-standard-ripple-transactions)
     + [`GET /api/v1/addresses/:address/txs/:tx_hash`](docs/REF.md#get-apiv1addressesaddresstxstx_hash)
-    + [`POST /api/v1/addresses/:address/txs/`](docs/REF.md#post-apiv1addressesaddresstxs)
 4. [Server Info](docs/REF.md#4-server-info)
     + [`GET /api/v1/status`](docs/REF.md#get-apiv1status)
