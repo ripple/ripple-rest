@@ -1,6 +1,6 @@
 # `ripple-rest`
 
-A simplified RESTful API for interfacing with the [Ripple Network](http://ripple.com).
+A super simplified RESTful API for interfacing with the [Ripple Network](http://ripple.com).
 
 See the [__Guide__](docs/GUIDE.md) and the [__API Reference__](docs/REF.md) for details on how to use the API.
 
