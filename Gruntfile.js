@@ -3,6 +3,7 @@ var nconf   = require('nconf');
 var pg      = require('pg');
 var async   = require('async');
 var dbCheck = require('./lib/dbCheck');
+var exec    = require('child_process').exec;
 
 
 /* Load Configuration */
@@ -200,9 +201,16 @@ module.exports = function(grunt) {
 
           } else {
 
-            grunt.fail.fatal('Cannot connect to PostgreSQL with user: ' + connection.user + ' or default user postgres');
-            done();
+            grunt.log.writeln('Cannot connect to PostgreSQL as user ' + connection.user + ' or default user postgres. Now attempting to create user');
+            exec('createuser postgres', function(error, stdout, stderr){
+              if (error) {
+                grunt.fail.fatal('Cannot create PostgreSQL user, please check your PostgreSQL installation or create a user manually. ' + error);
+              }
 
+              grunt.log.writeln('Created PostgreSQL user postgres. Now creating ripple-rest user and database');
+              grunt.task.run('pgcreateuser', 'pgcreatedb');
+              done();
+            });
           }
         });
       }
