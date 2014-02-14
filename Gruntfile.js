@@ -14,7 +14,7 @@ nconf
 
 module.exports = function(grunt) {
 
-  // Temporary fix for a bug in a dependency
+  // Temporary fix for a bug in grunt-pg
   grunt.utils = grunt.util;
 
 
@@ -34,6 +34,7 @@ module.exports = function(grunt) {
     /* Database Migrations */
     migrate: {
       options: {
+        migrationsDir: 'db/migrations', // Temporary fix for bug in grunt-db-migrate
         dir: 'db/migrations',
         env: {
           DATABASE_URL: nconf.get('DATABASE_URL')
