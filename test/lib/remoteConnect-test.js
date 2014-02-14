@@ -34,16 +34,15 @@ describe('lib/remoteConnect', function(){
 
       var clock = sinon.useFakeTimers(0, "setTimeout");
 
-      var remote = new ripple.Remote({
-      });
+      var remote = new ripple.Remote({});
 
       remote.connect = function(){
-        clock.tick(10000);
+        clock.tick(20000);
       };
 
       remoteConnectLib.ensureConnected(remote, function(err, res){
         expect(err).to.exist;
-        expect(err.message).to.equal('Cannot connect to the Ripple network. Please check your internet connection and server settings and try again.');
+        expect(err.message).to.equal('Cannot connect to rippled. No "ledger_closed" events were heard within 20 seconds, most likely indicating that the connection to rippled has been interrupted or the rippled is unresponsive. Please check your internet connection and server settings and try again.');
         expect(res).not.to.exist;
         done();
       });
