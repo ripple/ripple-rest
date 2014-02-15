@@ -11,7 +11,7 @@ module.exports = function(opts) {
 
       var src_address = req.param('address'),
         dst_address = req.param('dst_address'),
-        dst_amount_param = req.param('dst_amount')
+        dst_amount_param = req.param('dst_amount'),
         dst_amount;
 
       if (typeof dst_amount_param === 'string') {
