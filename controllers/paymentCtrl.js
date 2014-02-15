@@ -18,9 +18,7 @@ module.exports = function (opts) {
 
       paymentLib.getPayment({
         remote: remote, 
-        tx_hash: tx_hash,
-        address: src_address,
-        ledger_index: ledger_index
+        tx_hash: tx_hash
       }, function(err, payment){
         if (err) {
           errorHandler(res, err);
