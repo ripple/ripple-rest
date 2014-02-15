@@ -244,6 +244,15 @@ Response:
     }
 }
 ```
+Or if there were any failed outgoing transactions not yet reported:
+```js
+{
+  "success": true,
+  "notification": {
+    /* Notification with "tx_state" as "failed" */
+  }
+}
+```
 Or if there are no new notifications:
 
 ```js
