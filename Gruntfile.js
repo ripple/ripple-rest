@@ -102,7 +102,7 @@ module.exports = function(grunt) {
 	grunt.registerTask('default', ['jshint', 'nodemon']);
   grunt.registerTask('dev', ['jshint', 'simplemocha:local', 'nodemon']);
 	grunt.registerTask('test', ['jshint', 'simplemocha:local']);
-  grunt.registerTask('dbsetup', ['pgconfig', 'dbcheckorcreate', 'dbclean']);
+  grunt.registerTask('dbsetup', ['pgconfig', 'dbcheckorcreate', 'migrate:up']);
 
   /* Setup grunt-pg options */
   grunt.registerTask('pgconfig', 'Setup PostgreSQL database', function(){
