@@ -2,9 +2,34 @@
 
 This is a reference for the [__Object Formats__](#object-formats) and [__Available API Routes__](#available-api-routes).
 
+Note that the data formats used by this API are different in a number of important ways from those used in `rippled`, `ripple-lib`, and the accompanying documentation. See [below](#differences-from-standard-ripple-data-formats) for more information.
+
 See the [__Guide__](GUIDE.md) for a walkthrough of how this API is intended to be used.
 
 
+----------
+
+## Differences from standard Ripple data formats
+
+#### New data formats
+
+This API uses different submission and retrieval formats for payments and other transactions than other Ripple technologies. These new formats are intended to standardize fields across different transaction types (Payments, Orders, etc). See the [Object Formats](#object-formats) for more information.
+
+#### No XRP "drops"
+
+Both `rippled` and `ripple-lib` use XRP "drops", or millionths (1/1000000) of an XRP, to denote amounts in XRP. This API uses whole XRP units in amount fields and in reporting network transaction fees paid.
+
+#### XRP Amount as an object
+
+Outside of this API, XRP Amounts are usually denoted by a string representing XRP drops. Not only does this API not use XRP drops, for consistency XRP represented here as an `Amount` object like all other currencies. See the [`Amount`](#1-amount) format for more information.
+
+#### UNIX Epoch instead of Ripple Epoch
+
+This API uses the more standard UNIX timestamp instead of the Ripple Epoch Offset to denote times. The UNIX timestamp is the number of milliseconds since January 1st, 1970 (00:00 UTC). In `rippled` timestamps are stored as the number of seconds since the Ripple Epoch, January 1st, 2000 (00:00 UTC).
+
+#### Not compatible with `ripple-lib`
+
+While this API uses [`ripple-lib`](https://github.com/ripple/ripple-lib/), the Javascript library for connecting to the Ripple Network, the formats specified here are not compatible with `ripple-lib`. These formats can only be used with this API.
 
 ----------
 
@@ -25,8 +50,18 @@ See the [__Guide__](GUIDE.md) for a walkthrough of how this API is intended to b
   "issuer": "r..."
 }
 ```
+Or for XRP:
+```js
+{
+  "value": "1.0",
+  "currency": "XRP",
+  "issuer": ""
+}
+```
 
 All currencies on the Ripple Network have issuers, except for XRP. In the case of XRP, the `"issuer"` field may be omitted or set to `""`. Otherwise, the `"issuer"` must be a valid Ripple address of the gateway that issues the currency.
+
+Note that the `value` can either be specified as a string or a number. Internally this API uses a BigNumber library to retain higher precision if numbers are inputted as strings.
 
 For more information about XRP see [the Ripple Wiki page on XRP](https://ripple.com/wiki/XRP). For more information about using currencies other than XRP on the Ripple Network see [the Ripple Wiki page for gateways](https://ripple.com/wiki/Ripple_for_Gateways).
 
