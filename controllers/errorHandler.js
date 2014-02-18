@@ -17,13 +17,18 @@ module.exports = function(res, error) {
 
     if (err_obj.message === 'Account not found.') {
 
-      err_obj.error = 'Account not found';
-      err_obj.message = 'Please ensure that this is a valid account and has an XRP balance.';
+      err_obj.error = 'Invalid address or secret.';
+      err_obj.message = 'Please ensure the address and secret correspond to a valid account that has a positive XRP balance.';
 
     } else {
       err_obj.error = 'Internal Error';
       err_obj.message = 'ripple-lib reported an error. If the problem persists, please try restarting the server. Error: ' + JSON.stringify(err_obj.message);
     }
+  }
+
+  if (err_obj.error === 'Cannot generate keys from invalid seed!') {
+    err_obj.error = 'Invalid address or secret.';
+    err_obj.message = 'Please ensure the address and secret correspond to a valid account that has a positive XRP balance.'
   }
 
 
