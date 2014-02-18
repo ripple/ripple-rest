@@ -24,6 +24,15 @@ var app              = express();
 
 
 /* Process Configuration Options */
+/* Note that the configuration library will look for the options 
+ * in the following locations and set them according to this
+ * this hierarchy (where 1 is the top priority and 5 is the lowest):
+ *  1. Command line options
+ *  2. Environment variables
+ *  3. The config.json file
+ *  4. The config-example.json file
+ *  5. The defaults listed below
+ */
 nconf
   .argv()
   .env()
