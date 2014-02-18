@@ -10,7 +10,8 @@ var exec    = require('child_process').exec;
 nconf
   .argv()
   .env()
-  .file({ file: './config.json' });
+  .file({ file: './config.json' })
+  .file({ file: './config-example.json' });
 
 module.exports = function(grunt) {
 

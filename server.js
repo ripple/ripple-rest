@@ -28,6 +28,7 @@ nconf
   .argv()
   .env()
   .file({ file: './config.json' })
+  .file({ file: './config-example.json' })
   .defaults({
     PORT: 5990,
     NODE_ENV: 'development',
