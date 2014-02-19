@@ -125,10 +125,6 @@ PaymentCtrl = require('./controllers/paymentCtrl')({
   OutgoingTx: OutgoingTx
 }),
 
-PathfindCtrl = require('./controllers/pathfindCtrl')({
-  remote: remote
-}),
-
 StatusCtrl = require('./controllers/statusCtrl')({
   remote: remote
 });
@@ -161,7 +157,7 @@ app.get('/api/v1/addresses/:address/next_notification', NotificationCtrl.getNext
 app.get('/api/v1/addresses/:address/next_notification/:prev_tx_hash', NotificationCtrl.getNextNotification);
 
 /* Pathfinding */
-app.get('/api/v1/addresses/:address/payments/:dst_address/:dst_amount', PathfindCtrl.getPathFind);
+app.get('/api/v1/addresses/:address/payments/:dst_address/:dst_amount', PaymentCtrl.getPathFind);
 
 /* Payments */
 app.get('/api/v1/addresses/:address/payments/:tx_hash', PaymentCtrl.getPayment);
