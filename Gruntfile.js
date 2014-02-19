@@ -149,7 +149,8 @@ module.exports = function(grunt) {
 
     var done = this.async();
 
-    var db_url = nconf.get('DATABASE_URL');
+    var db_url = nconf.get('DATABASE_URL'),
+      connection = dbCheck.parseUrl(db_url);
 
     if (!db_url) {
       grunt.fail.fatal(new Error('Must supply DATABASE_URL in the form: postgres://{user}:{password}@{host}:{port}/{database}'));
@@ -184,8 +185,6 @@ module.exports = function(grunt) {
         });
 
       } else {
-
-        var connection = dbCheck.parseUrl(db_url);
 
         grunt.log.writeln('User ' + connection.user + ' does not yet exist');
         grunt.log.writeln('Connecting to PostgreSQL as user "postgres"');
