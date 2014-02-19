@@ -185,8 +185,9 @@ module.exports = function(grunt) {
 
       } else {
 
-        // Try connecting as user postgres
         var connection = dbCheck.parseUrl(db_url);
+
+        grunt.log.writeln('User ' + connection.user + ' does not yet exist');
         grunt.log.writeln('Connecting to PostgreSQL as user "postgres"');
         dbCheck.userExists('postgres://' + 'postgres' + '@' + connection.host + ':' + connection.port, function(err, exists){
           if (err) {
