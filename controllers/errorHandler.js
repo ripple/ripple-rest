@@ -28,7 +28,7 @@ module.exports = function(res, error) {
 
   if (err_obj.error === 'Cannot generate keys from invalid seed!') {
     err_obj.error = 'Invalid address or secret.';
-    err_obj.message = 'Please ensure the address and secret correspond to a valid account that has a positive XRP balance.'
+    err_obj.message = 'Please ensure the address and secret correspond to a valid account that has a positive XRP balance.';
   }
 
 
