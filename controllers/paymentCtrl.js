@@ -19,7 +19,12 @@ module.exports = function (opts) {
 
       // Check if it mistakenly got here when 
       if (rpparser.isRippleAddress(tx_hash)) {
-        errorHandler(res, new Error(''));
+        errorHandler(res, new Error('Missing parameter: dst_amount. Must provide dst_amount to get payment options'));
+        return;
+      }
+
+      if (!tx_hash || !rpparser.isTxHash(tx_hash)) {
+        errorHandler(res, new Error('Invalid parameter: tx_hash. Must provide a valid transaction hash to get payment details'));
         return;
       }
 
@@ -47,6 +52,8 @@ module.exports = function (opts) {
         dst_amount_param = req.param('dst_amount'),
         dst_amount;
 
+        console.log(dst_amount_param);
+
       if (!rpparser.isRippleAddress(src_address)) {
         errorHandler(res, new Error('Invalid parameter: address. Must be a valid Ripple address'));
         return;
@@ -64,7 +71,7 @@ module.exports = function (opts) {
 
       if (typeof dst_amount_param === 'string') {
 
-        var dst_amount_array = dst_amount_param.split(' ');
+        var dst_amount_array = dst_amount_param.split('+');
 
         if (dst_amount_array.length === 2 || dst_amount_array.length === 3) {
           dst_amount = {

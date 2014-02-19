@@ -15,6 +15,11 @@ module.exports = function (opts) {
       var address = req.param('address'),
         tx_hash = req.param('tx_hash');
 
+      if (!tx_hash || !rpparser.isTxHash(tx_hash)) {
+        errorHandler(res, new Error('Invalid parameter: tx_hash. Must provide a valid transaction hash to get transaction details'));
+        return;
+      }
+
       txLib.getTx({
         remote: remote, 
         address: address,
