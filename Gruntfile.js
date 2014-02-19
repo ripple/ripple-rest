@@ -24,14 +24,6 @@ module.exports = function(grunt) {
 	grunt.initConfig({
 		pkg: grunt.file.readJSON('package.json'),
 
-    /* PostgreSQL Setup */
-    pgcreatedb: {
-      // Options set by pgconfig task
-    }, 
-    pgcreateuser: {
-      // Options set by pgconfig task
-    },
-
     /* Database Migrations */
     migrate: {
       options: {
@@ -96,61 +88,21 @@ module.exports = function(grunt) {
 	grunt.loadNpmTasks('grunt-contrib-jshint');
 	grunt.loadNpmTasks('grunt-simple-mocha');
   grunt.loadNpmTasks('grunt-db-migrate');
-  grunt.loadNpmTasks('grunt-pg');
 
 
   /* Register tasks */
 	grunt.registerTask('default', ['jshint', 'nodemon']);
   grunt.registerTask('dev', ['jshint', 'simplemocha:local', 'nodemon']);
 	grunt.registerTask('test', ['jshint', 'simplemocha:local']);
-  grunt.registerTask('dbsetup', ['pgconfig', 'dbcheckorcreate', 'migrate:up']);
+  grunt.registerTask('dbsetup', ['dbcheckorcreate', 'migrate:up']);
 
-  /* Setup grunt-pg options */
-  grunt.registerTask('pgconfig', 'Setup PostgreSQL database', function(){
-    
-    var db_url = nconf.get('DATABASE_URL');
-
-    if (!db_url) {
-      grunt.fail.fatal(new Error('Must supply DATABASE_URL in the form: postgres://{user}:{password}@{host}:{port}/{database}'));
-    }
-
-    var connection = dbCheck.parseUrl(db_url);
-
-    var createuser_opts = {};
-    createuser_opts[connection.user] = {
-      user: connection.user + ' CREATEDB PASSWORD \'' + connection.password + '\'' ,
-      connection: {
-        host: connection.host,
-        port: connection.port,
-        user: 'postgres'
-      }
-    };
-
-    grunt.config.set('pgcreateuser', createuser_opts);
-
-    var createdb_opts = {};
-    createdb_opts[connection.database] = {
-      name: connection.database,
-      owner: connection.user,
-      connection: {
-        host: connection.host,
-        port: connection.port,
-        user: connection.user,
-        password: connection.password
-      }
-    };
-
-    grunt.config.set('pgcreatedb', createdb_opts);
-    
-  });
 
   /* Check if user and database already exist, if not create them */ 
   grunt.registerTask('dbcheckorcreate', 'Create user and database if they do not already exist', function(){
 
     var done = this.async();
 
-    var db_url = nconf.get('DATABASE_URL'),
-      connection = dbCheck.parseUrl(db_url);
+    var db_url = nconf.get('DATABASE_URL');
 
     if (!db_url) {
       grunt.fail.fatal(new Error('Must supply DATABASE_URL in the form: postgres://{user}:{password}@{host}:{port}/{database}'));
@@ -158,14 +110,14 @@ module.exports = function(grunt) {
 
     // Check user and database, create one or both if they do not already exist
 
-    dbCheck.userExists(db_url, function(err, exists){
+    dbCheck.databaseExists(db_url, function(err, exists){
       if (err) {
         grunt.fail.fatal(err);
       }
 
       if (exists) {
 
-        dbCheck.databaseExists(db_url, function(err, exists){
+        dbCheck.userExists(db_url, function(err, exists){
           if (err) {
             grunt.fail.fatal(err);
           }
@@ -178,35 +130,66 @@ module.exports = function(grunt) {
           } else {
 
             // Create database
-            grunt.log.writeln('User exists but database does not. Creating database');
-            grunt.task.run('pgcreatedb');
+            grunt.log.writeln('Database exists but user does not');
+            grunt.task.run('dbcreate');
             done();
           }
         });
 
       } else {
 
-        grunt.log.writeln('User ' + connection.user + ' does not yet exist');
-        grunt.log.writeln('Connecting to PostgreSQL as user "postgres"');
-        dbCheck.userExists('postgres://' + 'postgres' + '@' + connection.host + ':' + connection.port, function(err, exists){
-          if (err) {
-            grunt.fail.fatal(err);
-          }
-
-          if (exists) {
-
-            grunt.log.writeln('User and database do not yet exist. Creating both with default user');
-            grunt.task.run('pgcreateuser', 'pgcreatedb');
-            done();
-          
-          } else {
-
-            grunt.fail.fatal('Cannot connect to PostgreSQL as user "postgres". Please check your PostgreSQL installation or create a user named "postgres" manually.');
-          
-          }
-        });
+        grunt.log.writeln('Database does not yet exist');
+        grunt.task.run('dbcreate');
+        done();
       }
     });
+  });
+
+  grunt.registerTask('dbcreate', 'Create user and db', function(){
+
+    var done = this.async();
+
+    var db_url = nconf.get('DATABASE_URL'),
+      connection = dbCheck.parseUrl(db_url);
+
+    async.series(
+      [
+        function(async_callback){
+          exec('createdb -U postgres ' + connection.database, function(error, stdout, stderr){
+            if (error) {
+              grunt.fail.warn('Cannot create database ' + connection.database + ' as user "postgres". ' + error);
+            } else {
+              grunt.log.writeln('Created database: ' + connection.database);
+            }
+            async_callback();
+          });
+        },
+        function(async_callback){
+          exec('createuser -U postgres ' + connection.user, function(error, stdout, stderr){
+            if (error) {
+              grunt.fail.warn('Cannot create user ' + connection.user + ' as user "postgres". ' + error);
+            } else {
+              grunt.log.writeln('Created user: ' + connection.user);
+            }
+            async_callback();
+          });
+        }, function(async_callback){
+          exec('psql -U postgres -c "ALTER ROLE ' + connection.user + ' WITH PASSWORD \'' + connection.password + '\'"', function(error, stdout, stderr){
+            if (error) {
+              grunt.fail.warn('Cannot set user password. ' + error);
+            } else {
+              grunt.log.writeln('Set user password');
+            }
+            async_callback();
+          });
+        }
+      ], function(err){
+        if (err) {
+          grunt.fail.fatal(err);
+        }
+        done();
+      });
+
   });
 
   /* Clean database by running migrate:down and then up */
