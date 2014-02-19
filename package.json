@@ -6,7 +6,7 @@
   "scripts": {
     "start": "node server.js",
     "test": "grunt test",
-    "postinstall": "./node_modules/grunt-cli/bin/grunt dbsetup"
+    "postinstall": "./node_modules/.bin/grunt dbsetup"
   },
   "repository": {
     "type": "git",
