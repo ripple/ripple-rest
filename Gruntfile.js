@@ -111,19 +111,19 @@ module.exports = function(grunt) {
 
     // Check user and database, create one or both if they do not already exist
 
-    dbCheck.databaseExists(db_url, function(err, exists){
+    dbCheck.databaseExists(db_url, function(err, db_exists){
       if (err) {
         grunt.fail.fatal(err);
       }
 
-      if (exists) {
+      if (db_exists) {
 
-        dbCheck.userExists(db_url, function(err, exists){
+        dbCheck.userExists(db_url, function(err, user_exists){
           if (err) {
             grunt.fail.fatal(err);
           }
 
-          if (exists) {
+          if (user_exists) {
 
             grunt.log.writeln('User and database already exist. Continuing');
             done();
