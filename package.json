@@ -27,7 +27,6 @@
   "devDependencies": {
     "mocha": "*",
     "chai": "*",
-    "grunt": "~0.4.2",
     "grunt-contrib-jshint": "~0.8.0",
     "grunt-contrib-watch": "~0.5.3",
     "grunt-simple-mocha": "*",
@@ -37,9 +36,6 @@
     "sinon": "~1.7.3",
     "sinon-chai": "~2.4.0",
     "clone": "~0.1.11",
-    "grunt-db-migrate": "~0.1.4",
-    "grunt-cli": "~0.1.13",
-    "grunt-pg": "~0.3.1"
   },
   "dependencies": {
     "express": "~3.4.7",
@@ -57,6 +53,9 @@
     "deep-equal": "~0.2.1",
     "sqlite3": "~2.2.0",
     "nconf": "~0.6.9",
-    "rconsole": "~0.2.0"
+    "rconsole": "~0.2.0",
+    "grunt": "~0.4.2",
+    "grunt-db-migrate": "~0.1.4",
+    "grunt-cli": "~0.1.13"
   }
 }
