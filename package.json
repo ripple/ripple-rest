@@ -5,8 +5,7 @@
   "description": "A simplified interface to the Ripple network through a Javascript library and RESTful API",
   "scripts": {
     "start": "node server.js",
-    "test": "./node_modules/.bin/grunt test",
-    "postinstall": "./node_modules/.bin/grunt dbsetup"
+    "test": "./node_modules/.bin/grunt test"
   },
   "repository": {
     "type": "git",
