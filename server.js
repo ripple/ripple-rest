@@ -37,16 +37,21 @@ nconf
   .argv()
   .env()
   .file({ file: './config.json' })
-  .file({ file: './config-example.json' })
   .defaults({
-    PORT: 5990,
-    NODE_ENV: 'development',
-    rippled_servers: [{
-      host: 's_west.ripple.com',
-      port: 443,
-      secure: true
-    }]
+    "PORT": 5990,
+    "NODE_ENV": "development",
+    "HOST": "localhost",
+    "DATABASE_URL": "postgres://ripple_rest_user:password@localhost:5432/ripple_rest_db",
+    "rippled_servers": [
+      {
+        "host": "s_west.ripple.com",
+        "port": 443,
+        "secure": true
+      }
+    ]
   });
+
+console.log('rippled_servers: ' + JSON.stringify(nconf.get('rippled_servers')));
 
 
 /* Connect to db */
@@ -156,6 +161,7 @@ app.get('/api/v1/addresses/:address/next_notification/:prev_tx_hash', Notificati
 app.get('/api/v1/addresses/:address/payments/:dst_address/:dst_amount', PaymentCtrl.getPathFind);
 
 /* Payments */
+app.get('/api/v1/addresses/:address/payments/', PaymentCtrl.getPayment);
 app.get('/api/v1/addresses/:address/payments/:tx_hash', PaymentCtrl.getPayment);
 app.post('/api/v1/addresses/:address/payments', PaymentCtrl.submitPayment);
 

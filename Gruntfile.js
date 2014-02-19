@@ -11,7 +11,20 @@ nconf
   .argv()
   .env()
   .file({ file: './config.json' })
-  .file({ file: './config-example.json' });
+  .defaults({
+    "PORT": 5990,
+    "NODE_ENV": "development",
+    "HOST": "localhost",
+    "DATABASE_URL": "postgres://ripple_rest_user:password@localhost:5432/ripple_rest_db",
+    "rippled_servers": [
+      {
+        "host": "s_west.ripple.com",
+        "port": 443,
+        "secure": true
+      }
+    ]
+  });
+
 
 module.exports = function(grunt) {
 
