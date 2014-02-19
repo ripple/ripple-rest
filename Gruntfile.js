@@ -1,29 +1,9 @@
 var fs      = require('fs');
-var nconf   = require('nconf');
+var config  = require('./lib/configLoader');
 var pg      = require('pg');
 var async   = require('async');
 var dbCheck = require('./lib/dbCheck');
 var exec    = require('child_process').exec;
-
-
-/* Load Configuration */
-nconf
-  .argv()
-  .env()
-  .file({ file: './config.json' })
-  .defaults({
-    "PORT": 5990,
-    "NODE_ENV": "development",
-    "HOST": "localhost",
-    "DATABASE_URL": "postgres://ripple_rest_user:password@localhost:5432/ripple_rest_db",
-    "rippled_servers": [
-      {
-        "host": "s_west.ripple.com",
-        "port": 443,
-        "secure": true
-      }
-    ]
-  });
 
 
 module.exports = function(grunt) {
@@ -43,7 +23,7 @@ module.exports = function(grunt) {
         migrationsDir: 'db/migrations', // Temporary fix for bug in grunt-db-migrate
         dir: 'db/migrations',
         env: {
-          DATABASE_URL: nconf.get('DATABASE_URL')
+          DATABASE_URL: config.get('DATABASE_URL')
         }
       }
     },
@@ -116,7 +96,7 @@ module.exports = function(grunt) {
 
     var done = this.async();
 
-    var db_url = nconf.get('DATABASE_URL');
+    var db_url = config.get('DATABASE_URL');
 
     if (!db_url) {
       grunt.fail.fatal(new Error('Must supply DATABASE_URL in the form: postgres://{user}:{password}@{host}:{port}/{database}'));
@@ -163,7 +143,7 @@ module.exports = function(grunt) {
 
     var done = this.async();
 
-    var db_url = nconf.get('DATABASE_URL'),
+    var db_url = config.get('DATABASE_URL'),
       connection = dbCheck.parseUrl(db_url);
 
     async.series(

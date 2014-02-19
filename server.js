@@ -16,47 +16,17 @@ console.set({
 
 var fs               = require('fs');
 var https            = require('https');
-var nconf            = require('nconf');
+var config           = require('./lib/configLoader');
 var ripple           = require('ripple-lib');
 var sequelizeConnect = require('./db/sequelizeConnect');
 var express          = require('express');
 var app              = express();
 
 
-/* Process Configuration Options */
-/* Note that the configuration library will look for the options 
- * in the following locations and set them according to this
- * this hierarchy (where 1 is the top priority and 5 is the lowest):
- *  1. Command line options
- *  2. Environment variables
- *  3. The config.json file
- *  4. The config-example.json file
- *  5. The defaults listed below
- */
-nconf
-  .argv()
-  .env()
-  .file({ file: './config.json' })
-  .defaults({
-    "PORT": 5990,
-    "NODE_ENV": "development",
-    "HOST": "localhost",
-    "DATABASE_URL": "postgres://ripple_rest_user:password@localhost:5432/ripple_rest_db",
-    "rippled_servers": [
-      {
-        "host": "s_west.ripple.com",
-        "port": 443,
-        "secure": true
-      }
-    ]
-  });
-
-console.log('rippled_servers: ' + JSON.stringify(nconf.get('rippled_servers')));
-
 
 /* Connect to db */
 var db = sequelizeConnect({
-  DATABASE_URL: nconf.get('DATABASE_URL')
+  DATABASE_URL: config.get('DATABASE_URL')
 });
 
 
@@ -68,7 +38,7 @@ var RippleLibQueuedTx = require('./models/rippleLibQueuedTx')(db);
 /* Connect to ripple-lib */
 var remoteOpts = {
   local_signing: true,
-  servers: nconf.get('rippled_servers')
+  servers: config.get('rippled_servers')
 };
 
 /* Setup ripple-lib persistence */
@@ -82,7 +52,7 @@ remoteOpts.storage = require('./lib/rippleLibStorage')({
 var remote = new ripple.Remote(remoteOpts);
 
 var connect_timeout = setTimeout(function(){
-  throw(new Error('Cannot connect to the given rippled. Please ensure that the rippled is configured correctly and that the configuration points to the right port. rippled servers: ' + JSON.stringify(nconf.get('rippled_servers'))));
+  throw(new Error('Cannot connect to the given rippled. Please ensure that the rippled is configured correctly and that the configuration points to the right port. rippled servers: ' + JSON.stringify(config.get('rippled_servers'))));
 }, 20000);
 
 remote.on('error', function(err) {
@@ -117,8 +87,8 @@ var TxCtrl = require('./controllers/txCtrl')({
 NotificationCtrl = require('./controllers/notificationCtrl')({
   remote: remote,
   OutgoingTx: OutgoingTx,
-  port: nconf.get('PORT'),
-  environment: nconf.get('NODE_ENV')
+  port: config.get('PORT'),
+  environment: config.get('NODE_ENV')
 }),
 
 PaymentCtrl = require('./controllers/paymentCtrl')({
@@ -167,9 +137,9 @@ app.post('/api/v1/addresses/:address/payments', PaymentCtrl.submitPayment);
 
 
 /* Configure SSL, if desired */
-if (typeof nconf.get('ssl') === 'object') {
-  var key_path  = nconf.get('ssl').key_path || './certs/server.key';
-  var cert_path = nconf.get('ssl').cert_path || './certs/server.crt';
+if (typeof config.get('ssl') === 'object') {
+  var key_path  = config.get('ssl').key_path || './certs/server.key';
+  var cert_path = config.get('ssl').cert_path || './certs/server.crt';
 
   if (!fs.existsSync(key_path)) {
     throw new Error('Must provide key file and a key_path in the config.json in order to use SSL');
@@ -184,11 +154,11 @@ if (typeof nconf.get('ssl') === 'object') {
     cert:  fs.readFileSync(cert_path)
   };
 
-  https.createServer(sslOptions, app).listen(nconf.get('PORT'), function() {
-    console.log('ripple-rest listening over HTTPS at port:' + nconf.get('PORT'));
+  https.createServer(sslOptions, app).listen(config.get('PORT'), function() {
+    console.log('ripple-rest listening over HTTPS at port:' + config.get('PORT'));
   });
 } else {
-  app.listen(nconf.get('PORT'), function() {
-    console.log('ripple-rest listening over unsecured HTTP at port:' + nconf.get('PORT'));
+  app.listen(config.get('PORT'), function() {
+    console.log('ripple-rest listening over unsecured HTTP at port:' + config.get('PORT'));
   });
 }
