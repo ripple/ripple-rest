@@ -7,22 +7,66 @@ See the [__Guide__](docs/GUIDE.md) and the [__API Reference__](docs/REF.md) for 
 
 ## Setup
 
-A test version of the API can be found at [`https://ripple-rest.herokuapp.com`](https://ripple-rest.herokuapp.com). Even though it supports HTTPS connections, __only submit transactions from test accounts__, we make __NO GUARANTEES__ about the security of your secret keys on this server.
+#### Test Instance
 
-To install `ripple-rest` locally for the first time:
+A test version of the API can be found at [`https://ripple-rest.herokuapp.com`](https://ripple-rest.herokuapp.com). 
 
-1. Before getting started, make sure you have [Node.js](http://nodejs.org/) and [PostgreSQL](http://www.postgresql.org/download/) installed on your computer. Also make sure you have a running PostgreSQL instance (see [this page](http://www.postgresql.org/docs/9.3/static/server-start.html) or the documentation that comes with the installer for how to do this on your operating system).
-2. Run `git clone https://github.com/ripple/ripple-rest.git` in a terminal
-3. Continue with the default database and `rippled` settings or modify them to point to your PostgreSQL instance and `rippled` server. To override the default settings you can create a `config.json` file, following the example of the `config-example.json`, or you can use [environment variables](http://en.wikipedia.org/wiki/Environment_variable) with the same names as the fields in the `config-example.json` file. Ripple Labs's `rippled` cluster `s_west.ripple.com` is used by default and the default `DATABASE_URL` setting should work for you if you have just installed PostgreSQL.
-4. Run `npm install; ./node_modules/grunt-cli/bin/grunt dbsetup` to install the dependencies and setup the database
-5. Run `node server.js` to start the server
+Even though the test API supports HTTPS connections, __only submit transactions from test accounts__, we make __NO GUARANTEES__ about the security of your secret keys on this server.
 
-To update `ripple-rest` to the latest version:
+#### Dependencies
+
+1. [Node.js](http://nodejs.org/)
+2. [PostgreSQL](http://www.postgresql.org/download/) (on a Mac use the [app](http://postgresapp.com/)). Follow the instructions [here](http://www.postgresql.org/docs/9.3/static/server-start.html) or those that came with your PostgreSQL to get the database server running on your machine  
+
+#### Installation
+
+1. Run `git clone https://github.com/ripple/ripple-rest.git` in a terminal and switch into the `ripple-rest` directory
+2. Run `npm install; ./node_modules/grunt-cli/bin/grunt dbsetup` to install the dependencies and setup the database
+3. Run `node server.js` to start the server
+
+#### Updating
 
 1. From the root `ripple-rest` directory run `git pull`
 2. Run `npm install; ./node_modules/grunt-cli/bin/grunt dbsetup` to update the dependencies and database setup
 3. If the old version of the server is still running, kill the process with `CTRL-C` in the same terminal window where it is running or `killall node` to stop all Node.js processes on a Linux or Mac computer
 4. Run `node server.js` to restart the server
+
+#### Customization
+
++ Configuration options are loaded from various sources according to the following hierarchy (where 1 is the highest priority):
+
+  1. Command line options: 
+
+    `node server.js --DATABASE_URL=postgres://ripple_rest_user:password@localhost:5432/ripple_rest_db`
+
+  2. Environment variables: 
+
+    `export DATABASE_URL=postgres://ripple_rest_user:password@localhost:5432/ripple_rest_db; node server.js`
+
+  3. The `config.json` file, which follows the format of the `config-example.json` file: 
+   
+  ```js
+  { 
+    /* ... */
+    DATABASE_URL: "postgres://ripple_rest_user:password@localhost:5432/ripple_rest_db" 
+    /* ... */
+  }
+  ```
+
++ Configure the PostgreSQL connection by setting the `DATABASE_URL` field in any of the aforementioned configuration sources to a string in the following format: `postgres://ripple_rest_user:password@localhost:5432/ripple_rest_db`.
+
++ Configure the `rippled` connection by setting the `rippled_servers` field to a JSON object of the form:
+
+  ```js
+    "rippled_servers": [
+      {
+        "host": "s_west.ripple.com",
+        "port": 443,
+        "secure": true
+      }
+    ]
+  ```
+
 
 ## Testing
 

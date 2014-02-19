@@ -41,14 +41,11 @@ nconf
   .defaults({
     PORT: 5990,
     NODE_ENV: 'development',
-    rippled: {
-      local_signing: true,
-      servers: [{
-        host: 's_west.ripple.com',
-        port: 443,
-        secure: true
-      }]
-    }
+    rippled_servers: [{
+      host: 's_west.ripple.com',
+      port: 443,
+      secure: true
+    }]
   });
 
 if (!nconf.get('rippled')) {
@@ -68,7 +65,10 @@ var RippleLibQueuedTx = require('./models/rippleLibQueuedTx')(db);
 
 
 /* Connect to ripple-lib */
-var remoteOpts = nconf.get('rippled');
+var remoteOpts = {
+  local_signing: true,
+  servers: nconf.get('rippled_servers')
+};
 
 /* Setup ripple-lib persistence */
 remoteOpts.storage = require('./lib/rippleLibStorage')({

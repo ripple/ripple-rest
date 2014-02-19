@@ -122,7 +122,7 @@ module.exports = function(grunt) {
       connection: {
         host: connection.host,
         port: connection.port,
-        user: nconf.get('USER') || 'postgres'
+        user: 'postgres'
       }
     };
 
@@ -185,12 +185,10 @@ module.exports = function(grunt) {
 
       } else {
 
-        // Try connecting as $USER
-
-        var connection = dbCheck.parseUrl(db_url),
-          modified_connection = 'postgres://' + (nconf.get('USER') || 'postgres') + '@' + connection.host + ':' + connection.port;
-
-        dbCheck.userExists(db_url, function(err, exists){
+        // Try connecting as user postgres
+        var connection = dbCheck.parseUrl(db_url);
+        grunt.log.writeln('Connecting to PostgreSQL as user "postgres"');
+        dbCheck.userExists('postgres://' + 'postgres' + '@' + connection.host + ':' + connection.port, function(err, exists){
           if (err) {
             grunt.fail.fatal(err);
           }
@@ -200,19 +198,11 @@ module.exports = function(grunt) {
             grunt.log.writeln('User and database do not yet exist. Creating both with default user');
             grunt.task.run('pgcreateuser', 'pgcreatedb');
             done();
-
+          
           } else {
 
-            grunt.log.writeln('Cannot connect to PostgreSQL as user ' + connection.user + ' or default user. Now attempting to create user');
-            exec('createdb ' + (nconf.get('USER') || '$USER') , function(error, stdout, stderr){
-              if (error) {
-                grunt.fail.fatal('Cannot create PostgreSQL user ' + (nconf.get('USER') ? nconf.get('USER') + ' ' : '') + ', please check your PostgreSQL installation or create a user manually. ' + error);
-              }
-
-              grunt.log.writeln('Created default database and user. Now creating ripple-rest user and database');
-              grunt.task.run('pgcreateuser', 'pgcreatedb');
-              done();
-            });
+            grunt.fail.fatal('Cannot connect to PostgreSQL as user "postgres". Please check your PostgreSQL installation or create a user named "postgres" manually.');
+          
           }
         });
       }

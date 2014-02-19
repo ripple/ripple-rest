@@ -7,14 +7,11 @@
     "key_path": "./certs/server.key",
     "cert_path": "./certs/server.crt"
   },
-  "rippled": {
-    "local_signing": true,
-    "servers": [
-      {
-        "host": "s_west.ripple.com",
-        "port": 443,
-        "secure": true
-      }
-    ]
-  }
+  "rippled_servers": [
+    {
+      "host": "s_west.ripple.com",
+      "port": 443,
+      "secure": true
+    }
+  ]
 }
