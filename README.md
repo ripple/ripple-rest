@@ -66,7 +66,7 @@ Even though the test API supports HTTPS connections, __only submit transactions 
       }
     ]
   ```
-+ To install on Heroku, you must add this custom buildpack to enable the use of Grunt.js:
++ To install on Heroku, you must add a custom buildpack to enable the use of [`Grunt.js`](http://gruntjs.com/). You will not need to run `npm install; ./node_modules/.bin/grunt dbsetup` on Heroku because these will be run automatically. To setup the buildpack on heroku run:
 
   `heroku config:add BUILDPACK_URL=https://github.com/mbuchetics/heroku-buildpack-nodejs-grunt.git`
 
