@@ -185,7 +185,7 @@ module.exports = function(grunt) {
 
       } else {
 
-        // Try connecting as postgres user
+        // Try connecting as $USER
 
         var connection = dbCheck.parseUrl(db_url),
           modified_connection = 'postgres://' + (nconf.get('USER') || 'postgres') + '@' + connection.host + ':' + connection.port;
@@ -197,19 +197,19 @@ module.exports = function(grunt) {
 
           if (exists) {
 
-            grunt.log.writeln('User and database do not yet exist. Creating both with default user postgres');
+            grunt.log.writeln('User and database do not yet exist. Creating both with default user');
             grunt.task.run('pgcreateuser', 'pgcreatedb');
             done();
 
           } else {
 
-            grunt.log.writeln('Cannot connect to PostgreSQL as user ' + connection.user + ' or default user postgres. Now attempting to create user');
-            exec('createdb $USER', function(error, stdout, stderr){
+            grunt.log.writeln('Cannot connect to PostgreSQL as user ' + connection.user + ' or default user. Now attempting to create user');
+            exec('createdb ' + (nconf.get('USER') || '$USER') , function(error, stdout, stderr){
               if (error) {
-                grunt.fail.fatal('Cannot create PostgreSQL user, please check your PostgreSQL installation or create a user manually. ' + error);
+                grunt.fail.fatal('Cannot create PostgreSQL user ' + (nconf.get('USER') ? nconf.get('USER') + ' ' : '') + ', please check your PostgreSQL installation or create a user manually. ' + error);
               }
 
-              grunt.log.writeln('Created default database and user postgres. Now creating ripple-rest user and database');
+              grunt.log.writeln('Created default database and user. Now creating ripple-rest user and database');
               grunt.task.run('pgcreateuser', 'pgcreatedb');
               done();
             });
