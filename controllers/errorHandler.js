@@ -32,6 +32,14 @@ module.exports = function(res, error) {
   }
 
 
+  /* Handle db errors */
+  if (/(relation).*(does not exist)/.test(err_obj.error)){
+    var old_error = err_obj.error;
+    err_obj.error = 'Database Error';
+    err_obj.message = 'This error is likely caused by the setup script failing to execute properly. Please check that PostgreSQL is running on your system and run the setup script again. ' + old_error;
+  }
+
+
   /* Add info to rippled error messages */
 
   if (err_obj.error === 'tecPATH_DRY') {
