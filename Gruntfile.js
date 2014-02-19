@@ -95,6 +95,7 @@ module.exports = function(grunt) {
   grunt.registerTask('dev', ['jshint', 'simplemocha:local', 'nodemon']);
 	grunt.registerTask('test', ['jshint', 'simplemocha:local']);
   grunt.registerTask('dbsetup', ['dbcheckorcreate', 'migrate:up']);
+  grunt.registerTask('heroku', ['dbsetup']);
 
 
   /* Check if user and database already exist, if not create them */ 
