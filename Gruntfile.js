@@ -187,9 +187,9 @@ module.exports = function(grunt) {
         if (err) {
           grunt.fail.fatal(err);
         }
+        grunt.log.ok('PostgreSQL configured');
         done();
-      });
-
+    });
   });
 
   /* Clean database by running migrate:down and then up */
