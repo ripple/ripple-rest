@@ -48,10 +48,6 @@ nconf
     }]
   });
 
-if (!nconf.get('rippled')) {
-  throw new Error('config.json must include "rippled" to connect to the Ripple Network');
-}
-
 
 /* Connect to db */
 var db = sequelizeConnect({
@@ -81,7 +77,7 @@ remoteOpts.storage = require('./lib/rippleLibStorage')({
 var remote = new ripple.Remote(remoteOpts);
 
 var connect_timeout = setTimeout(function(){
-  throw(new Error('Cannot connect to the given rippled. Please ensure that the rippled is configured correctly and that the configuration points to the right port. rippled options: ' + JSON.stringify(nconf.get('rippled'))));
+  throw(new Error('Cannot connect to the given rippled. Please ensure that the rippled is configured correctly and that the configuration points to the right port. rippled servers: ' + JSON.stringify(nconf.get('rippled_servers'))));
 }, 20000);
 
 remote.on('error', function(err) {
