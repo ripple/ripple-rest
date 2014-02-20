@@ -143,47 +143,89 @@ module.exports = function(grunt) {
 
     var done = this.async();
 
-    var db_url = config.get('DATABASE_URL'),
+    createDbAsUser('postgres', function(err){
+      if (err) {
+        grunt.log.writeln('Cannot setup database as user postgres, trying user running process');
+
+        createDbAsUser(config.get('USER') || '$USER', function(err){
+          if (err) {
+            grunt.fail.fatal(err);
+          } else {
+            done();
+          }
+        });
+      }
+    });
+
+    function createDbAsUser (user, callback) {
+      var db_url = config.get('DATABASE_URL'),
       connection = dbCheck.parseUrl(db_url);
 
-    async.series(
-      [
-        function(async_callback){
-          exec('createdb -U postgres ' + connection.database, function(error, stdout, stderr){
-            if (error) {
-              grunt.fail.warn('Cannot create database ' + connection.database + ' as user "postgres". ' + error);
-            } else {
-              grunt.log.writeln('Created database: ' + connection.database);
-            }
-            async_callback();
-          });
-        },
-        function(async_callback){
-          exec('createuser -U postgres ' + connection.user, function(error, stdout, stderr){
-            if (error) {
-              grunt.fail.warn('Cannot create user ' + connection.user + ' as user "postgres". ' + error);
-            } else {
-              grunt.log.writeln('Created user: ' + connection.user);
-            }
-            async_callback();
-          });
-        }, function(async_callback){
-          exec('psql -U postgres -c "ALTER ROLE ' + connection.user + ' WITH PASSWORD \'' + connection.password + '\'"', function(error, stdout, stderr){
-            if (error) {
-              grunt.fail.warn('Cannot set user password. ' + error);
-            } else {
-              grunt.log.writeln('Set user password');
-            }
-            async_callback();
-          });
-        }
-      ], function(err){
-        if (err) {
-          grunt.fail.fatal(err);
-        }
-        grunt.log.ok('PostgreSQL configured');
-        done();
-    });
+      async.series(
+        [
+          function(async_callback){
+            exec('createdb -U ' + user + ' ' + connection.database, function(error, stdout, stderr){
+              if (error) {
+                if (error.message.indexOf('already exists') !== -1) {
+                  async_callback();
+                  return;
+                }
+                async_callback('Cannot create database ' + connection.database + ' as user "' + user + '". ' + error);
+              } else {
+                grunt.log.writeln('Created database: ' + connection.database + ' as user "' + user + '"');
+                async_callback();
+              }
+            });
+          },
+          function(async_callback){
+            exec('createuser -U ' + user + ' ' + connection.user, function(error, stdout, stderr){
+              if (error) {
+                if (error.message.indexOf('already exists') !== -1) {
+                  async_callback();
+                  return;
+                }
+                async_callback('Cannot create user ' + connection.user + ' as user "' + user + '". ' + error);
+              } else {
+                grunt.log.writeln('Created user: ' + connection.user + ' as user "' + user + '"');
+                async_callback();
+              }
+            });
+          }, function(async_callback){
+            exec('psql -U ' + user + ' -c "ALTER ROLE ' + connection.user + ' WITH PASSWORD \'' + connection.password + '\'"', function(error, stdout, stderr){
+              if (error) {
+                if (error.message.indexOf('already exists') !== -1) {
+                  async_callback();
+                  return;
+                }
+                async_callback('Cannot set user password. ' + error);
+              } else {
+                grunt.log.writeln('Set user password');
+                async_callback();
+              }
+            });
+          }, function(async_callback){
+            exec('psql -U ' + user + ' -c "ALTER DATABASE ' + connection.database + ' OWNER TO ' + connection.user + '"', function(error, stdout, stderr){
+              if (error) {
+                if (error.message.indexOf('already exists') !== -1) {
+                  async_callback();
+                  return;
+                }
+                async_callback('Cannot owner of database: ' + connection.database + ' to ' + connection.user + '. ' + error);
+              } else {
+                grunt.log.writeln('Changed owner of database: ' + connection.database + ' to ' + connection.user);
+                async_callback();
+              }
+            });
+          }
+        ], function(err){
+          if (err) {
+            callback(err);
+          } else {
+            grunt.log.ok('PostgreSQL configured');
+            callback();
+          }
+      });
+    }
   });
 
   /* Clean database by running migrate:down and then up */
