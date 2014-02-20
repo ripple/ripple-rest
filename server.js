@@ -155,10 +155,10 @@ if (typeof config.get('ssl') === 'object') {
   };
 
   https.createServer(sslOptions, app).listen(config.get('PORT'), function() {
-    console.log('ripple-rest listening over HTTPS at port:' + config.get('PORT'));
+    console.log('ripple-rest listening over HTTPS at port: ' + config.get('PORT'));
   });
 } else {
   app.listen(config.get('PORT'), function() {
-    console.log('ripple-rest listening over unsecured HTTP at port:' + config.get('PORT'));
+    console.log('ripple-rest listening over unsecured HTTP at port: ' + config.get('PORT'));
   });
 }

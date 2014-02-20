@@ -23,6 +23,7 @@ Even though the test API supports HTTPS connections, __only submit transactions 
 1. Run `git clone https://github.com/ripple/ripple-rest.git` in a terminal and switch into the `ripple-rest` directory
 2. Run `npm install; ./node_modules/.bin/grunt dbsetup` to install the dependencies and setup the database
 3. Run `node server.js` to start the server
+4. Visit `http://localhost:5990/api/v1/status` in your browser to confirm that the server is up and running (you will need to use `https://` if you have SSL configured and the host and port may be different if you have used non-standard configuration options)
 
 #### Updating
 
@@ -30,6 +31,7 @@ Even though the test API supports HTTPS connections, __only submit transactions 
 2. Run `npm install; ./node_modules/.bin/grunt dbsetup` to update the dependencies and database setup
 3. If the old version of the server is still running, kill the process with `CTRL-C` in the same terminal window where it is running or `killall node` to stop all Node.js processes on a Linux or Mac computer
 4. Run `node server.js` to restart the server
+5. Visit `http://localhost:5990/api/v1/status` in your browser to confirm that the server is up and running (you will need to use `https://` if you have SSL configured and the host and port may be different if you have used non-standard configuration options)
 
 #### Customization
 
