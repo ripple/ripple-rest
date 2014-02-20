@@ -54,6 +54,7 @@ Even though the test API supports HTTPS connections, __only submit transactions 
     /* ... */
   }
   ```
+  For more information on the `config.json` file and its versions see [docs/CONFIG.md](docs/CONFIG.md).
 
 + Configure the PostgreSQL connection by setting the `DATABASE_URL` field in any of the aforementioned configuration sources to a string in the following format: `postgres://ripple_rest_user:password@localhost:5432/ripple_rest_db`.
 

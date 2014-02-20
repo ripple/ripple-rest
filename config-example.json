@@ -1,4 +1,5 @@
 {
+  "config_version": "0.0.1",
   "PORT": 5990,
   "NODE_ENV": "development",
   "HOST": "localhost",
