@@ -4,7 +4,7 @@ This document tracks all changes to the `config.json` format. If a new version i
 
 Minor version changes will be denoted by incrementing the last of the three version numbers (`0.0.1` -> `0.0.2`). Breaking changes will increment the second of the three numbers (`0.0.1` -> `0.1.1`). New versions of the API will have incremented the first of the three numbers (`0.0.1` -> `1.0.1`).
 
-#### Version 0.0.1
+### Version 0.0.1
 
 ```js
 {
