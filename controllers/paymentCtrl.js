@@ -52,8 +52,6 @@ module.exports = function (opts) {
         dst_amount_param = req.param('dst_amount'),
         dst_amount;
 
-        console.log(dst_amount_param);
-
       if (!rpparser.isRippleAddress(src_address)) {
         errorHandler(res, new Error('Invalid parameter: address. Must be a valid Ripple address'));
         return;
