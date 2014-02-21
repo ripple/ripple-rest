@@ -6,7 +6,7 @@
   "scripts": {
     "start": "node server.js",
     "test": "./node_modules/.bin/grunt test",
-    "preinstall": "if [ -d .git ]; then eval \"git pull\"; else echo 'Not a git repository, cannot run \"git pull\"'; fi",
+    "preinstall": "if [ -d .git ]; then eval \"git pull\"; else echo 'Directory \"'$PWD'\" is not a git repository, cannot run \"git pull\"'; fi",
     "postinstall": "./node_modules/.bin/grunt dbsetup"
   },
   "repository": {
