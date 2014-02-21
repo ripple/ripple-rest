@@ -353,8 +353,8 @@ __DO NOT SUBMIT YOUR SECRET TO AN UNTRUSTED REST API SERVER__ -- this is the key
 Request JSON:
 ```js
 {
-  secret: "s...",
-  payment: { /* Payment */ }
+  "secret": "s...",
+  "payment": { /* Payment */ }
 }
 ```
 
