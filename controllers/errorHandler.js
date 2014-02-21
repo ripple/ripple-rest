@@ -31,6 +31,11 @@ module.exports = function(res, error) {
     err_obj.message = 'Please ensure the address and secret correspond to a valid account that has a positive XRP balance.';
   }
 
+  if (err_obj.error === 'tooBusy') {
+    err_obj.error = 'Rippled Busy';
+    err_obj.message = 'The server is experiencing heavy load and is unable to process the request right now. Please try again.';
+  }
+
 
   /* Handle db errors */
   if (/(relation).*(does not exist)/.test(err_obj.error)){
