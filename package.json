@@ -6,7 +6,7 @@
   "scripts": {
     "start": "node server.js",
     "test": "./node_modules/.bin/grunt test",
-    "preinstall": "git pull",
+    "preinstall": "if [[ -d .git ]]; then eval \"git pull\"; fi",
     "postinstall": "./node_modules/.bin/grunt dbsetup"
   },
   "repository": {
