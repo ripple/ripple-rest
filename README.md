@@ -21,14 +21,14 @@ Even though the test API supports HTTPS connections, __only submit transactions 
 #### Installing
 
 1. Run `git clone https://github.com/ripple/ripple-rest.git` in a terminal and switch into the `ripple-rest` directory
-2. Run `npm install; ./node_modules/.bin/grunt dbsetup` to install the dependencies and setup the database
+2. Run `npm install` to install the dependencies and setup the database
 3. Run `node server.js` to start the server
 4. Visit `http://localhost:5990/api/v1/status` in your browser to confirm that the server is up and running
 
 #### Updating
 
 1. From the root `ripple-rest` directory run `git pull`
-2. Run `npm install; ./node_modules/.bin/grunt dbsetup` to update the dependencies and database setup
+2. Run `npm install` to update the dependencies and database setup
 3. If the old version of the server is still running, kill the process with `CTRL-C` in the same terminal window where it is running or `killall node` to stop all Node.js processes on a Linux or Mac computer
 4. Run `node server.js` to restart the server
 5. Visit `http://localhost:5990/api/v1/status` in your browser to confirm that the server is up and running
@@ -69,10 +69,7 @@ Even though the test API supports HTTPS connections, __only submit transactions 
       }
     ]
   ```
-+ To install on Heroku, you must add a custom buildpack to enable the use of [`Grunt.js`](http://gruntjs.com/). You will not need to run `npm install; ./node_modules/.bin/grunt dbsetup` on Heroku because these will be run automatically. To setup the buildpack on heroku run:
-
-  `heroku config:add BUILDPACK_URL=https://github.com/mbuchetics/heroku-buildpack-nodejs-grunt.git`
-
+  
 + Enable SSL by including the following in the `config.json` in any of the configuration sources:
 
   ```js
