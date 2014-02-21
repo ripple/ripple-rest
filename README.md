@@ -27,11 +27,10 @@ Even though the test API supports HTTPS connections, __only submit transactions 
 
 #### Updating
 
-1. From the root `ripple-rest` directory run `git pull`
-2. Run `npm install` to update the dependencies and database setup
-3. If the old version of the server is still running, kill the process with `CTRL-C` in the same terminal window where it is running or `killall node` to stop all Node.js processes on a Linux or Mac computer
-4. Run `node server.js` to restart the server
-5. Visit `http://localhost:5990/api/v1/status` in your browser to confirm that the server is up and running
+1. From the root `ripple-rest` directory run `npm install` to update to the newest version, update dependencies, and reconfigure the database
+2. If the old version of the server is still running, kill the process with `CTRL-C` in the same terminal window where it is running or `killall node` to stop all Node.js processes on a Linux or Mac computer
+3. Run `node server.js` to restart the server
+4. Visit `http://localhost:5990/api/v1/status` in your browser to confirm that the server is up and running
 
 #### Customization
 
@@ -69,7 +68,7 @@ Even though the test API supports HTTPS connections, __only submit transactions 
       }
     ]
   ```
-  
+
 + Enable SSL by including the following in the `config.json` in any of the configuration sources:
 
   ```js
