@@ -83,6 +83,10 @@ Even though the test API supports HTTPS connections, __only submit transactions 
   ```
   Note that you will need to connect to the server with `https://` if you have SSL enabled.
 
++ If installing on Heroku you must add the Heroku PostgreSQL add-on first by running the command:
+
+  `heroku addons:add heroku-postgresql:dev`
+
 ## Testing
 
 `npm test`
