@@ -9,7 +9,7 @@ describe('lib/tx', function(){
 
   describe('.getTx()', function(){
 
-    var tx = require('./examples/8DFC1A7FBB60472CBEE9211D4DA44A5A42542729C9472D6B582302C77F31D95B.json');
+    var tx = require('./examples/tx_8DFC1A7FBB60472CBEE9211D4DA44A5A42542729C9472D6B582302C77F31D95B.json');
     var remote = {
         constructor: {
           name: 'Remote'
