@@ -9,7 +9,7 @@ describe('lib/tx', function(){
 
   describe('.getTx()', function(){
 
-    var tx = require('./examples/tx_8DFC1A7FBB60472CBEE9211D4DA44A5A42542729C9472D6B582302C77F31D95B.json');
+    var tx = require('./examples/8DFC1A7FBB60472CBEE9211D4DA44A5A42542729C9472D6B582302C77F31D95B.json');
     var remote = {
         constructor: {
           name: 'Remote'
@@ -19,8 +19,8 @@ describe('lib/tx', function(){
             _lastLedgerClose: Date.now()
           };
         },
-        requestTx: function(tx_hash, callback) {
-          if (tx_hash === '8DFC1A7FBB60472CBEE9211D4DA44A5A42542729C9472D6B582302C77F31D95B') {
+        requestTx: function(hash, callback) {
+          if (hash === '8DFC1A7FBB60472CBEE9211D4DA44A5A42542729C9472D6B582302C77F31D95B') {
             callback(null, tx);
           } else {
             callback(new Error('ripple-lib error'));
@@ -31,7 +31,7 @@ describe('lib/tx', function(){
     it('should respond with an error if given no hash', function(done){
       txLib.getTx({}, function(err, res){
         expect(err).to.exist;
-        expect(err.message).to.equal('Invalid parameter: tx_hash. Must provide a transaction hash to look for');
+        expect(err.message).to.equal('Invalid parameter: hash. Must provide a transaction hash to look for');
         expect(res).not.to.exist;
         done();
       });
@@ -40,10 +40,10 @@ describe('lib/tx', function(){
     it('should respond with an error if given an invalid hash', function(done){
       txLib.getTx({
         remote: remote,
-        tx_hash: 'badhash'
+        hash: 'badhash'
       }, function(err, res){
         expect(err).to.exist;
-        expect(err.message).to.equal('Invalid parameter: tx_hash. Must provide a transaction hash to look for');
+        expect(err.message).to.equal('Invalid parameter: hash. Must provide a transaction hash to look for');
         expect(res).not.to.exist;
         done();
       });
@@ -52,7 +52,7 @@ describe('lib/tx', function(){
     it('should respond with an error if it cannot locate a transaction for a given hash', function(done){
       txLib.getTx({
         remote: remote,
-        tx_hash: '00001A7FBB60472CBEE9211D4DA44A5A42542729C9472D6B582302C77F31D95B'
+        hash: '00001A7FBB60472CBEE9211D4DA44A5A42542729C9472D6B582302C77F31D95B'
       }, function(err, res){
         expect(err).to.exist;
         expect(err.message).to.equal('Cannot locate transaction. This may be the result of an incomplete rippled historical database or that transaction may not exist. Error: ripple-lib error');

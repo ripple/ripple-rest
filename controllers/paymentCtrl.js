@@ -15,22 +15,22 @@ module.exports = function (opts) {
     getPayment: function(req, res) {
 
       var source_address = req.param('address'), 
-       tx_hash = req.param('tx_hash');
+       hash = req.param('hash');
 
       // Check if it mistakenly got here when 
-      if (rpparser.isRippleAddress(tx_hash)) {
+      if (rpparser.isRippleAddress(hash)) {
         errorHandler(res, new Error('Missing parameter: destination_amount. Must provide destination_amount to get payment options'));
         return;
       }
 
-      if (!tx_hash || !rpparser.isTxHash(tx_hash)) {
-        errorHandler(res, new Error('Invalid parameter: tx_hash. Must provide a valid transaction hash to get payment details'));
+      if (!hash || !rpparser.isTxHash(hash)) {
+        errorHandler(res, new Error('Invalid parameter: hash. Must provide a valid transaction hash to get payment details'));
         return;
       }
 
       paymentLib.getPayment({
         remote: remote, 
-        tx_hash: tx_hash
+        hash: hash
       }, function(err, payment){
         if (err) {
           errorHandler(res, err);

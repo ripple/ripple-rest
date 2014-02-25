@@ -132,32 +132,32 @@ When a payment is confirmed in the Ripple ledger, it will have additional fields
 
     /* Generated After Validation */
 
-    "tx_direction": "outgoing",
-    "tx_state": "confirmed",
-    "tx_result": "tesSUCCESS",
-    "tx_ledger": 4696959,
-    "tx_hash": "55BA3440B1AAFFB64E51F497EFDF2022C90EDB171BBD979F04685904E38A89B7",
-    "tx_timestamp": 1391025100000,
-    "tx_timestamp_human": "2014-01-29T19:51:40.000Z",
-    "tx_fee": "0.000012",
-    "tx_source_bals_dec": [{
+    "direction": "outgoing",
+    "state": "confirmed",
+    "result": "tesSUCCESS",
+    "ledger": 4696959,
+    "hash": "55BA3440B1AAFFB64E51F497EFDF2022C90EDB171BBD979F04685904E38A89B7",
+    "timestamp": 1391025100000,
+    "timestamp_human": "2014-01-29T19:51:40.000Z",
+    "fee": "0.000012",
+    "source_bals_dec": [{
         "value": "-0.001012",
         "currency": "XRP",
         "issuer": ""
     }],
-    "tx_destination_bals_inc": [{
+    "destination_bals_inc": [{
         "value": "0.001",
         "currency": "XRP",
         "issuer": ""
     }]
 }
 ```
-+ `tx_result` will be `tesSUCCESS` if the transaction was successfully processed and written into the Ripple ledger. If it was unsuccessful but a transaction fee was claimed the code will start with `tec`. More information about transaction errors can be found on the [Ripple Wiki](https://ripple.com/wiki/Transaction_errors).
-+ `tx_timestamp` is the UNIX timestamp for when the transaction was validated, or the number of milliseconds since January 1st, 1970 (00:00 UTC)
-+ `tx_timestamp_human` is the transaction validation time represented in the format `YYYY-MM-DDTHH:mm:ss.sssZ`. The timezone is always UTC as denoted by the suffix "Z"
-+ `tx_fee` is the network transaction fee charged for processing the transaction. For more information on fees, see the [Ripple Wiki](https://ripple.com/wiki/Transaction_fees), but note that the amount here is [NOT expressed in XRP drops](#no-xrp-drops)
-+ `tx_source_bals_dec` is an array of [`Amount`](#1-amount) objects representing all of the balance changes of the `source_address` caused by the payment. Note that this includes the `tx_fee`
-+ `tx_destination_bals_inc` is an array of [`Amount`](#1-amount) objects representing all of the balance changes of the `destination_address` caused by the payment
++ `result` will be `tesSUCCESS` if the transaction was successfully processed and written into the Ripple ledger. If it was unsuccessful but a transaction fee was claimed the code will start with `tec`. More information about transaction errors can be found on the [Ripple Wiki](https://ripple.com/wiki/Transaction_errors).
++ `timestamp` is the UNIX timestamp for when the transaction was validated, or the number of milliseconds since January 1st, 1970 (00:00 UTC)
++ `timestamp_human` is the transaction validation time represented in the format `YYYY-MM-DDTHH:mm:ss.sssZ`. The timezone is always UTC as denoted by the suffix "Z"
++ `fee` is the network transaction fee charged for processing the transaction. For more information on fees, see the [Ripple Wiki](https://ripple.com/wiki/Transaction_fees), but note that the amount here is [NOT expressed in XRP drops](#no-xrp-drops)
++ `source_bals_dec` is an array of [`Amount`](#1-amount) objects representing all of the balance changes of the `source_address` caused by the payment. Note that this includes the `fee`
++ `destination_bals_inc` is an array of [`Amount`](#1-amount) objects representing all of the balance changes of the `destination_address` caused by the payment
 
 ----------
 
@@ -174,21 +174,21 @@ If there is a new `notification` for an account, it will come in this format:
 {
   "address": "rKXCummUHnenhYudNb9UoJ4mGBR75vFcgz",
   "type": "payment",
-  "tx_direction": "outgoing",
-  "tx_state": "confirmed",
-  "tx_result": "tesSUCCESS",
-  "tx_ledger": 4696959,
-  "tx_hash": "55BA3440B1AAFFB64E51F497EFDF2022C90EDB171BBD979F04685904E38A89B7",
-  "tx_timestamp": 1391025100000,
-  "tx_timestamp_human": "2014-01-29T19:51:40.000Z",
-  "tx_url": "http://ripple-rest.herokuapp.com/api/v1/addresses/rKXCummUHnenhYudNb9UoJ4mGBR75vFcgz/payments/55BA3440B1AAFFB64E51F497EFDF2022C90EDB171BBD979F04685904E38A89B7",
+  "direction": "outgoing",
+  "state": "confirmed",
+  "result": "tesSUCCESS",
+  "ledger": 4696959,
+  "hash": "55BA3440B1AAFFB64E51F497EFDF2022C90EDB171BBD979F04685904E38A89B7",
+  "timestamp": 1391025100000,
+  "timestamp_human": "2014-01-29T19:51:40.000Z",
+  "url": "http://ripple-rest.herokuapp.com/api/v1/addresses/rKXCummUHnenhYudNb9UoJ4mGBR75vFcgz/payments/55BA3440B1AAFFB64E51F497EFDF2022C90EDB171BBD979F04685904E38A89B7",
   "next_notification_url": "http://ripple-rest.herokuapp.com/api/v1/addresses/rKXCummUHnenhYudNb9UoJ4mGBR75vFcgz/next_notification/55BA3440B1AAFFB64E51F497EFDF2022C90EDB171BBD979F04685904E38A89B7"
   "confirmation_token": "55BA3440B1AAFFB64E51F497EFDF2022C90EDB171BBD979F04685904E38A89B7"
 }
 ```
-+ `tx_timestamp` is the UNIX timestamp for when the transaction was validated, or the number of milliseconds since January 1st, 1970 (00:00 UTC)
-+ `tx_timestamp_human` is the transaction validation time represented in the format `YYYY-MM-DDTHH:mm:ss.sssZ`. The timezone is always UTC as denoted by the suffix "Z"
-+ `tx_url` is a URL that can be queried to retrieve the full details of the transaction. If it the transaction is a payment it will be returned in the `Payment` object format, otherwise it will be returned in the standard Ripple transaction format
++ `timestamp` is the UNIX timestamp for when the transaction was validated, or the number of milliseconds since January 1st, 1970 (00:00 UTC)
++ `timestamp_human` is the transaction validation time represented in the format `YYYY-MM-DDTHH:mm:ss.sssZ`. The timezone is always UTC as denoted by the suffix "Z"
++ `url` is a URL that can be queried to retrieve the full details of the transaction. If it the transaction is a payment it will be returned in the `Payment` object format, otherwise it will be returned in the standard Ripple transaction format
 + `next_notification_url` is a URL that can be queried to get the notification following this one for the given address
 + `confirmation_token` is a temporary string that is returned upon transaction submission and can be matched against account notifications to confirm that the transaction was processed and written into the Ripple ledger
 
@@ -198,20 +198,20 @@ If there are no new notifications, the empty `Notification` object will be retur
 {
   "address": "rKXCummUHnenhYudNb9UoJ4mGBR75vFcgz",
   "type": "none",
-  "tx_direction": "",
-  "tx_state": "empty",
-  "tx_result": "",
-  "tx_ledger": "",
-  "tx_hash": "",
-  "tx_timestamp": "",
-  "tx_timestamp_human": "",
-  "tx_url": "",
+  "direction": "",
+  "state": "empty",
+  "result": "",
+  "ledger": "",
+  "hash": "",
+  "timestamp": "",
+  "timestamp_human": "",
+  "url": "",
   "next_notification_url": "http://ripple-rest.herokuapp.com/api/v1/addresses/rKXCummUHnenhYudNb9UoJ4mGBR75vFcgz/next_notification/55BA3440B1AAFFB64E51F497EFDF2022C90EDB171BBD979F04685904E38A89B7",
   "confirmation_token": ""
 }
 ```
 + `type` will be `none` if there are no new notifications
-+ `tx_state` will be `pending` if there are still transactions waiting to clear and `empty` otherwise
++ `state` will be `pending` if there are still transactions waiting to clear and `empty` otherwise
 + `next_notification_url` will be provided whether there are new notifications or not so that that field can always be used to query the API for new notifications.
 
 
@@ -221,13 +221,13 @@ If there are no new notifications, the empty `Notification` object will be retur
 
 1. [Notifications](#1-notifications)
     + [`GET /api/v1/addresses/:address/next_notification`](#get-apiv1addressesaddressnext_notification)
-    + [`GET /api/v1/addresses/:address/next_notification/:prev_tx_hash`](#get-apiv1addressesaddressnext_notificationprev_tx_hash)
+    + [`GET /api/v1/addresses/:address/next_notification/:prev_hash`](#get-apiv1addressesaddressnext_notificationprev_hash)
 2. [Payments](#2-payments)
     + [`GET /api/v1/addresses/:address/payments/:destination_address/:destination_amount`](docs/REF.md#get-apiv1addressesaddresspaymentsdestination_addressdestination_amount)
     + [`POST /api/v1/addresses/:address/payments`](#post-apiv1addressesaddresspayments)
-    + [`GET /api/v1/addresses/:address/payments/:tx_hash`](#get-apiv1addressesaddresspaymentstx_hash)
+    + [`GET /api/v1/addresses/:address/payments/:hash`](#get-apiv1addressesaddresspaymentshash)
 3. [Standard Ripple Transactions](#3-standard-ripple-transactions)
-    + [`GET /api/v1/addresses/:address/txs/:tx_hash`](#get-apiv1addressesaddresstxstx_hash)
+    + [`GET /api/v1/addresses/:address/txs/:hash`](#get-apiv1addressesaddresstxshash)
 4. [Server Info](#4-server-info)
     + [`GET /api/v1/status`](#get-apiv1status)
 
@@ -259,7 +259,7 @@ Or if there are no new notifications :
 {
     "success": true,
     "notification": { 
-      /* Notification with "type": "none" and "tx_state" either "empty" or "pending" */
+      /* Notification with "type": "none" and "state" either "empty" or "pending" */
     }
 }
 ```
@@ -269,9 +269,9 @@ Or if there are no new notifications :
 __NOTE:__ This command relies on the connected `rippled`'s historical database so it may not work properly on a newly started `rippled` server.
 __________
 
-#### GET /api/v1/addresses/:address/next_notification/:prev_tx_hash
+#### GET /api/v1/addresses/:address/next_notification/:prev_hash
 
-Retrieve the next notification after the given `:prev_tx_hash` for a particular account from the connected rippled.
+Retrieve the next notification after the given `:prev_hash` for a particular account from the connected rippled.
 
 This uses the [`Notification` Object format](#3-notification).
 
@@ -289,7 +289,7 @@ Or if there were any failed outgoing transactions not yet reported:
 {
   "success": true,
   "notification": {
-    /* Notification with "tx_state" as "failed" */
+    /* Notification with "state" as "failed" */
   }
 }
 ```
@@ -299,7 +299,7 @@ Or if there are no new notifications:
 {
     "success": true,
     "notification": { 
-      /* Notification with "type": "none" and "tx_state" either "empty" or "pending" */
+      /* Notification with "type": "none" and "state" either "empty" or "pending" */
     }
 }
 ```
@@ -381,7 +381,7 @@ Payments cannot be cancelled once they are submitted.
 
 __________
 
-#### GET /api/v1/addresses/:address/payments/:tx_hash
+#### GET /api/v1/addresses/:address/payments/:hash
 
 Get a particular payment for a particular account.
 
@@ -414,7 +414,7 @@ __________
 
 __________
 
-#### GET /api/v1/addresses/:address/txs/:tx_hash
+#### GET /api/v1/addresses/:address/txs/:hash
 
 Gets a particular transaction in the standard Ripple transaction JSON format.
 

@@ -56,7 +56,7 @@ Because this design is more robust than the previous implementation, `ripple-res
   ```js
   {
     "payment_id": "12345",
-    "tx_json": { /* ... */},
+    "json": { /* ... */},
     "transaction_hashes": ["...", "...", ...],
     "submission_attempts": 1,
     "state": "pending",
@@ -80,7 +80,7 @@ Because this design is more robust than the previous implementation, `ripple-res
 
 8. `ripple-lib` will call the `saveTransaction` function every time a new transaction is queued, when a transaction is resubmitted to `rippled` (with a different fee, sequence number, or hash), and when the state of a transaction is updated. When `ripple-lib` updates the database with a final `state`, `engine_result`, and `engine_result_message`, it will save the entry without the `transaction_json` because those transactions have been written into the Ripple Ledger
 
-9. When a user queries the `ripple-rest` `next_notification` endpoint with a `prev_tx_hash`, `ripple-rest` will first check the database for transactions submitted by that user that have their `state` set to `failed_off_network` and `reported` set to `false`. If there are unreported off-network failures, `ripple-rest` will respond with the first one of those and update its `reported` column to `true`. If there are no unreported off-network failures, `ripple-rest` will use the `account_tx` command to find the validated transaction that followed the one matching the user-supplied `prev_tx_hash`. To help the user match validated transactions to the transactions they submitted previously, `ripple-rest` will match validated outgoing transactions with entries in the database and will attach the original `payment_id` to the `Notification` it returns
+9. When a user queries the `ripple-rest` `next_notification` endpoint with a `prev_hash`, `ripple-rest` will first check the database for transactions submitted by that user that have their `state` set to `failed_off_network` and `reported` set to `false`. If there are unreported off-network failures, `ripple-rest` will respond with the first one of those and update its `reported` column to `true`. If there are no unreported off-network failures, `ripple-rest` will use the `account_tx` command to find the validated transaction that followed the one matching the user-supplied `prev_hash`. To help the user match validated transactions to the transactions they submitted previously, `ripple-rest` will match validated outgoing transactions with entries in the database and will attach the original `payment_id` to the `Notification` it returns
 
 10. Whenever the user quries the `ripple-rest` `next_notification` endpoint, the entry in the database corresponding to the `Notification` it returns will have its `reported` value set to true. Before `ripple-rest` returns that `Notification` any entries in the database aside from the one being queried that were previously marked as reported will be deleted entirely from the database. This means that the `payment_id` will only be persisted until `next_notification` is called with the hash following the one corresponding to this `payment_id`.
 

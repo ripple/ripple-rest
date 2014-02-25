@@ -15,23 +15,23 @@ module.exports = function(opts) {
     getNextNotification: function(req, res) {
 
       var address = req.param('address'),
-        prev_tx_hash = req.param('prev_tx_hash');
+        prev_hash = req.param('prev_hash');
 
       notificationLib.getNextNotification({
         remote: remote,
         OutgoingTx: OutgoingTx,
         address: address, 
-        prev_tx_hash: prev_tx_hash
+        prev_hash: prev_hash
       }, function(err, notification){
         if (err) {
           errorHandler(res, err);
           return;
         }
 
-        if (notification.tx_url) {
-          notification.tx_url = req.protocol + '://' + req.host + (port && environment === 'development' ? (':' + port) : '') + '/api/v1' + notification.tx_url;
+        if (notification.url) {
+          notification.url = req.protocol + '://' + req.host + (port && environment === 'development' ? (':' + port) : '') + '/api/v1' + notification.url;
         } else {
-          notification.tx_url = '';
+          notification.url = '';
         }
 
         if (notification.next_notification_url) {

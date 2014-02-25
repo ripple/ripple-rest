@@ -13,17 +13,17 @@ module.exports = function (opts) {
     getTx: function(req, res) {
 
       var address = req.param('address'),
-        tx_hash = req.param('tx_hash');
+        hash = req.param('hash');
 
-      if (!tx_hash || !rpparser.isTxHash(tx_hash)) {
-        errorHandler(res, new Error('Invalid parameter: tx_hash. Must provide a valid transaction hash to get transaction details'));
+      if (!hash || !rpparser.isTxHash(hash)) {
+        errorHandler(res, new Error('Invalid parameter: hash. Must provide a valid transaction hash to get transaction details'));
         return;
       }
 
       txLib.getTx({
         remote: remote, 
         address: address,
-        hash: tx_hash
+        hash: hash
       }, function(err, tx){
         if (err) {
           errorHandler(res, err);
@@ -42,14 +42,14 @@ module.exports = function (opts) {
 
     //   var source_address = req.param('address'),
     //     secret = req.body.secret,
-    //     tx_json = req.body.tx || req.body.tx_json || req.body;
+    //     json = req.body.tx || req.body.json || req.body;
 
     //   txLib.submitTx({
     //     remote: remote,
     //     OutgoingTx: OutgoingTx,
     //     source_address: source_address,
     //     secret: secret,
-    //     tx_json: tx_json
+    //     json: json
     //   }, function(err, initial_hash){
     //     if (err) {
     //       errorHandler(res, err);

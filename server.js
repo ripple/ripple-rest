@@ -121,18 +121,18 @@ app.get('/', StatusCtrl.getStatus);
 app.get('/api/v1/status', StatusCtrl.getStatus);
 
 /* Ripple Txs */
-app.get('/api/v1/addresses/:address/txs/:tx_hash', TxCtrl.getTx);
+app.get('/api/v1/addresses/:address/txs/:hash', TxCtrl.getTx);
 
 /* Notifications */
 app.get('/api/v1/addresses/:address/next_notification', NotificationCtrl.getNextNotification);
-app.get('/api/v1/addresses/:address/next_notification/:prev_tx_hash', NotificationCtrl.getNextNotification);
+app.get('/api/v1/addresses/:address/next_notification/:prev_hash', NotificationCtrl.getNextNotification);
 
 /* Pathfinding */
 app.get('/api/v1/addresses/:address/payments/:destination_address/:destination_amount', PaymentCtrl.getPathFind);
 
 /* Payments */
 app.get('/api/v1/addresses/:address/payments/', PaymentCtrl.getPayment);
-app.get('/api/v1/addresses/:address/payments/:tx_hash', PaymentCtrl.getPayment);
+app.get('/api/v1/addresses/:address/payments/:hash', PaymentCtrl.getPayment);
 app.post('/api/v1/addresses/:address/payments', PaymentCtrl.submitPayment);
 
 
