@@ -48,15 +48,15 @@ module.exports = function(res, error) {
   /* Add info to rippled error messages */
 
   if (err_obj.error === 'tecPATH_DRY') {
-    err_obj.message = err_obj.message + ' Please ensure that the src_address has sufficient funds (in the src_amount currency, if specified) to execute this transaction.';
+    err_obj.message = err_obj.message + ' Please ensure that the source_address has sufficient funds (in the source_amount currency, if specified) to execute this transaction.';
   }
 
   if (err_obj.error === 'telINSUF_FEE_P') {
-    err_obj.message = err_obj.message + ' Please ensure that the src_address has sufficient XRP to pay the fee. If it does, please report this error, this service should handle setting the proper fee.';
+    err_obj.message = err_obj.message + ' Please ensure that the source_address has sufficient XRP to pay the fee. If it does, please report this error, this service should handle setting the proper fee.';
   }
 
   if (err_obj.error === 'tecPATH_PARTIAL') {
-    err_obj.message = err_obj.message + ' Please try getting payment options first to ensure that there is a way to execute this payment. If you submitted a payment from the list of options, the path may have changed already, please try getting payment options again and submitting one of those or setting the "src_slippage" higher.';
+    err_obj.message = err_obj.message + ' Please try getting payment options first to ensure that there is a way to execute this payment. If you submitted a payment from the list of options, the path may have changed already, please try getting payment options again and submitting one of those or setting the "source_slippage" higher.';
   }
 
   if (err_obj.error === err_obj.message) {

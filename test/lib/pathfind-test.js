@@ -49,52 +49,52 @@ describe('lib/pathfind', function(){
       };
 
       expect(pathfindLib.pathsetToPayments(pathset)).to.deep.equal([{
-        src_address: 'rLpq5RcRzA8FU1yUqEPW4xfsdwon7casuM',
-        src_tag: '',
-        src_amount: {
+        source_address: 'rLpq5RcRzA8FU1yUqEPW4xfsdwon7casuM',
+        source_tag: '',
+        source_amount: {
           value: '0.040101',
           currency: 'XRP',
           issuer: ''
         },
-        src_slippage: '0',
-        dst_address: 'rHKueQebtVU9cEamhBbMV8AEViqKjXcBcB',
-        dst_tag: '',
-        dst_amount: {
+        source_slippage: '0',
+        destination_address: 'rHKueQebtVU9cEamhBbMV8AEViqKjXcBcB',
+        destination_tag: '',
+        destination_amount: {
           value: '0.000001',
           currency: 'BTC',
           issuer: 'rvYAfWj5gh67oV6fW32ZzP3Aw4Eubs59B'
         },
-        dst_slippage: '0',
+        destination_slippage: '0',
         invoice_id: '',
         paths: "[[{\"currency\":\"BTC\",\"issuer\":\"rvYAfWj5gh67oV6fW32ZzP3Aw4Eubs59B\",\"type\":48,\"type_hex\":\"0000000000000030\"},{\"account\":\"rvYAfWj5gh67oV6fW32ZzP3Aw4Eubs59B\",\"type\":1,\"type_hex\":\"0000000000000001\"}]]",
-        flag_partial_payment: false,
-        flag_no_direct_ripple: false
+        partial_payment: false,
+        no_direct_ripple: false
       }, {
-        src_address: 'rLpq5RcRzA8FU1yUqEPW4xfsdwon7casuM',
-        src_tag: '',
-        src_amount: {
+        source_address: 'rLpq5RcRzA8FU1yUqEPW4xfsdwon7casuM',
+        source_tag: '',
+        source_amount: {
           value: '0.000001002',
           currency: 'BTC',
           issuer: ''
         },
-        src_slippage: '0',
-        dst_address: 'rHKueQebtVU9cEamhBbMV8AEViqKjXcBcB',
-        dst_tag: '',
-        dst_amount: {
+        source_slippage: '0',
+        destination_address: 'rHKueQebtVU9cEamhBbMV8AEViqKjXcBcB',
+        destination_tag: '',
+        destination_amount: {
           value: '0.000001',
           currency: 'BTC',
           issuer: 'rvYAfWj5gh67oV6fW32ZzP3Aw4Eubs59B'
         },
-        dst_slippage: '0',
+        destination_slippage: '0',
         invoice_id: '',
         paths: "[[{\"account\":\"rvYAfWj5gh67oV6fW32ZzP3Aw4Eubs59B\",\"type\":1,\"type_hex\":\"0000000000000001\"}]]",
-        flag_partial_payment: false,
-        flag_no_direct_ripple: false
+        partial_payment: false,
+        no_direct_ripple: false
       }]);
 
     });
 
-    it('should convert a path set with dst_amount in XRP to an array of payments', function(){
+    it('should convert a path set with destination_amount in XRP to an array of payments', function(){
 
       var pathset = {
         "alternatives": [{
@@ -173,89 +173,89 @@ describe('lib/pathfind', function(){
       };
 
       expect(pathfindLib.pathsetToPayments(pathset)).to.deep.equal([{
-        src_address: 'rLpq5RcRzA8FU1yUqEPW4xfsdwon7casuM',
-        src_tag: '',
-        src_amount: {
+        source_address: 'rLpq5RcRzA8FU1yUqEPW4xfsdwon7casuM',
+        source_tag: '',
+        source_amount: {
           value: '0.000000002485770142298577',
           currency: 'BTC',
           issuer: ''
         },
-        src_slippage: '0',
-        dst_address: 'rHKueQebtVU9cEamhBbMV8AEViqKjXcBcB',
-        dst_tag: '',
-        dst_amount: {
+        source_slippage: '0',
+        destination_address: 'rHKueQebtVU9cEamhBbMV8AEViqKjXcBcB',
+        destination_tag: '',
+        destination_amount: {
           value: '0.0001',
           currency: 'XRP',
           issuer: ''
         },
-        dst_slippage: '0',
+        destination_slippage: '0',
         invoice_id: '',
         paths: "[[{\"account\":\"rvYAfWj5gh67oV6fW32ZzP3Aw4Eubs59B\",\"type\":1,\"type_hex\":\"0000000000000001\"},{\"currency\":\"XRP\",\"type\":16,\"type_hex\":\"0000000000000010\"}]]",
-        flag_partial_payment: false,
-        flag_no_direct_ripple: false
+        partial_payment: false,
+        no_direct_ripple: false
       }, {
-        src_address: 'rLpq5RcRzA8FU1yUqEPW4xfsdwon7casuM',
-        src_tag: '',
-        src_amount: {
+        source_address: 'rLpq5RcRzA8FU1yUqEPW4xfsdwon7casuM',
+        source_tag: '',
+        source_amount: {
           value: '0.00001215',
           currency: 'CNY',
           issuer: ''
         },
-        src_slippage: '0',
-        dst_address: 'rHKueQebtVU9cEamhBbMV8AEViqKjXcBcB',
-        dst_tag: '',
-        dst_amount: {
+        source_slippage: '0',
+        destination_address: 'rHKueQebtVU9cEamhBbMV8AEViqKjXcBcB',
+        destination_tag: '',
+        destination_amount: {
           value: '0.0001',
           currency: 'XRP',
           issuer: ''
         },
-        dst_slippage: '0',
+        destination_slippage: '0',
         invoice_id: '',
         paths: "[[{\"account\":\"rnuF96W4SZoCJmbHYBFoJZpR8eCaxNvekK\",\"type\":1,\"type_hex\":\"0000000000000001\"},{\"currency\":\"XRP\",\"type\":16,\"type_hex\":\"0000000000000010\"}]]",
-        flag_partial_payment: false,
-        flag_no_direct_ripple: false
+        partial_payment: false,
+        no_direct_ripple: false
       }, {
-        src_address: 'rLpq5RcRzA8FU1yUqEPW4xfsdwon7casuM',
-        src_tag: '',
-        src_amount: {
+        source_address: 'rLpq5RcRzA8FU1yUqEPW4xfsdwon7casuM',
+        source_tag: '',
+        source_amount: {
           value: '0.000001603183968160318',
           currency: 'EUR',
           issuer: ''
         },
-        src_slippage: '0',
-        dst_address: 'rHKueQebtVU9cEamhBbMV8AEViqKjXcBcB',
-        dst_tag: '',
-        dst_amount: {
+        source_slippage: '0',
+        destination_address: 'rHKueQebtVU9cEamhBbMV8AEViqKjXcBcB',
+        destination_tag: '',
+        destination_amount: {
           value: '0.0001',
           currency: 'XRP',
           issuer: ''
         },
-        dst_slippage: '0',
+        destination_slippage: '0',
         invoice_id: '',
         paths: "[[{\"account\":\"rvYAfWj5gh67oV6fW32ZzP3Aw4Eubs59B\",\"type\":1,\"type_hex\":\"0000000000000001\"},{\"currency\":\"XRP\",\"type\":16,\"type_hex\":\"0000000000000010\"}]]",
-        flag_partial_payment: false,
-        flag_no_direct_ripple: false
+        partial_payment: false,
+        no_direct_ripple: false
       }, {
-        src_address: 'rLpq5RcRzA8FU1yUqEPW4xfsdwon7casuM',
-        src_tag: '',
-        src_amount: {
+        source_address: 'rLpq5RcRzA8FU1yUqEPW4xfsdwon7casuM',
+        source_tag: '',
+        source_amount: {
           value: '0.000002049979500204998',
           currency: 'USD',
           issuer: ''
         },
-        src_slippage: '0',
-        dst_address: 'rHKueQebtVU9cEamhBbMV8AEViqKjXcBcB',
-        dst_tag: '',
-        dst_amount: {
+        source_slippage: '0',
+        destination_address: 'rHKueQebtVU9cEamhBbMV8AEViqKjXcBcB',
+        destination_tag: '',
+        destination_amount: {
           value: '0.0001',
           currency: 'XRP',
           issuer: ''
         },
-        dst_slippage: '0',
+        destination_slippage: '0',
         invoice_id: '',
         paths: "[[{\"account\":\"rMwjYedjc7qqtKYVLiAccJSmCwih4LnE2q\",\"type\":1,\"type_hex\":\"0000000000000001\"},{\"currency\":\"XRP\",\"type\":16,\"type_hex\":\"0000000000000010\"}]]",
-        flag_partial_payment: false,
-        flag_no_direct_ripple: false
+        partial_payment: false,
+        no_direct_ripple: false
       }]);
     });
 
@@ -332,68 +332,68 @@ describe('lib/pathfind', function(){
       };
 
       expect(pathfindLib.pathsetToPayments(pathset)).to.deep.equal([{
-        src_address: 'rLpq5RcRzA8FU1yUqEPW4xfsdwon7casuM',
-        src_tag: '',
-        src_amount: {
+        source_address: 'rLpq5RcRzA8FU1yUqEPW4xfsdwon7casuM',
+        source_tag: '',
+        source_amount: {
           value: '0.000052',
           currency: 'XRP',
           issuer: ''
         },
-        src_slippage: '0',
-        dst_address: 'rHKueQebtVU9cEamhBbMV8AEViqKjXcBcB',
-        dst_tag: '',
-        dst_amount: {
+        source_slippage: '0',
+        destination_address: 'rHKueQebtVU9cEamhBbMV8AEViqKjXcBcB',
+        destination_tag: '',
+        destination_amount: {
           value: '0.000001',
           currency: 'USD',
           issuer: ''
         },
-        dst_slippage: '0',
+        destination_slippage: '0',
         invoice_id: '',
         paths: "[[{\"currency\":\"USD\",\"issuer\":\"rvYAfWj5gh67oV6fW32ZzP3Aw4Eubs59B\",\"type\":48,\"type_hex\":\"0000000000000030\"},{\"account\":\"rvYAfWj5gh67oV6fW32ZzP3Aw4Eubs59B\",\"type\":1,\"type_hex\":\"0000000000000001\"}]]",
-        flag_partial_payment: false,
-        flag_no_direct_ripple: false
+        partial_payment: false,
+        no_direct_ripple: false
       }, {
-        src_address: 'rLpq5RcRzA8FU1yUqEPW4xfsdwon7casuM',
-        src_tag: '',
-        src_amount: {
+        source_address: 'rLpq5RcRzA8FU1yUqEPW4xfsdwon7casuM',
+        source_tag: '',
+        source_amount: {
           value: '0.000000001287184615384615',
           currency: 'BTC',
           issuer: ''
         },
-        src_slippage: '0',
-        dst_address: 'rHKueQebtVU9cEamhBbMV8AEViqKjXcBcB',
-        dst_tag: '',
-        dst_amount: {
+        source_slippage: '0',
+        destination_address: 'rHKueQebtVU9cEamhBbMV8AEViqKjXcBcB',
+        destination_tag: '',
+        destination_amount: {
           value: '0.000001',
           currency: 'USD',
           issuer: ''
         },
-        dst_slippage: '0',
+        destination_slippage: '0',
         invoice_id: '',
         paths: "[[{\"account\":\"rvYAfWj5gh67oV6fW32ZzP3Aw4Eubs59B\",\"type\":1,\"type_hex\":\"0000000000000001\"},{\"currency\":\"USD\",\"issuer\":\"rvYAfWj5gh67oV6fW32ZzP3Aw4Eubs59B\",\"type\":48,\"type_hex\":\"0000000000000030\"},{\"account\":\"rvYAfWj5gh67oV6fW32ZzP3Aw4Eubs59B\",\"type\":1,\"type_hex\":\"0000000000000001\"}]]",
-        flag_partial_payment: false,
-        flag_no_direct_ripple: false
+        partial_payment: false,
+        no_direct_ripple: false
       }, {
-        src_address: 'rLpq5RcRzA8FU1yUqEPW4xfsdwon7casuM',
-        src_tag: '',
-        src_amount: {
+        source_address: 'rLpq5RcRzA8FU1yUqEPW4xfsdwon7casuM',
+        source_tag: '',
+        source_amount: {
           value: '0.00000625248',
           currency: 'CNY',
           issuer: ''
         },
-        src_slippage: '0',
-        dst_address: 'rHKueQebtVU9cEamhBbMV8AEViqKjXcBcB',
-        dst_tag: '',
-        dst_amount: {
+        source_slippage: '0',
+        destination_address: 'rHKueQebtVU9cEamhBbMV8AEViqKjXcBcB',
+        destination_tag: '',
+        destination_amount: {
           value: '0.000001',
           currency: 'USD',
           issuer: ''
         },
-        dst_slippage: '0',
+        destination_slippage: '0',
         invoice_id: '',
         paths: "[[{\"account\":\"rnuF96W4SZoCJmbHYBFoJZpR8eCaxNvekK\",\"type\":1,\"type_hex\":\"0000000000000001\"},{\"currency\":\"USD\",\"issuer\":\"rvYAfWj5gh67oV6fW32ZzP3Aw4Eubs59B\",\"type\":48,\"type_hex\":\"0000000000000030\"},{\"account\":\"rvYAfWj5gh67oV6fW32ZzP3Aw4Eubs59B\",\"type\":1,\"type_hex\":\"0000000000000001\"}]]",
-        flag_partial_payment: false,
-        flag_no_direct_ripple: false
+        partial_payment: false,
+        no_direct_ripple: false
       }]);
 
     });
@@ -423,91 +423,93 @@ describe('lib/pathfind', function(){
   describe('.validateParams()', function(){
 
     var validParams = {
-      src_address: 'rLpq5RcRzA8FU1yUqEPW4xfsdwon7casuM',
-      dst_address: 'rHKueQebtVU9cEamhBbMV8AEViqKjXcBcB',
-      dst_amount: {
+      source_address: 'rLpq5RcRzA8FU1yUqEPW4xfsdwon7casuM',
+      destination_address: 'rHKueQebtVU9cEamhBbMV8AEViqKjXcBcB',
+      destination_amount: {
         value: '1',
         currency: 'USD',
         issuer: 'rvYAfWj5gh67oV6fW32ZzP3Aw4Eubs59B'
       }
     };
 
-    it('should throw an error if src_address is invalid', function(){
+    it('respond with an error if source_address is invalid', function(){
+
+      var params1 = 
 
       expect(function(){
         var params = clone(validParams);
-        delete params.src_address;
+        delete params.source_address;
         return pathfindLib.validateParams(params);
-      }).to.throw('Invalid parameter: src_address. Must be a valid Ripple address');
+      }).to.throw('Invalid parameter: source_address. Must be a valid Ripple address');
 
       expect(function(){
         var params = clone(validParams);
-        params.src_address = '';
+        params.source_address = '';
         return pathfindLib.validateParams(params);
-      }).to.throw('Invalid parameter: src_address. Must be a valid Ripple address');
+      }).to.throw('Invalid parameter: source_address. Must be a valid Ripple address');
 
       expect(function(){
         var params = clone(validParams);
-        params.src_address = 'abc';
+        params.source_address = 'abc';
         return pathfindLib.validateParams(params);
-      }).to.throw('Invalid parameter: src_address. Must be a valid Ripple address');
+      }).to.throw('Invalid parameter: source_address. Must be a valid Ripple address');
 
       expect(function(){
         var params = clone(validParams);
-        params.src_address = '%%%';
+        params.source_address = '%%%';
         return pathfindLib.validateParams(params);
-      }).to.throw('Invalid parameter: src_address. Must be a valid Ripple address');
+      }).to.throw('Invalid parameter: source_address. Must be a valid Ripple address');
 
     });
 
-    it('should throw an error if dst_address is invalid', function(){
+    it('respond with an error if destination_address is invalid', function(){
 
       expect(function(){
         var params = clone(validParams);
-        delete params.dst_address;
+        delete params.destination_address;
         return pathfindLib.validateParams(params);
-      }).to.throw('Invalid parameter: dst_address. Must be a valid Ripple address');
+      }).to.throw('Invalid parameter: destination_address. Must be a valid Ripple address');
 
       expect(function(){
         var params = clone(validParams);
-        params.dst_address = '';
+        params.destination_address = '';
         return pathfindLib.validateParams(params);
-      }).to.throw('Invalid parameter: dst_address. Must be a valid Ripple address');
+      }).to.throw('Invalid parameter: destination_address. Must be a valid Ripple address');
 
       expect(function(){
         var params = clone(validParams);
-        params.dst_address = 'abc';
+        params.destination_address = 'abc';
         return pathfindLib.validateParams(params);
-      }).to.throw('Invalid parameter: dst_address. Must be a valid Ripple address');
+      }).to.throw('Invalid parameter: destination_address. Must be a valid Ripple address');
 
       expect(function(){
         var params = clone(validParams);
-        params.dst_address = '%%%';
+        params.destination_address = '%%%';
         return pathfindLib.validateParams(params);
-      }).to.throw('Invalid parameter: dst_address. Must be a valid Ripple address');
+      }).to.throw('Invalid parameter: destination_address. Must be a valid Ripple address');
 
     });
 
-    it('should throw an error if dst_amount is invalid', function(){
+    it('respond with an error if destination_amount is invalid', function(){
 
       expect(function(){
         var params = clone(validParams);
-        delete params.dst_amount;
+        delete params.destination_amount;
         console.log(params, pathfindLib.validateParams(params));
         return pathfindLib.validateParams(params);
-      }).to.throw('Invalid parameter: dst_amount. Must be an object of the form { value: \'1\', currency: \'XRP\', issuer: \' }');
+      }).to.throw('Invalid parameter: destination_amount. Must be an object of the form { value: \'1\', currency: \'XRP\', issuer: \' }');
 
       expect(function(){
         var params = clone(validParams);
-        params.dst_amount = '';
+        params.destination_amount = '';
         return pathfindLib.validateParams(params);
-      }).to.throw('Invalid parameter: dst_amount. Must be an object of the form { value: \'1\', currency: \'XRP\', issuer: \' }');
+      }).to.throw('Invalid parameter: destination_amount. Must be an object of the form { value: \'1\', currency: \'XRP\', issuer: \' }');
 
       expect(function(){
         var params = clone(validParams);
-        params.dst_amount = '1/USD';
+        params.destination_amount = '1/USD';
         return pathfindLib.validateParams(params);
-      }).to.throw('Invalid parameter: dst_amount. Must be an object of the form { value: \'1\', currency: \'XRP\', issuer: \' }');
+      }).to.throw('Invalid parameter: destination_amount. Must be an object of the form { value: \'1\', currency: \'XRP\', issuer: \' }');
 
     });
 
@@ -528,18 +530,18 @@ describe('lib/pathfind', function(){
 
       expect((function(){
         return pathfindLib.parseParams({
-          src_address: 'rLpq5RcRzA8FU1yUqEPW4xfsdwon7casuM',
-          dst_address: 'rHKueQebtVU9cEamhBbMV8AEViqKjXcBcB',
-          dst_amount: {
+          source_address: 'rLpq5RcRzA8FU1yUqEPW4xfsdwon7casuM',
+          destination_address: 'rHKueQebtVU9cEamhBbMV8AEViqKjXcBcB',
+          destination_amount: {
             value: '1',
             currency: 'USD',
             issuer: 'rvYAfWj5gh67oV6fW32ZzP3Aw4Eubs59B'
           }
         });
       })()).to.deep.equal({
-        src_account: 'rLpq5RcRzA8FU1yUqEPW4xfsdwon7casuM',
-        dst_account: 'rHKueQebtVU9cEamhBbMV8AEViqKjXcBcB',
-        dst_amount: {
+        source_account: 'rLpq5RcRzA8FU1yUqEPW4xfsdwon7casuM',
+        destination_account: 'rHKueQebtVU9cEamhBbMV8AEViqKjXcBcB',
+        destination_amount: {
             value: '1',
             currency: 'USD',
             issuer: 'rvYAfWj5gh67oV6fW32ZzP3Aw4Eubs59B'
@@ -548,22 +550,22 @@ describe('lib/pathfind', function(){
 
     });
 
-    it('should correctly parse params where the dst_amount issuer is left blank', function(){
+    it('should correctly parse params where the destination_amount issuer is left blank', function(){
 
       expect((function(){
         return pathfindLib.parseParams({
-          src_address: 'rLpq5RcRzA8FU1yUqEPW4xfsdwon7casuM',
-          dst_address: 'rHKueQebtVU9cEamhBbMV8AEViqKjXcBcB',
-          dst_amount: {
+          source_address: 'rLpq5RcRzA8FU1yUqEPW4xfsdwon7casuM',
+          destination_address: 'rHKueQebtVU9cEamhBbMV8AEViqKjXcBcB',
+          destination_amount: {
             value: '1',
             currency: 'USD',
             issuer: ''
           }
         });
       })()).to.deep.equal({
-        src_account: 'rLpq5RcRzA8FU1yUqEPW4xfsdwon7casuM',
-        dst_account: 'rHKueQebtVU9cEamhBbMV8AEViqKjXcBcB',
-        dst_amount: {
+        source_account: 'rLpq5RcRzA8FU1yUqEPW4xfsdwon7casuM',
+        destination_account: 'rHKueQebtVU9cEamhBbMV8AEViqKjXcBcB',
+        destination_amount: {
             value: '1',
             currency: 'USD',
             issuer: 'rHKueQebtVU9cEamhBbMV8AEViqKjXcBcB'
@@ -572,22 +574,22 @@ describe('lib/pathfind', function(){
 
     });
 
-    it('should correctly parse params where the dst_amount is in XRP', function(){
+    it('should correctly parse params where the destination_amount is in XRP', function(){
 
       expect((function(){
         return pathfindLib.parseParams({
-          src_address: 'rLpq5RcRzA8FU1yUqEPW4xfsdwon7casuM',
-          dst_address: 'rHKueQebtVU9cEamhBbMV8AEViqKjXcBcB',
-          dst_amount: {
+          source_address: 'rLpq5RcRzA8FU1yUqEPW4xfsdwon7casuM',
+          destination_address: 'rHKueQebtVU9cEamhBbMV8AEViqKjXcBcB',
+          destination_amount: {
             value: '1',
             currency: 'XRP',
             issuer: ''
           }
         });
       })()).to.deep.equal({
-        src_account: 'rLpq5RcRzA8FU1yUqEPW4xfsdwon7casuM',
-        dst_account: 'rHKueQebtVU9cEamhBbMV8AEViqKjXcBcB',
-        dst_amount: '1000000'
+        source_account: 'rLpq5RcRzA8FU1yUqEPW4xfsdwon7casuM',
+        destination_account: 'rHKueQebtVU9cEamhBbMV8AEViqKjXcBcB',
+        destination_amount: '1000000'
       });
 
     });

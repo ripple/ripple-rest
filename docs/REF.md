@@ -76,16 +76,16 @@ This `Payment` format is intended to be straightforward to create and parse, fro
 The following fields are the minimum required to submit a `Payment`:
 ```js
 {
-  "src_address": "rKXCummUHnenhYudNb9UoJ4mGBR75vFcgz",
-  "dst_address": "rNw4ozCG514KEjPs5cDrqEcdsi31Jtfm5r",
-  "dst_amount": {
+  "source_address": "rKXCummUHnenhYudNb9UoJ4mGBR75vFcgz",
+  "destination_address": "rNw4ozCG514KEjPs5cDrqEcdsi31Jtfm5r",
+  "destination_amount": {
     "value": "0.001",
     "currency": "XRP",
     "issuer": ""
   }
 }
 ```
-+ `dst_amount` is an [`Amount` object](#1-amount)
++ `destination_amount` is an [`Amount` object](#1-amount)
 
 The full set of fields accepted on `Payment` submission is as follows:
 
@@ -93,17 +93,17 @@ The full set of fields accepted on `Payment` submission is as follows:
 {
     /* User Specified */
 
-    "src_address": "rKXCummUHnenhYudNb9UoJ4mGBR75vFcgz",
-    "src_tag": "",
-    "src_amount": {
+    "source_address": "rKXCummUHnenhYudNb9UoJ4mGBR75vFcgz",
+    "source_tag": "",
+    "source_amount": {
         "value": "0.001",
         "currency": "XRP",
         "issuer": ""
     },
-    "src_slippage": "0",
-    "dst_address": "rNw4ozCG514KEjPs5cDrqEcdsi31Jtfm5r",
-    "dst_tag": "",
-    "dst_amount": {
+    "source_slippage": "0",
+    "destination_address": "rNw4ozCG514KEjPs5cDrqEcdsi31Jtfm5r",
+    "destination_tag": "",
+    "destination_amount": {
         "value": "0.001",
         "currency": "XRP",
         "issuer": ""
@@ -113,17 +113,17 @@ The full set of fields accepted on `Payment` submission is as follows:
 
     "invoice_id": "",
     "paths": "[]",
-    "flag_no_direct_ripple": false,
-    "flag_partial_payment": false
+    "no_direct_ripple": false,
+    "partial_payment": false
 }
 ```
-+ `src_tag` is an optional unsigned 32 bit integer (0-4294967294, inclusive) that is generally used if the sender is a hosted wallet at a gateway. This should be the same as the `dst_tag` used to identify the hosted wallet when they are receiving a payment.
-+ `dst_tag` is an optional unsigned 32 bit integer (0-4294967294, inclusive) that is generally used if the receiver is a hosted wallet at a gateway
-+ `src_slippage` can be specified to give the `src_amount` a cushion and increase its chance of being processed successfully. This is helpful if the payment path changes slightly between the time when a payment options quote is given and when the payment is submitted. The `src_address` will never be charged more than `src_slippage` + the `value` specified in `src_amount`
++ `source_tag` is an optional unsigned 32 bit integer (0-4294967294, inclusive) that is generally used if the sender is a hosted wallet at a gateway. This should be the same as the `destination_tag` used to identify the hosted wallet when they are receiving a payment.
++ `destination_tag` is an optional unsigned 32 bit integer (0-4294967294, inclusive) that is generally used if the receiver is a hosted wallet at a gateway
++ `source_slippage` can be specified to give the `source_amount` a cushion and increase its chance of being processed successfully. This is helpful if the payment path changes slightly between the time when a payment options quote is given and when the payment is submitted. The `source_address` will never be charged more than `source_slippage` + the `value` specified in `source_amount`
 + `invoice_id` is an optional 256-bit hexadecimal hash field that can be used to link payments to an invoice or bill
 + `paths` is a ["stringified"](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/JSON/stringify) version of the Ripple PathSet structure. Most users of this API will want to treat this field as opaque. See the [Ripple Wiki](https://ripple.com/wiki/Payment_paths) for more information about Ripple pathfinding. Advanced users can submit non-stringified objects if desired
-+ `flag_no_direct_ripple` is a boolean that can be set to `true` if `paths` are specified and the sender would like the Ripple Network to disregard any direct paths from the `src_address` to the `dst_address`. This may be used to take advantage of an arbitrage opportunity or by gateways wishing to issue balances from a hot wallet to a user who has mistakenly set a trustline directly to the hot wallet. Most users will not need to use this option.
-+ `flag_partial_payment` is a boolean that, if set to true, indicates that this payment should go through even if the whole amount cannot be delivered because of a lack of liquidity or funds in the `src_address` account. The vast majority of senders will never need to use this option.
++ `no_direct_ripple` is a boolean that can be set to `true` if `paths` are specified and the sender would like the Ripple Network to disregard any direct paths from the `source_address` to the `destination_address`. This may be used to take advantage of an arbitrage opportunity or by gateways wishing to issue balances from a hot wallet to a user who has mistakenly set a trustline directly to the hot wallet. Most users will not need to use this option.
++ `partial_payment` is a boolean that, if set to true, indicates that this payment should go through even if the whole amount cannot be delivered because of a lack of liquidity or funds in the `source_address` account. The vast majority of senders will never need to use this option.
 
 When a payment is confirmed in the Ripple ledger, it will have additional fields added:
 ```js
@@ -140,12 +140,12 @@ When a payment is confirmed in the Ripple ledger, it will have additional fields
     "tx_timestamp": 1391025100000,
     "tx_timestamp_human": "2014-01-29T19:51:40.000Z",
     "tx_fee": "0.000012",
-    "tx_src_bals_dec": [{
+    "tx_source_bals_dec": [{
         "value": "-0.001012",
         "currency": "XRP",
         "issuer": ""
     }],
-    "tx_dst_bals_inc": [{
+    "tx_destination_bals_inc": [{
         "value": "0.001",
         "currency": "XRP",
         "issuer": ""
@@ -156,8 +156,8 @@ When a payment is confirmed in the Ripple ledger, it will have additional fields
 + `tx_timestamp` is the UNIX timestamp for when the transaction was validated, or the number of milliseconds since January 1st, 1970 (00:00 UTC)
 + `tx_timestamp_human` is the transaction validation time represented in the format `YYYY-MM-DDTHH:mm:ss.sssZ`. The timezone is always UTC as denoted by the suffix "Z"
 + `tx_fee` is the network transaction fee charged for processing the transaction. For more information on fees, see the [Ripple Wiki](https://ripple.com/wiki/Transaction_fees), but note that the amount here is [NOT expressed in XRP drops](#no-xrp-drops)
-+ `tx_src_bals_dec` is an array of [`Amount`](#1-amount) objects representing all of the balance changes of the `src_address` caused by the payment. Note that this includes the `tx_fee`
-+ `tx_dst_bals_inc` is an array of [`Amount`](#1-amount) objects representing all of the balance changes of the `dst_address` caused by the payment
++ `tx_source_bals_dec` is an array of [`Amount`](#1-amount) objects representing all of the balance changes of the `source_address` caused by the payment. Note that this includes the `tx_fee`
++ `tx_destination_bals_inc` is an array of [`Amount`](#1-amount) objects representing all of the balance changes of the `destination_address` caused by the payment
 
 ----------
 
@@ -223,7 +223,7 @@ If there are no new notifications, the empty `Notification` object will be retur
     + [`GET /api/v1/addresses/:address/next_notification`](#get-apiv1addressesaddressnext_notification)
     + [`GET /api/v1/addresses/:address/next_notification/:prev_tx_hash`](#get-apiv1addressesaddressnext_notificationprev_tx_hash)
 2. [Payments](#2-payments)
-    + [`GET /api/v1/addresses/:address/payments/:dst_address/:dst_amount`](docs/REF.md#get-apiv1addressesaddresspaymentsdst_addressdst_amount)
+    + [`GET /api/v1/addresses/:address/payments/:destination_address/:destination_amount`](docs/REF.md#get-apiv1addressesaddresspaymentsdestination_addressdestination_amount)
     + [`POST /api/v1/addresses/:address/payments`](#post-apiv1addressesaddresspayments)
     + [`GET /api/v1/addresses/:address/payments/:tx_hash`](#get-apiv1addressesaddresspaymentstx_hash)
 3. [Standard Ripple Transactions](#3-standard-ripple-transactions)
@@ -312,13 +312,13 @@ __________
 
 __________
 
-#### `GET /api/v1/addresses/:address/payments/:dst_address/:dst_amount`
+#### `GET /api/v1/addresses/:address/payments/:destination_address/:destination_amount`
 
 Generate possible payments for a given set of parameters. This is a wrapper around the [Ripple path-find command](https://ripple.com/wiki/RPC_API#path_find) that returns an array of [`Payment Objects`](#2-payment), which can be submitted directly to [`POST /api/v1/addresses/:address/payments`](#post-apiv1addressesaddresspayments).
 
 This uses the [`Payment` Object format](#2-payment).
 
-The `:dst_amount` parameter uses `+` to separate the `value`, `currency`, and `issuer` fields. For XRP the format is `0.1+XRP` and for other currencies it is `0.1+USD+r...`, where the `r...` is the Ripple address of the currency's issuer.
+The `:destination_amount` parameter uses `+` to separate the `value`, `currency`, and `issuer` fields. For XRP the format is `0.1+XRP` and for other currencies it is `0.1+USD+r...`, where the `r...` is the Ripple address of the currency's issuer.
 
 __NOTE:__ This command may be quite slow. If the command times out, please try it again.
 
@@ -338,7 +338,7 @@ Or if no paths can be found:
 {
     "success": false,
     "error": "No paths found",
-    "message": "Please ensure that the src_address has sufficient funds to exectue the payment. If it does there may be insufficient liquidity in the network to execute this payment right now"
+    "message": "Please ensure that the source_address has sufficient funds to exectue the payment. If it does there may be insufficient liquidity in the network to execute this payment right now"
 }
 ```
 
@@ -370,7 +370,7 @@ Or if there is a problem with the transaction:
 {
   "success": false,
   "error": "tecPATH_DRY", // A full list of error codes can be found at https://ripple.com/wiki/Transaction_errors
-  "message": "Path could not send partial amount. Please ensure that the src_address has sufficient funds (in the src_amount currency, if specified) to execute this transaction."
+  "message": "Path could not send partial amount. Please ensure that the source_address has sufficient funds (in the source_amount currency, if specified) to execute this transaction."
 }
 ```
 More information about transaction errors can be found on the [Ripple Wiki](https://ripple.com/wiki/Transaction_errors).

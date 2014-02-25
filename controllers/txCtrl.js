@@ -40,14 +40,14 @@ module.exports = function (opts) {
 
     // submitTx: function(req, res) {
 
-    //   var src_address = req.param('address'),
+    //   var source_address = req.param('address'),
     //     secret = req.body.secret,
     //     tx_json = req.body.tx || req.body.tx_json || req.body;
 
     //   txLib.submitTx({
     //     remote: remote,
     //     OutgoingTx: OutgoingTx,
-    //     src_address: src_address,
+    //     source_address: source_address,
     //     secret: secret,
     //     tx_json: tx_json
     //   }, function(err, initial_hash){

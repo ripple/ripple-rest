@@ -49,7 +49,7 @@ Because this design is more robust than the previous implementation, `ripple-res
   ```
 
 
-5. `ripple-lib` checks the database to ensure that the `src_address` has not already submitted a transaction with the same `payment_id`. If this is a previously unsubmitted transaction, `ripple-lib` signs the `Transaction` and saves its details to the persistent database using the `saveTransaction` function
+5. `ripple-lib` checks the database to ensure that the `source_address` has not already submitted a transaction with the same `payment_id`. If this is a previously unsubmitted transaction, `ripple-lib` signs the `Transaction` and saves its details to the persistent database using the `saveTransaction` function
 
 6. `saveTransaction` is called with the following information:
 
@@ -65,7 +65,7 @@ Because this design is more robust than the previous implementation, `ripple-res
   }
   ```
   and it writes to a table with the following fields:
-  + `src_address` - the address of the sender
+  + `source_address` - the address of the sender
   + `payment_id` - the user-specified ID of this transaction
   + `transaction_json` - the full JSON representation of the transaction, which can be used by `ripple-lib` to recreate the transaction if the `ripple-rest` server dies before the transaction is validated. Once the transaction has been validated this field will be saved as `null`
   + `transaction_hashes` - an array of transaction hashes representing different versions of this transaction that `ripple-lib` has submitted (the transaction hash may change if `ripple-lib` adjusts the fee or transaction sequence number)
