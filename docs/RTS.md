@@ -1,6 +1,6 @@
 # `ripple-rest` Robust Transaction Submission
 
-In order to achieve fully robust transaction submission, the new version of `ripple-rest` will support (or require) submitting transactions with a `client_transaction_id` field. This ID will be persisted locally, help users confirm validated transactions, and ensure that transaction submission is idempotent (i.e. the same transaction can be submitted multiple times to `ripple-rest` but it will only be submitted once to the Ripple Network).
+In order to achieve fully robust transaction submission, the new version of `ripple-rest` will support (or require) submitting transactions with a `payment_id` field. This ID will be persisted locally, help users confirm validated transactions, and ensure that transaction submission is idempotent (i.e. the same transaction can be submitted multiple times to `ripple-rest` but it will only be submitted once to the Ripple Network).
 
 Because this design is more robust than the previous implementation, `ripple-rest` will no longer check the state of the connection to `rippled` when transactions are submitted. Irrespective of the state of the `rippled` connection, transactions will be queued by `ripple-rest`. There will be a new API endpoint (`/api/v1/server/connected`) that users can call to determine if `ripple-rest` is still connected to `rippled` and react accordingly. `ripple-lib` will handle transaction submission when the connection to `rippled` is reestablished.
 
@@ -26,7 +26,7 @@ Because this design is more robust than the previous implementation, `ripple-res
   ```js
   {
     "secret": "s...",
-    "client_transaction_id": "12345", // this could be a field in the Payment
+    "payment_id": "12345", // this could be a field in the Payment
     "payment": { /* ... */ }
   }
   ```
@@ -44,18 +44,18 @@ Because this design is more robust than the previous implementation, `ripple-res
   ```js
   {
     "success": true,
-    "client_transaction_id": "12345"
+    "payment_id": "12345"
   }
   ```
 
 
-5. `ripple-lib` checks the database to ensure that the `src_address` has not already submitted a transaction with the same `client_transaction_id`. If this is a previously unsubmitted transaction, `ripple-lib` signs the `Transaction` and saves its details to the persistent database using the `saveTransaction` function
+5. `ripple-lib` checks the database to ensure that the `src_address` has not already submitted a transaction with the same `payment_id`. If this is a previously unsubmitted transaction, `ripple-lib` signs the `Transaction` and saves its details to the persistent database using the `saveTransaction` function
 
 6. `saveTransaction` is called with the following information:
 
   ```js
   {
-    "client_transaction_id": "12345",
+    "payment_id": "12345",
     "tx_json": { /* ... */},
     "transaction_hashes": ["...", "...", ...],
     "submission_attempts": 1,
@@ -66,7 +66,7 @@ Because this design is more robust than the previous implementation, `ripple-res
   ```
   and it writes to a table with the following fields:
   + `src_address` - the address of the sender
-  + `client_transaction_id` - the user-specified ID of this transaction
+  + `payment_id` - the user-specified ID of this transaction
   + `transaction_json` - the full JSON representation of the transaction, which can be used by `ripple-lib` to recreate the transaction if the `ripple-rest` server dies before the transaction is validated. Once the transaction has been validated this field will be saved as `null`
   + `transaction_hashes` - an array of transaction hashes representing different versions of this transaction that `ripple-lib` has submitted (the transaction hash may change if `ripple-lib` adjusts the fee or transaction sequence number)
   + `submission_attempts` - tracks the number of times `ripple-lib` has attempted to submit the transaction and used to limit the number of times it will be tried
@@ -80,5 +80,7 @@ Because this design is more robust than the previous implementation, `ripple-res
 
 8. `ripple-lib` will call the `saveTransaction` function every time a new transaction is queued, when a transaction is resubmitted to `rippled` (with a different fee, sequence number, or hash), and when the state of a transaction is updated. When `ripple-lib` updates the database with a final `state`, `engine_result`, and `engine_result_message`, it will save the entry without the `transaction_json` because those transactions have been written into the Ripple Ledger
 
-9. When a user queries the `ripple-rest` `next_notification` endpoint with a `prev_tx_hash`, `ripple-rest` will first check the database for transactions submitted by that user that have their `state` set to `failed_off_network` and `reported` set to `false`. If there are unreported off-network failures, `ripple-rest` will respond with the first one of those and update its `reported` column to `true`. If there are no unreported off-network failures, `ripple-rest` will use the `account_tx` command to find the validated transaction that followed the one matching the user-supplied `prev_tx_hash`. To help the user match validated transactions to the transactions they submitted previously, `ripple-rest` will match validated outgoing transactions with entries in the database and will attach the original `client_transaction_id` to the `Notification` it returns
+9. When a user queries the `ripple-rest` `next_notification` endpoint with a `prev_tx_hash`, `ripple-rest` will first check the database for transactions submitted by that user that have their `state` set to `failed_off_network` and `reported` set to `false`. If there are unreported off-network failures, `ripple-rest` will respond with the first one of those and update its `reported` column to `true`. If there are no unreported off-network failures, `ripple-rest` will use the `account_tx` command to find the validated transaction that followed the one matching the user-supplied `prev_tx_hash`. To help the user match validated transactions to the transactions they submitted previously, `ripple-rest` will match validated outgoing transactions with entries in the database and will attach the original `payment_id` to the `Notification` it returns
+
+10. Whenever the user quries the `ripple-rest` `next_notification` endpoint, the entry in the database corresponding to the `Notification` it returns will have its `reported` value set to true. Before `ripple-rest` returns that `Notification` any entries in the database aside from the one being queried that were previously marked as reported will be deleted entirely from the database. This means that the `payment_id` will only be persisted until `next_notification` is called with the hash following the one corresponding to this `payment_id`.
 
