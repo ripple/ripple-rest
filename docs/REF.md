@@ -11,6 +11,14 @@ See the [__Guide__](GUIDE.md) for a walkthrough of how this API is intended to b
 
 ## Differences from standard Ripple data formats
 
+#### The `source_transaction_id`
+
+The `source_transaction_id` is a new field introduced by this API that is used to prevent duplicate payments and confirm that payments have been validated. Note that while there is currently no corresponding `destination_transaction_id`, we intend to add one to future versions of this API.
+
+If `ripple-rest` is in the process of submitting a payment with a given `source_transaction_id` and the same user submits another payment with the same `source_transaction_id` before they have received a `Notification` about the first one, `ripple-rest` will NOT submit the second payment to `rippled`. 
+
+The `source_transaction_id` should also be used to confirm that outgoing payments have been validated and written into the Ripple Ledger by looking for the `source_transaction_id` submitted here in `Notification`s of validated payments. See the [Guide](GUIDE.md) for more information 
+
 #### New data formats
 
 This API uses different submission and retrieval formats for payments and other transactions than other Ripple technologies. These new formats are intended to standardize fields across different transaction types (Payments, Orders, etc). See the [Object Formats](#object-formats) for more information.
@@ -77,6 +85,7 @@ The following fields are the minimum required to submit a `Payment`:
 ```js
 {
   "source_address": "rKXCummUHnenhYudNb9UoJ4mGBR75vFcgz",
+  "source_transaction_id": "12345",
   "destination_address": "rNw4ozCG514KEjPs5cDrqEcdsi31Jtfm5r",
   "destination_amount": {
     "value": "0.001",
@@ -85,6 +94,7 @@ The following fields are the minimum required to submit a `Payment`:
   }
 }
 ```
++ `source_transaction_id` is a required field that is used to prevent duplicate payments and confirm that payments have been validated. If `ripple-rest` is in the process of submitting a payment with a given `source_transaction_id` and the same user submits another payment with the same `source_transaction_id` before they have received a `Notification` about the first one, `ripple-rest` will NOT submit the second payment to `rippled`. The `source_transaction_id` should also be used to confirm that outgoing payments have been validated and written into the Ripple Ledger by looking for the `source_transaction_id` submitted here in `Notification`s of validated payments. See the [Guide](GUIDE.md) for more information 
 + `destination_amount` is an [`Amount` object](#1-amount)
 
 The full set of fields accepted on `Payment` submission is as follows:
@@ -95,6 +105,7 @@ The full set of fields accepted on `Payment` submission is as follows:
 
     "source_address": "rKXCummUHnenhYudNb9UoJ4mGBR75vFcgz",
     "source_tag": "",
+    "source_transaction_id": "12345",
     "source_amount": {
         "value": "0.001",
         "currency": "XRP",
@@ -125,7 +136,7 @@ The full set of fields accepted on `Payment` submission is as follows:
 + `no_direct_ripple` is a boolean that can be set to `true` if `paths` are specified and the sender would like the Ripple Network to disregard any direct paths from the `source_address` to the `destination_address`. This may be used to take advantage of an arbitrage opportunity or by gateways wishing to issue balances from a hot wallet to a user who has mistakenly set a trustline directly to the hot wallet. Most users will not need to use this option.
 + `partial_payment` is a boolean that, if set to true, indicates that this payment should go through even if the whole amount cannot be delivered because of a lack of liquidity or funds in the `source_address` account. The vast majority of senders will never need to use this option.
 
-When a payment is confirmed in the Ripple ledger, it will have additional fields added:
+When a payment is validated in the Ripple ledger, it will have additional fields added:
 ```js
 {
     /* ... */
@@ -133,7 +144,7 @@ When a payment is confirmed in the Ripple ledger, it will have additional fields
     /* Generated After Validation */
 
     "direction": "outgoing",
-    "state": "confirmed",
+    "state": "validated",
     "result": "tesSUCCESS",
     "ledger": 4696959,
     "hash": "55BA3440B1AAFFB64E51F497EFDF2022C90EDB171BBD979F04685904E38A89B7",
@@ -175,22 +186,22 @@ If there is a new `notification` for an account, it will come in this format:
   "address": "rKXCummUHnenhYudNb9UoJ4mGBR75vFcgz",
   "type": "payment",
   "direction": "outgoing",
-  "state": "confirmed",
+  "state": "validated",
   "result": "tesSUCCESS",
   "ledger": 4696959,
   "hash": "55BA3440B1AAFFB64E51F497EFDF2022C90EDB171BBD979F04685904E38A89B7",
   "timestamp": 1391025100000,
   "timestamp_human": "2014-01-29T19:51:40.000Z",
   "url": "http://ripple-rest.herokuapp.com/api/v1/addresses/rKXCummUHnenhYudNb9UoJ4mGBR75vFcgz/payments/55BA3440B1AAFFB64E51F497EFDF2022C90EDB171BBD979F04685904E38A89B7",
-  "next_notification_url": "http://ripple-rest.herokuapp.com/api/v1/addresses/rKXCummUHnenhYudNb9UoJ4mGBR75vFcgz/next_notification/55BA3440B1AAFFB64E51F497EFDF2022C90EDB171BBD979F04685904E38A89B7"
-  "confirmation_token": "55BA3440B1AAFFB64E51F497EFDF2022C90EDB171BBD979F04685904E38A89B7"
+  "next_notification_url": "http://ripple-rest.herokuapp.com/api/v1/addresses/rKXCummUHnenhYudNb9UoJ4mGBR75vFcgz/next_notification/55BA3440B1AAFFB64E51F497EFDF2022C90EDB171BBD979F04685904E38A89B7",
+  "source_transaction_id": "12345",
 }
 ```
 + `timestamp` is the UNIX timestamp for when the transaction was validated, or the number of milliseconds since January 1st, 1970 (00:00 UTC)
 + `timestamp_human` is the transaction validation time represented in the format `YYYY-MM-DDTHH:mm:ss.sssZ`. The timezone is always UTC as denoted by the suffix "Z"
 + `url` is a URL that can be queried to retrieve the full details of the transaction. If it the transaction is a payment it will be returned in the `Payment` object format, otherwise it will be returned in the standard Ripple transaction format
 + `next_notification_url` is a URL that can be queried to get the notification following this one for the given address
-+ `confirmation_token` is a temporary string that is returned upon transaction submission and can be matched against account notifications to confirm that the transaction was processed and written into the Ripple ledger
++ `source_transaction_id` will be the same as the `source_transaction_id` originally submitted by the sender. Senders should look for the `source_transaction_id`'s of payments they have submitted to `ripple-rest` amongst `Notification`s of validated payments. If the `source_transaction_id` of a particular payment appears in a `Notification` with the `state` listed as `validated`, then that payment has been successfully written into the Ripple Ledger
 
 
 If there are no new notifications, the empty `Notification` object will be returned in this format:
@@ -207,7 +218,7 @@ If there are no new notifications, the empty `Notification` object will be retur
   "timestamp_human": "",
   "url": "",
   "next_notification_url": "http://ripple-rest.herokuapp.com/api/v1/addresses/rKXCummUHnenhYudNb9UoJ4mGBR75vFcgz/next_notification/55BA3440B1AAFFB64E51F497EFDF2022C90EDB171BBD979F04685904E38A89B7",
-  "confirmation_token": ""
+  "source_transaction_id": "",
 }
 ```
 + `type` will be `none` if there are no new notifications

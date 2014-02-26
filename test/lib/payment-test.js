@@ -9,6 +9,7 @@ describe('lib/payment', function(){
   var valid_payment = {
     source_address: "rKXCummUHnenhYudNb9UoJ4mGBR75vFcgz",
     source_tag: "4294967295",
+    source_transaction_id: "12345",
     destination_address: "rNw4ozCG514KEjPs5cDrqEcdsi31Jtfm5r",
     destination_tag: "4294967295",
     source_amount: {
@@ -255,6 +256,21 @@ describe('lib/payment', function(){
         payment.no_direct_ripple = 'true';
         return paymentLib.validateNewPayment(payment);
       }).to.throw('Invalid parameter: no_direct_ripple. Must be a boolean');
+
+    });
+
+    it('should throw an error if no source_transaction_id is provided', function(){
+      expect(function(){
+        var payment = clone(valid_payment);
+        delete payment.source_transaction_id;
+        return paymentLib.validateNewPayment(payment);
+      }).to.throw('Invalid parameter: source_transaction_id. Must provide a string of ASCII-printable characters to identify the payment');
+    
+      expect(function(){
+        var payment = clone(valid_payment);
+        payment.source_transaction_id = '';
+        return paymentLib.validateNewPayment(payment);
+      }).to.throw('Invalid parameter: source_transaction_id. Must provide a string of ASCII-printable characters to identify the payment');
 
     });
 
