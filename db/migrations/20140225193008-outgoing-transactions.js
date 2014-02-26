@@ -26,5 +26,24 @@ exports.up = function(db, callback) {
 };
 
 exports.down = function(db, callback) {
-  db.dropTable('outgoing_transactions', {ifExists: true}, callback)
+
+  var steps = [
+    function(async_callback) {
+      db.renameColumn('outgoing_transactions', 'source_address', 'src_address', async_callback);
+    },
+    function(async_callback) {
+      db.renameColumn('outgoing_transactions', 'type', 'tx_type', async_callback);
+    },
+    function(async_callback) {
+      db.renameColumn('outgoing_transactions', 'state', 'tx_state', async_callback);
+    },
+    function(async_callback) {
+      db.renameColumn('outgoing_transactions', 'result', 'tx_result', async_callback);
+    },
+    function(async_callback) {
+      db.renameColumn('outgoing_transactions', 'hash', 'tx_hash', async_callback);
+    }
+  ];
+
+  async.series(steps, callback);
 };
