@@ -4,16 +4,18 @@ module.exports = function(db) {
 
   var OutgoingTx = db.define('outgoing_transactions', {
 
-    /* Added initially */
-    initial_hash: {type: sequelize.TEXT, primaryKey: true, notNull: true},
     submitted_at_ledger: sequelize.INTEGER,
-    src_address: sequelize.TEXT,
+    source_address: sequelize.TEXT,
+    source_transaction_id: sequelize.TEXT,
+    tx_json: sequelize.TEXT,
     type: sequelize.TEXT,
-    state: sequelize.TEXT, // Updated after submission
-
-    /* Added after submission */
-    result: sequelize.TEXT,
-    hash: sequelize.TEXT
+    state: sequelize.TEXT,
+    submitted_ids: sequelize.TEXT,
+    submission_attempts: sequelize.TEXT,
+    engine_result: sequelize.TEXT,
+    engine_result_message: sequelize.TEXT,
+    hash: sequelize.TEXT,
+    reported: sequelize.BOOLEAN
 
   });
 

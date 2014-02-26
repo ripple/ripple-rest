@@ -124,7 +124,7 @@ module.exports = function (opts) {
         source_address: source_address,
         payment: payment,
         secret: secret
-      }, function(err, initial_hash){
+      }, function(err, source_transaction_id){
         if (err) {
           errorHandler(res, err);
           return;
@@ -132,7 +132,7 @@ module.exports = function (opts) {
 
         res.send({
           success: true,
-          confirmation_token: initial_hash
+          source_transaction_id: source_transaction_id
         });
 
       });
