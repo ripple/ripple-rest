@@ -122,6 +122,12 @@ module.exports = function (opts) {
         return;
       } 
 
+      if (!payment && req.body.payments) {
+        if (typeof payments[0] === 'object') {
+          payment = payments[0];
+        }
+      }
+
       paymentLib.submitPayment({
         remote: remote,
         OutgoingTx: OutgoingTx,
