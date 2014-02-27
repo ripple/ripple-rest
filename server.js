@@ -23,6 +23,19 @@ var express          = require('express');
 var app              = express();
 
 
+/* Express middleware */
+app.configure(function() {
+  app.disable('x-powered-by');
+  app.use(express.json());
+  app.use(express.urlencoded());
+});
+
+app.all('*', function(req, res, next) {
+  res.header('Access-Control-Allow-Origin', '*');
+  res.header('Access-Control-Allow-Headers', 'X-Requested-With');
+  next();
+});
+
 
 /* Connect to db */
 var db = sequelizeConnect({
@@ -97,19 +110,6 @@ PaymentCtrl = require('./controllers/paymentCtrl')({
 
 StatusCtrl = require('./controllers/statusCtrl')({
   remote: remote
-});
-
-/* Express middleware */
-app.configure(function() {
-  app.disable('x-powered-by');
-  app.use(express.json());
-  app.use(express.urlencoded());
-});
-
-app.all('*', function(req, res, next) {
-  res.header('Access-Control-Allow-Origin', '*');
-  res.header('Access-Control-Allow-Headers', 'X-Requested-With');
-  next();
 });
 
 
