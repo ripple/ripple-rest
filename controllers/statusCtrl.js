@@ -1,5 +1,5 @@
-var statusLib = require('../lib/status'), 
-  errorHandler = require('./errorHandler');
+var statusLib     = require('../lib/status');
+var errorHandler  = require('./errorHandler');
 
 module.exports = function(opts) {
 
@@ -20,6 +20,18 @@ module.exports = function(opts) {
         res.json(status);
         
       });
+    },
+
+    isConnected: function(req, res) {
+
+      statusLib.isConnected(remote, function(err, status){
+        if (status === true) {
+          res.send(true);
+        } else {
+          res.send(false);
+        }
+      });
+
     }
   };
 };

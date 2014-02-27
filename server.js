@@ -118,6 +118,8 @@ StatusCtrl = require('./controllers/statusCtrl')({
 /* Status */
 app.get('/', StatusCtrl.getStatus);
 app.get('/api/v1/status', StatusCtrl.getStatus);
+app.get('/api/v1/server/status', StatusCtrl.getStatus);
+app.get('/api/v1/server/connected', StatusCtrl.isConnected);
 
 /* Ripple Txs */
 app.get('/api/v1/addresses/:address/txs/:hash', TxCtrl.getTx);
