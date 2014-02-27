@@ -112,11 +112,15 @@ module.exports = function (opts) {
 
       var source_address = req.param('address'),
         payment = req.body.payment || req.body.payment_json || req.body,
-        secret = req.body.secret;     
+        secret = req.body.secret;
 
-      if (payment.secret) {
-        delete payment.secret;
-      }
+      if (!req.is('json') || !req.body || Object.keys(req.body).length <= 0) {
+        errorHandler(res, {
+          error: 'Invalid Request: Bad JSON',
+          message: 'Cannot parse the request body as JSON, please ensure that you are submitting properly formatted JSON with the header type set to "application/json"'
+        });
+        return;
+      } 
 
       paymentLib.submitPayment({
         remote: remote,
