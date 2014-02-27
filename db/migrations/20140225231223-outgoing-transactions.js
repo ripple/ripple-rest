@@ -30,6 +30,9 @@ exports.up = function(db, callback) {
       db.changeColumn('outgoing_transactions', 'source_address', {type: 'text', primaryKey: true}, async_callback);
     },
     function(async_callback) {
+      db.changeColumn('outgoing_transactions', 'type', {type: 'text', primaryKey: true}, async_callback);
+    },
+    function(async_callback) {
       db.addColumn('outgoing_transactions', 'tx_json', {type: 'text'}, async_callback);
     }
   ];
@@ -61,6 +64,9 @@ exports.down = function(db, callback) {
     },
     function(async_callback) {
       db.removeColumn('outgoing_transactions', 'source_transaction_id', async_callback);
+    },
+    function(async_callback) {
+      db.changeColumn('outgoing_transactions', 'type', {type: 'text'}, async_callback);
     },
     function(async_callback) {
       db.removeColumn('outgoing_transactions', 'tx_json', async_callback);
