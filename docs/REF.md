@@ -151,12 +151,12 @@ When a payment is validated in the Ripple ledger, it will have additional fields
     "timestamp": 1391025100000,
     "timestamp_human": "2014-01-29T19:51:40.000Z",
     "fee": "0.000012",
-    "source_bals_dec": [{
+    "source_balance_changes": [{
         "value": "-0.001012",
         "currency": "XRP",
         "issuer": ""
     }],
-    "destination_bals_inc": [{
+    "destination_balance_changes": [{
         "value": "0.001",
         "currency": "XRP",
         "issuer": ""
@@ -167,8 +167,8 @@ When a payment is validated in the Ripple ledger, it will have additional fields
 + `timestamp` is the UNIX timestamp for when the transaction was validated, or the number of milliseconds since January 1st, 1970 (00:00 UTC)
 + `timestamp_human` is the transaction validation time represented in the format `YYYY-MM-DDTHH:mm:ss.sssZ`. The timezone is always UTC as denoted by the suffix "Z"
 + `fee` is the network transaction fee charged for processing the transaction. For more information on fees, see the [Ripple Wiki](https://ripple.com/wiki/Transaction_fees), but note that the amount here is [NOT expressed in XRP drops](#no-xrp-drops)
-+ `source_bals_dec` is an array of [`Amount`](#1-amount) objects representing all of the balance changes of the `source_address` caused by the payment. Note that this includes the `fee`
-+ `destination_bals_inc` is an array of [`Amount`](#1-amount) objects representing all of the balance changes of the `destination_address` caused by the payment
++ `source_balance_changes` is an array of [`Amount`](#1-amount) objects representing all of the balance changes of the `source_address` caused by the payment. Note that this includes the `fee`
++ `destination_balance_changes` is an array of [`Amount`](#1-amount) objects representing all of the balance changes of the `destination_address` caused by the payment
 
 ----------
 
@@ -192,14 +192,14 @@ If there is a new `notification` for an account, it will come in this format:
   "hash": "55BA3440B1AAFFB64E51F497EFDF2022C90EDB171BBD979F04685904E38A89B7",
   "timestamp": 1391025100000,
   "timestamp_human": "2014-01-29T19:51:40.000Z",
-  "url": "http://ripple-rest.herokuapp.com/api/v1/addresses/rKXCummUHnenhYudNb9UoJ4mGBR75vFcgz/payments/55BA3440B1AAFFB64E51F497EFDF2022C90EDB171BBD979F04685904E38A89B7",
+  "transaction_url": "http://ripple-rest.herokuapp.com/api/v1/addresses/rKXCummUHnenhYudNb9UoJ4mGBR75vFcgz/payments/55BA3440B1AAFFB64E51F497EFDF2022C90EDB171BBD979F04685904E38A89B7",
   "next_notification_url": "http://ripple-rest.herokuapp.com/api/v1/addresses/rKXCummUHnenhYudNb9UoJ4mGBR75vFcgz/next_notification/55BA3440B1AAFFB64E51F497EFDF2022C90EDB171BBD979F04685904E38A89B7",
   "source_transaction_id": "12345",
 }
 ```
 + `timestamp` is the UNIX timestamp for when the transaction was validated, or the number of milliseconds since January 1st, 1970 (00:00 UTC)
 + `timestamp_human` is the transaction validation time represented in the format `YYYY-MM-DDTHH:mm:ss.sssZ`. The timezone is always UTC as denoted by the suffix "Z"
-+ `url` is a URL that can be queried to retrieve the full details of the transaction. If it the transaction is a payment it will be returned in the `Payment` object format, otherwise it will be returned in the standard Ripple transaction format
++ `transaction_url` is a URL that can be queried to retrieve the full details of the transaction. If it the transaction is a payment it will be returned in the `Payment` object format, otherwise it will be returned in the standard Ripple transaction format
 + `next_notification_url` is a URL that can be queried to get the notification following this one for the given address
 + `source_transaction_id` will be the same as the `source_transaction_id` originally submitted by the sender. Senders should look for the `source_transaction_id`'s of payments they have submitted to `ripple-rest` amongst `Notification`s of validated payments. If the `source_transaction_id` of a particular payment appears in a `Notification` with the `state` listed as `validated`, then that payment has been successfully written into the Ripple Ledger
 
@@ -216,7 +216,7 @@ If there are no new notifications, the empty `Notification` object will be retur
   "hash": "",
   "timestamp": "",
   "timestamp_human": "",
-  "url": "",
+  "transaction_url": "",
   "next_notification_url": "http://ripple-rest.herokuapp.com/api/v1/addresses/rKXCummUHnenhYudNb9UoJ4mGBR75vFcgz/next_notification/55BA3440B1AAFFB64E51F497EFDF2022C90EDB171BBD979F04685904E38A89B7",
   "source_transaction_id": "",
 }
@@ -509,7 +509,7 @@ __________
 
 __________
 
-#### GET /api/v1/status
+#### GET /api/v1/server/status
 
 Response:
 ```js
@@ -553,3 +553,8 @@ Or if the server is not connected to the Ripple Network:
 ```
 
 __________
+
+#### GET /api/v1/server/connected
+
+Response:
+`true` if `ripple-rest` is connected to a `rippled` and is ready to server, `false` otherwise
