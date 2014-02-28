@@ -29,9 +29,9 @@ module.exports = function(opts) {
         }
 
         if (notification.url) {
-          notification.url = req.protocol + '://' + req.host + (port && environment === 'development' ? (':' + port) : '') + '/api/v1' + notification.url;
+          notification.transaction_url = req.protocol + '://' + req.host + (port && environment === 'development' ? (':' + port) : '') + '/api/v1' + notification.url;
         } else {
-          notification.url = '';
+          notification.transaction_url = '';
         }
 
         if (notification.next_notification_url) {
