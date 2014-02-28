@@ -6,6 +6,28 @@ Note that the data formats used by this API are different in a number of importa
 
 See the [__Guide__](GUIDE.md) for a walkthrough of how this API is intended to be used.
 
+----------
+
+#### Contents
+
+1. [__Differences from standard Ripple data formats__](#differences-from-standard-ripple-data-formats)
+2. [__Object Formats__](#object-formats)
+  + [Amount](#amount)
+  + [Payment](#payment)
+  + [Notification](#notification)
+3. [__Available API Routes__](#available-api-routes)
+  + [Notifications](#notifications)
+      + [`GET /api/v1/addresses/:address/next_notification`](#get-apiv1addressesaddressnext_notification)
+      + [`GET /api/v1/addresses/:address/next_notification/:prev_hash`](#get-apiv1addressesaddressnext_notificationprev_hash)
+  + [Payments](#payments)
+      + [`GET /api/v1/addresses/:address/payments/:destination_address/:destination_amount`](docs/REF.md#get-apiv1addressesaddresspaymentsdestination_addressdestination_amount)
+      + [`POST /api/v1/addresses/:address/payments`](#post-apiv1addressesaddresspayments)
+      + [`GET /api/v1/addresses/:address/payments/:hash`](#get-apiv1addressesaddresspaymentshash)
+  + [Standard Ripple Transactions](#3-standard-ripple-transactions)
+      + [`GET /api/v1/addresses/:address/txs/:hash`](#get-apiv1addressesaddresstxshash)
+  + [Server Info](#server-info)
+      + [`GET /api/v1/server/status`](#get-apiv1serverstatus)
+      + [`GET /api/v1/server/connected`](#get-apiv1serverconnected)
 
 ----------
 
@@ -43,13 +65,13 @@ While this API uses [`ripple-lib`](https://github.com/ripple/ripple-lib/), the J
 
 ## Object Formats
 
-1. [Amount](#1-amount)
-2. [Payment](#2-payment)
-3. [Notification](#3-notification)
++ [Amount](#amount)
++ [Payment](#payment)
++ [Notification](#notification)
 
 ----------
 
-#### 1. Amount
+#### `Amount`
 
 ```js
 {
@@ -75,7 +97,7 @@ For more information about XRP see [the Ripple Wiki page on XRP](https://ripple.
 
 ----------
 
-#### 2. Payment
+#### `Payment`
 
 The `Payment` object is a simplified version of the standard Ripple transaction format. 
 
@@ -146,9 +168,9 @@ When a payment is validated in the Ripple ledger, it will have additional fields
     "direction": "outgoing",
     "state": "validated",
     "result": "tesSUCCESS",
-    "ledger": 4696959,
+    "ledger": "4696959",
     "hash": "55BA3440B1AAFFB64E51F497EFDF2022C90EDB171BBD979F04685904E38A89B7",
-    "timestamp": 1391025100000,
+    "timestamp": "1391025100000",
     "timestamp_human": "2014-01-29T19:51:40.000Z",
     "fee": "0.000012",
     "source_balance_changes": [{
@@ -163,16 +185,20 @@ When a payment is validated in the Ripple ledger, it will have additional fields
     }]
 }
 ```
-+ `result` will be `tesSUCCESS` if the transaction was successfully processed and written into the Ripple ledger. If it was unsuccessful but a transaction fee was claimed the code will start with `tec`. More information about transaction errors can be found on the [Ripple Wiki](https://ripple.com/wiki/Transaction_errors).
-+ `timestamp` is the UNIX timestamp for when the transaction was validated, or the number of milliseconds since January 1st, 1970 (00:00 UTC)
-+ `timestamp_human` is the transaction validation time represented in the format `YYYY-MM-DDTHH:mm:ss.sssZ`. The timezone is always UTC as denoted by the suffix "Z"
-+ `fee` is the network transaction fee charged for processing the transaction. For more information on fees, see the [Ripple Wiki](https://ripple.com/wiki/Transaction_fees), but note that the amount here is [NOT expressed in XRP drops](#no-xrp-drops)
-+ `source_balance_changes` is an array of [`Amount`](#1-amount) objects representing all of the balance changes of the `source_address` caused by the payment. Note that this includes the `fee`
-+ `destination_balance_changes` is an array of [`Amount`](#1-amount) objects representing all of the balance changes of the `destination_address` caused by the payment
++ `direction` - `outgoing` if the payment was submitted by the `address`, `incoming` if the payment was created by another address but directly affects this one, or `passthrough` if the payment was created by another address and only indirectly affects this one (e.g. if a payment ripples through a gateway or market maker those entities will see a `Notification` with the `passthrough` direction)
++ `state` - `validated` if the payment was successfully validated and written into the Ripple Ledger, `failed` otherwise
++ `result` - `tesSUCCESS` if the transaction was successfully processed and written into the Ripple ledger. If it was unsuccessful but a transaction fee was claimed the code will start with `tec`. More information about transaction errors can be found on the [Ripple Wiki](https://ripple.com/wiki/Transaction_errors).
++ `ledger` - the index number of the ledger containing this payment (the word "ledger" is used to refer to the global Ripple Ledger as well as the deltas each time the network comes to consensus and a new state of the global Ripple Ledger is agreed upon)
++ `hash` - The unique hash of the transaction. This is used throughout the Ripple protocol as the key identifier for any transaction
++ `timestamp` - the UNIX timestamp for when the transaction was validated, or the number of milliseconds since January 1st, 1970 (00:00 UTC)
++ `timestamp_human` - the transaction validation time represented in the format `YYYY-MM-DDTHH:mm:ss.sssZ`. The timezone is always UTC as denoted by the suffix "Z"
++ `fee` - the network transaction fee charged for processing the transaction. For more information on fees, see the [Ripple Wiki](https://ripple.com/wiki/Transaction_fees), but note that the amount here is [NOT expressed in XRP drops](#no-xrp-drops)
++ `source_balance_changes` - an array of [`Amount`](#1-amount) objects representing all of the balance changes of the `source_address` caused by the payment. Note that this includes the `fee`
++ `destination_balance_changes` - an array of [`Amount`](#1-amount) objects representing all of the balance changes of the `destination_address` caused by the payment
 
 ----------
 
-#### 3. Notification
+#### `Notification`
 
 Notifications are new type of object not used elsewhere on the Ripple Network but intended to simplify the process of monitoring accounts for new activity.
 
@@ -197,11 +223,18 @@ If there is a new `notification` for an account, it will come in this format:
   "source_transaction_id": "12345",
 }
 ```
-+ `timestamp` is the UNIX timestamp for when the transaction was validated, or the number of milliseconds since January 1st, 1970 (00:00 UTC)
-+ `timestamp_human` is the transaction validation time represented in the format `YYYY-MM-DDTHH:mm:ss.sssZ`. The timezone is always UTC as denoted by the suffix "Z"
-+ `transaction_url` is a URL that can be queried to retrieve the full details of the transaction. If it the transaction is a payment it will be returned in the `Payment` object format, otherwise it will be returned in the standard Ripple transaction format
-+ `next_notification_url` is a URL that can be queried to get the notification following this one for the given address
-+ `source_transaction_id` will be the same as the `source_transaction_id` originally submitted by the sender. Senders should look for the `source_transaction_id`'s of payments they have submitted to `ripple-rest` amongst `Notification`s of validated payments. If the `source_transaction_id` of a particular payment appears in a `Notification` with the `state` listed as `validated`, then that payment has been successfully written into the Ripple Ledger
++ `address` - the Ripple address that is the point of reference for this `Notification`
++ `type` - the resource type created, modified, or deleted by this transaction. The possible types are `payment`, `order`, `trustline`, `address`, and `none` (see the next `Notification` example for details on the `none` type). Currently this API only supports payments but future versions will support the other resource types as well
++ `direction` - `outgoing` if the transaction was submitted by the `address`, `incoming` if the transaction was created by another address but directly affects this one, or `passthrough` if the transaction was created by another address and only indirectly affects this one (e.g. if a payment ripples through a gateway or market maker those entities will see a `Notification` with the `passthrough` direction)
++ `state` - `validated` if the payment was successfully validated and written into the Ripple Ledger, `failed` if there was a problem that prevented the transaction from being validated, `empty` if the `type` is `none` and there are no pending outgoing transactions, `pending` if the `type` is `none` and there are still pending outgoing transactions
++ `result` - `tesSUCCESS` if the transaction was successfully processed and written into the Ripple ledger. If it was unsuccessful but a transaction fee was claimed the code will start with `tec`. More information about transaction errors can be found on the [Ripple Wiki](https://ripple.com/wiki/Transaction_errors)
++ `ledger` - the index number of the ledger containing this payment (the word "ledger" is used to refer to the global Ripple Ledger as well as the deltas each time the network comes to consensus and a new state of the global Ripple Ledger is agreed upon)
++ `hash` - The unique hash of the transaction. This is used throughout the Ripple protocol as the key identifier for any transaction
++ `timestamp` - the UNIX timestamp for when the transaction was validated, or the number of milliseconds since January 1st, 1970 (00:00 UTC)
++ `timestamp_human` - the transaction validation time represented in the format `YYYY-MM-DDTHH:mm:ss.sssZ`. The timezone is always UTC as denoted by the suffix "Z"
++ `transaction_url` - a URL that can be queried to retrieve the full details of the transaction. If it the transaction is a payment it will be returned in the `Payment` object format, otherwise it will be returned in the standard Ripple transaction format
++ `next_notification_url` - a URL that can be queried to get the notification following this one for the given address
++ `source_transaction_id` - this will be the same as the `source_transaction_id` originally submitted by the sender. Senders should look for the `source_transaction_id`'s of payments they have submitted to `ripple-rest` amongst `Notification`s of validated payments. If the `source_transaction_id` of a particular payment appears in a `Notification` with the `state` listed as `validated`, then that payment has been successfully written into the Ripple Ledger
 
 
 If there are no new notifications, the empty `Notification` object will be returned in this format:
@@ -230,21 +263,10 @@ If there are no new notifications, the empty `Notification` object will be retur
 
 ## Available API Routes
 
-1. [Notifications](#1-notifications)
-    + [`GET /api/v1/addresses/:address/next_notification`](#get-apiv1addressesaddressnext_notification)
-    + [`GET /api/v1/addresses/:address/next_notification/:prev_hash`](#get-apiv1addressesaddressnext_notificationprev_hash)
-2. [Payments](#2-payments)
-    + [`GET /api/v1/addresses/:address/payments/:destination_address/:destination_amount`](docs/REF.md#get-apiv1addressesaddresspaymentsdestination_addressdestination_amount)
-    + [`POST /api/v1/addresses/:address/payments`](#post-apiv1addressesaddresspayments)
-    + [`GET /api/v1/addresses/:address/payments/:hash`](#get-apiv1addressesaddresspaymentshash)
-3. [Standard Ripple Transactions](#3-standard-ripple-transactions)
-    + [`GET /api/v1/addresses/:address/txs/:hash`](#get-apiv1addressesaddresstxshash)
-4. [Server Info](#4-server-info)
-    + [`GET /api/v1/status`](#get-apiv1status)
 
 ----------
 
-### 1. Notifications
+### Notifications
 
 __________
 
@@ -319,7 +341,7 @@ Or if there are no new notifications:
 __NOTE:__ This command relies on the connected `rippled`'s historical database so it may respond with an error even for a valid transaction hash if run on a newly started `rippled` server without full history.
 __________
 
-### 2. Payments
+### Payments
 
 __________
 
@@ -373,7 +395,7 @@ Response:
 ```js
 {
     "success": true,
-    "confirmation_token": "55BA3440B1AAFFB64E51F497EFDF2022C90EDB171BBD979F04685904E38A89B7"
+    "source_transaction_id": "fd4d7ee8-3a20-458e-a47b-235fc0d12d1a"
 }
 ```
 Or if there is a problem with the transaction:
@@ -421,7 +443,7 @@ __NOTE:__ This command relies on the connected `rippled`'s historical database s
 
 __________
 
-### 3. Generic Ripple Transactions
+### Generic Ripple Transactions
 
 __________
 
@@ -505,7 +527,16 @@ __NOTE:__ This command relies on the connected `rippled`'s historical database s
 
 __________
 
-### 4. Server Info
+### Server Info
+
+__________
+
+#### GET /api/v1/server/connected
+
+A simple endpoint to detemine if `ripple-rest` is connected to a `rippled` and is ready to serve.
+
+Response:
+`true` if `ripple-rest` is connected to a `rippled` and is ready to serve, `false` otherwise
 
 __________
 
@@ -555,10 +586,3 @@ Or if the server is not connected to the Ripple Network:
 ```
 
 __________
-
-#### GET /api/v1/server/connected
-
-A simple endpoint to detemine if `ripple-rest` is connected to a `rippled` and is ready to serve.
-
-Response:
-`true` if `ripple-rest` is connected to a `rippled` and is ready to serve, `false` otherwise

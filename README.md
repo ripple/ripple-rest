@@ -87,7 +87,7 @@ Even though the test API supports HTTPS connections, __only submit transactions 
 
   `heroku addons:add heroku-postgresql:dev`
 
-## Testing
+## Running Tests
 
 `npm test`
 
@@ -95,22 +95,39 @@ Even though the test API supports HTTPS connections, __only submit transactions 
 
 __This API is still in beta.__ Please open issues for any problems you encounter.
 
-## API Object Formats
+## Doc Contents
 
-1. [Amount](docs/REF.md#1-amount)
-2. [Payment](docs/REF.md#2-payment)
-3. [Notification](docs/REF.md#3-notification)
+#### Guide
 
-## Available API Routes
+1. [__Add new payments to a pending payments database table__](docs/GUIDE.md#1-add-new-transactions-to-a-pending-payments-database-table)
+  + [Minimal schema for pending payments table](docs/GUIDE.md#minimal-schema-for-pending-payments-table)
+  + [Full schema for the pending payments table](docs/GUIDE.md#full-schema-for-the-pending-payments-table)
+2. [__Check the state of the `rippled` connection__](docs/GUIDE.md#2-check-the-state-of-the-rippled-connection)
+3. [__Poll for new Notifications and handle confirmation of incoming and outgoing payments__](docs/GUIDE.md#3-poll-for-and-handle-notifications-of-incoming-and-outgoing-payments)
+  + [Polling for `Notification`s](docs/GUIDE.md#polling-for-notifications)
+  + [Confirming outgoing `Payment`s](docs/GUIDE.md#confirming-outgoing-payments-with-notifications)
+  + [Listening for incoming `Payment`s](docs/GUIDE.md#listening-for-incoming-payments)
+4. [__Submit pending payments to `ripple-rest`__](docs/GUIDE.md#4-submit-pending-payments-to-ripple-rest)
+  + [Robust payment submission](docs/GUIDE.md#robust-payment-submission)
+  + [Preventing duplicate payments](docs/GUIDE.md#preventing-duplicate-payments)
 
-1. [Notifications](docs/REF.md#1-notifications)
-    + [`GET /api/v1/addresses/:address/next_notification`](docs/REF.md#get-apiv1addressesaddressnext_notification)
-    + [`GET /api/v1/addresses/:address/next_notification/:prev_hash`](docs/REF.md#get-apiv1addressesaddressnext_notificationprev_hash)
-2. [Payments](docs/REF.md#2-payments)
-    + [`GET /api/v1/addresses/:address/payments/:destination_address/:destination_amount`](docs/REF.md#get-apiv1addressesaddresspaymentsdestination_addressdestination_amount)
-    + [`POST /api/v1/addresses/:address/payments`](docs/REF.md#post-apiv1addressesaddresspayments)
-    + [`GET /api/v1/addresses/:address/payments/:hash`](docs/REF.md#get-apiv1addressesaddresspaymentshash)
-3. [Standard Ripple Transactions](docs/REF.md#3-standard-ripple-transactions)
-    + [`GET /api/v1/addresses/:address/txs/:hash`](docs/REF.md#get-apiv1addressesaddresstxshash)
-4. [Server Info](docs/REF.md#4-server-info)
-    + [`GET /api/v1/status`](docs/REF.md#get-apiv1status)
+#### API Reference
+
+1. [__Differences from standard Ripple data formats__](docs/REF.md#differences-from-standard-ripple-data-formats)
+2. [__Object Formats__](docs/REF.md#object-formats)
+  + [Amount](docs/REF.md#amount)
+  + [Payment](docs/REF.md#payment)
+  + [Notification](docs/REF.md#notification)
+3. [__Available API Routes__](docs/REF.md#available-api-routes)
+  + [Notifications](docs/REF.md#notifications)
+      + [`GET /api/v1/addresses/:address/next_notification`](docs/REF.md#get-apiv1addressesaddressnext_notification)
+      + [`GET /api/v1/addresses/:address/next_notification/:prev_hash`](docs/REF.md#get-apiv1addressesaddressnext_notificationprev_hash)
+  + [Payments](docs/REF.md#payments)
+      + [`GET /api/v1/addresses/:address/payments/:destination_address/:destination_amount`](docs/REF.mddocs/REF.md#get-apiv1addressesaddresspaymentsdestination_addressdestination_amount)
+      + [`POST /api/v1/addresses/:address/payments`](docs/REF.md#post-apiv1addressesaddresspayments)
+      + [`GET /api/v1/addresses/:address/payments/:hash`](docs/REF.md#get-apiv1addressesaddresspaymentshash)
+  + [Standard Ripple Transactions](docs/REF.md#3-standard-ripple-transactions)
+      + [`GET /api/v1/addresses/:address/txs/:hash`](docs/REF.md#get-apiv1addressesaddresstxshash)
+  + [Server Info](docs/REF.md#server-info)
+      + [`GET /api/v1/server/status`](docs/REF.md#get-apiv1serverstatus)
+      + [`GET /api/v1/server/connected`](docs/REF.md#get-apiv1serverconnected)

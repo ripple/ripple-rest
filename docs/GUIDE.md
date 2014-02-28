@@ -11,15 +11,15 @@ Before starting, please read the [API Reference](REF.md) sections on the [__Diff
 
 `ripple-rest` users should implement the following application logic:
 
-1. [Add new payments to a pending payments database table](#1-add-new-transactions-to-a-pending-payments-database-table)
+1. [__Add new payments to a pending payments database table__](#1-add-new-transactions-to-a-pending-payments-database-table)
   + [Minimal schema for pending payments table](#minimal-schema-for-pending-payments-table)
   + [Full schema for the pending payments table](#full-schema-for-the-pending-payments-table)
-2. [Check the state of the `rippled` connection](#2-check-the-state-of-the-rippled-connection)
-3. [Poll for new Notifications and handle confirmation of incoming and outgoing payments](#3-poll-for-and-handle-notifications-of-incoming-and-outgoing-payments)
+2. [__Check the state of the `rippled` connection__](#2-check-the-state-of-the-rippled-connection)
+3. [__Poll for new Notifications and handle confirmation of incoming and outgoing payments__](#3-poll-for-and-handle-notifications-of-incoming-and-outgoing-payments)
   + [Polling for `Notification`s](#polling-for-notifications)
   + [Confirming outgoing `Payment`s](#confirming-outgoing-payments-with-notifications)
   + [Listening for incoming `Payment`s](#listening-for-incoming-payments)
-4. [Submit pending payments to `ripple-rest`](#4-submit-pending-payments-to-ripple-rest)
+4. [__Submit pending payments to `ripple-rest`__](#4-submit-pending-payments-to-ripple-rest)
   + [Robust payment submission](#robust-payment-submission)
   + [Preventing duplicate payments](#preventing-duplicate-payments)
 
@@ -58,7 +58,7 @@ Please see the API Reference section on the [`Payment`](REF.md#2-payment) format
 
 ### 2. Check the state of the `rippled` connection
 
-Make a simple call to `ripple-rest`'s `/api/v1/server/connected`. This endpoint will return either `true` or `false`, indicating whether `ripple-rest` has successfully connected to a `rippled` and is ready to serve.
+Make a simple call to `ripple-rest`'s [`/api/v1/server/connected`]. This endpoint will return either `true` or `false`, indicating whether `ripple-rest` has successfully connected to a `rippled` and is ready to serve.
 
 ----------
 
