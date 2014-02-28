@@ -51,6 +51,7 @@ describe('lib/pathfind', function(){
       expect(pathfindLib.pathsetToPayments(pathset)).to.deep.equal([{
         source_address: 'rLpq5RcRzA8FU1yUqEPW4xfsdwon7casuM',
         source_tag: '',
+        source_transaction_id: '',
         source_amount: {
           value: '0.040101',
           currency: 'XRP',
@@ -72,6 +73,7 @@ describe('lib/pathfind', function(){
       }, {
         source_address: 'rLpq5RcRzA8FU1yUqEPW4xfsdwon7casuM',
         source_tag: '',
+        source_transaction_id: '',
         source_amount: {
           value: '0.000001002',
           currency: 'BTC',
@@ -175,6 +177,7 @@ describe('lib/pathfind', function(){
       expect(pathfindLib.pathsetToPayments(pathset)).to.deep.equal([{
         source_address: 'rLpq5RcRzA8FU1yUqEPW4xfsdwon7casuM',
         source_tag: '',
+        source_transaction_id: '',
         source_amount: {
           value: '0.000000002485770142298577',
           currency: 'BTC',
@@ -196,6 +199,7 @@ describe('lib/pathfind', function(){
       }, {
         source_address: 'rLpq5RcRzA8FU1yUqEPW4xfsdwon7casuM',
         source_tag: '',
+        source_transaction_id: '',
         source_amount: {
           value: '0.00001215',
           currency: 'CNY',
@@ -217,6 +221,7 @@ describe('lib/pathfind', function(){
       }, {
         source_address: 'rLpq5RcRzA8FU1yUqEPW4xfsdwon7casuM',
         source_tag: '',
+        source_transaction_id: '',
         source_amount: {
           value: '0.000001603183968160318',
           currency: 'EUR',
@@ -238,6 +243,7 @@ describe('lib/pathfind', function(){
       }, {
         source_address: 'rLpq5RcRzA8FU1yUqEPW4xfsdwon7casuM',
         source_tag: '',
+        source_transaction_id: '',
         source_amount: {
           value: '0.000002049979500204998',
           currency: 'USD',
@@ -334,6 +340,7 @@ describe('lib/pathfind', function(){
       expect(pathfindLib.pathsetToPayments(pathset)).to.deep.equal([{
         source_address: 'rLpq5RcRzA8FU1yUqEPW4xfsdwon7casuM',
         source_tag: '',
+        source_transaction_id: '',
         source_amount: {
           value: '0.000052',
           currency: 'XRP',
@@ -355,6 +362,7 @@ describe('lib/pathfind', function(){
       }, {
         source_address: 'rLpq5RcRzA8FU1yUqEPW4xfsdwon7casuM',
         source_tag: '',
+        source_transaction_id: '',
         source_amount: {
           value: '0.000000001287184615384615',
           currency: 'BTC',
@@ -376,6 +384,7 @@ describe('lib/pathfind', function(){
       }, {
         source_address: 'rLpq5RcRzA8FU1yUqEPW4xfsdwon7casuM',
         source_tag: '',
+        source_transaction_id: '',
         source_amount: {
           value: '0.00000625248',
           currency: 'CNY',
