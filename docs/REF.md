@@ -511,6 +511,8 @@ __________
 
 #### GET /api/v1/server/status
 
+Retrieve the full server status, including information about the connected `rippled`.
+
 Response:
 ```js
 {
@@ -556,5 +558,7 @@ __________
 
 #### GET /api/v1/server/connected
 
+A simple endpoint to detemine if `ripple-rest` is connected to a `rippled` and is ready to serve.
+
 Response:
-`true` if `ripple-rest` is connected to a `rippled` and is ready to server, `false` otherwise
+`true` if `ripple-rest` is connected to a `rippled` and is ready to serve, `false` otherwise
