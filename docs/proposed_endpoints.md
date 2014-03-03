@@ -314,11 +314,11 @@ TODO
       "type": "string",
       "pattern": "^\d*$"
     },
-    "take_only_existing_orders": {
+    "immediate_or_cancel": {
       "description": "If set to true this order will only take orders that are available at the time of execution and will not create an entry in the Ripple Ledger",
       "type": "boolean"
     },
-    "take_only_existing_orders_that_fill_buy": {
+    "fill_or_kill": {
       "description": "If set to true this order will only take orders that fill the buy_amount and are available at the time of execution and will not create an entry in the Ripple Ledger",
       "type": "boolean"
     },
@@ -326,8 +326,8 @@ TODO
       "description": "If set to true this order will sell up to the sell_amount, even if the amount bought exceeds the buy_amount",
       "type": "boolean"
     },
-    "replace_sequence": {
-      "description": "An optional parameter to replace an outstanding order",
+    "cancel_replace": {
+      "description": "If this is set to the sequence number of an outstanding order, that order will be cancelled and replaced with this one",
       "type": "string",
       "pattern": "^d*$"
     },
@@ -335,15 +335,6 @@ TODO
       "description": "The sequence number of this order from the perspective of the seller_account. The seller_account and the sequence number uniquely identify the order in the Ripple Ledger",
       "type": "string",
       "pattern": "^\d*$"
-    },
-    "ledger": {
-      "description": "The string representation of the index number of the ledger when this order was last modified",
-      "type": "string",
-      "pattern": "^\d+$"
-    },
-    "timestamp": {
-      "description": "The timestamp representing when the order was last modified",
-      "$ref": "Timestamp"
     },
     "fee": {
       "description": "The Ripple Network transaction fee, represented in whole XRP (NOT \"drops\", or millionths of an XRP, which is used elsewhere in the Ripple protocol) used to create the order",
