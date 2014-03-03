@@ -4,183 +4,337 @@
 /api/v1
 ```js
 {
-  "accounts_url":                   ".../api/v1/accounts/{account}",
-  "ledgers_url":                    ".../api/v1/ledgers/{ledger_index}",
-  "server_info_url":                ".../api/v1/server",
-  "account_balances_url":           ".../api/v1/accounts/{account}/balances",
-  "account_payments_url":           ".../api/v1/accounts/{account}/payments",
-  "account_payments_outgoing_url":  ".../api/v1/accounts/{account}/payments/outgoing",
-  "account_payments_incoming_url":  ".../api/v1/accounts/{account}/payments/incoming",
-  "account_payment_quotes_url":     ".../api/v1/accounts/{account}/payments/quotes",
-  "account_payment_submission_url": ".../api/v1/accounts/{account}/payments"
-  "account_orders_url":             ".../api/v1/accounts/{account}/orders",
-  "account_order_submission_url":   ".../api/v1/accounts/{account}/orders"
-  "account_trustlines_url":         ".../api/v1/accounts/{account}/trustlines"
+  "api_schema_urls": {
+    "amount_schema_url":              ".../api/v1/schemas/amount.json",
+    "settings_schema_url":            ".../api/v1/schemas/settings.json",
+    "payment_schema_url":             ".../api/v1/schemas/payment.json",
+    "trustline_schema_url":           ".../api/v1/schemas/trustline.json",
+    "order_schema_url":               ".../api/v1/schemas/order.json"
+  },
+  "get_urls": {
+    "accounts_url":                   ".../api/v1/accounts/{account}",
+    "account_settings_url":           ".../api/v1/accounts/{account}/settings",
+    "account_balances_url":           ".../api/v1/accounts/{account}/balances{?currency,issuer,limit,page}",
+    "account_payments_url":           ".../api/v1/accounts/{account}/payments{/hash,source_transaction_id}",
+    "account_payments_browse_url":    ".../api/v1/accounts/{account}/payments{?start_ledger,end_ledger,source_account,destination_account,latest_first,limit,page}"
+    "account_payments_outgoing_url":  ".../api/v1/accounts/{account}/payments/outgoing{?start_ledger,end_ledger,destination_account,latest_first,limit,page}",
+    "account_payments_incoming_url":  ".../api/v1/accounts/{account}/payments/incoming{?start_ledger,end_ledger,source_account,latest_first,limit,page}",
+    "account_payments_pending_url":   ".../api/v1/accounts/{account}/payments/pending",
+    "account_payment_quotes_url":     ".../api/v1/accounts/{account}/payments/quotes/{\"sender_pays_fees\",\"receiver_pays_fees\"}/{destination_account}/{destination_amount,source_amount}",
+    "account_trustlines_url":         ".../api/v1/accounts/{account}/trustlines{?currency,counterparty,limit,page}",
+    "account_orders_url":             ".../api/v1/accounts/{account}/orders{/sequence}",
+    "account_orders_active_url":      ".../api/v1/accounts/{account}/orders/active{?buy_currency,sell_currency,limit,page}",
+    "account_orders_exercised_url":   ".../api/v1/accounts/{account}/orders/excersied{?start_ledger,end_ledger,latest_first,limit,page}",
+    "orderbooks_url":                 ".../api/v1/orders/{buy_currency}/{buy_issuer}/{sell_currency}/{sell_issuer}"
+    "server_info_url":                ".../api/v1/server",
+    "server_connected_url":           ".../api/v1/server/connected",
+    "uuid_generator_url":             ".../api/v1/uuid"
+  },
+  "post_urls": {
+    "account_settings_change_url":    ".../api/v1/accounts/{account}/settings",
+    "payment_submission_url":         ".../api/v1/payments",
+    "order_submission_url":           ".../api/v1/orders",
+    "trustline_change_url":           ".../api/v1/trustlines",
+  }
 }
 ```
 
-### Accounts
+### Schemas
 
-/api/v1/accounts/{account}
+#### RippleAddress
+
 ```js
 {
-  "account":                "{account}",
-  "balances_url":           ".../api/v1/accounts/{account}/balances",
-  "payments_url":           ".../api/v1/accounts/{account}/payments",
-  "payments_outgoing_url":  ".../api/v1/accounts/{account}/payments/outgoing",
-  "payments_incoming_url":  ".../api/v1/accounts/{account}/payments/incoming",
-  "payment_quotes_url":     ".../api/v1/accounts/{account}/payments/quotes",
-  "payment_submission_url": ".../api/v1/accounts/{account}/payments"
-  "orders_url":             ".../api/v1/accounts/{account}/orders",
-  "order_submission_url":   ".../api/v1/accounts/{account}/orders"
-  "trustlines_url":         ".../api/v1/accounts/{account}/trustlines"
+  "$schema": "http://json-schema.org/draft-04/schema#",
+  "title": "RippleAddress",
+  "description": "A Ripple address",
+  "type": "string",
+  "pattern": "r[rpshnaf39wBUDNEGHJKLM4PQRST7VWXYZ2bcdeCg65jkm8oFqi1tuvAxyz]{26,34}"
 }
 ```
 
-### Balances
-
-/api/v1/accounts/{account}/balances
+#### FloatString
 ```js
-[
-  {
-    "value": "100",
-    "currency": "XRP",
-    "issuer": ""
-  },
-  {
-    "value": "35",
-    "currency": "USD",
-    "issuer": "rvYAfWj5gh67oV6fW32ZzP3Aw4Eubs59B"
-  }
-]
+{
+  "$schema": "http://json-schema.org/draft-04/schema#",
+  "title": "FloatString",
+  "description": "A string representation of a floating point number",
+  "type": "string",
+  "pattern": "^[-+]?[0-9]*\.?[0-9]+([eE][-+]?[0-9]+)?$"
+}
 ```
 
-### Payments
-
-/api/v1/accounts/{account}/payments
-/api/v1/accounts/{account}/payments/incoming
-/api/v1/accounts/{account}/payments/outgoing
+#### UINT32
 ```js
-[
-  {
-    "source_account": "{account}",
-    "destination_account": "rvYAfWj5gh67oV6fW32ZzP3Aw4Eubs59B",
-    "source_amount": {
-      "value": "50",
-      "currency": "XRP",
-      "issuer": ""
+{
+  "$schema": "http://json-schema.org/draft-04/schema#",
+  "title": "UINT32",
+  "description": "A string representation of an unsigned 32-bit integer (0-4294967295)",
+  "type": "string",
+  "pattern": "^(429496729[0-5]|42949672[0-8]\d|4294967[01]\d{2}|429496[0-6]\d{3}|42949[0-5]\d{4}|4294[0-8]\d{5}|429[0-3]\d{6}|42[0-8]\d{7}|4[01]\d{8}|[1-3]\d{9}|[1-9]\d{8}|[1-9]\d{7}|[1-9]\d{6}|[1-9]\d{5}|[1-9]\d{4}|[1-9]\d{3}|[1-9]\d{2}|[1-9]\d|\d)$"
+}
+```
+
+#### Hash256
+```js
+{
+  "$schema": "http://json-schema.org/draft-04/schema#",
+  "title": "Hash256",
+  "description": "The hex representation of a 256-bit hash",
+  "type": "string",
+  "pattern": "^[A-Fa-f0-9]{64}$"
+}
+```
+
+#### Timestamp
+```js
+  "$schema": "http://json-schema.org/draft-04/schema#",
+  "title": "Timestamp",
+  "description": "An ISO 8601 combined date and time timestamp",
+  "type": "string",
+  "pattern": "^\d{4}-[0-1]\d-[0-3][\d]T(2[0-3]|[01]\d):[0-5]\d:[0-5]\d\+(2[0-3]|[01]\d):[0-5]\d$"
+```
+
+#### Amount
+```js
+{
+  "$schema": "http://json-schema.org/draft-04/schema#",
+  "title": "Amount",
+  "description": "An Amount on the Ripple Protocol, used also for XRP in the ripple-rest API",
+  "type": "object",
+  "properties": {
+    "value": {
+      "description": "The quantity of the currency, denoted as a string to retain floating point precision",
+      "type": "string",
+      "$ref": "FloatString"
     },
-    "destination_amount": {
-      "value": "1",
-      "currency": "USD",
-      "issuer": ""
+    "currency": {
+      "description": "The currency expressed as a three-character code",
+      "type": "string",
+      "pattern": "^[a-zA-Z]{3}$"
+    },
+    "issuer": {
+      "description": "The Ripple address of the currency's issuer or gateway, or an empty string if the currency is XRP",
+      "type": "string",
+      "pattern": "^$|^r[rpshnaf39wBUDNEGHJKLM4PQRST7VWXYZ2bcdeCg65jkm8oFqi1tuvAxyz]{26,34}$"
+    }
+  },
+  "required": ["value", "currency"]
+}
+```
+
+#### Account Settings
+
+TODO
+
+```js
+{
+  "$schema": "http://json-schema.org/draft-04/schema#",
+  "title": "AccountSettings",
+  "description": "An object ",
+  "type": "object",
+  "properties": {
+
+  },
+  "required": []
+}
+```
+
+#### Payment
+
+```js
+{
+  "$schema": "http://json-schema.org/draft-04/schema#",
+  "title": "Payment",
+  "description": "A flattened Payment object used by the ripple-rest API",
+  "type": "object",
+  "properties": {
+    "source_account": {
+      "description": "The Ripple address of the Payment sender",
+      "$ref": "RippleAddress"
+    },
+    "source_tag": {
+      "description": "A string representing an unsigned 32-bit integer most commonly used to refer to a sender's hosted account at a Ripple gateway",
+      "type": "string",
+      "$ref": "UINT32"
+    },
+    "source_transaction_id": {
+      "description": "A client-supplied unique identifier (ideally a UUID) for this transaction used to prevent duplicate payments and help confirm the transaction's final status",
+      "type": "string",
+      "pattern": "^[ -~]{1,255}"
+    },
+    "source_amount": {
+      "description": "An optional amount that can be specified to constrain cross-currency payments",
+      "$ref": "Amount"
+    },
+    "source_slippage": {
+      "description": "An optional cushion for the source_amount to increase the likelihood that the payment will succeed. The source_account will never be charged more than source_amount.value + source_slippage",
+      "$ref": "FloatString"
+    },
+    "destination_account": {
+      "$ref": "RippleAddress"
+    },
+    "destination_tag": {
+      "description": "A string representing an unsigned 32-bit integer most commonly used to refer to a receiver's hosted account at a Ripple gateway",
+      "$ref": "UINT32"
+    },
+    "destination_amount ": {
+      "description": "The amount the destination_account will receive",
+      "$ref": "Amount"
+    },
+    "invoice_id": {
+      "description": "A 256-bit hash that can be used to identify a particular payment",
+      "$ref": "Hash256"
+    },
+    "paths ": {
+      "description": "A \"stringified\" version of the Ripple PathSet structure that users should treat as opaque",
+      "type": "string"
+    },
+    "partial_payment": {
+      "description": "A boolean that, if set to true, indicates that this payment should go through even if the whole amount cannot be delivered because of a lack of liquidity or funds in the source_account account",
+      "type": "boolean"
+    },
+    "no_direct_ripple": {
+      "description": "A boolean that can be set to true if paths are specified and the sender would like the Ripple Network to disregard any direct paths from the source_account to the destination_account. This may be used to take advantage of an arbitrage opportunity or by gateways wishing to issue balances from a hot wallet to a user who has mistakenly set a trustline directly to the hot wallet",
+      "type": "boolean"
+    },
+    "direction": {
+      "description": "The direction of the payment, from the perspective of the account being queried. Possible values are \"incoming\", \"outgoing\", and \"passthrough\"",
+      "type": "string",
+      "pattern": "^incoming|outgoing|passthrough$"
+    },
+    "state": {
+      "description": "The state of the payment from the perspective of the Ripple Ledger. Possible values are \"validated\" and \"failed\"",
+      "type": "string",
+      "pattern": "^validated|failed$" 
+    },
+    "result": {
+      "description": "The rippled code indicating the success or failure type of the payment. The code \"tesSUCCESS\" indicates that the payment was successfully validated and written into the Ripple Ledger. All other codes will begin with the following prefixes: \"tec\", \"tef\", \"tel\", or \"tej\"",
+      "type": "string",
+      "pattern": "te[cfjlms][A-Za-z_]+"
+    },
+    "ledger": {
+      "description": "The string representation of the index number of the ledger containing the validated or failed payment. Failed payments will only be written into the Ripple Ledger if they fail after submission to a rippled and a Ripple Network fee is claimed",
+      "type": "string",
+      "pattern": "^\d+$"
+    },
+    "hash": {
+      "description": "The 256-bit hash of the payment. This is used throughout the Ripple protocol as the unique identifier for the transaction",
+      "$ref": "Hash256"
+    },
+    "timestamp": {
+      "description": "The timestamp representing when the payment was validated and written into the Ripple ledger",
+      "$ref": "Timestamp"
+    },
+    "fee": {
+      "description": "The Ripple Network transaction fee, represented in whole XRP (NOT \"drops\", or millionths of an XRP, which is used elsewhere in the Ripple protocol)",
+      "$ref": "FloatString"
+    },
+    "source_balance_changes": {
+      "description": "Parsed from the validated transaction metadata, this array represents all of the changes to balances held by the source_account. Most often this will have one amount representing the Ripple Network fee and, if the source_amount was not XRP, one amount representing the actual source_amount that was sent",
+      "type": "array",
+      "items": {
+        "$ref": "Amount"
+      }
+    },
+    "destination_balance_changes": {
+      "description": "Parsed from the validated transaction metadata, this array represents the changes to balances held by the destination_account. For those receiving payments this is important to check because if the partial_payment flag is set this value may be less than the destination_amount",
+      "type": "array",
+      "items": {
+        "$ref": "Amount"
+      }
+    }
+  },
+  "required": ["source_account", "destination_account", "destination_amount", "source_transaction_id"]
+}
+```
+
+#### Trustline
+
+TODO
+
+```js
+{
+  "$schema": "http://json-schema.org/draft-04/schema#",
+  "title": "Trustline",
+  "description": "A simplified Trustline object used by the ripple-rest API",
+  "type": "object",
+  "properties": {
+
+  },
+  "required": []
+}
+```
+
+#### Order
+
+TODO
+
+```js
+{
+  "$schema": "http://json-schema.org/draft-04/schema#",
+  "title": "Order",
+  "description": "A simplified Order object used by the ripple-rest API (note that \"orders\" are referred to elsewhere in the Ripple protocol as \"offers\")",
+  "type": "object",
+  "properties": {
+
+  },
+  "required": []
+}
+```
+
+### Payment Submission Options
+
+Irrespective of the option(s) chosen, `.../api/v1/accounts/{account}/payments/quotes` will return `Payment` objects with the `source_transaction_id` already set with a UUID. If clients want to construct their own `Payment` objects they can get UUIDs for them from the `.../api/v1/uuid` endpoint, if they generate them programmatically in their application
+
+#### Option 1: Monitor Pending and Validated Payments
+
+1. Submit a payment to `.../api/v1/payments` with `source_transaction_fee` set to identify it in the following lists
+2. Payment immediately appears in the list at `.../api/v1/accounts/{account}/payments/pending`
+3. When payment is validated it appears in the list at `.../api/v1/accounts/{account}/payments/outgoing`
+4. To poll for validated outgoing payments client can use query string parameter `?start_ledger=...` and continuously check for newly validated payments after a specific ledger index
+
+#### Option 2: Montior Specific Status URL
+
+1. Submit a payment to `.../api/v1/payments` with `source_transaction_fee` set
+2. Response from POST request includes `"status_url":".../api/v1/accounts/{account}/payments/{source_transaction_id}"` (whether or not the POST response is received, this URL can be used with the `source_transaction_id` to get information about the payment)
+3. Querying that `status_url` at first will return:
+  ```js
+  {
+    "success": true,
+    "payment": {
+      "state": "pending",
+      /* ... */
     }
   }
-]
-```
-
-Query string parameters can filter results:
-
-/api/v1/accounts/{account}/payments?limit=10&descending=true
-/api/v1/accounts/{account}/payments?start=2014-02-01T00:00:00+00:00&end=2014-02-28T00:00:00+00:00
-
-Or you can look for a specifig result:
-
-...by UUID...
-
-/api/v1/accounts/{account}/payments/5e018001-880c-4520-bb3a-5afc268c8008
-
-...or by hash...
-
-/api/v1/accounts/{account}/payments/46A680AB1683DF4E9E740C0C39117B798DF4B1A61FEF21E18DBA1F47740DBFD9
-
-#### Submitting a Payment
-
-POST /api/v1/accounts/{account}/payments
-
-Request
-```js
-{
-  /* ... */
-  "source_transaction_id": "5e018001-880c-4520-bb3a-5afc268c8008"
-}
-```
-Response
-```js
-{
-  "success": true,
-  "status_url": "/api/v1/accounts/{account}/payments/5e018001-880c-4520-bb3a-5afc268c8008"
-}
-```
-
-/api/v1/accounts/{account}/payments/5e018001-880c-4520-bb3a-5afc268c8008
-```js
-{
-  "status": "queued",
-  "source_transaction_id": "5e018001-880c-4520-bb3a-5afc268c8008"
-  /* ... */
-}
-```
-...after 2 seconds...
-```js
-{
-  "status": "pending",
-  "source_transaction_id": "5e018001-880c-4520-bb3a-5afc268c8008"
-  /* ... */
-}
-```
-...after another 10 seconds...
-```js
-{
-  "status": "validated",
-  "source_transaction_id": "5e018001-880c-4520-bb3a-5afc268c8008"
-  /* ... */
-}
-```
-...after any amount of time (until you delete the database)...
-```js
-{
-  "status": "validated",
-  "source_transaction_id": "5e018001-880c-4520-bb3a-5afc268c8008"
-  /* ... */
-}
-```
-
-#### Getting a Payment Quote (i.e. Ripple Path Find)
-
-/api/v1/accounts/{account}/payments/quotes/{destination_account}/{destination_amount}
-```js
-[
+  ```
+  ...then after a few seconds...
+  ```js
   {
-    /* XRP Payment */
-  },
-  {
-    /* USD Payment */
+    "success": true,
+    "payment": {
+      "state": "validated",
+      /* ... */
+    }
   }
-]
-```
-
-### Orders
-
-/api/v1/accounts/{account}/orders
-```js
-[
+  ```
+  ...or...
+  ```js
   {
-    /* Outstanding Order */
-  },
-  {
-    /* Outstanding Order */
+    "success": true,
+    "payment": {
+      "state": "failed",
+      /* ... */
+    }
   }
-]
-```
+  ```
 
-Filter results with query string parameters:
+#### Option 3: Set `ledger_timeout` and Receive Confirmation as POST Request Response
 
-/api/v1/accounts/{account}/orders?bid_currency=USD
-/api/v1/accounts/{account}/orders?ask_currency=XRP
-/api/v1/accounts/{account}/orders?limit=10&descending=true
-/api/v1/accounts/{account}/payments?start=2014-02-01T00:00:00+00:00&end=2014-02-28T00:00:00+00:00
+1. Submit a payment to `.../api/v1/payments` with `source_transaction_fee` set as well as the `ledger_timeout` (ideally set at a low number such as 3)
+2. `ripple-rest` will submit the payment with the `LastLedgerSequence` set at the current ledger plus the `ledger_timeout` value
+3. Within the number of ledgers specified by the `ledger_timeout` the POST request response will come back with the full payment object either `validated` or `failed`. Because ledgers are guaranteed to close every 20 seconds, this allows the client to effectively specify the duration they are willing to wait for the POST response
+4. If the payment failed because the `LastLedgerSequence` was reached the client can resubmit it
 
-__[Can you look up old orders?]__
 
-### Trustlines
+
