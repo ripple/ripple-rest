@@ -4,37 +4,35 @@
 /api/v1
 ```js
 {
-  "api_schema_urls": {
-    "amount_schema_url":              ".../api/v1/schemas/amount.json",
-    "settings_schema_url":            ".../api/v1/schemas/settings.json",
-    "payment_schema_url":             ".../api/v1/schemas/payment.json",
-    "trustline_schema_url":           ".../api/v1/schemas/trustline.json",
-    "order_schema_url":               ".../api/v1/schemas/order.json"
-  },
-  "get_urls": {
-    "accounts_url":                   ".../api/v1/accounts/{account}",
-    "account_settings_url":           ".../api/v1/accounts/{account}/settings",
-    "account_balances_url":           ".../api/v1/accounts/{account}/balances{?currency,issuer,limit,page}",
-    "account_payments_url":           ".../api/v1/accounts/{account}/payments{/hash,source_transaction_id}",
-    "account_payments_browse_url":    ".../api/v1/accounts/{account}/payments{?start_ledger,end_ledger,source_account,destination_account,latest_first,limit,page}"
-    "account_payments_outgoing_url":  ".../api/v1/accounts/{account}/payments/outgoing{?start_ledger,end_ledger,destination_account,latest_first,limit,page}",
-    "account_payments_incoming_url":  ".../api/v1/accounts/{account}/payments/incoming{?start_ledger,end_ledger,source_account,latest_first,limit,page}",
-    "account_payments_pending_url":   ".../api/v1/accounts/{account}/payments/pending",
-    "account_payment_quotes_url":     ".../api/v1/accounts/{account}/payments/quotes/{\"sender_pays_fees\",\"receiver_pays_fees\"}/{destination_account}/{destination_amount,source_amount}",
-    "account_trustlines_url":         ".../api/v1/accounts/{account}/trustlines{?currency,counterparty,limit,page}",
-    "account_orders_url":             ".../api/v1/accounts/{account}/orders{/sequence}",
-    "account_orders_active_url":      ".../api/v1/accounts/{account}/orders/active{?buy_currency,sell_currency,limit,page}",
-    "account_orders_exercised_url":   ".../api/v1/accounts/{account}/orders/excersied{?start_ledger,end_ledger,latest_first,limit,page}",
-    "orderbooks_url":                 ".../api/v1/orders/{buy_currency}/{buy_issuer}/{sell_currency}/{sell_issuer}"
-    "server_info_url":                ".../api/v1/server",
-    "server_connected_url":           ".../api/v1/server/connected",
-    "uuid_generator_url":             ".../api/v1/uuid"
-  },
-  "post_urls": {
-    "account_settings_change_url":    ".../api/v1/accounts/{account}/settings",
-    "payment_submission_url":         ".../api/v1/payments",
-    "order_submission_url":           ".../api/v1/orders",
-    "trustline_change_url":           ".../api/v1/trustlines",
+  "endpoints": {
+    "GET": {
+      "accounts":                   ".../api/v1/accounts/{account}",
+      "account_settings":           ".../api/v1/accounts/{account}/settings",
+      "account_balances":           ".../api/v1/accounts/{account}/balances{?currency,issuer,limit,page}",
+      "account_payments":           ".../api/v1/accounts/{account}/payments{/hash,source_transaction_id}",
+      "account_payments_browse":    ".../api/v1/accounts/{account}/payments{?start_ledger,end_ledger,source_account,destination_account,latest_first,limit,page}"
+      "account_payments_outgoing":  ".../api/v1/accounts/{account}/payments/outgoing{?start_ledger,end_ledger,destination_account,latest_first,limit,page}",
+      "account_payments_incoming":  ".../api/v1/accounts/{account}/payments/incoming{?start_ledger,end_ledger,source_account,latest_first,limit,page}",
+      "account_payments_pending":   ".../api/v1/accounts/{account}/payments/pending",
+      "account_payment_quotes":     ".../api/v1/accounts/{account}/payments/quotes/{\"sender_pays_fees\",\"receiver_pays_fees\"}/{destination_account}/{destination_amount,source_amount}",
+      "account_trustlines":         ".../api/v1/accounts/{account}/trustlines{?currency,counterparty,limit,page}",
+      "account_orders":             ".../api/v1/accounts/{account}/orders{/sequence}",
+      "account_orders_active":      ".../api/v1/accounts/{account}/orders/active{?buy_currency,sell_currency,limit,page}",
+      "account_orders_exercised":   ".../api/v1/accounts/{account}/orders/excersied{?start_ledger,end_ledger,latest_first,limit,page}",
+      "orderbook":                  ".../api/v1/orders/{buy_currency}/{buy_issuer}/{sell_currency}/{sell_issuer}"
+      "server_info":                ".../api/v1/server",
+      "server_connected":           ".../api/v1/server/connected",
+      "uuid_generator":             ".../api/v1/uuid"
+    },
+    "POST": {
+      "account_settings_change":    ".../api/v1/accounts/{account}/settings",
+      "payment_submission":         ".../api/v1/payments",
+      "order_submission":           ".../api/v1/orders",
+      "trustline_change":           ".../api/v1/trustlines"
+    },
+    "DELETE": {
+      "order_cancellation":         ".../api/v1/accounts/{account}/orders{/sequence}"
+    }
   }
 }
 ```
@@ -47,7 +45,7 @@
 {
   "$schema": "http://json-schema.org/draft-04/schema#",
   "title": "RippleAddress",
-  "description": "A Ripple address",
+  "description": "A Ripple account address",
   "type": "string",
   "pattern": "r[rpshnaf39wBUDNEGHJKLM4PQRST7VWXYZ2bcdeCg65jkm8oFqi1tuvAxyz]{26,34}"
 }
@@ -114,7 +112,7 @@
       "pattern": "^[a-zA-Z]{3}$"
     },
     "issuer": {
-      "description": "The Ripple address of the currency's issuer or gateway, or an empty string if the currency is XRP",
+      "description": "The Ripple account address of the currency's issuer or gateway, or an empty string if the currency is XRP",
       "type": "string",
       "pattern": "^$|^r[rpshnaf39wBUDNEGHJKLM4PQRST7VWXYZ2bcdeCg65jkm8oFqi1tuvAxyz]{26,34}$"
     }
@@ -150,7 +148,7 @@ TODO
   "type": "object",
   "properties": {
     "source_account": {
-      "description": "The Ripple address of the Payment sender",
+      "description": "The Ripple account address of the Payment sender",
       "$ref": "RippleAddress"
     },
     "source_tag": {
@@ -277,9 +275,42 @@ TODO
   "description": "A simplified Order object used by the ripple-rest API (note that \"orders\" are referred to elsewhere in the Ripple protocol as \"offers\")",
   "type": "object",
   "properties": {
-
+    "seller_account": {
+      "description": "The Ripple account address of the order's creator",
+      "$ref": "RippleAddress"
+    },
+    "sell_amount": {
+      "description": "The amount of currency being sold",
+      "$ref": "Amount"
+    },
+    "buy_amount": {
+      "description": "The amount of currency the seller_account is seeking to buy",
+      "$ref": "Amount"
+    },
+    "millisecond_timeout": {
+      "description": "A string representation of the number of milliseconds after submission during which the order should be considered active",
+      "type": "string",
+      "pattern": "^\d*$"
+    },
+    "ledger_timeout": {
+      "description": "A string representation of the number of ledger closes after submission during which the order should be considered active",
+      "type": "string",
+      "pattern": "^\d*$"
+    },
+    "take_only_existing_orders": {
+      "description": "If set to true this order will only take orders that are available at the time of execution and will not create an entry in the Ripple Ledger",
+      "type": "boolean"
+    },
+    "take_only_existing_orders_that_fill_buy": {
+      "description": "If set to true this order will only take orders that fill the buy_amount and are available at the time of execution and will not create an entry in the Ripple Ledger",
+      "type": "boolean"
+    },
+    "maximize_sell": {
+      "description": "If set to true this order will sell up to the sell_amount, even if the amount bought exceeds the buy_amount",
+      "type": "boolean"
+    }
   },
-  "required": []
+  "required": ["buy_account", "buy_amount", "sell_amount"]
 }
 ```
 
