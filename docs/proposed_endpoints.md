@@ -1,7 +1,9 @@
 
 ### API
 
-/api/v1
+The main goal of these proposed changes is to make this API so easy for integrators to use that they could get started without even needing to read the documentation. Similar to [Github's API](https://api.github.com), querying the root of the API would return a list of all available endpoints. All of the endpoints should be straightforward enough that little or no documentation is needed to understand how to use them. Also, all of the data formats used will be represented with [JSON Schema](http://json-schema.org/), which rolls field descriptions and input validation into one simple format (see [Schemas](#schemas)).
+
+`GET .../api/v1`
 ```js
 {
   "endpoints": {
@@ -36,6 +38,57 @@
   }
 }
 ```
+
+### Changes from previous spec
+
+The main change from the previous `ripple-rest` spec is the replacement of the `Notification` object and `next_notification` endpoint with simpler endpoints allowing direct access to the various transaction and resource types. To monitor for incoming payments one can just poll the `.../payments/incoming` endpoint, which will return a list of payments. The two proposed options (which are not mutually exclusive) for confirming that an outgoing payment has been validated are outlined in the next section.
+
+### Payment Submission Options
+
+Irrespective of the option(s) chosen, `.../api/v1/accounts/{account}/payments/quotes` will return `Payment` objects with the `source_transaction_id` already set with a UUID. If clients want to construct their own `Payment` objects they can get UUIDs for them from the `.../api/v1/uuid` endpoint, if they generate them programmatically in their application
+
+#### Option 1: Monitor Pending and Validated Payments
+
+1. Submit a payment to `.../api/v1/payments` with `source_transaction_fee` set to identify it in the following lists
+2. Response to POST request contains error or an okay message
+3. Payment immediately appears in the list at `.../api/v1/accounts/{account}/payments/pending`
+4. When payment is validated it appears in the list at `.../api/v1/accounts/{account}/payments/outgoing`
+5. To poll for validated outgoing payments client can use query string parameter `?start_ledger=...` and continuously check for newly validated payments after a specific ledger index
+
+#### Option 2: Montior Specific Status URL
+
+1. Submit a payment to `.../api/v1/payments` with `source_transaction_fee` set
+2. Response from POST request includes an error message or a `"status_url":".../api/v1/accounts/{account}/payments/{source_transaction_id}"` (whether or not the POST response is received, this URL can be used with the `source_transaction_id` to get information about the payment)
+3. Querying that `status_url` at first will return:
+  ```js
+  {
+    "success": true,
+    "payment": {
+      "state": "pending",
+      /* ... */
+    }
+  }
+  ```
+  ...then after a few seconds...
+  ```js
+  {
+    "success": true,
+    "payment": {
+      "state": "validated",
+      /* ... */
+    }
+  }
+  ```
+  ...or...
+  ```js
+  {
+    "success": true,
+    "payment": {
+      "state": "failed",
+      /* ... */
+    }
+  }
+  ```
 
 ### Schemas
 
@@ -275,7 +328,24 @@ TODO
   "description": "A simplified Trustline object used by the ripple-rest API",
   "type": "object",
   "properties": {
+    "trusting_account": {
 
+    },
+    "trusted_account": {
+
+    },
+    "trust_limit": {
+
+    },
+    "balance": {
+
+    },
+    "authorized": {
+
+    },
+    "allow_rippling": {
+
+    }  
   },
   "required": []
 }
@@ -345,48 +415,4 @@ TODO
 }
 ```
 
-### Payment Submission Options
 
-Irrespective of the option(s) chosen, `.../api/v1/accounts/{account}/payments/quotes` will return `Payment` objects with the `source_transaction_id` already set with a UUID. If clients want to construct their own `Payment` objects they can get UUIDs for them from the `.../api/v1/uuid` endpoint, if they generate them programmatically in their application
-
-#### Option 1: Monitor Pending and Validated Payments
-
-1. Submit a payment to `.../api/v1/payments` with `source_transaction_fee` set to identify it in the following lists
-2. Payment immediately appears in the list at `.../api/v1/accounts/{account}/payments/pending`
-3. When payment is validated it appears in the list at `.../api/v1/accounts/{account}/payments/outgoing`
-4. To poll for validated outgoing payments client can use query string parameter `?start_ledger=...` and continuously check for newly validated payments after a specific ledger index
-
-#### Option 2: Montior Specific Status URL
-
-1. Submit a payment to `.../api/v1/payments` with `source_transaction_fee` set
-2. Response from POST request includes `"status_url":".../api/v1/accounts/{account}/payments/{source_transaction_id}"` (whether or not the POST response is received, this URL can be used with the `source_transaction_id` to get information about the payment)
-3. Querying that `status_url` at first will return:
-  ```js
-  {
-    "success": true,
-    "payment": {
-      "state": "pending",
-      /* ... */
-    }
-  }
-  ```
-  ...then after a few seconds...
-  ```js
-  {
-    "success": true,
-    "payment": {
-      "state": "validated",
-      /* ... */
-    }
-  }
-  ```
-  ...or...
-  ```js
-  {
-    "success": true,
-    "payment": {
-      "state": "failed",
-      /* ... */
-    }
-  }
-  ```
