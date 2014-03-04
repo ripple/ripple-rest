@@ -10,11 +10,12 @@ The main goal of these proposed changes is to make this API so easy for integrat
     "GET": {
       "accounts":                     ".../api/v1/accounts/{account}",
       "account_settings":             ".../api/v1/accounts/{account}/settings",
+      "account_activity_url":         ".../api/v1/accounts/{account}/activity{?start_ledger,end_ledger,previous_transaction_hash,results_per_page,page}",
       "account_balances":             ".../api/v1/accounts/{account}/balances{?currency,issuer,page}",
       "account_payments":             ".../api/v1/accounts/{account}/payments{/hash,source_transaction_id}",
-      "account_payments_browse":      ".../api/v1/accounts/{account}/payments{?start_ledger,end_ledger,source_account,destination_account,latest_first,page}"
-      "account_payments_outgoing":    ".../api/v1/accounts/{account}/payments/outgoing{?start_ledger,end_ledger,destination_account,latest_first,page}",
-      "account_payments_incoming":    ".../api/v1/accounts/{account}/payments/incoming{?start_ledger,end_ledger,source_account,latest_first,page}",
+      "account_payments_browse":      ".../api/v1/accounts/{account}/payments{?start_ledger,end_ledger,source_account,destination_account,latest_first,results_per_page,page}"
+      "account_payments_outgoing":    ".../api/v1/accounts/{account}/payments/outgoing{?start_ledger,end_ledger,destination_account,latest_first,results_per_page,page}",
+      "account_payments_incoming":    ".../api/v1/accounts/{account}/payments/incoming{?start_ledger,end_ledger,source_account,latest_first,results_per_page,page}",
       "account_payments_pending":     ".../api/v1/accounts/{account}/payments/pending",
       "account_payment_quote_send":   ".../api/v1/accounts/{account}/payments/quotes/send/{destination_account}/{destination_amount}",
       "account_payment_quote_pay":    ".../api/v1/accounts/{account}/payments/quotes/pay/{destination_account}/{source_amount}",
@@ -188,6 +189,9 @@ TODO
     "owner_url": {
 
     },
+    "transfer_rate": {
+
+    },
     "email_hash": {
 
     },
@@ -203,7 +207,12 @@ TODO
     "allow_xrp_payments": {
 
     },
+    "transaction_sequence": {
 
+    },
+    "trustlines_owned": {
+
+    }
   },
   "required": []
 }
@@ -227,9 +236,9 @@ TODO
       "$ref": "UINT32"
     },
     "source_transaction_id": {
-      "description": "A client-supplied unique identifier (ideally a UUID) for this transaction used to prevent duplicate payments and help confirm the transaction's final status",
+      "description": "A client-supplied unique identifier (ideally a UUID) for this transaction used to prevent duplicate payments and help confirm the transaction's final status. All ASCII printable characters are allowed",
       "type": "string",
-      "pattern": "^[ -~]{1,255}"
+      "pattern": "^[ !\"#$%&'\(\)\*\+,\-\.\/0-9:;<=>\?@A-Z\[\\\]\^_`a-z\{\|\}~]{1,255}$"
     },
     "source_amount": {
       "description": "An optional amount that can be specified to constrain cross-currency payments",
@@ -331,6 +340,9 @@ TODO
     "trusting_account": {
 
     },
+    "client_resource_id": {
+
+    },
     "trusted_account": {
 
     },
@@ -345,7 +357,7 @@ TODO
     },
     "allow_rippling": {
 
-    }  
+    }
   },
   "required": []
 }
@@ -353,7 +365,6 @@ TODO
 
 #### Order
 
-TODO
 
 ```js
 {
@@ -365,6 +376,9 @@ TODO
     "seller_account": {
       "description": "The Ripple account address of the order's creator",
       "$ref": "RippleAddress"
+    },
+    "client_resource_id": {
+
     },
     "sell_amount": {
       "description": "The amount of currency being sold. If other orders take part of this one, this value will change to represent the amount left in the order",
