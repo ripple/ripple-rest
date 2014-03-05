@@ -23,7 +23,7 @@
     "message_public_key": {
       "description": "An optional public key, represented as hex, that can be set to allow others to send encrypted messages to the account owner",
       "type": "string",
-      "^([0-9a-fA-F]{2}){0,33}$"
+      "pattern": "^([0-9a-fA-F]{2}){0,33}$"
     },
     "transfer_rate": {
       "description": "A string representation of the rate charged each time a holder of currency issued by this account transfers it. By default the rate is \"1.0\". A rate of \"1.01\" is a 1% charge on top of the amount being transferred. Up to nine decimal places are supported",

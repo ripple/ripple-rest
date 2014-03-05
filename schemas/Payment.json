@@ -94,5 +94,5 @@
       }
     }
   },
-  "required": ["source_account", "destination_account", "destination_amount", "client_resource_id"]
+  "required": ["source_account", "destination_account", "destination_amount"]
 }

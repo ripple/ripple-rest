@@ -228,7 +228,7 @@ Irrespective of the option(s) chosen, `/v1/accounts/{account}/payments/quotes` w
   "title": "UINT32",
   "description": "A string representation of an unsigned 32-bit integer (0-4294967295)",
   "type": "string",
-  "pattern": "^(429496729[0-5]|42949672[0-8][0-9]|4294967[01][0-9]{2}|429496[0-6][0-9]{3}|42949[0-5][0-9]{4}|4294[0-8][0-9]{5}|429[0-3][0-9]{6}|42[0-8][0-9]{7}|4[01][0-9]{8}|[1-3][0-9]{9}|[1-9][0-9]{8}|[1-9][0-9]{7}|[1-9][0-9]{6}|[1-9][0-9]{5}|[1-9][0-9]{4}|[1-9][0-9]{3}|[1-9][0-9]{2}|[1-9][0-9]|[0-9])$"
+  "pattern": "^$|^(429496729[0-5]|42949672[0-8][0-9]|4294967[01][0-9]{2}|429496[0-6][0-9]{3}|42949[0-5][0-9]{4}|4294[0-8][0-9]{5}|429[0-3][0-9]{6}|42[0-8][0-9]{7}|4[01][0-9]{8}|[1-3][0-9]{9}|[1-9][0-9]{8}|[1-9][0-9]{7}|[1-9][0-9]{6}|[1-9][0-9]{5}|[1-9][0-9]{4}|[1-9][0-9]{3}|[1-9][0-9]{2}|[1-9][0-9]|[0-9])$"
 }
 ```
 
@@ -239,7 +239,7 @@ Irrespective of the option(s) chosen, `/v1/accounts/{account}/payments/quotes` w
   "title": "Hash256",
   "description": "The hex representation of a 256-bit hash",
   "type": "string",
-  "pattern": "^[A-Fa-f0-9]{64}$"
+  "pattern": "^$|^[A-Fa-f0-9]{64}$"
 }
 ```
 
@@ -250,7 +250,7 @@ Irrespective of the option(s) chosen, `/v1/accounts/{account}/payments/quotes` w
   "title": "Hash128",
   "description": "The hex representation of a 128-bit hash",
   "type": "string",
-  "pattern": "^[A-Fa-f0-9]{32}$"
+  "pattern": "^$|^[A-Fa-f0-9]{32}$"
 }
 ```
 
@@ -261,7 +261,7 @@ Irrespective of the option(s) chosen, `/v1/accounts/{account}/payments/quotes` w
   "title": "Timestamp",
   "description": "An ISO 8601 combined date and time timestamp",
   "type": "string",
-  "pattern": "^[0-9]{4}-[0-1][0-9]-[0-3][[0-9]]T(2[0-3]|[01][0-9]):[0-5][0-9]:[0-5][0-9][+](2[0-3]|[01][0-9]):[0-5][0-9]$"
+  "pattern": "^$|^[0-9]{4}-[0-1][0-9]-[0-3][0-9]T(2[0-3]|[01][0-9]):[0-5][0-9]:[0-5][0-9][+](2[0-3]|[01][0-9]):[0-5][0-9]$"
 }
 ```
 
@@ -353,7 +353,7 @@ Irrespective of the option(s) chosen, `/v1/accounts/{account}/payments/quotes` w
     "message_public_key": {
       "description": "An optional public key, represented as hex, that can be set to allow others to send encrypted messages to the account owner",
       "type": "string",
-      "^([0-9a-fA-F]{2}){0,33}$"
+      "pattern": "^([0-9a-fA-F]{2}){0,33}$"
     },
     "transfer_rate": {
       "description": "A string representation of the rate charged each time a holder of currency issued by this account transfers it. By default the rate is \"1.0\". A rate of \"1.01\" is a 1% charge on top of the amount being transferred. Up to nine decimal places are supported",
@@ -396,6 +396,7 @@ Irrespective of the option(s) chosen, `/v1/accounts/{account}/payments/quotes` w
   },
   "required": ["account"]
 }
+
 ```
 
 ### Payment
@@ -497,7 +498,7 @@ Irrespective of the option(s) chosen, `/v1/accounts/{account}/payments/quotes` w
       }
     }
   },
-  "required": ["source_account", "destination_account", "destination_amount", "client_resource_id"]
+  "required": ["source_account", "destination_account", "destination_amount"]
 }
 ```
 

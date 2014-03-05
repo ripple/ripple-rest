@@ -3,5 +3,5 @@
   "title": "Hash128",
   "description": "The hex representation of a 128-bit hash",
   "type": "string",
-  "pattern": "^[A-Fa-f0-9]{32}$"
+  "pattern": "^$|^[A-Fa-f0-9]{32}$"
 }
