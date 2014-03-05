@@ -1,55 +1,123 @@
+# `ripple-rest` API Reference
 
-### `ripple-rest` API Reference
+__Contents:__
 
+- [API Root](#api-root)
+- [Changes from previous spec](#changes-from-previous-spec)
+- [Payment Submission Options](#payment-submission-options)
+	- [Option 1: Monitor Pending and Validated Payments](#option-1-monitor-pending-and-validated-payments)
+	- [Option 2: Montior Specific Status URL](#option-2-montior-specific-status-url)
+- [Schemas](#schemas)
+	- [RippleAddress](#rippleaddress)
+	- [FloatString](#floatstring)
+	- [UINT32](#uint32)
+	- [Hash256](#hash256)
+	- [Hash128](#hash128)
+	- [Timestamp](#timestamp)
+	- [ResourceId](#resourceid)
+	- [URL](#url)
+	- [Currency](#currency)
+	- [Amount](#amount)
+	- [Account Settings](#account-settings)
+	- [Payment](#payment)
+	- [Trustline](#trustline)
+	- [Order](#order)
+		- [Priority Ranking of Currencies](#priority-ranking-of-currencies)
+- [API Endpoints](#api-endpoints)
+	- [Account Settings, Activity, and Balances](#account-settings-activity-and-balances)
+		- [GET .../api/v1/accounts/{account}](#get-apiv1accounts{account})
+		- [GET .../api/v1/accounts/{account}/settings](#get-apiv1accounts{account}settings)
+		- [POST .../api/v1/accounts/{account}/settings](#post-apiv1accounts{account}settings)
+		- [GET .../api/v1/accounts/{account}/settings/{hash,client_resource_id}](#get-apiv1accounts{account}settings{hashclient_resource_id})
+		- [GET .../api/v1/accounts/{account}/activity?](#get-apiv1accounts{account}activity)
+		- [GET .../api/v1/accounts/{account}/balances?](#get-apiv1accounts{account}balances)
+	- [Payments](#payments)
+		- [POST .../api/v1/payments](#post-apiv1payments)
+		- [GET /api/v1/accounts/{account}/payments/{hash,client_resource_id}](#get-apiv1accounts{account}payments{hashclient_resource_id})
+		- [GET .../api/v1/accounts/{account}/payments?](#get-apiv1accounts{account}payments)
+		- [GET .../api/v1/accounts/{account}/payments/outgoing?](#get-apiv1accounts{account}paymentsoutgoing)
+		- [GET .../api/v1/accounts/{account}/payments/outgoing/pending](#get-apiv1accounts{account}paymentsoutgoingpending)
+		- [GET .../api/v1/accounts/{account}/payments/outgoing/failed?](#get-apiv1accounts{account}paymentsoutgoingfailed)
+		- [GET .../api/v1/accounts/{account}/payments/incoming?](#get-apiv1accounts{account}paymentsincoming)
+		- [GET .../api/v1/accounts/{account}/payments/incoming/failed?](#get-apiv1accounts{account}paymentsincomingfailed)
+		- [GET .../api/v1/accounts/{account}/payments/quotes/send/{destination_account}/{destination_amount}](#get-apiv1accounts{account}paymentsquotessend{destination_account}{destination_amount})
+		- [GET .../api/v1/accounts/{account}/payments/quotes/pay/{destination_account}/{source_amount}](#get-apiv1accounts{account}paymentsquotespay{destination_account}{source_amount})
+	- [Trustlines](#trustlines)
+		- [POST .../api/v1/trustlines](#post-apiv1trustlines)
+		- [GET .../api/v1/accounts/{account}/trustlines?](#get-apiv1accounts{account}trustlines)
+			- [Current Trustlines](#current-trustlines)
+			- [Historical Trustlines](#historical-trustlines)
+	- [Orders](#orders)
+		- [POST .../api/v1/orders](#post-apiv1orders)
+		- [GET .../api/v1/accounts/{account}/orders/{sequence,client_resource_id}](#get-apiv1accounts{account}orders{sequenceclient_resource_id})
+		- [DELETE .../api/v1/accounts/{account}/orders{/sequence}](#delete-apiv1accounts{account}orders{sequence})
+		- [GET .../api/v1/accounts/{account}/orders?](#get-apiv1accounts{account}orders)
+			- [Current](#current)
+			- [Historical](#historical)
+		- [GET .../api/v1/orders/{base_currency}/{base_issuer}/{counter_currency}/{counter_issuer}?](#get-apiv1orders{base_currency}{base_issuer}{counter_currency}{counter_issuer})
+	- [Server Info and Tools](#server-info-and-tools)
+		- [GET .../api/v1/server](#get-apiv1server)
+		- [GET .../api/v1/server/connected](#get-apiv1serverconnected)
+		- [GET .../api/v1/uuid](#get-apiv1uuid)
+
+
+
+
+
+
+## API Root
 
 `GET .../api/v1`
 ```js
 {
   "endpoints": {
     "GET": {
-      "accounts":                       ".../api/v1/accounts/{account}",
-      "account_settings":               ".../api/v1/accounts/{account}/settings",
-      "account_activity_url":           ".../api/v1/accounts/{account}/activity{?start_ledger,end_ledger,previous_transaction_hash,results_per_page,page}",
-      "account_balances":               ".../api/v1/accounts/{account}/balances{?currency,issuer,page}",
-      "account_payments":               ".../api/v1/accounts/{account}/payments{/hash,source_transaction_id}",
-      "account_payments_browse":        ".../api/v1/accounts/{account}/payments{?start_ledger,end_ledger,source_account,destination_account,earliest_first,results_per_page,page}"
-      "account_payments_outgoing":      ".../api/v1/accounts/{account}/payments/outgoing{?start_ledger,end_ledger,destination_account,earliest_first,results_per_page,page}",
-      "account_payments_incoming":      ".../api/v1/accounts/{account}/payments/incoming{?start_ledger,end_ledger,source_account,earliest_first,results_per_page,page}",
-      "account_payments_pending":       ".../api/v1/accounts/{account}/payments/pending",
-      "account_payment_quote_send":     ".../api/v1/accounts/{account}/payments/quotes/send/{destination_account}/{destination_amount}",
-      "account_payment_quote_pay":      ".../api/v1/accounts/{account}/payments/quotes/pay/{destination_account}/{source_amount}",
-      "account_trustlines":             ".../api/v1/accounts/{account}/trustlines{?currency,counterparty}",
-      "account_trustlines_historical":  ".../api/v1/accounts/{account}/trustlines{?start_ledger,end_ledger,currency,counterparty,earliest_first,results_per_page,page}",
-      "account_orders_active":          ".../api/v1/accounts/{account}/orders{/sequence}",
-      "account_orders_active_browse":   ".../api/v1/accounts/{account}/orders{?base_currency,counter_currency,buy_only,sell_only}",
-      "account_orders_historical":      ".../api/v1/accounts/{account}/orders{?start_ledger,end_ledger,earliest_first,base_currency,counter_currency,buy_only,sell_only,results_per_page,page}"
-      "orderbook":                      ".../api/v1/orders/{base_currency}/{base_issuer}/{counter_currency}/{counter_issuer}{?buy_only,sell_only}"
-      "server_info":                    ".../api/v1/server",
-      "server_connected":               ".../api/v1/server/connected",
-      "uuid_generator":                 ".../api/v1/uuid"
+      "accounts":                           ".../api/v1/accounts/{account}",
+      "account_settings":                   ".../api/v1/accounts/{account}/settings",
+      "account_settings_historical":        ".../api/v1/accounts/{account}/settings/{hash,client_resource_id}",
+      "account_activity_url":               ".../api/v1/accounts/{account}/activity{?start_ledger,end_ledger,resource_types,previous_transaction_hash,results_per_page,page}",
+      "account_balances":                   ".../api/v1/accounts/{account}/balances{?currency,issuer,page}",
+      "account_payments":                   ".../api/v1/accounts/{account}/payments/{hash,client_resource_id}",
+      "account_payments_browse":            ".../api/v1/accounts/{account}/payments{?start_ledger,end_ledger,source_account,destination_account,earliest_first,results_per_page,page}"
+      "account_payments_outgoing":          ".../api/v1/accounts/{account}/payments/outgoing{?start_ledger,end_ledger,destination_account,earliest_first,results_per_page,page}",
+      "account_payments_outgoing_pending":  ".../api/v1/accounts/{account}/payments/outgoing/pending",
+      "account_payments_outgoing_failed":   ".../api/v1/accounts/{account}/payments/outgoing/failed{?start_ledger,end_ledger,earliest_first,results_per_page,page}",
+      "account_payments_incoming":          ".../api/v1/accounts/{account}/payments/incoming{?start_ledger,end_ledger,source_account,include_failed,earliest_first,results_per_page,page}",
+      "account_payments_incoming_failed":   ".../api/v1/accounts/{account}/payments/incoming/failed{?start_ledger,end_ledger,earliest_first,results_per_page,page}",
+      "account_payment_quote_send":         ".../api/v1/accounts/{account}/payments/quotes/send/{destination_account}/{destination_amount}",
+      "account_payment_quote_pay":          ".../api/v1/accounts/{account}/payments/quotes/pay/{destination_account}/{source_amount}",
+      "account_trustlines":                 ".../api/v1/accounts/{account}/trustlines/{client_resource_id}",
+      "account_trustlines_browse":          ".../api/v1/accounts/{account}/trustlines{?currency,counterparty}",
+      "account_trustlines_historical":      ".../api/v1/accounts/{account}/trustlines{?start_ledger,end_ledger,currency,counterparty,earliest_first,results_per_page,page}",
+      "account_orders_active":              ".../api/v1/accounts/{account}/orders/{sequence,client_resource_id}",
+      "account_orders_active_browse":       ".../api/v1/accounts/{account}/orders{?base_currency,counter_currency,buy_only,sell_only}",
+      "account_orders_historical":          ".../api/v1/accounts/{account}/orders{?start_ledger,end_ledger,earliest_first,base_currency,counter_currency,buy_only,sell_only,results_per_page,page}"
+      "orderbook":                          ".../api/v1/orders/{base_currency}/{base_issuer}/{counter_currency}/{counter_issuer}{?buy_only,sell_only}"
+      "server_info":                        ".../api/v1/server",
+      "server_connected":                   ".../api/v1/server/connected",
+      "uuid_generator":                     ".../api/v1/uuid"
     },
     "POST": {
-      "account_settings_change":        ".../api/v1/accounts/{account}/settings",
-      "payment_submission":             ".../api/v1/payments",
-      "order_submission":               ".../api/v1/orders",
-      "trustline_change":               ".../api/v1/trustlines"
+      "account_settings_change":            ".../api/v1/accounts/{account}/settings",
+      "payment_submission":                 ".../api/v1/payments",
+      "trustline_change":                   ".../api/v1/trustlines",
+      "order_submission":                   ".../api/v1/orders"
     },
     "DELETE": {
-      "order_cancellation":             ".../api/v1/accounts/{account}/orders{/sequence}"
+      "order_cancellation":                 ".../api/v1/accounts/{account}/orders{/sequence}"
     }
   }
 }
 ```
-
-### Changes from previous spec
+## Changes from previous spec
 
 The main change from the previous `ripple-rest` spec is the replacement of the `Notification` object and `next_notification` endpoint with simpler endpoints allowing direct access to the various transaction and resource types. To monitor for incoming payments one can just poll the `.../payments/incoming` endpoint, which will return a list of payments. The two proposed options (which are not mutually exclusive) for confirming that an outgoing payment has been validated are outlined in the next section.
 
-### Payment Submission Options
+## Payment Submission Options
 
-Irrespective of the option(s) chosen, `.../api/v1/accounts/{account}/payments/quotes` will return `Payment` objects with the `source_transaction_id` already set with a UUID. If clients want to construct their own `Payment` objects they can get UUIDs for them from the `.../api/v1/uuid` endpoint, if they generate them programmatically in their application
+Irrespective of the option(s) chosen, `.../api/v1/accounts/{account}/payments/quotes` will return `Payment` objects with the `client_resource_id` already set with a UUID. If clients want to construct their own `Payment` objects they can get UUIDs for them from the `.../api/v1/uuid` endpoint, if they generate them programmatically in their application
 
-#### Option 1: Monitor Pending and Validated Payments
+### Option 1: Monitor Pending and Validated Payments
 
 1. Submit a payment to `.../api/v1/payments` with `source_transaction_fee` set to identify it in the following lists
 2. Response to POST request contains error or an okay message
@@ -57,10 +125,10 @@ Irrespective of the option(s) chosen, `.../api/v1/accounts/{account}/payments/qu
 4. When payment is validated it appears in the list at `.../api/v1/accounts/{account}/payments/outgoing`
 5. To poll for validated outgoing payments client can use query string parameter `?start_ledger=...` and continuously check for newly validated payments after a specific ledger index
 
-#### Option 2: Montior Specific Status URL
+### Option 2: Montior Specific Status URL
 
 1. Submit a payment to `.../api/v1/payments` with `source_transaction_fee` set
-2. Response from POST request includes an error message or a `"status_url":".../api/v1/accounts/{account}/payments/{source_transaction_id}"` (whether or not the POST response is received, this URL can be used with the `source_transaction_id` to get information about the payment)
+2. Response from POST request includes an error message or a `"status_url":".../api/v1/accounts/{account}/payments/{client_resource_id}"` (whether or not the POST response is received, this URL can be used with the `client_resource_id` to get information about the payment)
 3. Querying that `status_url` at first will return:
   ```js
   {
@@ -91,10 +159,9 @@ Irrespective of the option(s) chosen, `.../api/v1/accounts/{account}/payments/qu
     }
   }
   ```
+## Schemas
 
-### Schemas
-
-#### RippleAddress
+### RippleAddress
 
 ```js
 {
@@ -106,7 +173,7 @@ Irrespective of the option(s) chosen, `.../api/v1/accounts/{account}/payments/qu
 }
 ```
 
-#### FloatString
+### FloatString
 ```js
 {
   "$schema": "http://json-schema.org/draft-04/schema#",
@@ -117,7 +184,7 @@ Irrespective of the option(s) chosen, `.../api/v1/accounts/{account}/payments/qu
 }
 ```
 
-#### UINT32
+### UINT32
 ```js
 {
   "$schema": "http://json-schema.org/draft-04/schema#",
@@ -128,7 +195,7 @@ Irrespective of the option(s) chosen, `.../api/v1/accounts/{account}/payments/qu
 }
 ```
 
-#### Hash256
+### Hash256
 ```js
 {
   "$schema": "http://json-schema.org/draft-04/schema#",
@@ -139,7 +206,7 @@ Irrespective of the option(s) chosen, `.../api/v1/accounts/{account}/payments/qu
 }
 ```
 
-#### Hash128
+### Hash128
 ```js
 {
   "$schema": "http://json-schema.org/draft-04/schema#",
@@ -150,7 +217,7 @@ Irrespective of the option(s) chosen, `.../api/v1/accounts/{account}/payments/qu
 }
 ```
 
-#### Timestamp
+### Timestamp
 ```js
   "$schema": "http://json-schema.org/draft-04/schema#",
   "title": "Timestamp",
@@ -159,7 +226,7 @@ Irrespective of the option(s) chosen, `.../api/v1/accounts/{account}/payments/qu
   "pattern": "^\d{4}-[0-1]\d-[0-3][\d]T(2[0-3]|[01]\d):[0-5]\d:[0-5]\d\+(2[0-3]|[01]\d):[0-5]\d$"
 ```
 
-#### ResourceId
+### ResourceId
 ```js
 {
   "$schema": "http://json-schema.org/draft-04/schema#",
@@ -170,7 +237,7 @@ Irrespective of the option(s) chosen, `.../api/v1/accounts/{account}/payments/qu
 }
 ```
 
-#### URL
+### URL
 ```js
 {
   "$schema": "http://json-schema.org/draft-04/schema#",
@@ -181,7 +248,7 @@ Irrespective of the option(s) chosen, `.../api/v1/accounts/{account}/payments/qu
 }
 ```
 
-#### Currency
+### Currency
 ```js
 {
   "$schema": "http://json-schema.org/draft-04/schema#",
@@ -192,7 +259,7 @@ Irrespective of the option(s) chosen, `.../api/v1/accounts/{account}/payments/qu
 }
 ```
 
-#### Amount
+### Amount
 ```js
 {
   "$schema": "http://json-schema.org/draft-04/schema#",
@@ -219,9 +286,7 @@ Irrespective of the option(s) chosen, `.../api/v1/accounts/{account}/payments/qu
 }
 ```
 
-#### Account Settings
-
-TODO
+### Account Settings
 
 ```js
 {
@@ -235,9 +300,8 @@ TODO
       "$ref": "RippleAddress"
     },
     "regular_key": {
-      "description": "The optional hash of the public key for verifying transactions",
+      "description": "The hash of an optional additional public key that can be used for signing and verifying transactions",
       "$ref": "RippleAddress"
-      <!-- TODO: Is this type actually a Ripple address? That's what the wiki says but it sounds odd -->
     },
     "owner_url": {
       "description": "The domain associated with this account. The ripple.txt file can be looked up to verify this information",
@@ -247,9 +311,11 @@ TODO
       "description": "The MD5 128-bit hash of the account owner's email address",
       "$ref": "Hash128"
     },
-    <!-- "message_public_key": {
-      // TODO: What is the type of this?
-    }, -->
+    "message_public_key": {
+      "description": "An optional public key, represented as hex, that can be set to allow others to send encrypted messages to the account owner",
+      "type": "string",
+      "^([0-9a-fA-F]{2}){0,33}$"
+    },
     "transfer_rate": {
       "description": "A string representation of the rate charged each time a holder of currency issued by this account transfers it. By default the rate is \"1.0\". A rate of \"1.01\" is a 1% charge on top of the amount being transferred. Up to nine decimal places are supported",
       "type": "string",
@@ -293,7 +359,7 @@ TODO
 }
 ```
 
-#### Payment
+### Payment
 
 ```js
 {
@@ -351,9 +417,9 @@ TODO
       "pattern": "^incoming|outgoing|passthrough$"
     },
     "state": {
-      "description": "The state of the payment from the perspective of the Ripple Ledger. Possible values are \"validated\" and \"failed\"",
+      "description": "The state of the payment from the perspective of the Ripple Ledger. Possible values are \"validated\" and \"failed\" and \"new\" if the payment has not been submitted yet",
       "type": "string",
-      "pattern": "^validated|failed$" 
+      "pattern": "^validated|failed|new$" 
     },
     "result": {
       "description": "The rippled code indicating the success or failure type of the payment. The code \"tesSUCCESS\" indicates that the payment was successfully validated and written into the Ripple Ledger. All other codes will begin with the following prefixes: \"tec\", \"tef\", \"tel\", or \"tej\"",
@@ -392,11 +458,11 @@ TODO
       }
     }
   },
-  "required": ["source_account", "destination_account", "destination_amount", "source_transaction_id"]
+  "required": ["source_account", "destination_account", "destination_amount", "client_resource_id"]
 }
 ```
 
-#### Trustline
+### Trustline
 
 ```js
 {
@@ -429,15 +495,22 @@ TODO
       "description": "The Amount representing the currency held by the account that is issued by the counterparty",
       "$ref": "Amount"
     },
-    <!-- "account_authorized": {
-      "description": ""
+    "authorized_by_account": {
+      "description": "Set to true if the account has explicitly authorized the counterparty to hold currency it issues. This is only necessary if the account's settings include require_authorization_for_incoming_trustlines",
+      "type": "boolean"
     },
-    "counterparty_authorized": {
-      TODO
+    "authorized_by_counterparty": {
+      "description": "Set to true if the counterparty has explicitly authorized the account to hold currency it issues. This is only necessary if the counterparty's settings include require_authorization_for_incoming_trustlines",
+      "type": "boolean"
     },
-    "allow_rippling": {
-
-    }, -->
+    "account_allows_rippling": {
+      "description": "If true it indicates that the account allows pairwise rippling out through this trustline",
+      "type": "boolean"
+    },
+    "counterparty_allows_rippling": {
+      "description": "If true it indicates that the counterparty allows pairwise rippling out through this trustline",
+      "type": "boolean"
+    },
     "ledger": {
       "description": "The string representation of the index number of the ledger containing this trustline or, in the case of historical queries, of the transaction that modified this Trustline",
       "type": "string",
@@ -456,7 +529,7 @@ TODO
 }
 ```
 
-#### Order
+### Order
 
 
 ```js
@@ -544,7 +617,7 @@ TODO
 }
 ```
 
-##### Priority Ranking of Currencies
+#### Priority Ranking of Currencies
 
 Currencies located earlier in the array have greater priority than those lower in the array. All crosses where neither currency is in this list will have whichever currency comes first alphabetically prioritized.
 
@@ -562,4 +635,744 @@ Currencies located earlier in the array have greater priority than those lower i
   "CNY"
 ]
 ```
+
+## API Endpoints
+
+Notes:
+
++ All errors will be returned in the following format:
+
+  ```js
+  {
+    "success": false,
+    "error": "Some error",
+    "message": "Some explanation of the error"
+  }
+  ```
+
++ Unless otherwise specified, all data is retrieved from or passed to the connected `rippled`. For this reason, if the `rippled` is not connected and synced with the rest of the Ripple Network, all endpoints will return the following error:
+
+  ```js
+  {
+    "success": false,
+    "error": "rippled Disconnected",
+    "message": "ripple-rest is unable to connect to the specified rippled server, or the rippled server is unable to communicate with the rest of the Ripple Network. Please check your internet and rippled server settings and try again"
+  }
+  ```
+
+
+
+### Account Settings, Activity, and Balances
+
+#### GET .../api/v1/accounts/{account}
+
+Response:
+```js
+{
+  "success": true,
+  "account": "r...",
+  "funded": true,
+  "settings":                   ".../api/v1/accounts/{account}/settings",
+  "activity_url":               ".../api/v1/accounts/{account}/activity{?start_ledger,end_ledger,resource_types,previous_transaction_hash,results_per_page,page}",
+  "balances":                   ".../api/v1/accounts/{account}/balances{?currency,issuer,page}",
+  "payments":                   ".../api/v1/accounts/{account}/payments{/hash,client_resource_id}",
+  "payments_browse":            ".../api/v1/accounts/{account}/payments{?start_ledger,end_ledger,source_account,destination_account,earliest_first,results_per_page,page}"
+  "payments_outgoing":          ".../api/v1/accounts/{account}/payments/outgoing{?start_ledger,end_ledger,destination_account,include_failed,earliest_first,results_per_page,page}",
+  "payments_outgoing_pending":  ".../api/v1/accounts/{account}/payments/outgoing/pending",
+  "payments_outgoing_failed":   ".../api/v1/accounts/{account}/payments/outgoing/failed",
+  "payments_incoming":          ".../api/v1/accounts/{account}/payments/incoming{?start_ledger,end_ledger,source_account,include_failed,earliest_first,results_per_page,page}",
+  "payments_incoming_failed":   ".../api/v1/accounts/{account}/payments/incoming/failed",
+  "payment_quote_send":         ".../api/v1/accounts/{account}/payments/quotes/send/{destination_account}/{destination_amount}",
+  "payment_quote_pay":          ".../api/v1/accounts/{account}/payments/quotes/pay/{destination_account}/{source_amount}",
+  "trustlines":                 ".../api/v1/accounts/{account}/trustlines{?currency,counterparty}",
+  "trustlines_historical":      ".../api/v1/accounts/{account}/trustlines{?start_ledger,end_ledger,currency,counterparty,earliest_first,results_per_page,page}",
+  "orders_active":              ".../api/v1/accounts/{account}/orders{/sequence}",
+  "orders_active_browse":       ".../api/v1/accounts/{account}/orders{?base_currency,counter_currency,buy_only,sell_only}",
+  "orders_historical":          ".../api/v1/accounts/{account}/orders{?start_ledger,end_ledger,earliest_first,base_currency,counter_currency,buy_only,sell_only,results_per_page,page}"
+}
+```
+Or if the account does not exist in the `rippled`'s validated ledger, most likely because it has not been funded with XRP, the response will be:
+```js
+{
+  "success": false,
+  "error": "Account Does Not Exist",
+  "message": "This account does not exist in this `rippled`'s validated ledger, most likely because it has not yet been funded with XRP. Accounts need minimum XRP balances to transact on the Ripple Network"
+}
+```
+All other requests will return this same error if the account does not exist or is unfunded.
+
+#### GET .../api/v1/accounts/{account}/settings
+
+Retrieve the current settings for a given account.
+
+Response:
+```js
+{
+  "success": true,
+  "settings": {
+    /* AccountSettings */
+  }
+}
+```
+
+Note that the AccountSettings object returned may be modified and submitted directly back to `ripple-rest` to change the settings.
+
+#### POST .../api/v1/accounts/{account}/settings
+
+Change the settings on your account.
+
+Request JSON Body:
+{
+  "secret": "s...",
+  "client_resource_id": "f47ac10b-58cc-4372-a567-0e02b2c3d479",
+  "settings": {
+    /* AccountSettings */
+  }
+}
+
+Note that while the `client_resource_id` may be supplied here, it will not block duplicate submissions as in the case of Payments. Redundant settings changes will have no effect, aside from unnecessary Ripple Network fees being spent.
+
+Response:
+{
+  "success": true,
+  "client_resource_id": "f47ac10b-58cc-4372-a567-0e02b2c3d479",
+  "status_url": ".../api/v1/accounts/{account}/settings/f47ac10b-58cc-4372-a567-0e02b2c3d479"
+}
+
+Or if there was an error:
+{
+  "success": false,
+  "client_resource_id": "f47ac10b-58cc-4372-a567-0e02b2c3d479",
+  "error": "Some Error",
+  "message": "Some explanation of the error"
+}
+
+#### GET .../api/v1/accounts/{account}/settings/{hash,client_resource_id}
+
+Retrieve a historical transaction that modified the settings of this account.
+
+Response:
+```js
+{
+  "success": true,
+  "settings": {
+    /* AccountSettings */
+  }
+}
+```
+Note that the `previous` object will contain the account settings as they were before the transaction that modified them.
+
+#### GET .../api/v1/accounts/{account}/activity?
+
+Query String Parameters:
+
++ `start_ledger` - If `earliest_first` is set to true this will be the index number of the earliest ledger queried, or the most recent one if `earliest_first` is set to false. Defaults to the first ledger the `rippled` has in its complete ledger. An error will be returned if this value is outside the `rippled`'s complete ledger set
++ `end_ledger` - If `earliest_first` is set to true this will be the index number of the most recent ledger queried, or the earliest one if `earliest_first` is set to false. Defaults to the last ledger the `rippled` has in its complete ledger. An error will be returned if this value is outside the `rippled`'s complete ledger set
++ `resource_types` - A comma-separated list of the resources to return activity for. Possible values are `payments`, `trustlines`, `orders`, `settings`. By default all will be included
++ `previous_transaction_hash` - If the hash of a previous transaction that modified a resource is included here the results will include the transactions following the specified one. `results_per_page` can be used in combination to limit the number of results returned each time to, for example, a single resource
++ `earliest_first` - Determines the order in which the results should be displayed. Defaults to true
++ `results_per_page` - Limits the number of resources displayed per page. Defaults to 20
++ `page` - The page to be displayed. If there are fewer than the `results_per_page` number displayed, this indicates that this is the last page
+
+Response:
+```js
+{
+  "success": true,
+  "resources": [{
+    "type": "payment",
+    "client_resource_id": "af6b82c3-d989-4dd1-9145-b0fb5d1c0538",
+    "resource": {
+      /* Payment */
+    }
+  }, {
+    "type": "order",
+    "client_resource_id": "0c58bc31-56a9-4d4b-b738-721727636042",
+    "resource": {
+      /* Order */
+    }
+  }, {
+    "type": "trustline",
+    "client_resource_id": "df479ecd-b1a9-4933-b935-a44b9a31db3d",
+    "resource": {
+      /* Trustline */
+    }
+  }, {
+    "type": "settings",
+    "client_resource_id": "df479ecd-b1a9-4933-b935-a44b9a31db3d",
+    "resource": {
+      /* AccountSettings */
+    }
+  } /* ... */]
+}
+```
+Note that the `client_resource_id` is only persisted by `ripple-rest` locally so it will be `""` if the transaction that modified a particular resource was not initiated by the same `ripple-rest` instance querying the activity. Also note that this example shows all of the resource types but the real results will contain an assortment of the types in the array and there will likely be multiple resources of the same type returned.
+
+
+#### GET .../api/v1/accounts/{account}/balances?
+
+Query String Parameters:
+
++ `currency` - Limit the results to one specific currency
++ `issuer` - Limit the results to a specific issuer
+
+Response:
+```js
+{
+  "success": true,
+  "balances": [{
+    /* Amount in XRP */
+  }, {
+    /* Amount */
+  }]
+}
+```
+Note that this will include the account's XRP balance.
+
+
+### Payments
+
+#### POST .../api/v1/payments
+
+Submit a payment.
+
+Request JSON Body:
+```js
+{
+  "secret": "s...",
+  "client_resource_id": "f2f811b7-dc3b-4078-a2c2-e4ca9e453981",
+  "payment": {
+    /* Payment */
+  }
+}
+```
+Note that the `client_resource_id` is required for all Payment submissions to `ripple-rest`. If another payment with the same `client_resource_id` as one that this instance of `ripple-rest` has marked as `pending` or `validated`, `ripple-rest` will assume that the second one was submitted accidentally. This helps clients prevent double spending on payments, even if the connection to `ripple-rest` is interrupted before the client can confirm the success or failure of a payment. In this case, the response will be the same but ONLY ONE of the duplicates will be submitted.
+
+Response:
+{
+  "success": true,
+  "client_resource_id": "f2f811b7-dc3b-4078-a2c2-e4ca9e453981",
+  "status_url": ".../api/v1/accounts/{account}/payments/f2f811b7-dc3b-4078-a2c2-e4ca9e453981"
+}
+Or if there was an error that was caught immediately:
+{
+  "success": false,
+  "client_resource_id": "f2f811b7-dc3b-4078-a2c2-e4ca9e453981",
+  "error": "Some Error",
+  "message": "Some explanation of the error"
+}
+
+The `status_url` can be used to check the status of an individual payment. At first the `state` will be `pending`, then `validated` or `failed`.
+
+If you want to monitor outgoing payments in bulk you can use the `.../api/v1/accounts/{account}/payments/outgoing?` endpoint to retrieve all validated payments for a specific ledger range. When a payment appears in the results from that endpoint with the same `client_resource_id` supplied here, you know this payment has been validated and written into the Ripple Ledger.
+
+
+#### GET /api/v1/accounts/{account}/payments/{hash,client_resource_id}
+
+Retrieve the details of a specific payment from the `rippled` server or, if the payment is still pending, from the `ripple-rest` instance's local database.
+
+```js
+{
+  "success": true,
+  "payment": {
+    /* Payment */
+  }
+}
+```
+Note that the `state` field may be used to check the current status of the payment.
+
+If no payment is found with the given hash or client_resource_id the following error will be returned:
+```js
+{
+  "success": false,
+  "error": "Payment Not Found",
+  "message": "No payment with the supplied identifier was found either in the rippled's database or in ripple-rest's pending database. This may be due to an incomplete or recently deleted database or the payment may not have been validated and written into the Ripple Ledger"
+}
+```
+
+#### GET .../api/v1/accounts/{account}/payments?
+
+Browse though payments that affected the given account.
+
+Query String Parameters:
+
++ `source_account` - If specified, limit the results to payments initiated by a particular account
++ `destination_account` - If specified, limit the results to payments made to a particular account
++ `include_failed` - If set to true, include failed payments. Note that these will have `state` set to `failed` and `result` set to a code other than `tesSUCCESS`. Failed payments may have caused a Ripple Network fee to be claimed but no other money was transferred
++ `start_ledger` - If `earliest_first` is set to true this will be the index number of the earliest ledger queried, or the most recent one if `earliest_first` is set to false. Defaults to the first ledger the `rippled` has in its complete ledger. An error will be returned if this value is outside the `rippled`'s complete ledger set
++ `end_ledger` - If `earliest_first` is set to true this will be the index number of the most recent ledger queried, or the earliest one if `earliest_first` is set to false. Defaults to the last ledger the `rippled` has in its complete ledger. An error will be returned if this value is outside the `rippled`'s complete ledger set
++ `earliest_first` - Determines the order in which the results should be displayed. Defaults to true
++ `results_per_page` - Limits the number of resources displayed per page. Defaults to 20
++ `page` - The page to be displayed. If there are fewer than the `results_per_page` number displayed, this indicates that this is the last page
+
+
+Response:
+```js
+{
+  "success": true,
+  "payments": [{
+    /* Payment */
+  }, {
+    /* Payment */
+  } /* ... */]
+}
+```
+
+#### GET .../api/v1/accounts/{account}/payments/outgoing?
+
+Browse through __validated__ payments sent by the given account (though not necessarily through `ripple-rest`).
+
+Query String Parameters:
+
++ `destination_account` - If specified, limit the results to payments made to a particular account
++ `start_ledger` - If `earliest_first` is set to true this will be the index number of the earliest ledger queried, or the most recent one if `earliest_first` is set to false. Defaults to the first ledger the `rippled` has in its complete ledger. An error will be returned if this value is outside the `rippled`'s complete ledger set
++ `end_ledger` - If `earliest_first` is set to true this will be the index number of the most recent ledger queried, or the earliest one if `earliest_first` is set to false. Defaults to the last ledger the `rippled` has in its complete ledger. An error will be returned if this value is outside the `rippled`'s complete ledger set
++ `earliest_first` - Determines the order in which the results should be displayed. Defaults to true
++ `results_per_page` - Limits the number of resources displayed per page. Defaults to 20
++ `page` - The page to be displayed. If there are fewer than the `results_per_page` number displayed, this indicates that this is the last page
+
+Response:
+```js
+{
+  "success": true,
+  "payments": [{
+    /* Payment */
+  }, {
+    /* Payment */
+  } /* ... */]
+}
+```
+#### GET .../api/v1/accounts/{account}/payments/outgoing/pending
+
+Browse through the list of outgoing payments that `ripple-rest`/`ripple-lib` is in the process of submitting or waiting to hear confirmation of from the `rippled`.
+
+Response:
+```js
+{
+  "success": true,
+  "payments": [{
+    /* Payment */
+  }, {
+    /* Payment */
+  } /* ... */]
+}
+```
+Note that all of these payments will have `state` set to `pending` and have NOT been validated and written into the Ripple Ledger yet.
+
+#### GET .../api/v1/accounts/{account}/payments/outgoing/failed?
+
+Browse through the list of outgoing failed payments. This list will include results from `rippled` that have `tec...` `result` codes, as well as some failed payments submitted through this `ripple-rest` instance. Failed payments submitted through this `ripple-rest` instance will only appear here if they failed after they passed all of `ripple-rest` and `ripple-lib`'s checks AND received an initial `tesSUCCESS` code from `rippled`.
+
+Query String Parameters:
+
++ `start_ledger` - If `earliest_first` is set to true this will be the index number of the earliest ledger queried, or the most recent one if `earliest_first` is set to false. Defaults to the first ledger the `rippled` has in its complete ledger. An error will be returned if this value is outside the `rippled`'s complete ledger set
++ `end_ledger` - If `earliest_first` is set to true this will be the index number of the most recent ledger queried, or the earliest one if `earliest_first` is set to false. Defaults to the last ledger the `rippled` has in its complete ledger. An error will be returned if this value is outside the `rippled`'s complete ledger set
++ `earliest_first` - Determines the order in which the results should be displayed. Defaults to true
++ `results_per_page` - Limits the number of resources displayed per page. Defaults to 20
++ `page` - The page to be displayed. If there are fewer than the `results_per_page` number displayed, this indicates that this is the last page
+
+Response:
+```js
+{
+  "success": true,
+  "payments": [{
+    /* Payment */
+  }, {
+    /* Payment */
+  } /* ... */]
+}
+```
+Note that all of these will have `state` set to `failed` and the `result` field will contain the `rippled` or `ripple-lib` error code that caused the payment to fail. The `tec...` prefix indicates that a Ripple Network fee was claimed. All other prefixes indicate that the transaction failed off-network.
+
+#### GET .../api/v1/accounts/{account}/payments/incoming?
+
+Browse through the list of __validated__ payments sent to the given account.
+
+Query String Parameters:
+
++ `source_account` - Limit the results to payments originating from a particular account
++ `start_ledger` - If `earliest_first` is set to true this will be the index number of the earliest ledger queried, or the most recent one if `earliest_first` is set to false. Defaults to the first ledger the `rippled` has in its complete ledger. An error will be returned if this value is outside the `rippled`'s complete ledger set
++ `end_ledger` - If `earliest_first` is set to true this will be the index number of the most recent ledger queried, or the earliest one if `earliest_first` is set to false. Defaults to the last ledger the `rippled` has in its complete ledger. An error will be returned if this value is outside the `rippled`'s complete ledger set
++ `earliest_first` - Determines the order in which the results should be displayed. Defaults to true
++ `results_per_page` - Limits the number of resources displayed per page. Defaults to 20
++ `page` - The page to be displayed. If there are fewer than the `results_per_page` number displayed, this indicates that this is the last page
+
+Response:
+```js
+{
+  "success": true,
+  "payments": [{
+    /* Payment */
+  }, {
+    /* Payment */
+  } /* ... */]
+}
+```
+
+#### GET .../api/v1/accounts/{account}/payments/incoming/failed?
+
+Browse through the list of failed payments that others attempted to send to the given account.
+
+Query String Parameters:
+
++ `start_ledger` - If `earliest_first` is set to true this will be the index number of the earliest ledger queried, or the most recent one if `earliest_first` is set to false. Defaults to the first ledger the `rippled` has in its complete ledger. An error will be returned if this value is outside the `rippled`'s complete ledger set
++ `end_ledger` - If `earliest_first` is set to true this will be the index number of the most recent ledger queried, or the earliest one if `earliest_first` is set to false. Defaults to the last ledger the `rippled` has in its complete ledger. An error will be returned if this value is outside the `rippled`'s complete ledger set
++ `earliest_first` - Determines the order in which the results should be displayed. Defaults to true
++ `results_per_page` - Limits the number of resources displayed per page. Defaults to 20
++ `page` - The page to be displayed. If there are fewer than the `results_per_page` number displayed, this indicates that this is the last page
+
+Response:
+```js
+{
+  "success": true,
+  "payments": [{
+    /* Payment */
+  }, {
+    /* Payment */
+  } /* ... */]
+}
+```
+Note that all of these will have `state` set to `failed` and the `result` field will contain the `rippled` or `ripple-lib` error code that caused the payment to fail.
+
+#### GET .../api/v1/accounts/{account}/payments/quotes/send/{destination_account}/{destination_amount}
+
+Query `rippled` for possible payment options to deliver the `destination_amount` to the `destination_account` such that the sender pays the fees. This is the default Ripple Path-Find, however unlike the standard call to `rippled`, this will return fully formed Payment objects that can be directly submitted back to `ripple-rest`.
+
+Note that the `destination_amount` MUST be written as a string in the form `value+currency+issuer` (e.g. `1+XRP` or `1+USD+r...`).
+
+Response:
+```js
+{
+  "success": true,
+  "payments": [{
+    /* Payment */
+  }, {
+    /* Payment */
+  } /* ... */]
+}
+```
+Note that all of these will have `state` set to `new`, because they have not yet been submitted to the Ripple Network.
+
+If no possible paths are found, likely because of a lack of funds or lack of liquidity in the paths between the `source_account`'s currencies and the `destination_amount`, the response will be:
+```js
+{
+  "success": true,
+  "payments": []
+}
+```
+
+To determine which of these payments you want to submit, consider the `source_amount`'s of each and the currencies they are specified in. A Payment object will be returned for each currency held by your account in sufficient quantities to send the recipient the specified amount.
+
+You may want to modify some of the fields of the Payment before submitting it, such as the `source_tag` and `destination_tag`. To increase the likelihood that the Payment will be successful, even if the liquidity of the path through the Ripple Network changes suddenly, you can add some `source_slippage`. Even without `source_slippage`, however, submitting one of the payments returned by this endpoint back to `ripple-rest` very soon after has a high chance of succeeding.
+
+#### GET .../api/v1/accounts/{account}/payments/quotes/pay/{destination_account}/{source_amount}
+
+Query `rippled` for possible payment options to pay the `destination_account` with the `source_amount` such that the receiver pays the fees. This is not supported by the standard Ripple Path-Find.
+
+Note that the `source_amount` MUST be written as a string in the form `value+currency+issuer` (e.g. `1+XRP` or `1+USD+r...`).
+
+Response:
+```js
+{
+  "success": true,
+  "payments": [{
+    /* Payment */
+  }, {
+    /* Payment */
+  } /* ... */]
+}
+```
+Note that all of these will have `state` set to `new`, because they have not yet been submitted to the Ripple Network.
+
+To determine which of these payments you want to submit, consider the `destination_amount`'s of each and the currencies they are specified in. A Payment object will be returned for each currency accepted by the `destination_account` for which there is a path through the Ripple Network from the `source_amount`.
+
+You may want to modify some of the fields of the Payment before submitting it, such as the `source_tag` and `destination_tag`. To increase the likelihood that the Payment will be successful, even if the liquidity of the path through the Ripple Network changes suddenly, you can add some `source_slippage`. Even without `source_slippage`, however, submitting one of the payments returned by this endpoint back to `ripple-rest` very soon after has a high chance of succeeding.
+
+
+### Trustlines
+
+#### POST .../api/v1/trustlines
+
+Create a new trustline or modify an existing one.
+
+Request JSON Body:
+```js
+{
+  "secret": "s...",
+  "client_resource_id": "d4c280fa-4542-487b-ab7b-ce7e0502214b",
+  "trustline": {
+    /* Trustline */
+  }
+}
+```
+Note that while the `client_resource_id` may be supplied here, it will not block duplicate submissions as in the case of Payments. Redundant trustline changes will have no effect, aside from unnecessary Ripple Network fees being spent.
+
+Response:
+{
+  "success": true,
+  "client_resource_id": "f2f811b7-dc3b-4078-a2c2-e4ca9e453981",
+  "status_url": ".../api/v1/accounts/{account}/trustlines/f2f811b7-dc3b-4078-a2c2-e4ca9e453981"
+}
+
+
+#### GET .../api/v1/accounts/{account}/trustlines?
+
+Depending on the Query String Parameters used this endpoint may return the account's current trustlines or historical changes to an account's trustlines.
+
+##### Current Trustlines
+
+Query String Parameters:
+
++ `currency` - If specified, limit the results to trustlines denominated in a single currency
++ `counterparty` - If specified, limit the results to the trustlines with one other Ripple account
+
+Response:
+```js
+{
+  "success": true,
+  "trustlines": [{
+    /* Trustline */
+  }, {
+    /* Trustline */
+  }, /* ... */]
+}
+```
+Note that all of the results will be the current trustlines for the account. None of them will have `previous` set.
+
+##### Historical Trustlines
+
+Query String Parameters:
+
++ `currency` - If specified, limit the results to trustlines denominated in a single currency
++ `counterparty` - If specified, limit the results to the trustlines with one other Ripple account
++ `start_ledger` - If `earliest_first` is set to true this will be the index number of the earliest ledger queried, or the most recent one if `earliest_first` is set to false. Defaults to the first ledger the `rippled` has in its complete ledger. An error will be returned if this value is outside the `rippled`'s complete ledger set
++ `end_ledger` - If `earliest_first` is set to true this will be the index number of the most recent ledger queried, or the earliest one if `earliest_first` is set to false. Defaults to the last ledger the `rippled` has in its complete ledger. An error will be returned if this value is outside the `rippled`'s complete ledger set
++ `earliest_first` - Determines the order in which the results should be displayed. Defaults to true
++ `results_per_page` - Limits the number of resources displayed per page. Defaults to 20
++ `page` - The page to be displayed. If there are fewer than the `results_per_page` number displayed, this indicates that this is the last page
+
+Response:
+```js
+{
+  "success": true,
+  "trustlines": [{
+    /* Trustline */
+  }, {
+    /* Trustline */
+  }, /* ... */]
+}
+```
+Note that all of the results will represent changes to this account's trustlines. There may be multiple entries per trustline if there have multiple modifications to it. Entries representing trustline modifications will have `previous` values that show the full Trustline before the modfication. 
+
+
+### Orders
+
+#### POST .../api/v1/orders
+
+Create a new order or modify an existing one.
+
+Request JSON Body:
+```js
+{
+  "secret": "s...",
+  "client_resource_id": "d4c280fa-4542-487b-ab7b-ce7e0502214b",
+  "order": {
+    /* Order */
+  }
+}
+```
+Note that while the `client_resource_id` may be supplied here, it will not block duplicate submissions as in the case of Payments. Redundant order changes will have no effect, aside from unnecessary Ripple Network fees being spent.
+
+Response:
+{
+  "success": true,
+  "client_resource_id": "f2f811b7-dc3b-4078-a2c2-e4ca9e453981",
+  "status_url": ".../api/v1/accounts/{account}/orders/f2f811b7-dc3b-4078-a2c2-e4ca9e453981"
+}
+
+#### GET .../api/v1/accounts/{account}/orders/{sequence,client_resource_id}
+
+Retrieve a single active order.
+
+```js
+{
+  "success": true,
+  "order": {
+    /* Order */
+  }
+}
+```
+Or if the order does not exist (or is not currently active):
+```js
+{
+  "success": false,
+  "error": "Order Not Found",
+  "message": "This order may not exist or it may no longer be active"
+}
+```
+If an order that was previously active has been filled it may be retrieved by querying the `.../api/v1/accounts/{account}/orders?` endpoint.
+
+#### DELETE .../api/v1/accounts/{account}/orders{/sequence}
+
+Request JSON Body:
+{
+  "secret": "s...",
+  "client_resource_id": "55579312-0b49-4869-9604-b934f7bd9f45"
+}
+
+Response:
+```js
+{
+  "success": true,
+  "status_url": ".../api/v1/accounts/{account}/orders{/sequence}"
+}
+```
+
+#### GET .../api/v1/accounts/{account}/orders?
+
+Depending on the Query String Parameters used this endpoint may return the account's current orders or historical changes to an account's orders.
+
+##### Current
+
+Query String Parameters:
+
++ `base_currency` - If specified, limit the results to orders with the specified base currency
++ `counter_currency` - If specified, limit the results to orders with the specified counter or quote currency
++ `buy_only` - If specified, limit the results to only "buy" orders
++ `sell_only` - If specified, limit the results to only "sell" orders
+
+Response:
+```js
+{
+  "success": true,
+  "orders": [{
+    /* Order */
+  }, {
+    /* Order */
+  }, /* ... */]
+}
+```
+
+Note that all of the results will be the active orders for the account. None of them will have `previous` set.
+
+##### Historical
+
+Query String Parameters:
+
++ `base_currency` - If specified, limit the results to orders with the specified base currency
++ `counter_currency` - If specified, limit the results to orders with the specified counter or quote currency
++ `buy_only` - If specified, limit the results to only "buy" orders
++ `sell_only` - If specified, limit the results to only "sell" orders
++ `start_ledger` - If `earliest_first` is set to true this will be the index number of the earliest ledger queried, or the most recent one if `earliest_first` is set to false. Defaults to the first ledger the `rippled` has in its complete ledger. An error will be returned if this value is outside the `rippled`'s complete ledger set
++ `end_ledger` - If `earliest_first` is set to true this will be the index number of the most recent ledger queried, or the earliest one if `earliest_first` is set to false. Defaults to the last ledger the `rippled` has in its complete ledger. An error will be returned if this value is outside the `rippled`'s complete ledger set
++ `earliest_first` - Determines the order in which the results should be displayed. Defaults to true
++ `results_per_page` - Limits the number of resources displayed per page. Defaults to 20
++ `page` - The page to be displayed. If there are fewer than the `results_per_page` number displayed, this indicates that this is the last page
+
+Response:
+```js
+{
+  "success": true,
+  "orders": [{
+    /* Order */
+  }, {
+    /* Order */
+  }, /* ... */]
+}
+```
+
+Note that all of the results will represent changes to this account's orders. There may be multiple entries per order if there have multiple modifications to it. Entries representing order modifications will have `previous` values that show the full Order before the modfication. 
+
+#### GET .../api/v1/orders/{base_currency}/{base_issuer}/{counter_currency}/{counter_issuer}?
+
+Retrieve the current orderbook for a given currency pair.
+
+Query String Parameters:
+
++ `buy_only` - If specified, limit the results to only "buy" orders
++ `sell_only` - If specified, limit the results to only "sell" orders
+
+Response:
+```js
+{
+  "success": true,
+  "orders": [{
+    /* Order */
+  }, {
+    /* Order */
+  }, /* ... */]
+}
+```
+
+### Server Info and Tools
+
+#### GET .../api/v1/server
+
+Retrieve information about the `ripple-rest` and connected `rippled`'s current status.
+
+Response:
+```js
+{
+  "api_server_status": "online",
+  "rippled_server_url": "wss://s_west.ripple.com:443",
+  "rippled_server_status": {
+    "info": {
+      "build_version": "0.21.0-rc2",
+      "complete_ledgers": "32570-4805506",
+      "hostid": "BUSH",
+      "last_close": {
+        "converge_time_s": 2.011,
+        "proposers": 5
+      },
+      "load_factor": 1,
+      "peers": 51,
+      "pubkey_node": "n9KNUUntNaDqvMVMKZLPHhGaWZDnx7soeUiHjeQE8ejR45DmHyfx",
+      "server_state": "full",
+      "validated_ledger": {
+        "age": 2,
+        "base_fee_xrp": 0.00001,
+        "hash": "2B79CECB06A500A2FB92F4FB610D33A20CF8D7FB39F2C2C7C3A6BD0D75A1884A",
+        "reserve_base_xrp": 20,
+        "reserve_inc_xrp": 5,
+        "seq": 4805506
+      },
+      "validation_quorum": 3
+    }
+  },
+  "api_documentation_url": "https://github.com/ripple/ripple-rest"
+}
+```
+Or if the server is not connected to the Ripple Network:
+```js
+{
+  "success": false,
+  "error": "rippled Disconnected",
+  "message": "ripple-rest is unable to connect to the specified rippled server, or the rippled server is unable to communicate with the rest of the Ripple Network. Please check your internet and rippled server settings and try again"
+}
+```
+
+#### GET .../api/v1/server/connected
+
+A simple endpoint that can be used to check if `ripple-rest` is connected to a `rippled` and is ready to serve. If used before querying the other endpoints this can be used to centralize the logic to handle if `rippled` is disconnected from the Ripple Network and unable to process transactions.
+
+Response:
+
+`true` if `ripple-rest` is ready to serve
+
+`false` otherwise
+
+#### GET .../api/v1/uuid
+
+A UUID version 4 generator. The result may be used to supply the `client_resource_id` for resource submissions if you wish to use a UUID (recommended) but do not have a local generator. See [here](http://en.wikipedia.org/wiki/Universally_unique_identifier#Version_4_.28random.29) for more information on UUIDs.
+
+Response:
+```js
+{
+  "success": true,
+  "uuid": "f47ac10b-58cc-4372-a567-0e02b2c3d479"
+}
+```
+
+From Wikipedia: "Version 4 UUIDs have the form xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx where x is any hexadecimal digit and y is one of 8, 9, A, or B (e.g., f47ac10b-58cc-4372-a567-0e02b2c3d479)."
+
+
 
