@@ -12,10 +12,10 @@ module.exports = function(grunt) {
   grunt.utils = grunt.util;
 
 
-	var jsfiles = ['*.js', 'lib/*.js', 'controllers/*.js', 'test/**/*.js'];
+  var jsfiles = ['*.js', 'lib/*.js', 'controllers/*.js', 'test/**/*.js'];
 
-	grunt.initConfig({
-		pkg: grunt.file.readJSON('package.json'),
+  grunt.initConfig({
+    pkg: grunt.file.readJSON('package.json'),
 
     /* Database Migrations */
     migrate: {
@@ -29,11 +29,11 @@ module.exports = function(grunt) {
     },
 
     /* Linting and testing */
-		jshint: {
-			all: jsfiles,
-			jshintrc: '.jshintrc'
-		},
-		simplemocha: {
+    jshint: {
+      all: jsfiles,
+      jshintrc: '.jshintrc'
+    },
+    simplemocha: {
       options: {
           timeout: 3000,
           ignoreLeaks: false,
@@ -43,18 +43,18 @@ module.exports = function(grunt) {
       local: {
         src: ['test/**/*-test.js']
       }
-		},
+    },
 
     /* Development */
-		watch: {
-			scripts: {
-				files: jsfiles,
-				tasks: ['jshint', 'simplemocha:local'],
-				options: {
-					interrupt: true
-				}
-			}
-		},
+    watch: {
+      scripts: {
+        files: jsfiles,
+        tasks: ['jshint', 'simplemocha:local'],
+        options: {
+          interrupt: true
+        }
+      }
+    },
     nodemon: {
       dev: {
         options: {
@@ -72,21 +72,21 @@ module.exports = function(grunt) {
       }
     }
     
-	});
+  });
 
 
   /* Load tasks */
-	grunt.loadNpmTasks('grunt-contrib-watch');
+  grunt.loadNpmTasks('grunt-contrib-watch');
   grunt.loadNpmTasks('grunt-nodemon');
-	grunt.loadNpmTasks('grunt-contrib-jshint');
-	grunt.loadNpmTasks('grunt-simple-mocha');
+  grunt.loadNpmTasks('grunt-contrib-jshint');
+  grunt.loadNpmTasks('grunt-simple-mocha');
   grunt.loadNpmTasks('grunt-db-migrate');
 
 
   /* Register tasks */
-	grunt.registerTask('default', ['jshint', 'nodemon']);
+  grunt.registerTask('default', ['jshint', 'nodemon']);
   grunt.registerTask('dev', ['jshint', 'simplemocha:local', 'nodemon']);
-	grunt.registerTask('test', ['jshint', 'simplemocha:local']);
+  grunt.registerTask('test', ['jshint', 'simplemocha:local']);
   grunt.registerTask('dbsetup', ['dbcheckorcreate', 'migrate:up']);
 
   /* Check if user and database already exist, if not create them */ 
