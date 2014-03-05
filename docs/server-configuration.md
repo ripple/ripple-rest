@@ -4,6 +4,8 @@ This document tracks all changes to the `config.json` format. If a new version i
 
 Minor version changes will be denoted by incrementing the last of the three version numbers (`0.0.1` -> `0.0.2`). Breaking changes will increment the second of the three numbers (`0.0.1` -> `0.1.1`). New versions of the API will have incremented the first of the three numbers (`0.0.1` -> `1.0.1`).
 
+----------
+
 ### Version 0.0.2
 
 ```js
@@ -25,7 +27,16 @@ Minor version changes will be denoted by incrementing the last of the three vers
     }
   ],
   "currency_prioritization": [
-
+    "XRP",
+    "EUR",
+    "GBP",
+    "AUD",
+    "NZD",
+    "USD",
+    "CAD",
+    "CHF",
+    "JPY",
+    "CNY"
   ]
 }
 ```
@@ -37,7 +48,9 @@ Minor version changes will be denoted by incrementing the last of the three vers
 + `DATABASE_URL` - the URL used to connect to the PostgreSQL database
 + `ssl` - if an object with `key_path` and `cert_path` are provided, the API server will be available over HTTPS
 + `rippled_servers` - an array of server objects indicating which `rippled` servers the API should connect to. These should be configured to point to your local `rippled` if you are running one, instead of `s_west.ripple.com`
-+ `currency_priorititzation` - an array 
++ `currency_priorititzation` - used for displaying Orders, this array defines the Currency Priority Ranking `ripple-rest` will use to determine the base and counter currencies
+
+----------
 
 ### Version 0.0.1
 

@@ -1,5 +1,5 @@
 {
-  "config_version": "0.0.1",
+  "config_version": "0.0.2",
   "PORT": 5990,
   "NODE_ENV": "development",
   "HOST": "localhost",
@@ -14,5 +14,17 @@
       "port": 443,
       "secure": true
     }
+  ],
+  "currency_prioritization": [
+    "XRP",
+    "EUR",
+    "GBP",
+    "AUD",
+    "NZD",
+    "USD",
+    "CAD",
+    "CHF",
+    "JPY",
+    "CNY"
   ]
 }
