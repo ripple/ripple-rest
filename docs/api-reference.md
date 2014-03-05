@@ -217,7 +217,7 @@ Irrespective of the option(s) chosen, `/v1/accounts/{account}/payments/quotes` w
   "title": "FloatString",
   "description": "A string representation of a floating point number",
   "type": "string",
-  "pattern": "^[-+]?[0-9]*\.?[0-9]+([eE][-+]?[0-9]+)?$"
+  "pattern": "^[-+]?[0-9]*[.]?[0-9]+([eE][-+]?[0-9]+)?$"
 }
 ```
 
@@ -228,7 +228,7 @@ Irrespective of the option(s) chosen, `/v1/accounts/{account}/payments/quotes` w
   "title": "UINT32",
   "description": "A string representation of an unsigned 32-bit integer (0-4294967295)",
   "type": "string",
-  "pattern": "^(429496729[0-5]|42949672[0-8]\d|4294967[01]\d{2}|429496[0-6]\d{3}|42949[0-5]\d{4}|4294[0-8]\d{5}|429[0-3]\d{6}|42[0-8]\d{7}|4[01]\d{8}|[1-3]\d{9}|[1-9]\d{8}|[1-9]\d{7}|[1-9]\d{6}|[1-9]\d{5}|[1-9]\d{4}|[1-9]\d{3}|[1-9]\d{2}|[1-9]\d|\d)$"
+  "pattern": "^(429496729[0-5]|42949672[0-8][0-9]|4294967[01][0-9]{2}|429496[0-6][0-9]{3}|42949[0-5][0-9]{4}|4294[0-8][0-9]{5}|429[0-3][0-9]{6}|42[0-8][0-9]{7}|4[01][0-9]{8}|[1-3][0-9]{9}|[1-9][0-9]{8}|[1-9][0-9]{7}|[1-9][0-9]{6}|[1-9][0-9]{5}|[1-9][0-9]{4}|[1-9][0-9]{3}|[1-9][0-9]{2}|[1-9][0-9]|[0-9])$"
 }
 ```
 
@@ -261,7 +261,7 @@ Irrespective of the option(s) chosen, `/v1/accounts/{account}/payments/quotes` w
   "title": "Timestamp",
   "description": "An ISO 8601 combined date and time timestamp",
   "type": "string",
-  "pattern": "^\d{4}-[0-1]\d-[0-3][\d]T(2[0-3]|[01]\d):[0-5]\d:[0-5]\d\+(2[0-3]|[01]\d):[0-5]\d$"
+  "pattern": "^[0-9]{4}-[0-1][0-9]-[0-3][[0-9]]T(2[0-3]|[01][0-9]):[0-5][0-9]:[0-5][0-9][+](2[0-3]|[01][0-9]):[0-5][0-9]$"
 }
 ```
 
@@ -272,7 +272,7 @@ Irrespective of the option(s) chosen, `/v1/accounts/{account}/payments/quotes` w
   "title": "ResourceId",
   "description": "A client-supplied unique identifier (ideally a UUID) for this transaction used to prevent duplicate payments and help confirm the transaction's final status. All ASCII printable characters are allowed",
   "type": "string",
-  "pattern": "^[ !\"#$%&'\(\)\*\+,\-\.\/0-9:;<=>\?@A-Z\[\\\]\^_`a-z\{\|\}~]{1,255}$"
+  "pattern": "^[ !\"#$%&'()*+,[-]./0-9:;<=>?@A-Z[\\]^_`a-z{|}~]{1,255}$"
 }
 ```
 
@@ -283,7 +283,7 @@ Irrespective of the option(s) chosen, `/v1/accounts/{account}/payments/quotes` w
   "title": "URL",
   "description": "A standard URL",
   "type": "string",
-  "pattern": "^(ftp:\/\/|http:\/\/|https:\/\/)?(\w+:{0,1}\w*@)?(\S+)(:[0-9]+)?(\/|\/([\w#!:.?+=&%@!-\/]))?$"
+  "pattern": "^(ftp:\/\/|http:\/\/|https:\/\/)?([A-Za-z0-9_]+:{0,1}[A-Za-z0-9_]*@)?(^([ \t\r\n\f])+)(:[0-9]+)?(\/|\/([[A-Za-z0-9_]#!:.?+=&%@!-\/]))?$"
 }
 ```
 
@@ -292,9 +292,9 @@ Irrespective of the option(s) chosen, `/v1/accounts/{account}/payments/quotes` w
 {
   "$schema": "http://json-schema.org/draft-04/schema#",
   "title": "Currency",
-  "description": "The three-character code used to denote currencies",
+  "description": "The three-character code or hex string used to denote currencies",
   "type": "string",
-  "pattern": "^[a-zA-Z]{3}$"
+  "pattern": "^([a-zA-Z0-9]{3}|[A-Fa-f0-9]{40})$"
 }
 ```
 
@@ -358,7 +358,7 @@ Irrespective of the option(s) chosen, `/v1/accounts/{account}/payments/quotes` w
     "transfer_rate": {
       "description": "A string representation of the rate charged each time a holder of currency issued by this account transfers it. By default the rate is \"1.0\". A rate of \"1.01\" is a 1% charge on top of the amount being transferred. Up to nine decimal places are supported",
       "type": "string",
-      "pattern": "^[0-9]*\.?[0-9]{0,9}?$"
+      "pattern": "^[0-9]*[.]?[0-9]{0,9}?$"
     },
     "require_destination_tag_for_incoming_payments": {
       "description": "If set to true incoming payments will only be validated if they include a destination_tag. This may be used primarily by gateways that operate exclusively with hosted wallets",
@@ -383,7 +383,7 @@ Irrespective of the option(s) chosen, `/v1/accounts/{account}/payments/quotes` w
     "ledger": {
       "description": "The string representation of the index number of the ledger containing these account settings or, in the case of historical queries, of the transaction that modified these settings",
       "type": "string",
-      "pattern": "^\d+$"
+      "pattern": "^[0-9]+$"
     },
     "hash": {
       "description": "If this object was returned by a historical query this value will be the hash of the transaction that modified these settings. The transaction hash is used throughout the Ripple Protocol to uniquely identify a particular transaction",
@@ -468,7 +468,7 @@ Irrespective of the option(s) chosen, `/v1/accounts/{account}/payments/quotes` w
     "ledger": {
       "description": "The string representation of the index number of the ledger containing the validated or failed payment. Failed payments will only be written into the Ripple Ledger if they fail after submission to a rippled and a Ripple Network fee is claimed",
       "type": "string",
-      "pattern": "^\d+$"
+      "pattern": "^[0-9]+$"
     },
     "hash": {
       "description": "The 256-bit hash of the payment. This is used throughout the Ripple protocol as the unique identifier for the transaction",
@@ -553,12 +553,12 @@ Irrespective of the option(s) chosen, `/v1/accounts/{account}/payments/quotes` w
     "ledger": {
       "description": "The string representation of the index number of the ledger containing this trustline or, in the case of historical queries, of the transaction that modified this Trustline",
       "type": "string",
-      "pattern": "^\d+$"
+      "pattern": "^[0-9]+$"
     },
     "hash": {
       "description": "If this object was returned by a historical query this value will be the hash of the transaction that modified this Trustline. The transaction hash is used throughout the Ripple Protocol to uniquely identify a particular transaction",
       "$ref": "Hash256"
-    },,
+    },
     "previous": {
       "description": "If the trustline was changed this will be a full Trustline object representing the previous values. If the previous object also had a previous object that will be removed to reduce data complexity. Trustline changes can be walked backwards by querying the API for previous.hash repeatedly",
       "$ref": "Trustline"
@@ -605,7 +605,7 @@ Irrespective of the option(s) chosen, `/v1/accounts/{account}/payments/quotes` w
     "ledger_timeout": {
       "description": "A string representation of the number of ledger closes after submission during which the order should be considered active",
       "type": "string",
-      "pattern": "^\d*$"
+      "pattern": "^[0-9]*$"
     },
     "immediate_or_cancel": {
       "description": "If set to true this order will only take orders that are available at the time of execution and will not create an entry in the Ripple Ledger",
@@ -627,7 +627,7 @@ Irrespective of the option(s) chosen, `/v1/accounts/{account}/payments/quotes` w
     "sequence": {
       "description": "The sequence number of this order from the perspective of the seller_account. The seller_account and the sequence number uniquely identify the order in the Ripple Ledger",
       "type": "string",
-      "pattern": "^\d*$"
+      "pattern": "^[0-9]*$"
     },
     "fee": {
       "description": "The Ripple Network transaction fee, represented in whole XRP (NOT \"drops\", or millionths of an XRP, which is used elsewhere in the Ripple protocol) used to create the order",
@@ -641,7 +641,7 @@ Irrespective of the option(s) chosen, `/v1/accounts/{account}/payments/quotes` w
     "ledger": {
       "description": "The string representation of the index number of the ledger containing this order or, in the case of historical queries, of the transaction that modified this Order. ",
       "type": "string",
-      "pattern": "^\d+$"
+      "pattern": "^[0-9]+$"
     },
     "hash": {
       "description": "When returned as the result of a historical query this will be the hash of Ripple transaction that created, modified, or deleted this order. The transaction hash is used throughout the Ripple Protocol to uniquely identify a particular transaction",
