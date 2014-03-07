@@ -34,6 +34,12 @@ app.all('*', function(req, res, next) {
   next();
 });
 
+/* Connect to db */
+var db = require('./db/db-connect')({
+  config: config
+});
+
+
 /* Connect to ripple-lib */
 var remote_opts = {
   local_signing: true,

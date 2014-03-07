@@ -21,30 +21,8 @@ module.exports = function(opts) {
       }
     });
 
-  } else if (db_url.indexOf('sqlite') !== -1) {
-
-
-
-    // Check if db file exists
-    var file_path = db_url.match(/sqlite:\/\/(.*\.sqlite)/)[1];
-    console.log(fs.statSync(file_path));
-    if (!fs.existsSync(file_path)) {
-      console.log('Creating sqlite3 at: ' + file_path);
-
-      console.log(fs.statsSync(file_path));
-
-      new sqlite3.Database(file_path);
-    }
-    
-
-    db = new sequelize(db_url, {
-      logging:  false,
-      dialect: 'sqlite',
-      define: {
-        underscored: true
-      }
-    });
-
+  } else {
+    throw(new Error('Must specify postgres DATABASE_URL'));
   }
 
   db.authenticate()

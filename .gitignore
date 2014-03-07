@@ -2,3 +2,4 @@
 node_modules/
 accounts.json
 *.sqlite
+config.json

@@ -46,6 +46,7 @@
     "deep-equal": "~0.2.1",
     "nconf": "~0.6.9",
     "rconsole": "~0.2.0",
-    "jayschema": "*"
+    "jayschema": "*",
+    "pg": "~2.11.1"
   }
 }
