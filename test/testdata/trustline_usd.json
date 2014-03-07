@@ -1,0 +1,29 @@
+{
+  "account": "rNw4ozCG514KEjPs5cDrqEcdsi31Jtfm5r",
+  "counterparty": "rvYAfWj5gh67oV6fW32ZzP3Aw4Eubs59B",
+  "currency": "USD",
+  "trust_limit": "10",
+  "reciprocated_trust_limit": "0",
+  "balance": "0.01495399999999999",
+  "authorized_by_account": false,
+  "authorized_by_counterparty": false,
+  "account_allows_rippling": false,
+  "counterparty_allows_rippling": true,
+  "ledger": "5085783",
+  "hash": "56D7B6A2EE3ACF68665849B383CC2630E5B6CD3ABE9AAE6F61C302A083AA6049",
+  "previous": {
+    "account": "rNw4ozCG514KEjPs5cDrqEcdsi31Jtfm5r",
+    "counterparty": "rvYAfWj5gh67oV6fW32ZzP3Aw4Eubs59B",
+    "currency": "USD",
+    "trust_limit": "10",
+    "reciprocated_trust_limit": "0",
+    "balance": "0.013954",
+    "authorized_by_account": false,
+    "authorized_by_counterparty": false,
+    "account_allows_rippling": false,
+    "counterparty_allows_rippling": true,
+    "ledger": "5067408",
+    "hash": "8C706559550521C179AAED1C9847842D78165110079E3243493D0EEF8076745D",
+    "previous": null
+  }
+}

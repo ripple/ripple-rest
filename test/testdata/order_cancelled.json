@@ -1,0 +1,53 @@
+{
+  "account": "r4nkJpL9se94ASQut4eXRRtnBPtDpY2PZ6",
+  "buy": false,
+  "base_amount": {
+    "value": "10",
+    "currency": "USD",
+    "issuer": "rvYAfWj5gh67oV6fW32ZzP3Aw4Eubs59B"
+  },
+  "counter_amount": {
+    "value": "1",
+    "currency": "BTC",
+    "issuer": "rvYAfWj5gh67oV6fW32ZzP3Aw4Eubs59B"
+  },
+  "exchange_rate": "",
+  "expiration_timestamp": "",
+  "ledger_timeout": "",
+  "immediate_or_cancel": false,
+  "fill_or_kill": false,
+  "maximize_buy_or_sell": false,
+  "cancel_replace": "",
+  "sequence": "25",
+  "fee": "",
+  "state": "cancelled",
+  "ledger": "5373396",
+  "hash": "F65F89B42D9F957F028ED00EE5896EE187AAD08B1AFE577D8AEC24CE7C100880",
+  "previous": {
+    "account": "r4nkJpL9se94ASQut4eXRRtnBPtDpY2PZ6",
+    "buy": false,
+    "base_amount": {
+      "value": "10",
+      "currency": "USD",
+      "issuer": "rvYAfWj5gh67oV6fW32ZzP3Aw4Eubs59B"
+    },
+    "counter_amount": {
+      "value": "1",
+      "currency": "BTC",
+      "issuer": "rvYAfWj5gh67oV6fW32ZzP3Aw4Eubs59B"
+    },
+    "exchange_rate": "",
+    "expiration_timestamp": "",
+    "ledger_timeout": "",
+    "immediate_or_cancel": false,
+    "fill_or_kill": false,
+    "maximize_buy_or_sell": false,
+    "cancel_replace": "",
+    "sequence": "25",
+    "fee": "",
+    "state": "",
+    "ledger": "4731815",
+    "hash": "91D01CA31F847E90F57937C02F905E821668F80E12FB728602FE877839D8FAB2",
+    "previous": null
+  }
+}

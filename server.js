@@ -68,6 +68,9 @@ remote.connect();
 var ServerController = require('./controllers/server-controller')({
   remote: remote
 });
+var SubmissionController = require('./controllers/submission-controller')({
+  remote: remote
+});
 
 
 /* Endpoints */
@@ -80,12 +83,19 @@ app.get('/', function(req, res){
           status:    url_base + '/v1/server',
           connected: url_base + '/v1/server/connected'
         }
+      },
+      POST: {
+        payments: {
+          submit:    url_base + '/v1/payments' 
+        }
       }
     }
   });
 });
 app.get('/v1/server', ServerController.getStatus);
 app.get('/v1/server/connected', ServerController.isConnected);
+
+app.post('/v1/payments', SubmissionController.submitPayment);
 
 
 

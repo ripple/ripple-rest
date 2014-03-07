@@ -16,6 +16,18 @@ module.exports = function(grunt) {
         watch: watched_files,
         delay: 1
       }
+    },
+
+    simplemocha: {
+      options: {
+          timeout: 3000,
+          ignoreLeaks: false,
+          ui: 'bdd',
+          reporter: 'spec'
+        },
+      local: {
+        src: ['test/**/*.test.js']
+      }
     }
   });
 
@@ -24,8 +36,10 @@ module.exports = function(grunt) {
   grunt.loadNpmTasks('grunt-contrib-watch');
   grunt.loadNpmTasks('grunt-nodemon');
   grunt.loadNpmTasks('grunt-contrib-jshint');
+  grunt.loadNpmTasks('grunt-simple-mocha');
 
   grunt.registerTask('default', ['jshint']);
   grunt.registerTask('dev', ['jshint', 'nodemon']);
+  grunt.registerTask('test', ['jshint', 'simplemocha:local']);
 
 };

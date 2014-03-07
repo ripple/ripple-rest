@@ -1,0 +1,174 @@
+{
+  "Account": "rNw4ozCG514KEjPs5cDrqEcdsi31Jtfm5r",
+  "Fee": "12",
+  "Flags": 0,
+  "Sequence": 48,
+  "SigningPubKey": "02BE53B7ACBB0900E0BB7729C9CAC1033A0137993B17800BD1191BBD1B29D96A8C",
+  "TakerGets": "1000000",
+  "TakerPays": {
+    "currency": "USD",
+    "issuer": "rvYAfWj5gh67oV6fW32ZzP3Aw4Eubs59B",
+    "value": "0.01"
+  },
+  "TransactionType": "OfferCreate",
+  "TxnSignature": "30440220540119B2259674F284EA956018DB656487349AC04B2CDEFA22FC5EAF6608327F02201EF2CA3020BAA763C941D5AD7B3F1245DD4B976FF6E0C4AE6349DAD8F13405FC",
+  "hash": "92A926ADF64F82F78A1786DD8B122DD69085C1636FB0EDB5CB6BB9AFD173B7B9",
+  "inLedger": 4604489,
+  "ledger_index": 4604489,
+  "meta": {
+    "AffectedNodes": [{
+      "ModifiedNode": {
+        "FinalFields": {
+          "Balance": {
+            "currency": "USD",
+            "issuer": "rrrrrrrrrrrrrrrrrrrrBZbvji",
+            "value": "-1280.097210943006"
+          },
+          "Flags": 131072,
+          "HighLimit": {
+            "currency": "USD",
+            "issuer": "rJmSbq8kHf2Snr2ZPnB74YtVmYjhp8c79G",
+            "value": "5000"
+          },
+          "HighNode": "0000000000000000",
+          "LowLimit": {
+            "currency": "USD",
+            "issuer": "rvYAfWj5gh67oV6fW32ZzP3Aw4Eubs59B",
+            "value": "0"
+          },
+          "LowNode": "00000000000000E9"
+        },
+        "LedgerEntryType": "RippleState",
+        "LedgerIndex": "363DDA47A19BDE574ED98A5642CDCBF0744E902D105998EDEC41FD225876911D",
+        "PreviousFields": {
+          "Balance": {
+            "currency": "USD",
+            "issuer": "rrrrrrrrrrrrrrrrrrrrBZbvji",
+            "value": "-1280.107230943006"
+          }
+        },
+        "PreviousTxnID": "DE845B9B8052DE5B7BB03CB7901C8FD0C19AD00ECC6E91990E3071A37C3A46BC",
+        "PreviousTxnLgrSeq": 4604434
+      }
+    }, {
+      "ModifiedNode": {
+        "FinalFields": {
+          "Account": "rJmSbq8kHf2Snr2ZPnB74YtVmYjhp8c79G",
+          "BookDirectory": "4627DFFCFF8B5A265EDBD8AE8C14A52325DBFEDAF4F5C32E5C14A6E488145000",
+          "BookNode": "0000000000000000",
+          "Flags": 131072,
+          "OwnerNode": "0000000000000002",
+          "Sequence": 1759,
+          "TakerGets": {
+            "currency": "USD",
+            "issuer": "rvYAfWj5gh67oV6fW32ZzP3Aw4Eubs59B",
+            "value": "0.9978561818692"
+          },
+          "TakerPays": "58005380"
+        },
+        "LedgerEntryType": "Offer",
+        "LedgerIndex": "68F12613C3EE02E8592FF4538BAB39E96057B06CE4491A792AAFCF16DC7296BA",
+        "PreviousFields": {
+          "TakerGets": {
+            "currency": "USD",
+            "issuer": "rvYAfWj5gh67oV6fW32ZzP3Aw4Eubs59B",
+            "value": "1.0078561818692"
+          },
+          "TakerPays": "58586680"
+        },
+        "PreviousTxnID": "DE845B9B8052DE5B7BB03CB7901C8FD0C19AD00ECC6E91990E3071A37C3A46BC",
+        "PreviousTxnLgrSeq": 4604434
+      }
+    }, {
+      "ModifiedNode": {
+        "FinalFields": {
+          "Flags": 0,
+          "IndexPrevious": "000000000000018E",
+          "Owner": "rvYAfWj5gh67oV6fW32ZzP3Aw4Eubs59B",
+          "RootIndex": "7E1247F78EFC74FA9C0AE39F37AF433966615EB9B757D8397C068C2849A8F4A5"
+        },
+        "LedgerEntryType": "DirectoryNode",
+        "LedgerIndex": "6C694AEBB0FC0D3C693070AE891485273D2219EBBA40D00071E67654D9D18B4D"
+      }
+    }, {
+      "CreatedNode": {
+        "LedgerEntryType": "DirectoryNode",
+        "LedgerIndex": "B01C6AFE2135794EE393651652E00F9C3F5CCDFA7C2149BAAFD5A06752F111C1",
+        "NewFields": {
+          "Owner": "rNw4ozCG514KEjPs5cDrqEcdsi31Jtfm5r",
+          "RootIndex": "B01C6AFE2135794EE393651652E00F9C3F5CCDFA7C2149BAAFD5A06752F111C1"
+        }
+      }
+    }, {
+      "ModifiedNode": {
+        "LedgerEntryType": "AccountRoot",
+        "LedgerIndex": "B7D526FDDF9E3B3F95C3DC97C353065B0482302500BBB8051A5C090B596C6133",
+        "PreviousTxnID": "4513322BEAB4F24CFEB12CB6F289F6273B49142E1343B31A340239329155A6EE",
+        "PreviousTxnLgrSeq": 4604436
+      }
+    }, {
+      "CreatedNode": {
+        "LedgerEntryType": "RippleState",
+        "LedgerIndex": "CB2B4541697629B646B3E93B2E0334BC13AC7ADAE79BA49E27A40B44E9C10A5B",
+        "NewFields": {
+          "Balance": {
+            "currency": "USD",
+            "issuer": "rrrrrrrrrrrrrrrrrrrrBZbvji",
+            "value": "-0.01"
+          },
+          "Flags": 131072,
+          "HighLimit": {
+            "currency": "USD",
+            "issuer": "rNw4ozCG514KEjPs5cDrqEcdsi31Jtfm5r",
+            "value": "0"
+          },
+          "LowLimit": {
+            "currency": "USD",
+            "issuer": "rvYAfWj5gh67oV6fW32ZzP3Aw4Eubs59B",
+            "value": "0"
+          },
+          "LowNode": "000000000000018F"
+        }
+      }
+    }, {
+      "ModifiedNode": {
+        "FinalFields": {
+          "Account": "rJmSbq8kHf2Snr2ZPnB74YtVmYjhp8c79G",
+          "Balance": "164406285970",
+          "Flags": 0,
+          "OwnerCount": 29,
+          "Sequence": 1762
+        },
+        "LedgerEntryType": "AccountRoot",
+        "LedgerIndex": "DC7FE1B9F456BA5740D54F3E444FF8DB3575A12F65DBFF8AA6C65016C6E47E8E",
+        "PreviousFields": {
+          "Balance": "164405704670"
+        },
+        "PreviousTxnID": "FC55C13E37F4AB1DE47F25CA8B435D76B15C24AB0C3B3EDB27AE077DC79B46FE",
+        "PreviousTxnLgrSeq": 4604463
+      }
+    }, {
+      "ModifiedNode": {
+        "FinalFields": {
+          "Account": "rNw4ozCG514KEjPs5cDrqEcdsi31Jtfm5r",
+          "Balance": "53418118",
+          "Flags": 0,
+          "OwnerCount": 1,
+          "Sequence": 49
+        },
+        "LedgerEntryType": "AccountRoot",
+        "LedgerIndex": "FA39C6EC43AA870B5E9ED592EF683CC1134DB60746C54A997B6BEAE366EF04C9",
+        "PreviousFields": {
+          "Balance": "53999430",
+          "OwnerCount": 0,
+          "Sequence": 48
+        },
+        "PreviousTxnID": "A39FD8844F286D7601C962008643E6EBFD92CE5234D887191F169D78F5F0D7F9",
+        "PreviousTxnLgrSeq": 4604376
+      }
+    }],
+    "TransactionIndex": 2,
+    "TransactionResult": "tesSUCCESS"
+  },
+  "validated": true
+}

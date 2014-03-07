@@ -11,7 +11,7 @@ module.exports = function(opts) {
 
       serverlib.getStatus(remote, function(err, status){
         if (err) {
-          errors(res, err);
+          ErrorController.reportError(err, res);
           return;
         }
 

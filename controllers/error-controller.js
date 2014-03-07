@@ -1,4 +1,4 @@
-module.exports = function(res, error) {
+function reportError(error, res) {
 
   console.log('Error: ', error);
   if (error.stack) {
@@ -68,4 +68,6 @@ module.exports = function(res, error) {
 
   res.send(err_obj);
 
-};
+}
+
+module.exports.reportError = reportError;
