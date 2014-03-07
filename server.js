@@ -16,12 +16,10 @@ console.set({
 
 var fs               = require('fs');
 var https            = require('https');
-var config           = require('./lib/configLoader');
 var ripple           = require('ripple-lib');
-var sequelizeConnect = require('./db/sequelizeConnect');
+var config           = require('./config/config-loader');
 var express          = require('express');
 var app              = express();
-
 
 /* Express middleware */
 app.configure(function() {
@@ -36,36 +34,14 @@ app.all('*', function(req, res, next) {
   next();
 });
 
-
-/* Connect to db */
-var db = sequelizeConnect({
-  DATABASE_URL: config.get('DATABASE_URL')
-});
-
-
-/* Initialize models */
-var OutgoingTx = require('./models/outgoingTx')(db);
-
-
 /* Connect to ripple-lib */
-var remoteOpts = {
+var remote_opts = {
   local_signing: true,
   servers: config.get('rippled_servers')
 };
 
-/* Setup ripple-lib persistence */
-remoteOpts.storage = require('./lib/rippleLibStorage')({
-  db: db,
-  OutgoingTx: OutgoingTx
-});
-
-
 /* Connect to ripple-lib Remote */
-var remote = new ripple.Remote(remoteOpts);
-
-var connect_timeout = setTimeout(function(){
-  throw(new Error('Cannot connect to the given rippled. Please ensure that the rippled is configured correctly and that the configuration points to the right port. rippled servers: ' + JSON.stringify(config.get('rippled_servers'))));
-}, 20000);
+var remote = new ripple.Remote(remote_opts);
 
 remote.on('error', function(err) {
   console.error('ripple-lib Remote error: ', err);
@@ -76,7 +52,6 @@ remote.on('disconnect', function() {
 });
 
 remote.on('connect', function() {
-  clearTimeout(connect_timeout);
   console.log('Waiting for confirmation of ripple connection...');
   remote.once('ledger_closed', function() {
     if (remote._getServer()) {
@@ -89,52 +64,29 @@ remote.on('connect', function() {
 console.log('Connecting to the Ripple Network...');
 remote.connect();
 
-
 /* Initialize controllers */
-var TxCtrl = require('./controllers/txCtrl')({
-  remote: remote,
-  OutgoingTx: OutgoingTx
-}),
-
-NotificationCtrl = require('./controllers/notificationCtrl')({
-  remote: remote,
-  OutgoingTx: OutgoingTx,
-  port: config.get('PORT'),
-  environment: config.get('NODE_ENV')
-}),
-
-PaymentCtrl = require('./controllers/paymentCtrl')({
-  remote: remote,
-  OutgoingTx: OutgoingTx
-}),
-
-StatusCtrl = require('./controllers/statusCtrl')({
+var ServerController = require('./controllers/server-controller')({
   remote: remote
 });
 
 
-/* Routes */
+/* Endpoints */
+var url_base = (typeof config.get('ssl') === 'object' ? 'https' : 'http') + '://' + config.get('HOST') + (config.get('PORT') ? ':' + config.get('PORT') : '');
+app.get('/', function(req, res){
+  res.json({
+    endpoints: {
+      GET: {
+        server: {
+          status:    url_base + '/v1/server',
+          connected: url_base + '/v1/server/connected'
+        }
+      }
+    }
+  });
+});
+app.get('/v1/server', ServerController.getStatus);
+app.get('/v1/server/connected', ServerController.isConnected);
 
-/* Status */
-app.get('/', StatusCtrl.getStatus);
-app.get('/api/v1/status', StatusCtrl.getStatus);
-app.get('/api/v1/server/status', StatusCtrl.getStatus);
-app.get('/api/v1/server/connected', StatusCtrl.isConnected);
-
-/* Ripple Txs */
-app.get('/api/v1/addresses/:address/txs/:hash', TxCtrl.getTx);
-
-/* Notifications */
-app.get('/api/v1/addresses/:address/next_notification', NotificationCtrl.getNextNotification);
-app.get('/api/v1/addresses/:address/next_notification/:prev_hash', NotificationCtrl.getNextNotification);
-
-/* Pathfinding */
-app.get('/api/v1/addresses/:address/payments/:destination_address/:destination_amount', PaymentCtrl.getPathFind);
-
-/* Payments */
-app.get('/api/v1/addresses/:address/payments/', PaymentCtrl.getPayment);
-app.get('/api/v1/addresses/:address/payments/:hash', PaymentCtrl.getPayment);
-app.post('/api/v1/addresses/:address/payments', PaymentCtrl.submitPayment);
 
 
 /* Configure SSL, if desired */

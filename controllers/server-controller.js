@@ -1,5 +1,5 @@
-var statusLib     = require('../lib/status');
-var errorHandler  = require('./errorHandler');
+var serverlib        = require('../lib/server-lib');
+var ErrorController   = require('./error-controller');
 
 module.exports = function(opts) {
 
@@ -9,9 +9,9 @@ module.exports = function(opts) {
 
     getStatus: function(req, res) {
 
-      statusLib.getStatus(remote, function(err, status){
+      serverlib.getStatus(remote, function(err, status){
         if (err) {
-          errorHandler(res, err);
+          errors(res, err);
           return;
         }
 
@@ -24,7 +24,7 @@ module.exports = function(opts) {
 
     isConnected: function(req, res) {
 
-      statusLib.isConnected(remote, function(err, status){
+      serverlib.ensureConnected(remote, function(err, status){
         if (status === true) {
           res.send(true);
         } else {
