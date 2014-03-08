@@ -19,6 +19,10 @@ exports.up = function(db, callback) {
     },
 
     function(async_callback) {
+      db.runSql('ALTER TABLE outgoing_transactions ALTER COLUMN ledger SET DATA TYPE TEXT;', async_callback);
+    },    
+
+    function(async_callback) {
       db.addColumn('outgoing_transactions', 'id', {
         type: 'int'
       }, async_callback);
@@ -33,19 +37,7 @@ exports.up = function(db, callback) {
     },
 
     function(async_callback) {
-      db.changeColumn('outgoing_transactions', 'source_account', {type: 'text', primaryKey: true}, async_callback);
-    },
-
-    function(async_callback) {
-      db.changeColumn('outgoing_transactions', 'client_resource_id', {type: 'text', primaryKey: true}, async_callback);
-    },
-
-    function(async_callback) {
-      db.changeColumn('outgoing_transactions', 'type', {type: 'text', primaryKey: true}, async_callback);
-    },
-
-    function(async_callback) {
-      db.runSql('ALTER TABLE outgoing_transactions ADD PRIMARY KEY(source_account, type, client_resource_id);', async_callback);
+      db.addIndex('outgoing_transactions', 'outgoing_transactions_pkey', ['source_account', 'type', 'client_resource_id'], true, async_callback);
     }
 
   ];
@@ -59,15 +51,7 @@ exports.down = function(db, callback) {
   var steps = [
 
     function(async_callback) {
-      db.changeColumn('outgoing_transactions', 'source_account', {type: 'text', primaryKey: false}, async_callback);
-    },
-
-    function(async_callback) {
-      db.changeColumn('outgoing_transactions', 'client_resource_id', {type: 'text', primaryKey: false}, async_callback);
-    },
-
-    function(async_callback) {
-      db.changeColumn('outgoing_transactions', 'type', {type: 'text', primaryKey: false}, async_callback);
+      db.removeIndex('outgoing_transactions', 'outgoing_transactions_pkey', async_callback);
     },
 
     function(async_callback) {
@@ -80,6 +64,10 @@ exports.down = function(db, callback) {
     function(async_callback) {
       db.renameColumn('outgoing_transactions', 'client_resource_id', 'source_transaction_id', async_callback);
     },
+
+    function(async_callback) {
+      db.runSql('ALTER TABLE outgoing_transactions ALTER COLUMN ledger SET DATA TYPE INT;', async_callback);
+    },     
 
     function(async_callback) {
       db.renameColumn('outgoing_transactions', 'ledger', 'submitted_at_ledger', async_callback);

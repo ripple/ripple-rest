@@ -4,7 +4,7 @@ module.exports = function(db) {
 
   var outgoing_transaction = db.define('outgoing_transaction', {
 
-    ledger: sequelize.INTEGER,
+    ledger: sequelize.TEXT,
     source_account: { type: sequelize.TEXT, primaryKey: true },
     client_resource_id: { type: sequelize.TEXT, primaryKey: true },
     tx_json: sequelize.TEXT,
