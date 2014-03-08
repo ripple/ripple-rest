@@ -18,10 +18,9 @@ nconf.defaults({
   "PORT": 5990,
   "NODE_ENV": "development",
   "HOST": "localhost",
-  "DATABASE_URL": "sqlite://" + process.cwd() + "/database.sqlite",
   "rippled_servers": [
     {
-      "host": "s_west.ripple.com",
+      "host": "s-west.ripple.com",
       "port": 443,
       "secure": true
     }

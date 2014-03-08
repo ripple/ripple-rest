@@ -1,9 +1,6 @@
 function reportError(error, res) {
 
-  console.log('Error: ', error);
-  if (error.stack) {
-    console.log(error.stack);
-  }
+  console.log(error.stack || error);
 
   var err_obj = {
     success: false,

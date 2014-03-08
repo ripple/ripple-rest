@@ -34,20 +34,24 @@ app.all('*', function(req, res, next) {
   next();
 });
 
+var remote;
+
 /* Connect to db */
-var db = require('./db/db-connect')({
-  config: config
+var dbinterface = require('./lib/db-interface')({
+  config: config,
+  remote: remote
 });
 
-
-/* Connect to ripple-lib */
+/* Connect to ripple-lib Remote */
 var remote_opts = {
   local_signing: true,
-  servers: config.get('rippled_servers')
+  servers: config.get('rippled_servers'),
+  storage: {
+    saveTransaction: dbinterface.saveTransaction,
+    getPendingTransactions: dbinterface.getPendingTransactions
+  }
 };
-
-/* Connect to ripple-lib Remote */
-var remote = new ripple.Remote(remote_opts);
+remote = new ripple.Remote(remote_opts);
 
 remote.on('error', function(err) {
   console.error('ripple-lib Remote error: ', err);
@@ -70,12 +74,14 @@ remote.on('connect', function() {
 console.log('Connecting to the Ripple Network...');
 remote.connect();
 
+
 /* Initialize controllers */
 var ServerController = require('./controllers/server-controller')({
   remote: remote
 });
 var SubmissionController = require('./controllers/submission-controller')({
-  remote: remote
+  remote: remote,
+  dbinterface: dbinterface
 });
 
 

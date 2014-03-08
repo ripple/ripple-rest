@@ -28,16 +28,14 @@
     "grunt-db-migrate": "~0.1.4",
     "grunt-cli": "~0.1.13",
     "grunt-contrib-jshint": "~0.8.0",
-    "grunt-contrib-watch": "~0.5.3",
     "grunt-simple-mocha": "*",
-    "grunt-nodemon": "~0.1.2",
     "sinon": "~1.7.3",
     "sinon-chai": "~2.4.0",
     "clone": "~0.1.11"
   },
   "dependencies": {
     "express": "~3.4.7",
-    "ripple-lib": "*",
+    "ripple-lib": "git://github.com/ripple/ripple-lib.git#develop",
     "db-migrate": "~0.6.3",
     "sequelize": "~2.0.0-dev1",
     "async": "~0.2.9",

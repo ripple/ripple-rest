@@ -3,7 +3,8 @@ var submissionlib = require('../lib/submission-lib');
 
 module.exports = function(opts){
 
-  var remote = opts.remote;
+  var remote = opts.remote,
+    dbinterface = opts.dbinterface;
 
   return {
 
@@ -19,7 +20,7 @@ module.exports = function(opts){
         secret = req.body.secret,
         client_resource_id = req.body.client_resource_id;
 
-      submissionlib.submitPayment(remote, {
+      submissionlib.submitPayment(remote, dbinterface, {
         payment: payment,
         secret: secret,
         client_resource_id: client_resource_id

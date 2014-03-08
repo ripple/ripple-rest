@@ -1,5 +1,4 @@
 var fs        = require('fs');
-var sqlite3   = require('sqlite3');
 var sequelize = require('sequelize');
 var pg        = require('pg').native;
 

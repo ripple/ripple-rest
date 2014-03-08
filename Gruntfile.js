@@ -9,15 +9,6 @@ module.exports = function(grunt) {
       all: watched_files
     },
 
-    nodemon: {
-      script: 'server.js',
-      options: {
-        ignore: ['node_modules/**'],
-        watch: watched_files,
-        delay: 1
-      }
-    },
-
     simplemocha: {
       options: {
           timeout: 3000,
@@ -31,10 +22,6 @@ module.exports = function(grunt) {
     }
   });
 
-
-
-  grunt.loadNpmTasks('grunt-contrib-watch');
-  grunt.loadNpmTasks('grunt-nodemon');
   grunt.loadNpmTasks('grunt-contrib-jshint');
   grunt.loadNpmTasks('grunt-simple-mocha');
 
