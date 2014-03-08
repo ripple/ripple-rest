@@ -4,7 +4,7 @@ module.exports = function(db) {
 
   var client_resource_id_record = db.define('client_resource_id_record', {
 
-    source_address: sequelize.TEXT,
+    source_account: sequelize.TEXT,
     type: sequelize.TEXT,
     client_resource_id: sequelize.TEXT,
     hash: sequelize.TEXT,

@@ -9,7 +9,7 @@ exports.up = function(db, callback) {
     created_at: {type: 'timestamp'},
     updated_at: {type: 'timestamp'},
 
-    source_address: {type: 'text', primaryKey: true},
+    source_account: {type: 'text', primaryKey: true},
     type: {type: 'text', primaryKey: true},
     client_resource_id: {type: 'text', primaryKey: true},
     hash: {type: 'text'},

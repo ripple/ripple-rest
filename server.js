@@ -90,16 +90,12 @@ var url_base = (typeof config.get('ssl') === 'object' ? 'https' : 'http') + '://
 app.get('/', function(req, res){
   res.json({
     endpoints: {
-      GET: {
-        server: {
-          status:    url_base + '/v1/server',
-          connected: url_base + '/v1/server/connected'
-        }
+      server: {
+        status:    url_base + '/v1/server',
+        connected: url_base + '/v1/server/connected'
       },
-      POST: {
-        payments: {
-          submit:    url_base + '/v1/payments' 
-        }
+      payments: {
+        submit:    url_base + '/v1/payments' 
       }
     }
   });
