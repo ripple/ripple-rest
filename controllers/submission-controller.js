@@ -4,7 +4,8 @@ var submissionlib = require('../lib/submission-lib');
 module.exports = function(opts){
 
   var remote = opts.remote,
-    dbinterface = opts.dbinterface;
+    dbinterface = opts.dbinterface,
+    config = opts.config;
 
   return {
 
@@ -32,7 +33,8 @@ module.exports = function(opts){
 
         res.json({
           success: true,
-          client_resource_id: client_resource_id
+          client_resource_id: client_resource_id,
+          status_url: req.protocol + '://' + req.subdomains.join('.') + req.host + (config.get('NODE_ENV') !== 'production' && config.get('PORT') ? ':' + config.get('PORT') : '') + '/v1/accounts/' + payment.source_account + '/payments/' + client_resource_id
         });
       });
 

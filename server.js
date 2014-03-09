@@ -80,7 +80,12 @@ var ServerController = require('./controllers/server-controller')({
   remote: remote
 });
 var SubmissionController = require('./controllers/submission-controller')({
-  remote: remote,
+  remote:      remote,
+  dbinterface: dbinterface,
+  config:      config
+});
+var GetPaymentsController = require('./controllers/get-payments-controller')({
+  remote:      remote,
   dbinterface: dbinterface
 });
 
@@ -91,19 +96,23 @@ app.get('/', function(req, res){
   res.json({
     endpoints: {
       server: {
-        status:    url_base + '/v1/server',
-        connected: url_base + '/v1/server/connected'
+        status:           url_base + '/v1/server',
+        connected:        url_base + '/v1/server/connected'
       },
       payments: {
-        submit:    url_base + '/v1/payments' 
+        submit:           url_base + '/v1/payments',
+        account_payments: url_base + '/v1/accounts/{account}/payments/{hash,client_resource_id}'
       }
     }
   });
 });
+/* Server */
 app.get('/v1/server', ServerController.getStatus);
 app.get('/v1/server/connected', ServerController.isConnected);
 
+/* Payments */
 app.post('/v1/payments', SubmissionController.submitPayment);
+app.get('/v1/accounts/:account/payments/:identifier', GetPaymentsController.getPayment);
 
 
 
