@@ -99,6 +99,8 @@ app.get('/v1', function(req, res){
   var url_base = req.protocol + '://' + req.host + (config.get('NODE_ENV') === 'development' && config.get('PORT') ? ':' + config.get('PORT') : '');
 
   res.json({
+    ripple_rest_api: 'v1',
+    documentation: 'https://github.com/ripple/ripple-rest',
     endpoints: {
       payments: {
         submit:                url_base + '/v1/payments',
@@ -123,13 +125,15 @@ app.get('/v1/server/connected', ServerController.isConnected);
 
 /* Payments */
 app.post('/v1/payments', SubmissionController.submitPayment);
+app.get('/v1/accounts/:account/payments', GetPaymentsController.getPayment);
 app.get('/v1/accounts/:account/payments/:identifier', GetPaymentsController.getPayment);
 
 /* Notifications */
+app.get('/v1/accounts/:account/notifications', NotificationsController.getNotification);
 app.get('/v1/accounts/:account/notifications/:identifier', NotificationsController.getNotification);
 
 /* Standard Ripple Transactions */
-app.get('/v1/tx/:hash');
+app.get('/v1/tx/:hash', GetTxController.getTx);
 
 
 /* Configure SSL, if desired */
