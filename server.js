@@ -96,7 +96,7 @@ app.get('/', function(req, res){
   res.redirect('/v1');
 });
 app.get('/v1', function(req, res){
-  var url_base = req.protocol + '://' + req.subdomains.join('.') + req.host + (config.get('NODE_ENV') === 'development' && config.get('PORT') ? ':' + config.get('PORT') : '');
+  var url_base = req.protocol + '://' + req.host + (config.get('NODE_ENV') === 'development' && config.get('PORT') ? ':' + config.get('PORT') : '');
 
   res.json({
     endpoints: {
@@ -104,15 +104,15 @@ app.get('/v1', function(req, res){
         submit:                url_base + '/v1/payments',
         account_payments:      url_base + '/v1/accounts/{account}/payments/{hash,client_resource_id}'
       },
-      server: {
-        status:                url_base + '/v1/server',
-        connected:             url_base + '/v1/server/connected'
-      },
       notifications: {
         account_notifications: url_base + '/v1/accounts/{account}/notifications/{hash,client_resource_id}'
       },
       standard_ripple_transactions: {
         transaction:           url_base + '/v1/tx/{hash}'
+      },
+      server: {
+        status:                url_base + '/v1/server',
+        connected:             url_base + '/v1/server/connected'
       }
     }
   });

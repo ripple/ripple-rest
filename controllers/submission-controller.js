@@ -20,7 +20,7 @@ module.exports = function(opts){
       var payment = req.body.payment,
         secret = req.body.secret,
         client_resource_id = req.body.client_resource_id,
-        url_base = req.protocol + '://' + req.subdomains.join('.') + req.host + (config.get('NODE_ENV') !== 'production' && config.get('PORT') ? ':' + config.get('PORT') : '');
+        url_base = req.protocol + '://' + req.host + (config.get('NODE_ENV') !== 'production' && config.get('PORT') ? ':' + config.get('PORT') : '');
 
       submissionlib.submitPayment(remote, dbinterface, {
         payment: payment,
