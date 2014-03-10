@@ -22,6 +22,9 @@ var express          = require('express');
 var app              = express();
 
 /* Express middleware */
+if (config.get('NODE_ENV') !== 'production') {
+  app.set('json spaces', 2);
+}
 app.configure(function() {
   app.disable('x-powered-by');
   app.use(express.json());
