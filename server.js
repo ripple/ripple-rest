@@ -91,6 +91,9 @@ var NotificationsController = require('./controllers/notifications-controller')(
 /* Endpoints */
 var url_base = (typeof config.get('ssl') === 'object' ? 'https' : 'http') + '://' + config.get('HOST') + (config.get('PORT') ? ':' + config.get('PORT') : '');
 app.get('/', function(req, res){
+  res.redirect('/v1');
+});
+app.get('/v1', function(req, res){
   res.json({
     endpoints: {
       payments: {
