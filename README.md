@@ -2,6 +2,8 @@
 
 A RESTful API for submitting payments and monitoring accounts on the Ripple Network.
 
+See the [__API Reference__](docs/api-reference.md) for details on the available endpoints.
+
 ## Quickstart
 
 There is a test server available at [`https://ripple-rest.herokuapp.com`](https://ripple-rest.herokuapp.com). The root of the API contains links to all of the available endpoints.
