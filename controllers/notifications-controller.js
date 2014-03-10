@@ -30,9 +30,7 @@ module.exports = function(opts) {
 
         var url_base = req.protocol + '://' + req.subdomains.join('.') + req.host + (config.get('NODE_ENV') !== 'production' && config.get('PORT') ? ':' + config.get('PORT') : '');
         var client_resource_id = notification.client_resource_id;
-        if (client_resource_id) {
-          delete notification.client_resource_id;
-        }
+        delete notification.client_resource_id;
 
 
         Object.keys(notification).forEach(function(key){

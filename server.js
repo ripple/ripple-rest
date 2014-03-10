@@ -84,6 +84,7 @@ var controller_opts = {
 var ServerController        = require('./controllers/server-controller')(controller_opts);
 var SubmissionController    = require('./controllers/submission-controller')(controller_opts);
 var GetPaymentsController   = require('./controllers/get-payments-controller')(controller_opts);
+var GetTxController         = require('./controllers/get-tx-controller')(controller_opts);
 var NotificationsController = require('./controllers/notifications-controller')(controller_opts);
 
 
@@ -102,6 +103,9 @@ app.get('/', function(req, res){
       },
       notifications: {
         account_notifications: url_base + '/v1/accounts/{account}/notifications/{hash,client_resource_id}'
+      },
+      standard_ripple_transactions: {
+        transaction:           url_base + '/v1/tx/{hash}'
       }
     }
   });
@@ -116,6 +120,9 @@ app.get('/v1/accounts/:account/payments/:identifier', GetPaymentsController.getP
 
 /* Notifications */
 app.get('/v1/accounts/:account/notifications/:identifier', NotificationsController.getNotification);
+
+/* Standard Ripple Transactions */
+app.get('/v1/tx/:hash');
 
 
 /* Configure SSL, if desired */
