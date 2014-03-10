@@ -76,18 +76,15 @@ remote.connect();
 
 
 /* Initialize controllers */
-var ServerController = require('./controllers/server-controller')({
-  remote: remote
-});
-var SubmissionController = require('./controllers/submission-controller')({
-  remote:      remote,
+var controller_opts = {
+  remote: remote,
   dbinterface: dbinterface,
-  config:      config
-});
-var GetPaymentsController = require('./controllers/get-payments-controller')({
-  remote:      remote,
-  dbinterface: dbinterface
-});
+  config: config
+};
+var ServerController        = require('./controllers/server-controller')(controller_opts);
+var SubmissionController    = require('./controllers/submission-controller')(controller_opts);
+var GetPaymentsController   = require('./controllers/get-payments-controller')(controller_opts);
+var NotificationsController = require('./controllers/notifications-controller')(controller_opts);
 
 
 /* Endpoints */
@@ -95,13 +92,16 @@ var url_base = (typeof config.get('ssl') === 'object' ? 'https' : 'http') + '://
 app.get('/', function(req, res){
   res.json({
     endpoints: {
-      server: {
-        status:           url_base + '/v1/server',
-        connected:        url_base + '/v1/server/connected'
-      },
       payments: {
-        submit:           url_base + '/v1/payments',
-        account_payments: url_base + '/v1/accounts/{account}/payments/{hash,client_resource_id}'
+        submit:                url_base + '/v1/payments',
+        account_payments:      url_base + '/v1/accounts/{account}/payments/{hash,client_resource_id}'
+      },
+      server: {
+        status:                url_base + '/v1/server',
+        connected:             url_base + '/v1/server/connected'
+      },
+      notifications: {
+        account_notifications: url_base + '/v1/accounts/{account}/notifications/{hash,client_resource_id}'
       }
     }
   });
@@ -114,6 +114,8 @@ app.get('/v1/server/connected', ServerController.isConnected);
 app.post('/v1/payments', SubmissionController.submitPayment);
 app.get('/v1/accounts/:account/payments/:identifier', GetPaymentsController.getPayment);
 
+/* Notifications */
+app.get('/v1/accounts/:account/notifications/:identifier', NotificationsController.getNotification);
 
 
 /* Configure SSL, if desired */
