@@ -18,6 +18,22 @@ See the [__API Reference__](docs/api-reference.md) for details on the available 
 
 Note that restarting the server will delete the database so this CANNOT BE USED IN PRODUCTION.
 
+### Running in a Virtual Machine
+
+#### On Linux
+
+1. Install [Fig](http://orchardup.github.io/fig/install.html) and dependencies listed on that page
+2. Run `fig up` to start virtual machine
+3. Visit [`http://localhost:5990`](http://localhost:5990) to view available endpoints and to get started
+
+#### On Mac OSX
+
+1. Install [Fig](http://orchardup.github.io/fig/install.html) and dependencies listed on that page
+2. Install [VirtualBox](https://www.virtualbox.org/wiki/Downloads)
+3. Run `docker-osx shell` (not needed on Linux)
+4. Run `fig up` or, on OSX, `PYTHONIOENCODING=utf-8 fig up` to start virtual machine
+5. Visit [`http://localdocker:5990`](http://localdocker:5990) to view available endpoints and to get started
+
 ### Existing PostgreSQL Installation
 
 1. Run `git clone git@github.com:ripple/ripple-rest.git` to clone repository
@@ -28,10 +44,3 @@ Note that restarting the server will delete the database so this CANNOT BE USED 
 
 Note that if `npm install` fails because the user running it does not have sufficient permissions to access and modify the database, the command `./node_modules/.bin/grunt` must be run with sufficient permissions to execute database migrations.
 
-### Running in a Virtual Machine
-
-1. Install [Fig](http://orchardup.github.io/fig/install.html) and dependencies listed on that page
-2. If running on OSX, install [VirtualBox](https://www.virtualbox.org/wiki/Downloads) (not needed on Linux)
-3. If running on OSX, run `docker-osx shell` (not needed on Linux)
-4. Run `fig up` or, on OSX, `PYTHONIOENCODING=utf-8 fig up`
-5. Visit [`http://localhost:5990`](http://localhost:5990), or [`http://localdocker:5990`](http://localdocker:5990) on OSX, to view available endpoints and to get started
