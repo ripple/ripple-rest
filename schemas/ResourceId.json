@@ -3,5 +3,5 @@
   "title": "ResourceId",
   "description": "A client-supplied unique identifier (ideally a UUID) for this transaction used to prevent duplicate payments and help confirm the transaction's final status. All ASCII printable characters are allowed",
   "type": "string",
-  "pattern": "^[ !\"#$%&'()*+,[-]./0-9:;<=>?@A-Z[\\]^_`a-z{|}~]{1,255}$"
+  "pattern": "^[ -~]{1,255}$"
 }
