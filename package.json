@@ -35,7 +35,7 @@
   },
   "dependencies": {
     "express": "~3.4.7",
-    "ripple-lib": "git://github.com/emschwartz/ripple-lib.git#develop",
+    "ripple-lib": "git://github.com/ripple/ripple-lib.git#develop",
     "grunt": "~0.4.2",
     "grunt-db-migrate": "~0.1.4",
     "db-migrate": "~0.6.3",
@@ -47,6 +47,7 @@
     "nconf": "~0.6.9",
     "rconsole": "~0.2.0",
     "jayschema": "*",
-    "pg": "~2.11.1"
+    "pg": "~2.11.1",
+    "sqlite3": "~2.2.0"
   }
 }

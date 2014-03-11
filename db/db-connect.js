@@ -13,9 +13,8 @@ module.exports = function(opts) {
     connect: function(callback) {
 
       // Use postgres database if provided, otherwise use sqlite3
-      if (db_url.indexOf('postgres') !== -1) {
+      if (db_url && db_url.indexOf('postgres') !== -1) {
 
-        // var match = db_url.match(/postgres:\/\/([^:]+):([^@]+)@([^:]+):(\d+)\/(.+)/),
         db = new sequelize(db_url, {
           logging:  false,
           native: true,
@@ -24,35 +23,19 @@ module.exports = function(opts) {
           }
         });
 
-      } else if (db_url.indexOf('sqlite') !== -1) {
-
-        if (fs.existsSync(db_url)) {
-          db = new sequelize(db_url, {
-            logging:  false,
-            define: {
-              underscored: true
-            }
-          });
-        } else {
-          var error = new Error('SQLite3 database does not yet exist. Run grunt to create it');
-          if (callback) {
-            callback(error);
-            return;
-          } else {
-            throw(error);
-          }
-        }
-
       } else {
-        var error = new Error('Must specify PostgreSQL or SQLite3 DATABASE_URL');
-          if (callback) {
-            callback(error);
-            return;
-          } else {
-            throw(error);
-          }
-      }
 
+        db = new sequelize('ripple_rest_db', 'ripple_rest_user', 'ripple_rest', {
+          dialect: 'sqlite',
+          storage: ':memory:',
+          logging: false,
+          define: {
+            underscored: true
+          }
+        });
+
+      }
+      
       db.authenticate()
       .error(function(err){
         var error = new Error('Cannot connect to database: ' + db_url + '. ' + err);
@@ -65,8 +48,10 @@ module.exports = function(opts) {
       .success(function(){
         if (callback) {
           callback();
-        } else {
+        } else if (db_url) {
           console.log('Connected to database: ' + db_url);
+        } else {
+          console.log('Using sqlite3 in memory database. DO NOT USE THIS FOR A PRODUCTION SYSTEM');
         }
       });
 

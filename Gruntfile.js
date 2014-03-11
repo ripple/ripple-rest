@@ -41,53 +41,27 @@ module.exports = function(grunt) {
   grunt.loadNpmTasks('grunt-contrib-jshint');
   grunt.loadNpmTasks('grunt-simple-mocha');
 
-  grunt.registerTask('default', ['migrate:up']);
+  grunt.registerTask('default', ['dbsetup']);
   grunt.registerTask('dev', ['jshint', 'nodemon']);
   grunt.registerTask('test', ['jshint', 'simplemocha:local']);
 
-  // grunt.registerTask('setupdb', 'Check if the database is running / exists', function(){
+  grunt.registerTask('dbsetup', 'Check if the database is running / exists', function(){
 
-  //   var done = this.async();
-  //   var db_url = config.get('DATABASE_URL');
-  //   dbconnect.connect(function(err, db){
-  //     if (err) {
-  //       if (!db_url) {
-  //         grunt.fail.fatal('No DATABASE_URL specified');
-  //       } else if (db_url.indexOf('sqlite') !== -1) {
-  //         grunt.fail.fatal('sqlite3 not yet supported');
-  //         // grunt.task.run('createsqlite');
-  //       } else {
-  //         grunt.task.run('migrate:up');
-  //       }
-  //     }
+    var done = this.async();
+    var db_url = config.get('DATABASE_URL');
 
-  //     done();
-  //   });
-  // });
+    if (db_url) {
+      dbconnect.connect(function(err, db){
+        if (err) {
+          grunt.fail.fatal(err);
+        }
 
-  // TODO add support for sqlite
+        grunt.task.run('migrate:up');
 
-  // grunt.registerTask('createsqlite', 'Create sqlite3 database', function(){
-
-  //   var done = this.async();
-
-  //   var db_url = config.get('DATABASE_URL'),
-  //     match = db_url.match(/sqlite3:\/\/(.*\.sqlite)/),
-  //     db_path;
-  //   if (match) {
-  //     db_path = match[1];
-  //   } else {
-  //     grunt.fail.fatal('Can only create sqlite3 database using this script');
-  //   }
-
-  //   var db = new sqlite3.Database(db_path, function(err){
-  //     if (!err) {
-  //       grunt.log.writeln('Created sqlite3 database at: ' + db_path);        
-  //     }
-
-
-
-  //     done(err);
-  //   });
-  // });
+        done();
+      });
+    } else {
+      grunt.log.writeln('No DATABASE_URL specified, defaulting to sqlite3 in memory. DO NOT USE THIS FOR A PRODUCTION SYSTEM');
+    }
+  });
 };

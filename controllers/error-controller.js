@@ -8,6 +8,12 @@ function reportError(error, res) {
     message: (error.remote ? error.remote.error_message : null) || error.error_message || error.message || error.engine_result_message || error
   };
 
+  /* Handle db errors */
+  if (/Error: column .* does not exist/.test(err_obj.error)) {
+    err_obj.error = 'Database Not Configured Properly';
+    err_obj.message = 'ripple-rest cannot write to one of the needed tables. This likely means that the database migrations were not run. Please run "./node_modules/.bin/grunt" from ripple-rest\'s root directory. ' + err_obj.error;
+  }
+
 
   /* Handle ripple-lib errors */
   if (err_obj.error === 'remoteError') {

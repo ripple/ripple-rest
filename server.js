@@ -25,11 +25,9 @@ var app              = express();
 if (config.get('NODE_ENV') !== 'production') {
   app.set('json spaces', 2);
 }
-app.configure(function() {
-  app.disable('x-powered-by');
-  app.use(express.json());
-  app.use(express.urlencoded());
-});
+app.disable('x-powered-by');
+app.use(express.json());
+app.use(express.urlencoded());
 
 app.all('*', function(req, res, next) {
   res.header('Access-Control-Allow-Origin', '*');
@@ -74,7 +72,7 @@ remote.on('connect', function() {
   });
 });
 
-console.log('Connecting to the Ripple Network...');
+console.log('Attempting to connect to the Ripple Network...');
 remote.connect();
 
 
@@ -127,6 +125,7 @@ app.get('/v1/server/connected', ServerController.isConnected);
 app.post('/v1/payments', SubmissionController.submitPayment);
 app.get('/v1/accounts/:account/payments', GetPaymentsController.getPayment);
 app.get('/v1/accounts/:account/payments/:identifier', GetPaymentsController.getPayment);
+app.get('/v1/accounts/:account/payments/paths/:destination_account/:destination_amount_string', GetPaymentsController.getPathfind);
 
 /* Notifications */
 app.get('/v1/accounts/:account/notifications', NotificationsController.getNotification);
@@ -159,6 +158,6 @@ if (typeof config.get('ssl') === 'object') {
   });
 } else {
   app.listen(config.get('PORT'), function() {
-    console.log('ripple-rest listening over unsecured HTTP at port: ' + config.get('PORT'));
+    console.log('ripple-rest listening over UNSECURED HTTP at port: ' + config.get('PORT'));
   });
 }
