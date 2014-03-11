@@ -48,6 +48,7 @@
     "rconsole": "~0.2.0",
     "jayschema": "*",
     "pg": "~2.11.1",
-    "sqlite3": "~2.2.0"
+    "sqlite3": "~2.2.0",
+    "node-uuid": "~1.4.1"
   }
 }

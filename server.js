@@ -103,6 +103,7 @@ var SubmissionController    = require('./controllers/submission-controller')(con
 var GetPaymentsController   = require('./controllers/get-payments-controller')(controller_opts);
 var GetTxController         = require('./controllers/get-tx-controller')(controller_opts);
 var NotificationsController = require('./controllers/notifications-controller')(controller_opts);
+var UtilsController         = require('./controllers/utils-controller')(controller_opts);
 
 
 /* Endpoints */
@@ -129,6 +130,9 @@ app.get('/v1', function(req, res){
       server: {
         status:                url_base + '/v1/server',
         connected:             url_base + '/v1/server/connected'
+      },
+      utils: {
+        uuid_generator:        url_base + '/v1/uuid'
       }
     }
   });
@@ -150,6 +154,9 @@ app.get('/v1/accounts/:account/next_notification/:identifier', NotificationsCont
 
 /* Standard Ripple Transactions */
 app.get('/v1/tx/:hash', GetTxController.getTx);
+
+/* Utils */
+app.get('/v1/uuid', UtilsController.getUuid);
 
 
 /* Configure SSL, if desired */
