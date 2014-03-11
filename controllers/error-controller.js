@@ -10,8 +10,13 @@ function reportError(error, res) {
 
   /* Handle db errors */
   if (/Error: column .* does not exist/.test(err_obj.error)) {
-    err_obj.error = 'Database Not Configured Properly';
     err_obj.message = 'ripple-rest cannot write to one of the needed tables. This likely means that the database migrations were not run. Please run "./node_modules/.bin/grunt" from ripple-rest\'s root directory. ' + err_obj.error;
+    err_obj.error = 'Database Not Configured Properly';
+  }
+
+  if (/SQLITE_ERROR/.test(err_obj.error)) {
+    err_obj.message = 'ripple-rest has a sqlite error: ' + err_obj.error;
+    err_obj.error = 'Database Not Configured Properly';
   }
 
 

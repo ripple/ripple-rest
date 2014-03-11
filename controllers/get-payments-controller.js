@@ -10,7 +10,7 @@ module.exports = function(opts){
 
     getPayment: function(req, res) {
 
-      var account = req.params.account,
+      var account  = req.params.account,
         identifier = req.params.identifier;
 
       getpaymentslib.getPayment(remote, dbinterface, {
@@ -27,6 +27,36 @@ module.exports = function(opts){
           payment: payment
         });
       });
+    },
+
+    getPathfind: function(req, res) {
+
+      var source_account          = req.params.account,
+        destination_account       = req.params.destination_account,
+        destination_amount_string = req.params.destination_amount_string,
+        destination_amount_array,
+        destination_amount;
+
+      if (typeof destination_amount_string !== 'string' || destination_amount_string.length === 0) {
+        ErrorController.reportError(new Error(''), res);
+      } 
+
+      getpaymentslib.getPathfind(remote, {
+        source_account: source_account,
+        destination_account: destination_account,
+      }, function(err, payments){
+        if (err) {
+          ErrorController.reportError(err, res);
+          return;
+        }
+
+        res.json({
+          success: true,
+          payments: payments
+        });
+
+      });
+
     }
   };
 };

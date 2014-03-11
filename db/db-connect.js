@@ -29,8 +29,10 @@ module.exports = function(opts) {
           dialect: 'sqlite',
           storage: ':memory:',
           logging: false,
-          define: {
-            underscored: true
+          sync: { force: true },
+          define: { 
+            underscored: true,
+            syncOnAssociation: true
           }
         });
 
