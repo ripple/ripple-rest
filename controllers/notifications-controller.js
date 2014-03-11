@@ -46,6 +46,31 @@ module.exports = function(opts) {
         });
       });
 
+    },
+
+    getNextNotification: function(req, res) {
+
+      var account = req.params.account,
+        identifier = req.params.identifier;
+
+      notificationslib.getNotification(remote, dbinterface, {
+        account: account,
+        identifier: identifier
+      }, function(err, notification){
+        if (err) {
+          ErrorController.reportError(err, res);
+          return;
+        }
+
+        if (!notification) {
+          ErrorController.reportError(new Error('Transaction Not Found. Could not get the notification corresponding to this transaction identifier. This may be because the transaction was never validated and written into the Ripple ledger or because it was not submitted through this ripple-rest instance. This error may also be seen if the databases of either ripple-rest or rippled were recently created or deleted.'), res);
+          return;
+        }
+
+        res.redirect(notification.next_notification_url);
+
+      });
+
     }
 
   };

@@ -28,6 +28,22 @@ if (config.get('NODE_ENV') !== 'production') {
 app.disable('x-powered-by');
 app.use(express.json());
 app.use(express.urlencoded());
+app.use(function(req, res, next){
+  var match = req.path.match(/\/api\/(.*)/);
+  if (match) {
+    res.redirect(match[1]);
+  } else {
+    next();
+  }
+});
+app.use(function(req, res, next){
+  var new_path = req.path.replace('addresses', 'accounts').replace('address', 'account');
+  if (new_path !== req.path) {
+    res.redirect(new_path);
+  } else {
+    next();
+  }
+});
 
 app.all('*', function(req, res, next) {
   res.header('Access-Control-Allow-Origin', '*');
@@ -130,6 +146,7 @@ app.get('/v1/accounts/:account/payments/paths/:destination_account/:destination_
 /* Notifications */
 app.get('/v1/accounts/:account/notifications', NotificationsController.getNotification);
 app.get('/v1/accounts/:account/notifications/:identifier', NotificationsController.getNotification);
+app.get('/v1/accounts/:account/next_notification/:identifier', NotificationsController.getNextNotification);
 
 /* Standard Ripple Transactions */
 app.get('/v1/tx/:hash', GetTxController.getTx);
