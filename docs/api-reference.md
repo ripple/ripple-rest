@@ -155,8 +155,8 @@ Request JSON Body (with all of the fields available on submission):
 + `source_account`, `destination_account` - the Ripple addresses of the sender and receiver accounts
 + `source_tag`, `destination_tag` - optional string representation of 32-bit integers that can be used to denote hosted accounts at gateways
 + `source_amount` - this is optional but if left unset will default to the same amount as the `destination_amount`. It is particularly useful to set the `source_amount`, as well as the `source_slippage`, in the case of cross-currency payments to constrain the amount that can be spent by the sender to deliver the `destination_amount` to the recipient
-+ `destination_amount` - the amount that should be delivered to the recipient
 + `source_slippage` - optional string representation of a floating point number. The `source_amount` will never be charged more than the `source_amount`'s value plus the `source_slippage` (these are used for the `SendMax` field in the `rippled` format)
++ `destination_amount` - the amount that should be delivered to the recipient
 + `invoice_id` - an optional 256-bit hash that can be used to identify a particular payment. Note that this is NOT the `client_resource_id`
 + `paths` - most users will want to treat this field as opaque. This is used internally to specify payment paths and is set automatically by the pathfinding endpoint. This field can be a JSON array representing the Ripple [PathSet](https://ripple.com/wiki/Payment_paths)
 + `partial_payment` - a boolean that, if set to true, indicates that this payment should go through even if the whole amount cannot be delivered because of a lack of liquidity or funds in the source_account account. Defaults to false
