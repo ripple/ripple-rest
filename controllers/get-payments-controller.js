@@ -43,12 +43,12 @@ module.exports = function(opts){
         return;
       }
 
-      var destination_amount_array = destination_amount_string.split('+'),
-        destination_amount = {
-          value: destination_amount_array[0],
-          currency: destination_amount_array[1],
-          issuer: (destination_amount_array.length >= 3 ? destination_amount_array[2] : '')
-        };
+      destination_amount_array = destination_amount_string.split('+');
+      destination_amount = {
+        value: destination_amount_array[0],
+        currency: destination_amount_array[1],
+        issuer: (destination_amount_array.length >= 3 ? destination_amount_array[2] : '')
+      };
 
       pathfindlib.getPathfind(remote, {
         source_account: source_account,
