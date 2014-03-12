@@ -119,7 +119,8 @@ app.get('/v1', function(req, res){
     endpoints: {
       payments: {
         submit:                url_base + '/v1/payments',
-        account_payments:      url_base + '/v1/accounts/{account}/payments/{hash,client_resource_id}'
+        account_payments:      url_base + '/v1/accounts/{account}/payments/{hash,client_resource_id}',
+        payment_paths:         url_base + '/v1/accounts/{account}/payments/paths/{destination_account}/{destination_amount as value+currency+issuer}', 
       },
       notifications: {
         account_notifications: url_base + '/v1/accounts/{account}/notifications/{hash,client_resource_id}'

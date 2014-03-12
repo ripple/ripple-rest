@@ -1,5 +1,6 @@
 var ErrorController = require('./error-controller');
-var getpaymentslib = require('../lib/get-payments-lib');
+var getpaymentslib  = require('../lib/get-payments-lib');
+var pathfindlib     = require('../lib/pathfind-lib');
 
 module.exports = function(opts){
 
@@ -38,12 +39,21 @@ module.exports = function(opts){
         destination_amount;
 
       if (typeof destination_amount_string !== 'string' || destination_amount_string.length === 0) {
-        ErrorController.reportError(new Error(''), res);
-      } 
+        ErrorController.reportError(new Error('Invalid Parameter: destination_amount. Must supply a string in the form value+currency+issuer'), res);
+        return;
+      }
 
-      getpaymentslib.getPathfind(remote, {
+      var destination_amount_array = destination_amount_string.split('+'),
+        destination_amount = {
+          value: destination_amount_array[0],
+          currency: destination_amount_array[1],
+          issuer: (destination_amount_array.length >= 3 ? destination_amount_array[2] : '')
+        };
+
+      pathfindlib.getPathfind(remote, {
         source_account: source_account,
         destination_account: destination_account,
+        destination_amount: destination_amount
       }, function(err, payments){
         if (err) {
           ErrorController.reportError(err, res);

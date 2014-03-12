@@ -5,23 +5,26 @@ __Contents:__
 
 - [Data formats](#data-formats)
 - [Differences from standard Ripple data formats](#differences-from-standard-ripple-data-formats)
-	- [The `client_resource_id` (required for Payments)](#the-client_resource_id-required-for-payments)
-	- [New data formats](#new-data-formats)
-	- [No XRP "drops"](#no-xrp-drops)
-	- [XRP Amount as an object](#xrp-amount-as-an-object)
-	- [UNIX Epoch instead of Ripple Epoch](#unix-epoch-instead-of-ripple-epoch)
-	- [Not compatible with `ripple-lib`](#not-compatible-with-ripple-lib)
+  - [The `client_resource_id` (required for Payments)](#the-client_resource_id-required-for-payments)
+  - [New data formats](#new-data-formats)
+  - [No XRP "drops"](#no-xrp-drops)
+  - [XRP Amount as an object](#xrp-amount-as-an-object)
+  - [UNIX Epoch instead of Ripple Epoch](#unix-epoch-instead-of-ripple-epoch)
+  - [Not compatible with `ripple-lib`](#not-compatible-with-ripple-lib)
 - [Available Endpoints](#available-endpoints)
-	- [Payments](#payments)
-		- [POST /v1/payments](#post-v1payments)
-		- [GET /v1/accounts/{account}/payments/{hash,client_resource_id}](#get-v1accountsaccountpaymentshashclient_resource_id)
-	- [Notifications](#notifications)
-		- [GET /v1/accounts/{account}/notifications/{hash,client_resource_id}](#get-v1accountsaccountnotificationshashclient_resource_id)
-	- [Standard Ripple Transactions](#standard-ripple-transactions)
-		- [GET /v1/tx/{hash}](#get-v1txhash)
-	- [Server Info](#server-info)
-		- [GET /v1/server/connected](#get-v1serverconnected)
-		- [GET /v1/server](#get-v1server)
+  - [Payments](#payments)
+    - [POST /v1/payments](#post-v1payments)
+    - [GET /v1/accounts/{account}/payments/{hash,client_resource_id}](#get-v1accounts{account}payments{hashclient_resource_id})
+    - [GET /v1/accounts/{account}/payments/paths/{destination_account}/{destination_amount as value+currency+issuer}](#get-v1accounts{account}paymentspaths{destination_account}{destination_amount-as-value+currency+issuer})
+  - [Notifications](#notifications)
+    - [GET /v1/accounts/{account}/notifications/{hash,client_resource_id}](#get-v1accounts{account}notifications{hashclient_resource_id})
+  - [Standard Ripple Transactions](#standard-ripple-transactions)
+    - [GET /v1/tx/{hash}](#get-v1tx{hash})
+  - [Server Info](#server-info)
+    - [GET /v1/server/connected](#get-v1serverconnected)
+    - [GET /v1/server](#get-v1server)
+  - [Utils](#utils)
+    - [GET /v1/uuid](#get-v1uuid)
 
 
 
@@ -106,7 +109,9 @@ Or if there is an error immediately upon submission:
 
 Submit a payment.
 
-Request JSON Body:
+Note that the `client_resource_id` is required for all Payment submissions to `ripple-rest`. If another payment with the same `client_resource_id` as one that this instance of `ripple-rest` has marked as `pending` or `validated`, `ripple-rest` will assume that the second one was submitted accidentally. This helps clients prevent double spending on payments, even if the connection to `ripple-rest` is interrupted before the client can confirm the success or failure of a payment. In this case, the response will be the same but ONLY ONE of the duplicates will be submitted.
+
+Request JSON Body (with only the required fields):
 ```js
 {
   "secret": "s...",
@@ -122,7 +127,41 @@ Request JSON Body:
   }
 }
 ```
-Note that the `client_resource_id` is required for all Payment submissions to `ripple-rest`. If another payment with the same `client_resource_id` as one that this instance of `ripple-rest` has marked as `pending` or `validated`, `ripple-rest` will assume that the second one was submitted accidentally. This helps clients prevent double spending on payments, even if the connection to `ripple-rest` is interrupted before the client can confirm the success or failure of a payment. In this case, the response will be the same but ONLY ONE of the duplicates will be submitted.
+Request JSON Body (with all of the fields available on submission):
+```js
+{
+  "source_account": "r1...",
+  "source_tag": "123",
+  "source_amount": {
+    "value": "1",
+    "currency": "USD",
+    "issuer": "r3..."
+  },
+  "source_slippage": "0.5",
+  "destination_account": "r2...",
+  "destination_tag": "456",
+  "destination_amount": {
+    "value": "10",
+    "currency": "XRP",
+    "issuer": ""
+  },
+  "invoice_id": "",
+  "paths": "[]",
+  "partial_payment": false,
+  "no_direct_ripple": false
+}
+```
+
++ `source_account`, `destination_account` - the Ripple addresses of the sender and receiver accounts
++ `source_tag`, `destination_tag` - optional string representation of 32-bit integers that can be used to denote hosted accounts at gateways
++ `source_amount` - this is optional but if left unset will default to the same amount as the `destination_amount`. It is particularly useful to set the `source_amount`, as well as the `source_slippage`, in the case of cross-currency payments to constrain the amount that can be spent by the sender to deliver the `destination_amount` to the recipient
++ `destination_amount` - the amount that should be delivered to the recipient
++ `source_slippage` - optional string representation of a floating point number. The `source_amount` will never be charged more than the `source_amount`'s value plus the `source_slippage` (these are used for the `SendMax` field in the `rippled` format)
++ `invoice_id` - an optional 256-bit hash that can be used to identify a particular payment. Note that this is NOT the `client_resource_id`
++ `paths` - most users will want to treat this field as opaque. This is used internally to specify payment paths and is set automatically by the pathfinding endpoint. This field can be a JSON array representing the Ripple [PathSet](https://ripple.com/wiki/Payment_paths)
++ `partial_payment` - a boolean that, if set to true, indicates that this payment should go through even if the whole amount cannot be delivered because of a lack of liquidity or funds in the source_account account. Defaults to false
++ `no_direct_ripple` - a boolean that can be set to true if paths are specified and the sender would like the Ripple Network to disregard any direct paths from the source_account to the destination_account. This may be used to take advantage of an arbitrage opportunity or by gateways wishing to issue balances from a hot wallet to a user who has mistakenly set a trustline directly to the hot wallet. Defaults to false
+
 
 Response:
 ```js
@@ -144,7 +183,9 @@ Or if there was an error that was caught immediately:
 
 The `status_url` can be used to check the status of an individual payment. At first the `state` will be `pending`, then `validated` or `failed`.
 
-If you want to monitor outgoing payments in bulk you can use the Notifications to monitor finalized (either validated or failed) payments.
+If you want to monitor outgoing payments in bulk you can use the [Notifications](#notifications) to monitor finalized (either validated or failed) payments.
+
+Note that payments will have additional fields after validation. Please refer to the Payment schema for details on all possible fields.
 
 ----------
 
@@ -170,6 +211,26 @@ If no payment is found with the given hash or client_resource_id the following e
   "message": "This may indicate that the payment was never validated and written into the Ripple ledger and it was not submitted through this ripple-rest instance. This error may also be seen if the databases of either ripple-rest or rippled were recently created or deleted."
 }
 ```
+
+----------
+
+#### GET /v1/accounts/{account}/payments/paths/{destination_account}/{destination_amount as value+currency+issuer}
+
+Query `rippled` for possible payment "paths" through the Ripple Network to deliver the given amount to the specified `destination_account`.
+
+Response:
+```js
+{
+  "success": true,
+  "payments": [{
+    /* Payment with source_amount set to an amount in currency 1 */
+  }, {
+    /* Payment with source_amount set to an amount in currency 2 */
+  } /* ... */]
+}
+```
+This query will respond with an array of fully-formed payments. The client can select one and submit it to [/v1/payments](#post-v1payments), optionally after editing some of the fields. The `source_tag` and `destination_tag` can be used to denote hosted accounts at gateways. The `source_slippage` field can be set to give the payment additional cushion in case the path liquidity changes after this result is returned but before the payment is submitted.
+
 
 ----------
 
@@ -289,8 +350,23 @@ Or if the server is not connected to the Ripple Network:
 }
 ```
 
+----------
 
+### Utils
 
+----------
+
+#### GET /v1/uuid
+
+A UUID v4 generator, which can be used if the client wishes to use UUIDs for the `client_resource_id` but does not have a UUID generator handy.
+
+Response:
+```js
+{
+  "success": true,
+  "uuid": "xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx"
+}
+```
 
 
 
