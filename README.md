@@ -24,7 +24,7 @@ Even though the test API supports HTTPS connections, __only submit transactions 
 2. `cp config-example.json config.json` and configure DATABASE_URL appropriately
 3. Run `npm install` to install the dependencies and setup the database
 4. Run `node server.js` to start the server
-5. Visit `http://localhost:5990/api/v1/status` in your browser to confirm that the server is up and running
+5. Visit `https://localhost:5990/api/v1/status` in your browser to confirm that the server is up and running
 
 #### Updating
 
