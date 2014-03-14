@@ -14,42 +14,14 @@ console.set({
   showTags:        true
 });
 
-var fs               = require('fs');
-var https            = require('https');
-var ripple           = require('ripple-lib');
-var config           = require('./config/config-loader');
-var express          = require('express');
-var app              = express();
+var fs      = require('fs');
+var https   = require('https');
+var ripple  = require('ripple-lib');
+var express = require('express');
 
-/* Express middleware */
-if (config.get('NODE_ENV') !== 'production') {
-  app.set('json spaces', 2);
-}
-app.disable('x-powered-by');
-app.use(express.json());
-app.use(express.urlencoded());
-app.use(function(req, res, next){
-  var match = req.path.match(/\/api\/(.*)/);
-  if (match) {
-    res.redirect(match[1]);
-  } else {
-    next();
-  }
-});
-app.use(function(req, res, next){
-  var new_path = req.path.replace('addresses', 'accounts').replace('address', 'account');
-  if (new_path !== req.path) {
-    res.redirect(new_path);
-  } else {
-    next();
-  }
-});
+var config  = require('./config/config-loader');
 
-app.all('*', function(req, res, next) {
-  res.header('Access-Control-Allow-Origin', '*');
-  res.header('Access-Control-Allow-Headers', 'X-Requested-With');
-  next();
-});
+/**** **** **** **** ****/
 
 var remote;
 
@@ -61,14 +33,11 @@ var dbinterface = require('./lib/db-interface')({
 
 /* Connect to ripple-lib Remote */
 var remote_opts = {
-  local_signing: true,
   servers: config.get('rippled_servers'),
-  storage: {
-    saveTransaction: dbinterface.saveTransaction,
-    getPendingTransactions: dbinterface.getPendingTransactions
-  }
+  storage: dbinterface
 };
-remote = new ripple.Remote(remote_opts);
+
+var remote = new ripple.Remote(remote_opts);
 
 remote.on('error', function(err) {
   console.error('ripple-lib Remote error: ', err);
@@ -89,28 +58,84 @@ remote.on('connect', function() {
 });
 
 console.log('Attempting to connect to the Ripple Network...');
+
 remote.connect();
 
+/**** **** **** **** ****/
+
+var app = express();
+
+app.disable('x-powered-by');
+app.use(express.json());
+app.use(express.urlencoded());
+
+if (config.get('NODE_ENV') !== 'production') {
+  app.set('json spaces', 2);
+}
+
+app.use(function(req, res, next){
+  var match = req.path.match(/\/api\/(.*)/);
+  if (match) {
+    res.redirect(match[1]);
+  } else {
+    next();
+  }
+});
+
+app.use(function(req, res, next) {
+  var new_path = req.path.replace('addresses', 'accounts').replace('address', 'account');
+
+  if (new_path !== req.path) {
+    res.redirect(new_path);
+  } else {
+    next();
+  }
+});
+
+app.all('*', function(req, res, next) {
+  res.header('Access-Control-Allow-Origin', '*');
+  res.header('Access-Control-Allow-Headers', 'X-Requested-With');
+  next();
+});
+
+app.param('account', function(req, res, next, account) {
+  if (ripple.UInt160.is_valid(account)) {
+    next();
+  } else {
+    res.send({
+      success: false,
+      error: 'Invalid account',
+      message: 'Specified account is invalid:' + account
+    });
+  }
+});
+
+/**** **** **** **** ****/
 
 /* Initialize controllers */
 var controller_opts = {
-  remote: remote,
-  dbinterface: dbinterface,
-  config: config
+  remote:       remote,
+  dbinterface:  dbinterface,
+  config:       config
 };
+
 var ServerController        = require('./controllers/server-controller')(controller_opts);
 var SubmissionController    = require('./controllers/submission-controller')(controller_opts);
 var GetPaymentsController   = require('./controllers/get-payments-controller')(controller_opts);
 var GetTxController         = require('./controllers/get-tx-controller')(controller_opts);
 var NotificationsController = require('./controllers/notifications-controller')(controller_opts);
+var BalancesController      = require('./controllers/balances-controller')(controller_opts);
+var SettingsController      = require('./controllers/settings-controller')(controller_opts);
 var UtilsController         = require('./controllers/utils-controller')(controller_opts);
 
+/**** **** **** **** ****/
 
 /* Endpoints */
-app.get('/', function(req, res){
+app.get('/', function(req, res) {
   res.redirect('/v1');
 });
-app.get('/v1', function(req, res){
+
+app.get('/v1', function(req, res) {
   var url_base = req.protocol + '://' + req.host + (config.get('NODE_ENV') === 'development' && config.get('PORT') ? ':' + config.get('PORT') : '');
 
   res.json({
@@ -120,7 +145,7 @@ app.get('/v1', function(req, res){
       payments: {
         submit:                url_base + '/v1/payments',
         account_payments:      url_base + '/v1/accounts/{account}/payments/{hash,client_resource_id}',
-        payment_paths:         url_base + '/v1/accounts/{account}/payments/paths/{destination_account}/{destination_amount as value+currency+issuer}', 
+        payment_paths:         url_base + '/v1/accounts/{account}/payments/paths/{destination_account}/{destination_amount as value+currency+issuer}',
       },
       notifications: {
         account_notifications: url_base + '/v1/accounts/{account}/notifications/{hash,client_resource_id}'
@@ -138,6 +163,7 @@ app.get('/v1', function(req, res){
     }
   });
 });
+
 /* Server */
 app.get('/v1/server', ServerController.getStatus);
 app.get('/v1/server/connected', ServerController.isConnected);
@@ -153,12 +179,18 @@ app.get('/v1/accounts/:account/notifications', NotificationsController.getNotifi
 app.get('/v1/accounts/:account/notifications/:identifier', NotificationsController.getNotification);
 app.get('/v1/accounts/:account/next_notification/:identifier', NotificationsController.getNextNotification);
 
-/* Standard Ripple Transactions */
+/* Balances */
+app.get('/v1/accounts/:account/balances', BalancesController.getBalances);
+
+/* Settings */
+app.get('/v1/accounts/:account/settings', SettingsController.getSettings);
+app.post('/v1/accounts/:account/settings', SettingsController.changeSettings);
+
+/* View transaction */
 app.get('/v1/tx/:hash', GetTxController.getTx);
 
 /* Utils */
 app.get('/v1/uuid', UtilsController.getUuid);
-
 
 /* Configure SSL, if desired */
 if (typeof config.get('ssl') === 'object') {
