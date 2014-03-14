@@ -221,7 +221,6 @@ app.get('/v1/tx/:identifier', TransactionsController.getTransaction);
 app.get('/v1/transaction/:identifier', TransactionsController.getTransaction);
 app.get('/v1/transactions/:identifier', TransactionsController.getTransaction);
 
-
 /* Utils */
 app.get('/v1/uuid', UtilsController.getUuid);
 
