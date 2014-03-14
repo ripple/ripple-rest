@@ -18,7 +18,7 @@ __Contents:__
   - [Notifications](#notifications)
     - [GET /v1/accounts/{account}/notifications/{hash,client_resource_id}](#get-v1accountsaccountnotificationshashclient_resource_id)
   - [Standard Ripple Transactions](#standard-ripple-transactions)
-    - [GET /v1/transaction/{hash}](#get-v1transactionhash)
+    - [GET /v1/transactions/{hash}](#get-v1transactionshash)
   - [Server Info](#server-info)
     - [GET /v1/server/connected](#get-v1serverconnected)
     - [GET /v1/server](#get-v1server)
@@ -272,7 +272,7 @@ Notifications have `next_notification_url` and `previous_notification_url`'s. Ac
 
 ----------
 
-#### GET /v1/transaction/{hash}
+#### GET /v1/transactions/{hash}
 
 Retrieve the details of a transaction in the standard Ripple JSON format. See the Ripple Wiki page on [Transaction Formats](https://ripple.com/wiki/Transactions) for more information.
 
