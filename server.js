@@ -14,20 +14,24 @@ console.set({
   showTags:        true
 });
 
-var fs               = require('fs');
-var https            = require('https');
-var ripple           = require('ripple-lib');
-var config           = require('./config/config-loader');
-var express          = require('express');
-var app              = express();
+var fs                = require('fs');
+var https             = require('https');
+var ripple            = require('ripple-lib');
+var express           = require('express');
+var connect           = require('connect');
+var app               = express();
+var config            = require('./config/config-loader');
+var DatabaseInterface = require('./lib/db-interface');
 
-/* Express middleware */
+
+/* Express Connect middleware */
 if (config.get('NODE_ENV') !== 'production') {
   app.set('json spaces', 2);
+  app.use(connect.logger(':method :url (:response-time ms)'));
 }
 app.disable('x-powered-by');
-app.use(express.json());
-app.use(express.urlencoded());
+app.use(connect.json());
+app.use(connect.urlencoded());
 app.use(function(req, res, next){
   var match = req.path.match(/\/api\/(.*)/);
   if (match) {
@@ -45,6 +49,7 @@ app.use(function(req, res, next){
   }
 });
 
+
 app.all('*', function(req, res, next) {
   res.header('Access-Control-Allow-Origin', '*');
   res.header('Access-Control-Allow-Headers', 'X-Requested-With');
@@ -54,18 +59,15 @@ app.all('*', function(req, res, next) {
 var remote;
 
 /* Connect to db */
-var dbinterface = require('./lib/db-interface')({
-  config: config,
-  remote: remote
-});
+var dbinterface = new DatabaseInterface(config.get('DATABASE_URL'));
 
 /* Connect to ripple-lib Remote */
 var remote_opts = {
   local_signing: true,
   servers: config.get('rippled_servers'),
   storage: {
-    saveTransaction: dbinterface.saveTransaction,
-    getPendingTransactions: dbinterface.getPendingTransactions
+    saveTransaction: dbinterface.saveTransaction.bind(dbinterface),
+    getPendingTransactions: dbinterface.getPendingTransactions.bind(dbinterface)
   }
 };
 remote = new ripple.Remote(remote_opts);
@@ -100,8 +102,8 @@ var controller_opts = {
 };
 var ServerController        = require('./controllers/server-controller')(controller_opts);
 var SubmissionController    = require('./controllers/submission-controller')(controller_opts);
-var GetPaymentsController   = require('./controllers/get-payments-controller')(controller_opts);
-var GetTxController         = require('./controllers/get-tx-controller')(controller_opts);
+var PaymentsController      = require('./controllers/payments-controller')(controller_opts);
+var TransactionsController  = require('./controllers/transactions-controller')(controller_opts);
 var NotificationsController = require('./controllers/notifications-controller')(controller_opts);
 var UtilsController         = require('./controllers/utils-controller')(controller_opts);
 
@@ -120,7 +122,7 @@ app.get('/v1', function(req, res){
       payments: {
         submit:                url_base + '/v1/payments',
         account_payments:      url_base + '/v1/accounts/{account}/payments/{hash,client_resource_id}',
-        payment_paths:         url_base + '/v1/accounts/{account}/payments/paths/{destination_account}/{destination_amount as value+currency+issuer}', 
+        payment_paths:         url_base + '/v1/accounts/{account}/payments/paths/{destination_account}/{destination_amount as value+currency or value+currency+issuer}', 
       },
       notifications: {
         account_notifications: url_base + '/v1/accounts/{account}/notifications/{hash,client_resource_id}'
@@ -144,9 +146,10 @@ app.get('/v1/server/connected', ServerController.isConnected);
 
 /* Payments */
 app.post('/v1/payments', SubmissionController.submitPayment);
-app.get('/v1/accounts/:account/payments', GetPaymentsController.getPayment);
-app.get('/v1/accounts/:account/payments/:identifier', GetPaymentsController.getPayment);
-app.get('/v1/accounts/:account/payments/paths/:destination_account/:destination_amount_string', GetPaymentsController.getPathfind);
+app.post('/v1/accounts/:account/payments', SubmissionController.submitPayment);
+app.get('/v1/accounts/:account/payments', PaymentsController.getPayment);
+app.get('/v1/accounts/:account/payments/:identifier', PaymentsController.getPayment);
+app.get('/v1/accounts/:account/payments/paths/:destination_account/:destination_amount_string', PaymentsController.getPathfind);
 
 /* Notifications */
 app.get('/v1/accounts/:account/notifications', NotificationsController.getNotification);
@@ -154,7 +157,7 @@ app.get('/v1/accounts/:account/notifications/:identifier', NotificationsControll
 app.get('/v1/accounts/:account/next_notification/:identifier', NotificationsController.getNextNotification);
 
 /* Standard Ripple Transactions */
-app.get('/v1/tx/:hash', GetTxController.getTx);
+app.get('/v1/tx/:hash', TransactionsController.getTransaction);
 
 /* Utils */
 app.get('/v1/uuid', UtilsController.getUuid);

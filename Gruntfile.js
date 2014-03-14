@@ -2,8 +2,7 @@ var fs        = require('fs');
 var pg        = require('pg');
 // var sqlite3   = require('sqlite3').verbose();
 var config    = require('./config/config-loader');
-var dbconnect = require('./db/db-connect')({ config: config });
-
+var dbconnect; 
 
 module.exports = function(grunt) {
 
@@ -51,7 +50,7 @@ module.exports = function(grunt) {
     var db_url = config.get('DATABASE_URL');
 
     if (db_url) {
-      dbconnect.connect(function(err, db){
+      dbconnect = require('./db/db-connect')(db_url, function(err, db){
         if (err) {
           grunt.fail.fatal(err);
         }
