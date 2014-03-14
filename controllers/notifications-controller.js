@@ -1,3 +1,4 @@
+var _                = require('lodash');
 var ErrorController  = require('./error-controller');
 var notificationslib = require('../lib/notifications-lib');
 
@@ -12,11 +13,24 @@ module.exports = function(opts) {
     getNotification: function(req, res) {
 
       var account = req.params.account,
-        identifier = req.params.identifier;
+        identifier = req.params.identifier,
+        type_string = req.query.types,
+        types = [];
+
+      if (type_string && type_string.length > 0) {
+        types = _.map(type_string.split(','), function(type){
+          return type.replace(' ', '').toLowerCase();
+        });
+      } else {
+        var possible_types = ['payment', 'offercreate', 'offercancel', 'trustset', 'accountset'];
+        res.redirect(req.originalUrl + (req.originalUrl.indexOf('?') === -1 ? '?' : '&') + 'types=' + possible_types.join(','));
+        return;
+      }
 
       notificationslib.getNotification(remote, dbinterface, {
         account: account,
-        identifier: identifier
+        identifier: identifier,
+        types: types
       }, function(err, notification){
         if (err) {
           ErrorController.reportError(err, res);
