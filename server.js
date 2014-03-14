@@ -181,7 +181,7 @@ app.get('/v1', function(req, res) {
         account_notifications: url_base + '/v1/accounts/{account}/notifications/{hash,client_resource_id}'
       },
       standard_ripple_transactions: {
-        transaction:           url_base + '/v1/tx/{hash}'
+        transaction:           url_base + '/v1/transaction/{hash}'
       },
       server: {
         status:                url_base + '/v1/server',
