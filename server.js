@@ -128,7 +128,7 @@ app.get('/v1', function(req, res){
         account_notifications: url_base + '/v1/accounts/{account}/notifications/{hash,client_resource_id}'
       },
       standard_ripple_transactions: {
-        transaction:           url_base + '/v1/transaction/{hash}'
+        transaction:           url_base + '/v1/transactions/{hash}'
       },
       server: {
         status:                url_base + '/v1/server',
@@ -157,7 +157,7 @@ app.get('/v1/accounts/:account/notifications/:identifier', NotificationsControll
 app.get('/v1/accounts/:account/next_notification/:identifier', NotificationsController.getNextNotification);
 
 /* Standard Ripple Transactions */
-app.get('/v1/transaction/:identifier', TransactionsController.getTransaction);
+app.get('/v1/transactions/:identifier', TransactionsController.getTransaction);
 
 /* Utils */
 app.get('/v1/uuid', UtilsController.getUuid);

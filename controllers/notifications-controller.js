@@ -53,6 +53,13 @@ module.exports = function(opts) {
           }
         });
 
+        if (types.length > 0 && types.length < 5) {
+          if (types.indexOf(notification.type) === -1) {
+            res.redirect(notification.previous_notification_url);
+            return;
+          }
+        }
+
         res.json({
           success: true,
           client_resource_id: client_resource_id,
