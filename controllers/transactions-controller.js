@@ -1,5 +1,5 @@
 var ErrorController = require('./error-controller');
-var txlib           = require('../lib/tx-lib');
+var transactionslib = require('../lib/transactions-lib');
 
 module.exports = function(opts){
 
@@ -8,12 +8,13 @@ module.exports = function(opts){
 
   return {
 
-    getTx: function(req, res) {
+    getTransaction: function(req, res) {
 
       var account = req.params.account,
-        hash = req.params.hash;
+        identifier = req.params.identifier;
 
-      txlib.getTx(remote, hash, {
+      transactionslib.getTransaction(remote, dbinterface, {
+        identifier: identifier,
         account: account
       }, function(err, tx){
         if (err) {

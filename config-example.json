@@ -10,7 +10,7 @@
   },
   "rippled_servers": [
     {
-      "host": "s_west.ripple.com",
+      "host": "s-west.ripple.com",
       "port": 443,
       "secure": true
     }
