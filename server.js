@@ -170,24 +170,16 @@ app.get('/v1', function(req, res) {
     ripple_rest_api: 'v1',
     documentation: 'https://github.com/ripple/ripple-rest',
     endpoints: {
-      payments: {
-        submit:                url_base + '/v1/payments',
-        account_payments:      url_base + '/v1/accounts/{account}/payments/{hash,client_resource_id}',
-        payment_paths:         url_base + '/v1/accounts/{account}/payments/paths/{destination_account}/{destination_amount as value+currency or value+currency+issuer}', 
-      },
-      notifications: {
-        account_notifications: url_base + '/v1/accounts/{account}/notifications/{hash,client_resource_id}'
-      },
-      standard_ripple_transactions: {
-        transaction:           url_base + '/v1/transactions/{hash}'
-      },
-      server: {
-        status:                url_base + '/v1/server',
-        connected:             url_base + '/v1/server/connected'
-      },
-      utils: {
-        uuid_generator:        url_base + '/v1/uuid'
-      }
+      submit_payment:          url_base + '/v1/payments',
+      payment_paths:           url_base + '/v1/accounts/{account}/payments/paths/{destination_account}/{destination_amount as value+currency or value+currency+issuer}',
+      account_payments:        url_base + '/v1/accounts/{account}/payments/{hash,client_resource_id}{?direction,exclue_failed}', 
+      account_notifications:   url_base + '/v1/accounts/{account}/notifications{/hash,client_resource_id}{?types,exclue_failed}',
+      account_balances:        url_base + '/v1/accounts/{account}/balances', 
+      account_settings:        url_base + '/v1/accounts/{account}/settings', 
+      ripple_transactions:     url_base + '/v1/transactions/{hash}',
+      server_status:           url_base + '/v1/server',
+      server_connected:        url_base + '/v1/server/connected',
+      uuid_generator:          url_base + '/v1/uuid'
     }
   });
 });
