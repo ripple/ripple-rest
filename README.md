@@ -22,9 +22,11 @@ Note that restarting the server will delete the database so this CANNOT BE USED 
 
 #### On Linux
 
-1. Install [Fig](http://orchardup.github.io/fig/install.html) and dependencies listed on that page
-2. Run `fig up` to start virtual machine
-3. Visit [`http://localhost:5990`](http://localhost:5990) to view available endpoints and to get started
+1. Run `git clone https://github.com/ripple/ripple-rest.git` in a terminal and switch into the `ripple-rest` directory
+2. `cp config-example.json config.json` and configure DATABASE_URL appropriately
+3. Run `npm install` to install the dependencies and setup the database
+4. Run `node server.js` to start the server
+5. Visit `http://localhost:5990/api/v1/status` in your browser to confirm that the server is up and running
 
 #### On Mac OSX
 
