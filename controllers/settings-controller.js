@@ -5,7 +5,7 @@ module.exports = function(opts) {
   var remote = opts.remote;
 
   function getSettings(req, res) {
-    settingsLib.getSettings(remote, req.earams, function(err, settings) {
+    settingsLib.getSettings(remote, req.params, function(err, settings) {
       if (err) {
         ErrorController.reportError(err, res);
       } else {
