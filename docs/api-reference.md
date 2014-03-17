@@ -242,6 +242,7 @@ This query will respond with an array of fully-formed payments. The client can s
 Query String Parameters:
 
 + `types` - a comma-separated list of transaction types to include. Available options are `payment`, `offercreate`, `offercancel`, `accountset`, `trustset`. Defaults to all.
++ `exclude_failed` - if set to true, this will return only notifications about transactions that were successfully validated and written into the Ripple Ledger
 
 Retrieve a notification corresponding to a transaction with a particular hash or client_resource_id from either `rippled`'s historical database or `ripple-rest`'s local database if the transaction was submitted through this instance of `ripple-rest`.
 

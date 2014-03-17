@@ -15,7 +15,11 @@ module.exports = function(opts) {
       var account = req.params.account,
         identifier = req.params.identifier,
         type_string = req.query.types,
-        types = [];
+        exclude_failed_string = req.query.exclude_failed,
+        types = [],
+        new_url = req.originalUrl;
+
+      // If query string parameters are not set, redirect to include them
 
       if (type_string && type_string.length > 0) {
         types = _.map(type_string.split(','), function(type){
@@ -23,14 +27,25 @@ module.exports = function(opts) {
         });
       } else {
         var possible_types = ['payment', 'offercreate', 'offercancel', 'trustset', 'accountset'];
-        res.redirect(req.originalUrl + (req.originalUrl.indexOf('?') === -1 ? '?' : '&') + 'types=' + possible_types.join(','));
+        new_url += (req.originalUrl.indexOf('?') === -1 ? '?' : '&') + 'types=' + possible_types.join(',');
+      }
+
+      if (!exclude_failed_string) {
+        new_url += '&exclude_failed=false';
+      }
+
+      if (new_url !== req.originalUrl) {
+        res.redirect(new_url);
         return;
       }
+
+      // Query Notification lib
 
       notificationslib.getNotification(remote, dbinterface, {
         account: account,
         identifier: identifier,
-        types: types
+        types: types,
+        exclude_failed: exclude_failed_string === 'true'
       }, function(err, notification){
         if (err) {
           ErrorController.reportError(err, res);
@@ -53,11 +68,19 @@ module.exports = function(opts) {
           }
         });
 
+        // If the base transaction this notification is built upon does not meet the specified
+        // criteria, redirect to the previous_notification_url, which will meet the criteria
+
         if (types.length > 0 && types.length < 5) {
           if (types.indexOf(notification.type) === -1) {
             res.redirect(notification.previous_notification_url);
             return;
           }
+        }
+
+        if (exclude_failed && notification.state !== 'validated') {
+          res.redirect(notification.previous_notification_url);
+          return;
         }
 
         res.json({
