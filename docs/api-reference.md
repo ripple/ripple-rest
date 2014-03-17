@@ -1,4 +1,3 @@
-
 # `ripple-rest` API Reference
 
 __Contents:__
@@ -14,12 +13,12 @@ __Contents:__
 - [Available Endpoints](#available-endpoints)
   - [Payments](#payments)
     - [POST /v1/payments](#post-v1payments)
-    - [GET /v1/accounts/{account}/payments/{hash,client_resource_id}](#get-v1accounts{account}payments{hashclient_resource_id})
-    - [GET /v1/accounts/{account}/payments/paths/{destination_account}/{destination_amount as value+currency+issuer}](#get-v1accounts{account}paymentspaths{destination_account}{destination_amount-as-value+currency+issuer})
+    - [GET /v1/accounts/{account}/payments/{hash,client_resource_id}](#get-v1accountsaccountpaymentshashclient_resource_id)
+    - [GET /v1/accounts/{account}/payments/paths/{destination_account}/{destination_amount as value+currency or value+currency+issuer}](#get-v1accountsaccountpaymentspathsdestination_accountdestination_amount-as-valuecurrency-or-valuecurrencyissuer)
   - [Notifications](#notifications)
-    - [GET /v1/accounts/{account}/notifications/{hash,client_resource_id}](#get-v1accounts{account}notifications{hashclient_resource_id})
+    - [GET /v1/accounts/{account}/notifications/{hash,client_resource_id}](#get-v1accountsaccountnotificationshashclient_resource_id)
   - [Standard Ripple Transactions](#standard-ripple-transactions)
-    - [GET /v1/tx/{hash}](#get-v1tx{hash})
+    - [GET /v1/transactions/{hash}](#get-v1transactionshash)
   - [Server Info](#server-info)
     - [GET /v1/server/connected](#get-v1serverconnected)
     - [GET /v1/server](#get-v1server)
@@ -46,7 +45,7 @@ The `client_resource_id` is required for all Payment submissions to `ripple-rest
 
 Because other types of duplicate transactions, such as updating account settings or modifying a trustline, do not carry as serious implications as duplicate Payments, the `client_resource_id` may be set for any type of resource submitted but it is only required for Payments.
 
-Universally Unique Identifiers (UUIDs), are recommended for the `client_resource_id`. For more information on UUIDs see [here](http://en.wikipedia.org/wiki/Universally_unique_identifier).
+Universally Unique Identifiers (UUIDs), are recommended for the `client_resource_id`. For more information on UUIDs see [here](http://en.wikipedia.org/wiki/Universally_unique_identifier). Note that 256-bit hex strings are disallowed because of the potential confusion with transaction hashes.
 
 #### New data formats
 
@@ -181,7 +180,7 @@ Or if there was an error that was caught immediately:
 }
 ```
 
-The `status_url` can be used to check the status of an individual payment. At first the `state` will be `pending`, then `validated` or `failed`.
+Note that a successfull POST request does NOT mean the transaction was validated. While a successful POST indicates that it is very likely the payment will be validated and written into the Ripple Ledger, the `status_url` should be used to check the status of an individual payment. At first the `state` will be `pending`, then `validated` or `failed`.
 
 If you want to monitor outgoing payments in bulk you can use the [Notifications](#notifications) to monitor finalized (either validated or failed) payments.
 
@@ -191,7 +190,7 @@ Note that payments will have additional fields after validation. Please refer to
 
 #### GET /v1/accounts/{account}/payments/{hash,client_resource_id}
 
-Retrieve the details of a specific payment from the `rippled` server or from the `ripple-rest` instance's local database, if the payment was submitted to this `ripple-rest` instance and is still pending.
+Retrieve the details of a specific payment from the `rippled` server or, if the transaction failled off-network or is still pending, from the `ripple-rest` instance's local database. If the `state` field is `validated`, then the payment has been validated and written into the Ripple Ledger.
 
 ```js
 {
@@ -214,9 +213,9 @@ If no payment is found with the given hash or client_resource_id the following e
 
 ----------
 
-#### GET /v1/accounts/{account}/payments/paths/{destination_account}/{destination_amount as value+currency+issuer}
+#### GET /v1/accounts/{account}/payments/paths/{destination_account}/{destination_amount as value+currency or value+currency+issuer}
 
-Query `rippled` for possible payment "paths" through the Ripple Network to deliver the given amount to the specified `destination_account`.
+Query `rippled` for possible payment "paths" through the Ripple Network to deliver the given amount to the specified `destination_account`. If the `destination_amount` issuer is not specified, paths will be returned for all of the issuers from whom the `destination_account` accepts the given currency.
 
 Response:
 ```js
@@ -238,7 +237,12 @@ This query will respond with an array of fully-formed payments. The client can s
 
 ----------
 
-#### GET /v1/accounts/{account}/notifications/{hash,client_resource_id}
+#### GET /v1/accounts/{account}/notifications/{hash,client_resource_id}{?types}
+
+Query String Parameters:
+
++ `types` - a comma-separated list of transaction types to include. Available options are `payment`, `offercreate`, `offercancel`, `accountset`, `trustset`. Defaults to all.
++ `exclude_failed` - if set to true, this will return only notifications about transactions that were successfully validated and written into the Ripple Ledger
 
 Retrieve a notification corresponding to a transaction with a particular hash or client_resource_id from either `rippled`'s historical database or `ripple-rest`'s local database if the transaction was submitted through this instance of `ripple-rest`.
 
@@ -269,7 +273,7 @@ Notifications have `next_notification_url` and `previous_notification_url`'s. Ac
 
 ----------
 
-#### GET /v1/tx/{hash}
+#### GET /v1/transactions/{hash}
 
 Retrieve the details of a transaction in the standard Ripple JSON format. See the Ripple Wiki page on [Transaction Formats](https://ripple.com/wiki/Transactions) for more information.
 

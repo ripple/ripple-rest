@@ -1,6 +1,5 @@
 var ErrorController = require('./error-controller');
-var getpaymentslib  = require('../lib/get-payments-lib');
-var pathfindlib     = require('../lib/pathfind-lib');
+var paymentslib     = require('../lib/payments-lib');
 
 module.exports = function(opts){
 
@@ -14,7 +13,7 @@ module.exports = function(opts){
       var account  = req.params.account,
         identifier = req.params.identifier;
 
-      getpaymentslib.getPayment(remote, dbinterface, {
+      paymentslib.getPayment(remote, dbinterface, {
         account: account,
         identifier: identifier
       }, function(err, payment){
@@ -50,7 +49,7 @@ module.exports = function(opts){
         issuer: (destination_amount_array.length >= 3 ? destination_amount_array[2] : '')
       };
 
-      pathfindlib.getPathfind(remote, {
+      paymentslib.getPathfind(remote, {
         source_account: source_account,
         destination_account: destination_account,
         destination_amount: destination_amount

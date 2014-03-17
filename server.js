@@ -14,22 +14,50 @@ console.set({
   showTags:        true
 });
 
-var fs      = require('fs');
-var https   = require('https');
-var ripple  = require('ripple-lib');
-var express = require('express');
+var fs                = require('fs');
+var https             = require('https');
+var ripple            = require('ripple-lib');
+var express           = require('express');
+var connect           = require('connect');
+var app               = express();
+var config            = require('./config/config-loader');
+var DatabaseInterface = require('./lib/db-interface');
 
-var config  = require('./config/config-loader');
 
-/**** **** **** **** ****/
+/* Express Connect middleware */
+if (config.get('NODE_ENV') !== 'production') {
+  app.set('json spaces', 2);
+  app.use(connect.logger(':method :url (:response-time ms)'));
+}
+app.disable('x-powered-by');
+app.use(connect.json());
+app.use(connect.urlencoded());
+app.use(function(req, res, next){
+  var match = req.path.match(/\/api\/(.*)/);
+  if (match) {
+    res.redirect(match[1]);
+  } else {
+    next();
+  }
+});
+app.use(function(req, res, next){
+  var new_path = req.path.replace('addresses', 'accounts').replace('address', 'account');
+  if (new_path !== req.path) {
+    res.redirect(new_path);
+  } else {
+    next();
+  }
+});
+app.all('*', function(req, res, next) {
+  res.header('Access-Control-Allow-Origin', '*');
+  res.header('Access-Control-Allow-Headers', 'X-Requested-With');
+  next();
+});
 
 var remote;
 
 /* Connect to db */
-var dbinterface = require('./lib/db-interface')({
-  config: config,
-  remote: remote
-});
+var dbinterface = new DatabaseInterface(config.get('DATABASE_URL'));
 
 /* Connect to ripple-lib Remote */
 var remote_opts = {
@@ -121,8 +149,8 @@ var controller_opts = {
 
 var ServerController        = require('./controllers/server-controller')(controller_opts);
 var SubmissionController    = require('./controllers/submission-controller')(controller_opts);
-var GetPaymentsController   = require('./controllers/get-payments-controller')(controller_opts);
-var GetTxController         = require('./controllers/get-tx-controller')(controller_opts);
+var PaymentsController      = require('./controllers/payments-controller')(controller_opts);
+var TransactionsController  = require('./controllers/transactions-controller')(controller_opts);
 var NotificationsController = require('./controllers/notifications-controller')(controller_opts);
 var BalancesController      = require('./controllers/balances-controller')(controller_opts);
 var SettingsController      = require('./controllers/settings-controller')(controller_opts);
@@ -142,24 +170,16 @@ app.get('/v1', function(req, res) {
     ripple_rest_api: 'v1',
     documentation: 'https://github.com/ripple/ripple-rest',
     endpoints: {
-      payments: {
-        submit:                url_base + '/v1/payments',
-        account_payments:      url_base + '/v1/accounts/{account}/payments/{hash,client_resource_id}',
-        payment_paths:         url_base + '/v1/accounts/{account}/payments/paths/{destination_account}/{destination_amount as value+currency+issuer}',
-      },
-      notifications: {
-        account_notifications: url_base + '/v1/accounts/{account}/notifications/{hash,client_resource_id}'
-      },
-      standard_ripple_transactions: {
-        transaction:           url_base + '/v1/tx/{hash}'
-      },
-      server: {
-        status:                url_base + '/v1/server',
-        connected:             url_base + '/v1/server/connected'
-      },
-      utils: {
-        uuid_generator:        url_base + '/v1/uuid'
-      }
+      submit_payment:          url_base + '/v1/payments',
+      payment_paths:           url_base + '/v1/accounts/{account}/payments/paths/{destination_account}/{destination_amount as value+currency or value+currency+issuer}',
+      account_payments:        url_base + '/v1/accounts/{account}/payments/{hash,client_resource_id}{?direction,exclue_failed}', 
+      account_notifications:   url_base + '/v1/accounts/{account}/notifications{/hash,client_resource_id}{?types,exclue_failed}',
+      account_balances:        url_base + '/v1/accounts/{account}/balances', 
+      account_settings:        url_base + '/v1/accounts/{account}/settings', 
+      ripple_transactions:     url_base + '/v1/transactions/{hash}',
+      server_status:           url_base + '/v1/server',
+      server_connected:        url_base + '/v1/server/connected',
+      uuid_generator:          url_base + '/v1/uuid'
     }
   });
 });
@@ -170,9 +190,10 @@ app.get('/v1/server/connected', ServerController.isConnected);
 
 /* Payments */
 app.post('/v1/payments', SubmissionController.submitPayment);
-app.get('/v1/accounts/:account/payments', GetPaymentsController.getPayment);
-app.get('/v1/accounts/:account/payments/:identifier', GetPaymentsController.getPayment);
-app.get('/v1/accounts/:account/payments/paths/:destination_account/:destination_amount_string', GetPaymentsController.getPathfind);
+app.post('/v1/accounts/:account/payments', SubmissionController.submitPayment);
+app.get('/v1/accounts/:account/payments', PaymentsController.getPayment);
+app.get('/v1/accounts/:account/payments/:identifier', PaymentsController.getPayment);
+app.get('/v1/accounts/:account/payments/paths/:destination_account/:destination_amount_string', PaymentsController.getPathfind);
 
 /* Notifications */
 app.get('/v1/accounts/:account/notifications', NotificationsController.getNotification);
@@ -186,8 +207,10 @@ app.get('/v1/accounts/:account/balances', BalancesController.getBalances);
 app.get('/v1/accounts/:account/settings', SettingsController.getSettings);
 app.post('/v1/accounts/:account/settings', SettingsController.changeSettings);
 
-/* View transaction */
-app.get('/v1/tx/:hash', GetTxController.getTx);
+/* Standard Ripple Transactions */
+app.get('/v1/tx/:identifier', TransactionsController.getTransaction);
+app.get('/v1/transaction/:identifier', TransactionsController.getTransaction);
+app.get('/v1/transactions/:identifier', TransactionsController.getTransaction);
 
 /* Utils */
 app.get('/v1/uuid', UtilsController.getUuid);
