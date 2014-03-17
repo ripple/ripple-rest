@@ -48,7 +48,10 @@ app.use(function(req, res, next){
     next();
   }
 });
+<<<<<<< HEAD
 
+=======
+>>>>>>> c69e2987859e0cdf6e22027ff8118c9a955f34c0
 app.all('*', function(req, res, next) {
   res.header('Access-Control-Allow-Origin', '*');
   res.header('Access-Control-Allow-Headers', 'X-Requested-With');
