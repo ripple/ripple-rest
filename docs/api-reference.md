@@ -188,9 +188,34 @@ Note that payments will have additional fields after validation. Please refer to
 
 ----------
 
-#### GET /v1/accounts/{account}/payments/{hash,client_resource_id}
+#### GET /v1/accounts/{account}/payments/paths/{destination_account}/{destination_amount as value+currency or value+currency+issuer}
 
-Retrieve the details of a specific payment from the `rippled` server or, if the transaction failled off-network or is still pending, from the `ripple-rest` instance's local database. If the `state` field is `validated`, then the payment has been validated and written into the Ripple Ledger.
+Query `rippled` for possible payment "paths" through the Ripple Network to deliver the given amount to the specified `destination_account`. If the `destination_amount` issuer is not specified, paths will be returned for all of the issuers from whom the `destination_account` accepts the given currency.
+
+Response:
+```js
+{
+  "success": true,
+  "payments": [{
+    /* Payment with source_amount set to an amount in currency 1 */
+  }, {
+    /* Payment with source_amount set to an amount in currency 2 */
+  } /* ... */]
+}
+```
+This query will respond with an array of fully-formed payments. The client can select one and submit it to [/v1/payments](#post-v1payments), optionally after editing some of the fields. The `source_tag` and `destination_tag` can be used to denote hosted accounts at gateways. The `source_slippage` field can be set to give the payment additional cushion in case the path liquidity changes after this result is returned but before the payment is submitted.
+
+----------
+
+#### GET /v1/accounts/{account}/payments{/hash,client_resource_id}{?direction,exclude_failed}
+
+Retrieve the details of one or more payments from the `rippled` server or, if the transaction failled off-network or is still pending, from the `ripple-rest` instance's local database.
+
+##### Retrieving an Individual Payment
+
+Individual payments can be retrieved by querying `/v1/accounts/{account}/payments/{hash,client_resource_id}`. 
+
+If the `state` field is `validated`, then the payment has been validated and written into the Ripple Ledger.
 
 ```js
 {
@@ -211,24 +236,33 @@ If no payment is found with the given hash or client_resource_id the following e
 }
 ```
 
-----------
+##### Browsing Historical Payments
 
-#### GET /v1/accounts/{account}/payments/paths/{destination_account}/{destination_amount as value+currency or value+currency+issuer}
+Historical payments can be browsed in bulk by supplying query string parameters: `/v1/accounts/{account}/payments{?direction,exclude_failed}`
 
-Query `rippled` for possible payment "paths" through the Ripple Network to deliver the given amount to the specified `destination_account`. If the `destination_amount` issuer is not specified, paths will be returned for all of the issuers from whom the `destination_account` accepts the given currency.
+Query string parameters:
++ `direction` - limit results to either `incoming`, `outgoing`, or `incoming_and_outgoing`
++ `exclude_failed` - if set to true, this will return only payment that were successfully validated and written into the Ripple Ledger
 
 Response:
 ```js
 {
   "success": true,
-  "payments": [{
-    /* Payment with source_amount set to an amount in currency 1 */
-  }, {
-    /* Payment with source_amount set to an amount in currency 2 */
-  } /* ... */]
+  "payments": [
+    {
+      "client_resource_id": "3492375b-d4d0-42db-9a80-a6a82925ccd5",
+      "payment": {
+        /* Payment */
+      }
+    }, {
+      "client_resource_id": "4a4e3fa5-d81e-4786-8383-7164c3cc9b01",
+      "payment": {
+        /* Payment */
+      }
+    }
+  ]
 }
 ```
-This query will respond with an array of fully-formed payments. The client can select one and submit it to [/v1/payments](#post-v1payments), optionally after editing some of the fields. The `source_tag` and `destination_tag` can be used to denote hosted accounts at gateways. The `source_slippage` field can be set to give the payment additional cushion in case the path liquidity changes after this result is returned but before the payment is submitted.
 
 
 ----------
