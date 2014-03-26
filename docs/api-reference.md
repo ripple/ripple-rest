@@ -14,7 +14,7 @@ __Contents:__
   - [Payments](#payments)
     - [POST /v1/payments](#post-v1payments)
     - [GET /v1/accounts/{account}/payments/{hash,client_resource_id}](#get-v1accountsaccountpaymentshashclient_resource_id)
-    - [GET /v1/accounts/{account}/payments/paths/{destination_account}/{destination_amount as value+currency or value+currency+issuer}](#get-v1accountsaccountpaymentspathsdestination_accountdestination_amount-as-valuecurrency-or-valuecurrencyissuer)
+    - [GET /v1/accounts/{account}/payments/paths/{destination_account}/{destination_amount as value+currency or value+currency+issuer}{?source_currencies}](#get-v1accountsaccountpaymentspathsdestination_accountdestination_amount-as-valuecurrency-or-valuecurrencyissuersource_currencies)
   - [Notifications](#notifications)
     - [GET /v1/accounts/{account}/notifications/{hash,client_resource_id}](#get-v1accountsaccountnotificationshashclient_resource_id)
   - [Standard Ripple Transactions](#standard-ripple-transactions)
@@ -188,9 +188,12 @@ Note that payments will have additional fields after validation. Please refer to
 
 ----------
 
-#### GET /v1/accounts/{account}/payments/paths/{destination_account}/{destination_amount as value+currency or value+currency+issuer}
+#### GET /v1/accounts/{account}/payments/paths/{destination_account}/{destination_amount as value+currency or value+currency+issuer}{?source_currencies}
 
 Query `rippled` for possible payment "paths" through the Ripple Network to deliver the given amount to the specified `destination_account`. If the `destination_amount` issuer is not specified, paths will be returned for all of the issuers from whom the `destination_account` accepts the given currency.
+
+Query String Parameters:
++ `source_currencies` - an optional comma-separated list of source currencies that can be used to constrain the results returned (e.g. `XRP,USD+r...,BTC+r...`. Currencies can be denoted by their currency code (e.g. `USD`) or by their currency code and issuer (e.g. `USD+r...`). If no issuer is specified for a currency other than XRP, the results will be limited to the specified currencies but any issuer for that currency will do.
 
 Response:
 ```js
@@ -203,6 +206,23 @@ Response:
   } /* ... */]
 }
 ```
+Or if there are no paths found:
+```js
+{
+  "success": false,
+  "error": "No paths found",
+  "message": "Please ensure that the source_account has sufficient funds to exectue the payment. If it does there may be insufficient liquidity in the network to execute this payment right now"
+}
+```
+If `source_currencies` were specified the error message will be:
+```js
+{
+  "success": false,
+  "error": "No paths found",
+  "message": "Please ensure that the source_account has sufficient funds to exectue the payment in one of the specified source_currencies. If it does there may be insufficient liquidity in the network to execute this payment right now"
+}
+```
+
 This query will respond with an array of fully-formed payments. The client can select one and submit it to [/v1/payments](#post-v1payments), optionally after editing some of the fields. The `source_tag` and `destination_tag` can be used to denote hosted accounts at gateways. The `source_slippage` field can be set to give the payment additional cushion in case the path liquidity changes after this result is returned but before the payment is submitted.
 
 ----------

@@ -29,13 +29,26 @@ module.exports = function(opts){
       });
     },
 
+    // getBulkPayments: function(req, res) {
+    //   var account = req.params.account,
+    //     exclue_failed_string = req.query.exclue_failed,
+    //     exclude_incoming_string = req.query.exclude_incoming,
+    //     exclude_outgoing_string = req.query.exclude_outgoing;
+    // },
+
     getPathfind: function(req, res) {
 
       var source_account          = req.params.account,
+        source_currencies_string  = req.param('source_currencies'),
         destination_account       = req.params.destination_account,
         destination_amount_string = req.params.destination_amount_string,
         destination_amount_array,
-        destination_amount;
+        destination_amount,
+        source_currencies;
+
+      if (typeof source_currencies_string === 'string' && source_currencies_string.length >= 3) {
+        source_currencies = source_currencies_string.split(',');
+      }
 
       if (typeof destination_amount_string !== 'string' || destination_amount_string.length === 0) {
         ErrorController.reportError(new Error('Invalid Parameter: destination_amount. Must supply a string in the form value+currency+issuer'), res);
@@ -52,7 +65,8 @@ module.exports = function(opts){
       paymentslib.getPathfind(remote, {
         source_account: source_account,
         destination_account: destination_account,
-        destination_amount: destination_amount
+        destination_amount: destination_amount,
+        source_currencies: source_currencies
       }, function(err, payments){
         if (err) {
           ErrorController.reportError(err, res);
