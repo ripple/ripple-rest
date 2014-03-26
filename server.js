@@ -48,6 +48,17 @@ app.use(function(req, res, next){
     next();
   }
 });
+app.param('account', function(req, res, next, account) {
+  if (ripple.UInt160.is_valid(account)) {
+    next();
+  } else {
+    res.send({
+      success: false,
+      error: 'Invalid account',
+      message: 'Specified account is invalid:' + account
+    });
+  }
+});
 app.all('*', function(req, res, next) {
   res.header('Access-Control-Allow-Origin', '*');
   res.header('Access-Control-Allow-Headers', 'X-Requested-With');
@@ -88,57 +99,6 @@ remote.on('connect', function() {
 console.log('Attempting to connect to the Ripple Network...');
 
 remote.connect();
-
-/**** **** **** **** ****/
-
-var app = express();
-
-app.disable('x-powered-by');
-app.use(express.json());
-app.use(express.urlencoded());
-
-if (config.get('NODE_ENV') !== 'production') {
-  app.set('json spaces', 2);
-}
-
-app.use(function(req, res, next){
-  var match = req.path.match(/\/api\/(.*)/);
-  if (match) {
-    res.redirect(match[1]);
-  } else {
-    next();
-  }
-});
-
-app.use(function(req, res, next) {
-  var new_path = req.path.replace('addresses', 'accounts').replace('address', 'account');
-
-  if (new_path !== req.path) {
-    res.redirect(new_path);
-  } else {
-    next();
-  }
-});
-
-app.all('*', function(req, res, next) {
-  res.header('Access-Control-Allow-Origin', '*');
-  res.header('Access-Control-Allow-Headers', 'X-Requested-With');
-  next();
-});
-
-app.param('account', function(req, res, next, account) {
-  if (ripple.UInt160.is_valid(account)) {
-    next();
-  } else {
-    res.send({
-      success: false,
-      error: 'Invalid account',
-      message: 'Specified account is invalid:' + account
-    });
-  }
-});
-
-/**** **** **** **** ****/
 
 /* Initialize controllers */
 var controller_opts = {
