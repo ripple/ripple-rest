@@ -17,7 +17,8 @@ module.exports = function(opts) {
         type_string = req.query.types,
         exclude_failed_string = req.query.exclude_failed,
         types = [],
-        new_url = req.originalUrl;
+        new_url = req.originalUrl,
+        exclude_failed = (exclude_failed_string === 'true');
 
       // If query string parameters are not set, redirect to include them
 
@@ -45,7 +46,7 @@ module.exports = function(opts) {
         account: account,
         identifier: identifier,
         types: types,
-        exclude_failed: exclude_failed_string === 'true'
+        exclude_failed: exclude_failed
       }, function(err, notification){
         if (err) {
           ErrorController.reportError(err, res);
