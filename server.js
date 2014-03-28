@@ -151,7 +151,7 @@ app.get('/v1/server/connected', ServerController.isConnected);
 /* Payments */
 app.post('/v1/payments', SubmissionController.submitPayment);
 app.post('/v1/accounts/:account/payments', SubmissionController.submitPayment);
-app.get('/v1/accounts/:account/payments', PaymentsController.getPayment);
+app.get('/v1/accounts/:account/payments', PaymentsController.getBulkPayments);
 app.get('/v1/accounts/:account/payments/:identifier', PaymentsController.getPayment);
 app.get('/v1/accounts/:account/payments/paths/:destination_account/:destination_amount_string', PaymentsController.getPathfind);
 

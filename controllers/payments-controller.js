@@ -29,12 +29,40 @@ module.exports = function(opts){
       });
     },
 
-    // getBulkPayments: function(req, res) {
-    //   var account = req.params.account,
-    //     exclue_failed_string = req.query.exclue_failed,
-    //     exclude_incoming_string = req.query.exclude_incoming,
-    //     exclude_outgoing_string = req.query.exclude_outgoing;
-    // },
+    getBulkPayments: function(req, res) {
+      var account = req.params.account,
+        source_account = req.query.source_account,
+        destination_account = req.query.destination_account,
+        exclude_failed = (req.query.exclude_failed === 'true'),
+        start_ledger = req.query.start_ledger,
+        end_ledger = req.query.end_ledger,
+        earliest_first = (req.query.earliest_first === 'true'),
+        results_per_page = req.query.results_per_page,
+        page = req.query.page;
+
+      paymentslib.getBulkPayments(remote, dbinterface, {
+        account: account,
+        source_account: source_account,
+        destination_account: destination_account,
+        exclude_failed: exclude_failed,
+        start_ledger: start_ledger,
+        end_ledger: end_ledger,
+        earliest_first: earliest_first,
+        results_per_page: results_per_page,
+        page: page
+      }, function(err, payments){
+        if (err) {
+          ErrorController.reportError(err, res);
+          return;
+        }
+
+        res.json({
+          success: true,
+          payments: payments
+        });
+
+      });
+    },
 
     getPathfind: function(req, res) {
 
