@@ -54,6 +54,4 @@ nconf.defaults({
   ]
 });
 
-console.log(nconf.get());
-
 module.exports = nconf;
