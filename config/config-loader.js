@@ -16,9 +16,23 @@ nconf
   .argv()
   .env();
 
+// Get rippled from command line args, if supplied
+if (nconf.get('rippled')) {
+  var match = nconf.get('rippled').match(/^(wss|ws):\/\/(.+):([0-9]+)$/);
+  if (match) {
+    nconf.overrides({
+      rippled_servers: [{
+        host: match[2],
+        port: match[3],
+        secure: (match[1] === 'wss')
+      }]
+    });
+  }
+}
+
 // If config.json exists, load from that
 try {
-  var config_url = './config.json';
+  var config_url = nconf.get('config') || './config.json';
   fs.readFileSync(config_url);
   nconf.file(config_url);
 } catch (err) {}
@@ -39,5 +53,7 @@ nconf.defaults({
     }
   ]
 });
+
+console.log(nconf.get());
 
 module.exports = nconf;
