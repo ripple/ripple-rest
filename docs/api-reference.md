@@ -227,7 +227,7 @@ This query will respond with an array of fully-formed payments. The client can s
 
 ----------
 
-#### GET /v1/accounts/{account}/payments{/hash,client_resource_id}{?direction,exclude_failed}
+#### GET /v1/accounts/{account}/payments{/hash,client_resource_id}{?source_account,destination_account,exclude_failed,start_ledger,end_ledger,earliest_first,results_per_page,page}
 
 Retrieve the details of one or more payments from the `rippled` server or, if the transaction failled off-network or is still pending, from the `ripple-rest` instance's local database.
 
@@ -258,11 +258,17 @@ If no payment is found with the given hash or client_resource_id the following e
 
 ##### Browsing Historical Payments
 
-Historical payments can be browsed in bulk by supplying query string parameters: `/v1/accounts/{account}/payments{?direction,exclude_failed}`
+Historical payments can be browsed in bulk by supplying query string parameters: `/v1/accounts/{account}/payments?`
 
 Query string parameters:
-+ `direction` - limit results to either `incoming`, `outgoing`, or `incoming_and_outgoing`
++ `source_account` - If specified, limit the results to payments initiated by a particular account
++ `destination_account` - If specified, limit the results to payments made to a particular account
 + `exclude_failed` - if set to true, this will return only payment that were successfully validated and written into the Ripple Ledger
++ `start_ledger` - If `earliest_first` is set to true this will be the index number of the earliest ledger queried, or the most recent one if `earliest_first` is set to false. Defaults to the first ledger the `rippled` has in its complete ledger. An error will be returned if this value is outside the `rippled`'s complete ledger set
++ `end_ledger` - If `earliest_first` is set to true this will be the index number of the most recent ledger queried, or the earliest one if `earliest_first` is set to false. Defaults to the last ledger the `rippled` has in its complete ledger. An error will be returned if this value is outside the `rippled`'s complete ledger set
++ `earliest_first` - Determines the order in which the results should be displayed. Defaults to true
++ `results_per_page` - Limits the number of resources displayed per page. Defaults to 20
++ `page` - The page to be displayed. If there are fewer than the `results_per_page` number displayed, this indicates that this is the last page
 
 Response:
 ```js
@@ -283,6 +289,8 @@ Response:
   ]
 }
 ```
+
+Note that all of the filters available for browsing historical payments must be applied by `ripple-rest`, as opposed to by `rippled`, so applying more filters will cause `ripple-rest` to respond slower.
 
 
 ----------

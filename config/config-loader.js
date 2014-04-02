@@ -3,7 +3,7 @@ var path  = require('path');
 var URL   = require('url');
 var nconf = require('nconf');
 
-/** Load Configuration according to the following hierarchy 
+/** Load Configuration according to the following hierarchy
  *  (where items higher on the list take precedence)
  *
  *  1. Command line arguments
@@ -14,24 +14,26 @@ var nconf = require('nconf');
 
 nconf.argv().env();
 
-// If config.json exists, load from that
-var configPath = nconf.get('config') || path.join(__dirname, '/config.json');
-
-if (fs.existsSync(configPath)) {
-  nconf.file(configPath);
-}
-
+// Get rippled from command line args, if supplied
 if (nconf.get('rippled')) {
-  var rippledURL = URL.parse(nconf.get('rippled'));
-
-  var opts = {
-    host: rippledURL.hostname,
-    port: Number(rippledURL.port),
-    secure: (rippledURL.protocol === 'wss:')
+  var match = nconf.get('rippled').match(/^(wss|ws):\/\/(.+):([0-9]+)$/);
+  if (match) {
+    nconf.overrides({
+      rippled_servers: [{
+        host: match[2],
+        port: match[3],
+        secure: (match[1] === 'wss')
+      }]
+    });
   }
-
-  nconf.set('rippled_servers', [ opts ]);
 }
+
+// If config.json exists, load from that
+try {
+  var config_url = nconf.get('config') || './config.json';
+  fs.readFileSync(config_url);
+  nconf.file(config_url);
+} catch (err) {}
 
 nconf.defaults({
   PORT: 5990,

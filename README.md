@@ -5,7 +5,7 @@ A RESTful API for submitting payments and monitoring accounts on the Ripple Netw
 See the [__API Reference__](docs/api-reference.md) for details on the available endpoints and supported data formats.
 
 
-## Setup
+## Installing and Running
 
 `ripple-rest` requires PostgreSQL for production systems but supports in-memory sqlite3 for testing.
 
@@ -47,6 +47,19 @@ Note that restarting the server will delete the database so this CANNOT BE USED 
 Note that if `npm install` fails because the user running it does not have sufficient permissions to access and modify the database, the command `./node_modules/.bin/grunt` must be run with sufficient permissions to execute database migrations.
 
 
+## Configuring `ripple-rest`
+
+The `ripple-rest` server loads configuration options from the following sources, according to the following hierarchy (where options from 1. override those below it):
+
+1. Command line arguments
+2. Environment variables
+3. The `config.json` file
+
+The path to the `config.json` file can be specified as a command line argument (`node server.js --config /path/to/config.json`). If no path is specified, the default location for that file is in `ripple-rest`'s root directory.
+
+Available configuration options are outlined in the [__Server Configuration__](docs/server-configuration.md) document and an example configuration file is provided [here](config-example.json).
+
+`ripple-rest` uses the [nconf](https://github.com/flatiron/nconf) configuration loader so that any options that can be specified in the `config.json` file can also be specified as command line arguments or environment variables.
 
 
 ## Running `ripple-rest` Securely
