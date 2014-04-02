@@ -106,7 +106,7 @@ function changeSettings($, req, res, next) {
     }
 
     if (!opts.secret) {
-      return res.json(400, { success: false, 'Parameter "secret" is not a valid Ripple secret' });
+      return res.json(400, { success: false, message: 'Parameter "secret" is not a valid Ripple secret' });
     }
 
     callback();
