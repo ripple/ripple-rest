@@ -58,7 +58,7 @@ module.exports = function(opts) {
           return;
         }
 
-        var url_base = req.protocol + '://' + req.host + (config.get('NODE_ENV') === 'development' && config.get('PORT') ? ':' + config.get('PORT') : '');
+        var url_base = req.protocol + '://' + req.host + ([80, 443].indexOf(config.get('PORT')) === -1 ? ':' + config.get('PORT') : '');
         var client_resource_id = notification.client_resource_id;
         delete notification.client_resource_id;
 

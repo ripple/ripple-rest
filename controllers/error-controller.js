@@ -34,10 +34,12 @@ function reportError(error, res) {
     }
   }
 
-  if (err_obj.error === 'Cannot generate keys from invalid seed!') {
+  if (err_obj.error === 'Cannot generate keys from invalid seed!' || err_obj.error === 'temBAD_AUTH_MASTER') {
     err_obj.error = 'Invalid address or secret.';
     err_obj.message = 'Please ensure the address and secret correspond to a valid account that has a positive XRP balance.';
   }
+
+
 
   if (err_obj.error === 'tooBusy') {
     err_obj.error = 'Rippled Busy';
