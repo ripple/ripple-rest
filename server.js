@@ -132,8 +132,8 @@ app.get('/v1', function(req, res) {
     endpoints: {
       submit_payment:          url_base + '/v1/payments',
       payment_paths:           url_base + '/v1/accounts/{account}/payments/paths/{destination_account}/{destination_amount as value+currency or value+currency+issuer}',
-      account_payments:        url_base + '/v1/accounts/{account}/payments/{hash,client_resource_id}{?direction,exclue_failed}', 
-      account_notifications:   url_base + '/v1/accounts/{account}/notifications{/hash,client_resource_id}{?types,exclue_failed}',
+      account_payments:        url_base + '/v1/accounts/{account}/payments/{hash,client_resource_id}{?direction,exclude_failed}', 
+      account_notifications:   url_base + '/v1/accounts/{account}/notifications{/hash,client_resource_id}{?types,exclude_failed}',
       account_balances:        url_base + '/v1/accounts/{account}/balances', 
       account_settings:        url_base + '/v1/accounts/{account}/settings', 
       ripple_transactions:     url_base + '/v1/transactions/{hash}',
