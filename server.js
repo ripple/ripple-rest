@@ -111,10 +111,7 @@ function rippleAddressParam(param) {
     if (ripple.UInt160.is_valid(address)) {
       next();
     } else {
-      res.send({
-        success: false,
-        message: 'Specified address is invalid: ' + param
-      });
+      res.send({ success: false, message: 'Specified address is invalid: ' + param });
     }
   }
 };
@@ -137,11 +134,6 @@ var controller_opts = {
 
 var api = require('./api')(controller_opts);
 
-var SubmissionController    = require('./controllers/submission-controller')(controller_opts);
-var PaymentsController      = require('./controllers/payments-controller')(controller_opts);
-var TransactionsController  = require('./controllers/transactions-controller')(controller_opts);
-var NotificationsController = require('./controllers/notifications-controller')(controller_opts);
-
 
 /**** **** **** **** ****/
 
@@ -156,13 +148,14 @@ app.get('/v1', function(req, res) {
 
   res.json({
     success: true,
-    ripple_rest_api: 'v1',
+    name: 'ripple-rest',
+    version: '1',
     documentation: 'https://github.com/ripple/ripple-rest',
     endpoints: {
       submit_payment:          url_base + '/payments',
       payment_paths:           url_base + '/accounts/{account}/payments/paths/{destination_account}/{destination_amount as value+currency or value+currency+issuer}',
-      account_payments:        url_base + '/accounts/{account}/payments/{hash,client_resource_id}{?direction,exclue_failed}',
-      account_notifications:   url_base + '/accounts/{account}/notifications{/hash,client_resource_id}{?types,exclue_failed}',
+      account_payments:        url_base + '/accounts/{account}/payments/{hash,client_resource_id}{?direction,exclude_failed}',
+      account_notifications:   url_base + '/accounts/{account}/notifications{/hash,client_resource_id}{?types,exclude_failed}',
       account_balances:        url_base + '/accounts/{account}/balances',
       account_settings:        url_base + '/accounts/{account}/settings',
       ripple_transactions:     url_base + '/transactions/{hash}',
@@ -178,16 +171,17 @@ app.get('/v1/server', api.info.serverStatus);
 app.get('/v1/server/connected', api.info.isConnected);
 
 /* Payments */
-app.post('/v1/payments', SubmissionController.submitPayment);
-app.post('/v1/accounts/:account/payments', SubmissionController.submitPayment);
-app.get('/v1/accounts/:account/payments', PaymentsController.getBulkPayments);
-app.get('/v1/accounts/:account/payments/:identifier', PaymentsController.getPayment);
-app.get('/v1/accounts/:account/payments/paths/:destination_account/:destination_amount_string', PaymentsController.getPathfind);
+app.post('/v1/payments', api.submission.submit);
+app.post('/v1/accounts/:account/payments', api.submission.submit);
+
+app.get('/v1/accounts/:account/payments', api.payments.getBulkPayments);
+app.get('/v1/accounts/:account/payments/:identifier', api.payments.getPayment);
+app.get('/v1/accounts/:account/payments/paths/:destination_account/:destination_amount_string', api.payments.getPathFind);
 
 /* Notifications */
-app.get('/v1/accounts/:account/notifications', NotificationsController.getNotification);
-app.get('/v1/accounts/:account/notifications/:identifier', NotificationsController.getNotification);
-app.get('/v1/accounts/:account/next_notification/:identifier', NotificationsController.getNextNotification);
+app.get('/v1/accounts/:account/notifications', api.notifications.get);
+app.get('/v1/accounts/:account/notifications/:identifier', api.notifications.get);
+app.get('/v1/accounts/:account/next_notification/:identifier', api.notifications.get);
 
 /* Balances */
 app.get('/v1/accounts/:account/balances', api.balances.get);
@@ -230,10 +224,10 @@ if (typeof config.get('ssl') === 'object') {
   };
 
   https.createServer(sslOptions, app).listen(config.get('PORT'), function() {
-    console.log('ripple-rest server listening over HTTPS at port: ' + config.get('PORT'));
+    console.log('ripple-rest server listening over HTTPS at port:', config.get('PORT'));
   });
 } else {
   app.listen(config.get('PORT'), function() {
-    console.log('ripple-rest server listening over UNSECURED HTTP at port: ' + config.get('PORT'));
+    console.log('ripple-rest server listening over UNSECURED HTTP at port:', config.get('PORT'));
   });
 }
