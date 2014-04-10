@@ -41,7 +41,7 @@ function submitPayment($, req, res, next) {
       return;
     }
 
-    if (validator.isValid(data.client_resource_id, 'ResourceId')) {
+    if (!validator.isValid(data.client_resource_id, 'ResourceId')) {
       callback(new Error('Invalid parameter: client_resource_id. Must be a string of ASCII-printable characters. Note that 256-bit hex strings are disallowed because of the potential confusion with transaction hashes.'));
       return;
     }
