@@ -179,9 +179,9 @@ app.get('/v1/accounts/:account/payments/:identifier', api.payments.getPayment);
 app.get('/v1/accounts/:account/payments/paths/:destination_account/:destination_amount_string', api.payments.getPathFind);
 
 /* Notifications */
-app.get('/v1/accounts/:account/notifications', api.notifications.get);
-app.get('/v1/accounts/:account/notifications/:identifier', api.notifications.get);
-app.get('/v1/accounts/:account/next_notification/:identifier', api.notifications.get);
+app.get('/v1/accounts/:account/notifications', api.notifications.getNotification);
+app.get('/v1/accounts/:account/notifications/:identifier', api.notifications.getNotification);
+app.get('/v1/accounts/:account/next_notification/:identifier', api.notifications.getNextNotification);
 
 /* Balances */
 app.get('/v1/accounts/:account/balances', api.balances.get);
