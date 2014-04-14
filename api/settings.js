@@ -31,7 +31,7 @@ function getSettings($, req, res, next) {
 
   function validateOptions(callback) {
     if (!ripple.UInt160.is_valid(opts.account)) {
-      return res.json(400, { success: false, message: 'Parameter "account" is not a valid Ripple address' });
+      return res.json(400, { success: false, message: 'Parameter is not a valid Ripple address: account' });
     }
 
     callback();
@@ -102,11 +102,11 @@ function changeSettings($, req, res, next) {
 
   function validateOptions(callback) {
     if (!ripple.UInt160.is_valid(opts.account)) {
-      return callback(new Error('Parameter "account" is not a valid Ripple address'));
+      return res.json(400, { success: false, message: 'Parameter is not a valid Ripple address: account' });
     }
 
     if (!opts.secret) {
-      return callback(new Error('Parameter "secret" is not a valid Ripple secret'));
+      return res.json(400, { success: false, message: 'Parameter is not a valid Ripple secret: secret' });
     }
 
     callback();

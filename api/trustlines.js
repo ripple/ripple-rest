@@ -132,11 +132,11 @@ function addTrustLine($, req, res, next) {
       return res.json(400, { success: false, message: 'Parameter is not a Ripple address: limit.counterparty' });
     }
 
-    if (!/^(undefined|number)$/.test(opts.quality_in)) {
+    if (!/^(undefined|number)$/.test(typeof opts.quality_in)) {
       return res.json(400, { success: false, message: 'Parameter must be a number: quality_in' });
     }
 
-    if (!/^(undefined|number)$/.test(opts.quality_out)) {
+    if (!/^(undefined|number)$/.test(typeof opts.quality_out)) {
       return res.json(400, { success: false, message: 'Parameter must be a number: quality_out' });
     }
 

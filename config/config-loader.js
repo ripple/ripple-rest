@@ -3,7 +3,7 @@ var path  = require('path');
 var URL   = require('url');
 var nconf = require('nconf');
 
-/** Load Configuration according to the following hierarchy 
+/** Load Configuration according to the following hierarchy
  *  (where items higher on the list take precedence)
  *
  *  1. Command line arguments
