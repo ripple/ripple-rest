@@ -1,23 +1,35 @@
 var async     = require('async');
 var bignum    = require('bignumber.js')
 var ripple    = require('ripple-lib');
-var serverLib = require('./server-lib');
+var serverLib = require('../lib/server-lib');
 
-function getBalances(remote, opts, callback) {
+exports.get = getBalances;
+
+function getBalances($, req, res, next) {
+  var self = this;
+
+  var remote = $.remote;
+
+  var opts = {
+    account:   req.params.account,
+    currency:  req.query.currency,
+    issuer:    req.query.issuer
+  }
+
   var currencyRE = new RegExp(opts.currency ? ('^' + opts.currency.toUpperCase() + '$') : /./);
   var balances = [ ];
 
   function validateOptions(callback) {
     if (!ripple.UInt160.is_valid(opts.account)) {
-      return callback(new Error('Parameter "account" is not a valid Ripple address'));
+      return res.json(400, { success: false, message: 'Parameter is not a valid Ripple address: account' });
     }
 
     if (opts.issuer && !ripple.UInt160.is_valid(opts.issuer)) {
-      return callback(new Error('Parameter "issuer" is not a valid Ripple address'));
+      return res.json(400, { success: false, message: 'Parameter is not a valid Ripple address: issuer'});
     }
 
     if (opts.currency && !/^[A-Z0-9]{3}$/.test(opts.currency)) {
-      return callback(new Error('Parameter "currency" is not a valid currency'));
+      return res.json(400, { success: false, message: 'Parameter is not a valid currency: currency'});
     }
 
     callback();
@@ -27,7 +39,11 @@ function getBalances(remote, opts, callback) {
     serverLib.ensureConnected(remote, callback);
   };
 
-  function getXRPBalance(callback) {
+  function getXRPBalance(connected, callback) {
+    if (!connected) {
+      return res.json(500, { success: false, message: 'No connection to rippled' });
+    }
+
     var request = remote.requestAccountInfo(opts.account);
 
     request.once('error', callback);
@@ -38,6 +54,7 @@ function getBalances(remote, opts, callback) {
         amount: bignum(info.account_data.Balance).dividedBy('1000000').toString(),
         issuer: ''
       });
+
       callback(null);
     });
 
@@ -64,7 +81,7 @@ function getBalances(remote, opts, callback) {
         }
       });
 
-      callback(null);
+      callback();
     });
 
     request.request();
@@ -78,13 +95,11 @@ function getBalances(remote, opts, callback) {
 
   steps.push(getLineBalances);
 
-  async.series(steps, function(err) {
+  async.waterfall(steps, function(err) {
     if (err) {
-      callback(err);
+      next(err);
     } else {
-      callback(null, balances);
+      res.json(200, { success: true, balances: balances });
     }
   });
 };
-
-exports.getBalances = getBalances;
