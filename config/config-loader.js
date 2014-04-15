@@ -1,9 +1,8 @@
 var fs    = require('fs');
-var path  = require('path');
-var URL   = require('url');
 var nconf = require('nconf');
 
-/** Load Configuration according to the following hierarchy
+
+/** Load Configuration according to the following hierarchy 
  *  (where items higher on the list take precedence)
  *
  *  1. Command line arguments
@@ -12,7 +11,10 @@ var nconf = require('nconf');
  *  4. The defaults defined below
  */
 
-nconf.argv().env();
+
+nconf
+  .argv()
+  .env();
 
 // Get rippled from command line args, if supplied
 if (nconf.get('rippled')) {
