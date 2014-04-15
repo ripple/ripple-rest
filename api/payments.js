@@ -194,7 +194,7 @@ function getPathFind($, req, res, next) {
 
     params.destination_amount_array = params.destination_amount_string.split('+');
 
-    parmams.destination_amount = {
+    params.destination_amount = {
       value: params.destination_amount_array[0],
       currency: params.destination_amount_array[1],
       issuer: (params.destination_amount_array.length >= 3 ? params.destination_amount_array[2] : '')
