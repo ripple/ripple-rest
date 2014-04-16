@@ -4,8 +4,8 @@ var serverLib = require('../lib/server-lib');
 
 const AccountRootFlags = {
   PasswordSpent:   { name: 'password_spent', value: 0x00010000 },
-  RequireDestTag:  { name: 'require_dest_tag', value: 0x00020000 },
-  RequireAuth:     { name: 'require_auth', value: 0x00040000 },
+  RequireDestTag:  { name: 'require_destination_tag', value: 0x00020000 },
+  RequireAuth:     { name: 'require_authorization', value: 0x00040000 },
   DisallowXRP:     { name: 'disallow_xrp', value: 0x00080000 },
   DisableMaster:   { name: 'disable_master', value: 0x00100000 }
 }
