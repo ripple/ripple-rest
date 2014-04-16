@@ -50,6 +50,11 @@
       "description": "The number of trustlines owned by this account. This value does not include incoming trustlines where this account has not explicitly reciprocated trust",
       "$ref": "UINT32"
     },
+    "ledger": {
+      "description": "The string representation of the index number of the ledger containing these account settings or, in the case of historical queries, of the transaction that modified these settings",
+      "type": "string",
+      "pattern": "^[0-9]+$"
+    },
     "hash": {
       "description": "If this object was returned by a historical query this value will be the hash of the transaction that modified these settings. The transaction hash is used throughout the Ripple Protocol to uniquely identify a particular transaction",
       "$ref": "Hash256"
