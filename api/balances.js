@@ -55,7 +55,7 @@ function getBalances($, req, res, next) {
         issuer: ''
       });
 
-      callback(null);
+      callback();
     });
 
     request.request();
@@ -95,7 +95,7 @@ function getBalances($, req, res, next) {
 
   steps.push(getLineBalances);
 
-  async.waterfall(steps, function(err) {
+  async.series(steps, function(err) {
     if (err) {
       next(err);
     } else {
