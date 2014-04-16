@@ -62,7 +62,7 @@ function getTrustLines($, req, res, next) {
           trust_limit: line.limit,
           reciprocated_trust_limit: line.limit_peer,
           account_allows_rippling: line.no_ripple ? !line.no_ripple : true,
-          account_allows_rippling: line.no_ripple_peer ? !line.no_ripple_peer : true,
+          counterparty_allows_rippling: line.no_ripple_peer ? !line.no_ripple_peer : true,
         });
       });
 
