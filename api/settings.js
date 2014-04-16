@@ -11,13 +11,14 @@ const AccountRootFlags = {
 }
 
 const AccountRootFields = {
-  EmailHash:      { name: 'email_hash' },
-  WalletLocator:  { name: 'wallet_locator' },
-  WalletSize:     { name: 'wallet_size' },
-  MessageKey:     { name: 'message_key' },
-  Domain:         { name: 'domain', encoding: 'hex' },
-  TransferRate:   { name: 'transfer_rate' },
-  Signers:        { name: 'signers' }
+  Sequence:       { name:  'transaction_sequence' },
+  EmailHash:      { name:  'email_hash' },
+  WalletLocator:  { name:  'wallet_locator' },
+  WalletSize:     { name:  'wallet_size' },
+  MessageKey:     { name:  'message_key' },
+  Domain:         { name:  'url', encoding:     'hex' },
+  TransferRate:   { name:  'transfer_rate' },
+  Signers:        { name:  'signers' }
 }
 
 exports.get = getSettings;
@@ -49,14 +50,20 @@ function getSettings($, req, res, next) {
     remote.requestAccountInfo(opts.account, function(err, info) {
       if (err) return callback(err);
 
-      var settings = { };
       var data = info.account_data;
 
+      var settings = {
+        account: data.account,
+        transfer_rate: 100
+      };
+
+      // Attach account flags
       for (var flagName in AccountRootFlags) {
         var flag = AccountRootFlags[flagName];
         settings[flag.name] = Boolean(data.Flags & flag.value);
       }
 
+      // Attach account fields
       for (var fieldName in AccountRootFields) {
         if (!(fieldName in data)) continue;
 
@@ -121,11 +128,11 @@ function changeSettings($, req, res, next) {
     transaction.secret(opts.secret);
 
     var FlagSet = {
-      require_dest_tag: {
+      require_destination_tag: {
         unset: 'OptionalDestTag',
         set: 'RequireDestTag',
       },
-      require_auth: {
+      require_authorization: {
         unset: 'OptionalAuth',
         set: 'RequireAuth'
       },
@@ -135,8 +142,9 @@ function changeSettings($, req, res, next) {
       }
     }
 
-    Object.keys(FlagSet).forEach(function(flagName) {
-      if (!(flagName in opts)) return
+    // Set transaction flags
+    for (var flagName in FlagSet) {
+      if (!(flagName in opts)) continue;
 
       var flag = FlagSet[flagName];
       var value = opts[flagName];
@@ -146,20 +154,22 @@ function changeSettings($, req, res, next) {
       }
 
       transaction.setFlags(value ? flag.set : flag.unset);
-    });
+    }
 
-    Object.keys(AccountRootFields).forEach(function(fieldName) {
+
+    // Set transaction fields
+    for (var fieldName in FlagSet) {
       var field = AccountRootFields[fieldName];
       var value = opts[field.name];
 
-      if (typeof value === 'undefined') return;
+      if (typeof value === 'undefined') continue;
 
       if (field.encoding === 'hex') {
         value = new Buffer(value).toString('hex');
       }
 
       transaction.tx_json[fieldName] = value;
-    });
+    }
 
     transaction.submit(callback);
   };
