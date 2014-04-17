@@ -1,3 +1,4 @@
+var Domain    = require('domain');
 var async     = require('async');
 var ripple    = require('ripple-lib');
 var serverLib = require('../lib/server-lib');
@@ -152,33 +153,39 @@ function addTrustLine($, req, res, next) {
       return res.json(500, { success: false, message: 'Remote is not connected' });
     }
 
-    var limit = [ opts.limit.amount, opts.limit.currency, opts.limit.counterparty ].join('/');
-    var transaction = remote.transaction().trustSet(opts.account, limit);
+    var domain = Domain.create();
 
-    transaction.secret(opts.secret);
+    domain.once('error', callback);
 
-    if (typeof opts.quality_in === 'number') {
-      transaction.tx_json.QualityIn = opts.quality_in;
-    }
+    domain.run(function() {
+      var limit = [ opts.limit.amount, opts.limit.currency, opts.limit.counterparty ].join('/');
+      var transaction = remote.transaction().trustSet(opts.account, limit);
 
-    if (typeof opts.quality_out === 'number') {
-      transaction.tx_json.QualityOut = opts.quality_out;
-    }
+      transaction.secret(opts.secret);
 
-    transaction.once('error', callback);
+      if (typeof opts.quality_in === 'number') {
+        transaction.tx_json.QualityIn = opts.quality_in;
+      }
 
-    transaction.once('proposed', function(m) {
-      var summary = transaction.summary();
-      callback(null, {
+      if (typeof opts.quality_out === 'number') {
+        transaction.tx_json.QualityOut = opts.quality_out;
+      }
+
+      transaction.once('error', callback);
+
+      transaction.once('proposed', function(m) {
+        var summary = transaction.summary();
+        callback(null, {
           account: opts.account,
           counterparty: opts.limit.counterparty,
           currency: opts.limit.currency,
           trust_limit: opts.limit.amount,
           ledger: String(summary.submitIndex)
+        });
       });
-    });
 
-    transaction.submit();
+      transaction.submit();
+    });
   };
 
   var steps = [
