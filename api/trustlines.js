@@ -3,6 +3,12 @@ var async     = require('async');
 var ripple    = require('ripple-lib');
 var serverLib = require('../lib/server-lib');
 
+const TrustSetFlags = {
+  SetAuth:        { name: 'authorized', value: 0x00010000 },
+  NoRipple:       { name: 'prevent_rippling', value: 0x00020000 },
+  ClearNoRipple:  { name: 'allow_rippling', value: 0x00040000 }
+}
+
 exports.get = getTrustLines;
 
 function getTrustLines($, req, res, next) {
@@ -141,6 +147,10 @@ function addTrustLine($, req, res, next) {
       return res.json(400, { success: false, message: 'Parameter must be a number: quality_out' });
     }
 
+    if (!/^(undefined|boolean)$/.test(typeof opts.allow_rippling)) {
+      return res.json(400, { success: false, message: 'Parameter must be a boolean: allow_rippling' });
+    }
+
     callback();
   };
 
@@ -171,17 +181,42 @@ function addTrustLine($, req, res, next) {
         transaction.tx_json.QualityOut = opts.quality_out;
       }
 
+      if (typeof opts.allow_rippling === 'boolean') {
+        if (opts.allow_rippling) {
+          transaction.setFlags('ClearNoRipple');
+        } else {
+          transaction.setFlags('NoRipple');
+        }
+      }
+
       transaction.once('error', callback);
 
       transaction.once('proposed', function(m) {
         var summary = transaction.summary();
-        callback(null, {
-          account: opts.account,
-          counterparty: opts.limit.counterparty,
-          currency: opts.limit.currency,
-          trust_limit: opts.limit.amount,
-          ledger: String(summary.submitIndex)
-        });
+
+        var result = {
+          success: true,
+          line: {
+            account: opts.account,
+            counterparty: opts.limit.counterparty,
+            currency: opts.limit.currency,
+            trust_limit: opts.limit.amount,
+            allows_rippling: true
+          }
+        }
+
+        if (m.tx_json.Flags & TrustSetFlags.NoRipple.value) {
+          result.line.allows_rippling = false;
+        }
+
+        if (m.tx_json.Flags & TrustSetFlags.SetAuth) {
+          result.line.authorized = true;
+        }
+
+        result.ledger = String(summary.submitIndex);
+        result.hash = m.tx_json.hash;
+
+        callback(null, result);
       });
 
       transaction.submit();
@@ -198,7 +233,7 @@ function addTrustLine($, req, res, next) {
     if (err) {
       next(err);
     } else {
-      res.json(200, { success: true, line: line });
+      res.json(200, line);
     }
   });
 };
