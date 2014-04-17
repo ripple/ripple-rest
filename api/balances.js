@@ -36,14 +36,16 @@ function getBalances($, req, res, next) {
   };
 
   function ensureConnected(callback) {
-    serverLib.ensureConnected(remote, callback);
+    serverLib.ensureConnected(remote, function(err, connected) {
+      if (connected) {
+        callback();
+      } else {
+        res.json(500, { success: false, message: 'No connection to rippled' });
+      }
+    });
   };
 
-  function getXRPBalance(connected, callback) {
-    if (!connected) {
-      return res.json(500, { success: false, message: 'No connection to rippled' });
-    }
-
+  function getXRPBalance(callback) {
     var request = remote.requestAccountInfo(opts.account);
 
     request.once('error', callback);
