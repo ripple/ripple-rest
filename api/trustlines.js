@@ -233,7 +233,7 @@ function addTrustLine($, req, res, next) {
     if (err) {
       next(err);
     } else {
-      res.json(200, line);
+      res.json(201, line);
     }
   });
 };
