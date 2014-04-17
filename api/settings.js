@@ -194,6 +194,7 @@ function changeSettings($, req, res, next) {
       if (err) return callback(err);
 
       var result = {
+        success: true,
         settings: settings,
         hash: tx_res.transaction.hash,
         ledger: String(tx_res.ledger_index)
