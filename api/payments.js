@@ -180,6 +180,9 @@ function attachClientResourceId(dbinterface, payment, callback) {
 exports.getPathFind = getPathFind;
 
 function getPathFind($, req, res, next) {
+  var remote = $.remote;
+  var dbinterface = $.dbinterface;
+
   var params = {
     source_account: req.params.account,
     source_currencies_string: req.param('source_currencies'),
