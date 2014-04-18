@@ -140,6 +140,8 @@ function changeSettings($, req, res, next) {
     domain.run(function() {
       var transaction = remote.transaction().accountSet(opts.account);
 
+      domain.add(transaction);
+
       transaction.secret(opts.secret);
 
       var FlagSet = {
@@ -185,8 +187,7 @@ function changeSettings($, req, res, next) {
         transaction.tx_json[fieldName] = value;
       }
 
-      transaction.submit(callback);
-    });
+      transaction.submit(domain.intercept(callback));
   };
 
   function getAccountSettings(tx_res, callback) {
