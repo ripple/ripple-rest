@@ -188,6 +188,7 @@ function changeSettings($, req, res, next) {
       }
 
       transaction.submit(domain.intercept(callback));
+    });
   };
 
   function getAccountSettings(tx_res, callback) {
