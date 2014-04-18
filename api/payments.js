@@ -1,9 +1,9 @@
 var _                = require('lodash');
 var async            = require('async');
 var bignum           = require('bignumber.js');
-var transactionslib  = require('./transactions');
 var validator        = require('../lib/schema-validator');
 var paymentformatter = require('../lib/formatters/payment-formatter');
+var transactionslib  = require('../lib/transactions-lib');
 var serverlib        = require('../lib/server-lib');
 var utils            = require('../lib/utils');
 
@@ -56,10 +56,15 @@ function getPayment($, req, res, next) {
   };
 
   function checkIsPayment(transaction, callback) {
-    if (transaction.TransactionType.toLowerCase() !== 'payment') {
-      res.json(404, { success: false, message: 'Not a payment. The transaction corresponding to the given identifier is not a payment.' });
-    } else {
+    var isPayment = /^payment$/i.test(transaction.TransactionType);
+
+    if (isPayment) {
       callback(null, transaction);
+    } else {
+      res.json(404, {
+        success: false,
+        message: 'Not a payment. The transaction corresponding to the given identifier is not a payment.'
+      });
     }
   };
 
@@ -67,10 +72,13 @@ function getPayment($, req, res, next) {
     if (transaction) {
       paymentformatter.parsePaymentFromTx(transaction, { account: opts.account }, callback);
     } else {
-      res.json(404, { success: false, message: 'Payment Not Found. This may indicate that the payment was never validated and written into '
-                         + 'the Ripple ledger and it was not submitted through this ripple-rest instance. '
-                         + 'This error may also be seen if the databases of either ripple-rest '
-                         + 'or rippled were recently created or deleted.' });
+      res.json(404, {
+        success: false,
+        message: 'Payment Not Found. This may indicate that the payment was never validated and written into '
+        + 'the Ripple ledger and it was not submitted through this ripple-rest instance. '
+        + 'This error may also be seen if the databases of either ripple-rest '
+        + 'or rippled were recently created or deleted.'
+      });
     }
   };
 
