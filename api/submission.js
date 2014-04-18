@@ -14,7 +14,7 @@ function submitPayment($, req, res, next) {
   var dbinterface = $.dbinterface;
   var config = $.config;
 
-  var data = {
+  var params = {
     payment: req.body.payment,
     secret: req.body.secret,
     client_resource_id: req.body.client_resource_id,
@@ -22,28 +22,32 @@ function submitPayment($, req, res, next) {
   }
 
   function validateOptions(callback) {
-    if (!req.body || !req.body.payment) {
-      return callback(new Error('Invalid JSON. Could not parse request body as JSON. Please ensure that the header type is set to application/json and try again'));
+    if (!params.payment) {
+      return res.json(400, {
+        success: false,
+        message: 'Missing parameter: payment. Submission must have payment object in JSON form'
+      });
     }
 
-    if (!data.payment) {
-      callback(new Error('Missing parameter: payment. Submission must have payment object in JSON form'));
-      return;
+    if (!params.secret) {
+      return res.json(400, {
+        success: false,
+        message: 'Missing parameter: secret. Submission must have account secret to sign and submit payment'
+      });
     }
 
-    if (!data.secret) {
-      callback(new Error('Missing parameter: secret. Submission must have account secret to sign and submit payment'));
-      return;
+    if (!params.client_resource_id) {
+      return res.json(400, {
+        success: false,
+        message: 'Missing parameter: client_resource_id. All payments must be submitted with a client_resource_id to prevent duplicate payments'
+      });
     }
 
-    if (!data.client_resource_id) {
-      callback(new Error('Missing parameter: client_resource_id. All payments must be submitted with a client_resource_id to prevent duplicate payments'));
-      return;
-    }
-
-    if (!validator.isValid(data.client_resource_id, 'ResourceId')) {
-      callback(new Error('Invalid parameter: client_resource_id. Must be a string of ASCII-printable characters. Note that 256-bit hex strings are disallowed because of the potential confusion with transaction hashes.'));
-      return;
+    if (!validator.isValid(params.client_resource_id, 'ResourceId')) {
+      return res.json(400, {
+        success: false,
+        message: 'Invalid parameter: client_resource_id. Must be a string of ASCII-printable characters. Note that 256-bit hex strings are disallowed because of the potential confusion with transaction hashes.'
+      });
     }
 
     callback();
@@ -58,12 +62,24 @@ function submitPayment($, req, res, next) {
       return res.json(500, { success: false, message: 'No connection to rippled' });
     }
 
-    paymentformatter.paymentToTransaction(data.payment, callback);
+    var formatDomain = domain.create();
+
+    formatDomain.once('error', callback);
+
+    formatDomain.run(function() {
+      paymentformatter.paymentToTransaction(params.payment, function(err, transaction) {
+        if (err) {
+          res.json(400, { success: false, message: err.message });
+        } else {
+          callback(null, transaction);
+        }
+      });
+    });
   };
 
   function submitTransaction(transaction, callback) {
-    data.transaction = transaction;
-    submitRippleLibTransaction(remote, dbinterface, data, callback);
+    params.transaction = transaction;
+    submitRippleLibTransaction(remote, dbinterface, params, callback);
   };
 
   var steps = [
@@ -71,7 +87,7 @@ function submitPayment($, req, res, next) {
     ensureConnected,
     formatPayment,
     submitTransaction
-  ];
+  ]
 
   async.waterfall(steps, function(err, client_resource_id) {
     if (err) {
@@ -80,7 +96,7 @@ function submitPayment($, req, res, next) {
       res.json(200, {
         success: true,
         client_resource_id: client_resource_id,
-        status_url: url_base + '/v1/accounts/' + data.payment.source_account + '/payments/' + client_resource_id
+        status_url: '/v1/accounts/' + params.payment.source_account + '/payments/' + client_resource_id
       });
     }
   });
