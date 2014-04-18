@@ -11,7 +11,10 @@ module.exports = function(grunt) {
   grunt.initConfig({
 
     jshint: {
-      all: watched_files
+      all: watched_files,
+      options: {
+        '-W032': true
+      }
     },
 
     simplemocha: {

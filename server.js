@@ -113,7 +113,7 @@ function rippleAddressParam(param) {
     } else {
       res.send({ success: false, message: 'Specified address is invalid: ' + param });
     }
-  }
+  };
 };
 
 app.param('account', rippleAddressParam('account'));
