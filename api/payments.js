@@ -56,7 +56,7 @@ function getPayment($, req, res, next) {
   };
 
   function checkIsPayment(transaction, callback) {
-    var isPayment = /^payment$/i.test(transaction.TransactionType);
+    var isPayment = transaction && /^payment$/i.test(transaction.TransactionType);
 
     if (isPayment) {
       callback(null, transaction);
