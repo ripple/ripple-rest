@@ -68,6 +68,7 @@ function submitPayment($, req, res, next) {
 
     formatDomain.run(function() {
       paymentformatter.paymentToTransaction(params.payment, function(err, transaction) {
+        formatDomain.dispose();
         if (err) {
           res.json(400, { success: false, message: err.message });
         } else {
@@ -147,17 +148,17 @@ function submitRippleLibTransaction(remote, dbinterface, data, callback) {
     transaction.lastLedger(Number(remote._ledger_current_index) + last_ledger_sequence_buffer);
 
     // node.js domain is used to catch errors thrown during the submission process
-    var submission_domain = domain.create();
+    var submissionDomain = domain.create();
 
-    transaction.once('error', callback);
-    submission_domain.once('error', callback);
+    submissionDomain.once('error', callback);
+
+    submissionDomain.add(transaction);
 
     // The 'proposed' event is fired when ripple-lib receives an initial tesSUCCESS response from
     // rippled. This does not guarantee that the transaction will be validated but it is at this
     // point that we want to respond to the user that the transaction has been submitted
     transaction.once('proposed', function() {
-      transaction.removeListener('error', callback);
-      submission_domain.removeListener('error', callback);
+      submissionDomain.dispose();
       callback(null, transaction._clientID);
     });
 
@@ -165,13 +166,9 @@ function submitRippleLibTransaction(remote, dbinterface, data, callback) {
     // so that any errors thrown during the submission process will be picked up by that error handler.
     // Note that ripple-lib saves the transaction to the db throughout the submission process
     // using the persistence functions passed to the ripple-lib Remote instance
-    submission_domain.run(function() {
+    submissionDomain.run(function() {
       transaction.submit();
     });
-
-    // transaction.on('success', function(result){
-    //   console.log('Transaction validated');
-    // });
   };
 
   var steps = [

@@ -171,6 +171,8 @@ function addTrustLine($, req, res, next) {
       var limit = [ opts.limit.amount, opts.limit.currency, opts.limit.counterparty ].join('/');
       var transaction = remote.transaction().trustSet(opts.account, limit);
 
+      domain.add(transaction);
+
       transaction.secret(opts.secret);
 
       if (typeof opts.quality_in === 'number') {
@@ -188,8 +190,6 @@ function addTrustLine($, req, res, next) {
           transaction.setFlags('NoRipple');
         }
       }
-
-      transaction.once('error', callback);
 
       transaction.once('proposed', function(m) {
         var summary = transaction.summary();
@@ -215,6 +215,8 @@ function addTrustLine($, req, res, next) {
 
         result.ledger = String(summary.submitIndex);
         result.hash = m.tx_json.hash;
+
+        domain.dispose();
 
         callback(null, result);
       });
