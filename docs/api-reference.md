@@ -13,10 +13,10 @@ __Contents:__
 - [Available Endpoints](#available-endpoints)
   - [Payments](#payments)
     - [POST /v1/payments](#post-v1payments)
-    - [GET /v1/accounts/{account}/payments/{hash,client_resource_id}](#get-v1accountsaccountpaymentshashclient_resource_id)
-    - [GET /v1/accounts/{account}/payments/paths/{destination_account}/{destination_amount as value+currency or value+currency+issuer}{?source_currencies}](#get-v1accountsaccountpaymentspathsdestination_accountdestination_amount-as-valuecurrency-or-valuecurrencyissuersource_currencies)
+    - [GET /v1/accounts/{address}/payments/{hash,client_resource_id}](#get-v1accountsaddresspaymentshashclient_resource_id)
+    - [GET /v1/accounts/{address}/payments/paths/{destination_account}/{destination_amount as value+currency or value+currency+issuer}{?source_currencies}](#get-v1accountsaddresspaymentspathsdestination_accountdestination_amount-as-valuecurrency-or-valuecurrencyissuersource_currencies)
   - [Notifications](#notifications)
-    - [GET /v1/accounts/{account}/notifications/{hash,client_resource_id}](#get-v1accountsaccountnotificationshashclient_resource_id)
+    - [GET /v1/accounts/{address}/notifications/{hash,client_resource_id}](#get-v1accountsaddressnotificationshashclient_resource_id)
   - [Standard Ripple Transactions](#standard-ripple-transactions)
     - [GET /v1/transactions/{hash}](#get-v1transactionshash)
   - [Server Info](#server-info)
@@ -188,7 +188,7 @@ Note that payments will have additional fields after validation. Please refer to
 
 ----------
 
-#### GET /v1/accounts/{account}/payments/paths/{destination_account}/{destination_amount as value+currency or value+currency+issuer}{?source_currencies}
+#### GET /v1/accounts/{address}/payments/paths/{destination_account}/{destination_amount as value+currency or value+currency+issuer}{?source_currencies}
 
 Query `rippled` for possible payment "paths" through the Ripple Network to deliver the given amount to the specified `destination_account`. If the `destination_amount` issuer is not specified, paths will be returned for all of the issuers from whom the `destination_account` accepts the given currency.
 
@@ -227,13 +227,13 @@ This query will respond with an array of fully-formed payments. The client can s
 
 ----------
 
-#### GET /v1/accounts/{account}/payments{/hash,client_resource_id}{?source_account,destination_account,exclude_failed,start_ledger,end_ledger,earliest_first,results_per_page,page}
+#### GET /v1/accounts/{address}/payments{/hash,client_resource_id}{?source_account,destination_account,exclude_failed,start_ledger,end_ledger,earliest_first,results_per_page,page}
 
 Retrieve the details of one or more payments from the `rippled` server or, if the transaction failled off-network or is still pending, from the `ripple-rest` instance's local database.
 
 ##### Retrieving an Individual Payment
 
-Individual payments can be retrieved by querying `/v1/accounts/{account}/payments/{hash,client_resource_id}`. 
+Individual payments can be retrieved by querying `/v1/accounts/{address}/payments/{hash,client_resource_id}`. 
 
 If the `state` field is `validated`, then the payment has been validated and written into the Ripple Ledger.
 
@@ -258,7 +258,7 @@ If no payment is found with the given hash or client_resource_id the following e
 
 ##### Browsing Historical Payments
 
-Historical payments can be browsed in bulk by supplying query string parameters: `/v1/accounts/{account}/payments?`
+Historical payments can be browsed in bulk by supplying query string parameters: `/v1/accounts/{address}/payments?`
 
 Query string parameters:
 + `source_account` - If specified, limit the results to payments initiated by a particular account
@@ -299,7 +299,7 @@ Note that all of the filters available for browsing historical payments must be 
 
 ----------
 
-#### GET /v1/accounts/{account}/notifications/{hash,client_resource_id}{?types}
+#### GET /v1/accounts/{address}/notifications/{hash,client_resource_id}{?types}
 
 Query String Parameters:
 
