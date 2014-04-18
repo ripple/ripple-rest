@@ -117,7 +117,7 @@ function addTrustLine($, req, res, next) {
     if (typeof opts.limit === 'string') {
       var spl = opts.limit.split('/');
       opts.limit = {
-        amount:        spl[0],
+        value:         spl[0],
         currency:      spl[1],
         counterparty:  spl[2]
       }
@@ -127,7 +127,7 @@ function addTrustLine($, req, res, next) {
       return res.json(400, { success: false, message: 'Parameter is not a valid limit: limit' });
     }
 
-    if (isNaN(opts.limit.amount)) {
+    if (isNaN(opts.limit.value)) {
       return res.json(400, { success: false, message: 'Parameter is not a number: limit.amount' });
     }
 
@@ -168,7 +168,7 @@ function addTrustLine($, req, res, next) {
     domain.once('error', callback);
 
     domain.run(function() {
-      var limit = [ opts.limit.amount, opts.limit.currency, opts.limit.counterparty ].join('/');
+      var limit = [ opts.limit.value, opts.limit.currency, opts.limit.counterparty ].join('/');
       var transaction = remote.transaction().trustSet(opts.account, limit);
 
       domain.add(transaction);
