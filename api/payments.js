@@ -18,7 +18,7 @@ function getPayment($, req, res, next) {
   var opts = {
     account: req.params.account,
     identifier: req.params.identifier
-  }
+  };
 
   function validateOptions(callback) {
     if (!opts.account) {
@@ -105,37 +105,26 @@ function getBulkPayments($, req, res, next) {
   var remote = $.remote;
   var dbinterface = $.dbinterface;
 
-  var params = {
-    account: req.params.account,
-    source_account: req.query.source_account,
-    destination_account: req.query.destination_account,
-    exclude_failed: (req.query.exclude_failed === 'true'),
-    start_ledger: req.query.start_ledger,
-    end_ledger: req.query.end_ledger,
-    earliest_first: (req.query.earliest_first === 'true'),
-    results_per_page: req.query.results_per_page,
-    page: req.query.page
-  }
-
   function getTransactions(callback) {
     transactionslib.getAccountTransactions(remote, dbinterface, {
-      account: params.account,
-      source_account: params.source_account,
-      destination_account: params.destination_account,
-      start_ledger: params.start_ledger,
-      end_ledger: params.end_ledger,
-      descending: !params.earliest_first,
-      exclude_failed: params.exclude_failed,
-      min: params.results_per_page,
-      max: params.results_per_page,
-      offset: (params.results_per_page || DEFAULT_RESULTS_PER_PAGE) * ((params.page || 1) - 1),
+      account: req.params.account,
+      source_account: req.query.source_account,
+      destination_account: req.query.destination_account,
+      direction: req.query.direction,
+      ledger_index_min: req.query.start_ledger,
+      ledger_index_max: req.query.end_ledger,
+      descending: (req.query.earliest_first !== 'true'),
+      exclude_failed: (req.query.exclude_failed === 'true'),
+      min: req.query.results_per_page,
+      max: req.query.results_per_page,
+      offset: (req.query.results_per_page || DEFAULT_RESULTS_PER_PAGE) * ((req.query.page || 1) - 1),
       types: [ 'payment' ]
     }, callback);
   };
 
   function formatTransactions(transactions, callback) {
     async.map(transactions, function(transaction, map_callback) {
-      paymentformatter.parsePaymentFromTx(transaction, { account: params.account }, map_callback);
+      paymentformatter.parsePaymentFromTx(transaction, { account: req.params.account }, map_callback);
     }, callback);
   };
 
