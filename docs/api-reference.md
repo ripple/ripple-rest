@@ -160,8 +160,6 @@ In `POST` requests, Transaction `flags` must be boolean (true or false). Transac
 + `transfer_rate`
 + `signers`
 
-----------
-
 #### Get settings
 
 > GET /v1/accounts/{address}/settings
@@ -184,8 +182,6 @@ In `POST` requests, Transaction `flags` must be boolean (true or false). Transac
 }
 ```
 
-----------
-
 #### Change settings
 
 > POST /v1/accounts/{address}/settings
@@ -207,8 +203,6 @@ Attach settings (flags or fields) as request body parameters. Example:
 ----------
 
 ### Payments
-
-----------
 
 #### POST /v1/payments
 
