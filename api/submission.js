@@ -68,7 +68,7 @@ function submitPayment($, req, res, next) {
 
     formatDomain.run(function() {
       paymentformatter.paymentToTransaction(params.payment, function(err, transaction) {
-        formatDomain.dispose();
+        formatDomain.exit();
         if (err) {
           res.json(400, { success: false, message: err.message });
         } else {
@@ -158,7 +158,7 @@ function submitRippleLibTransaction(remote, dbinterface, data, callback) {
     // rippled. This does not guarantee that the transaction will be validated but it is at this
     // point that we want to respond to the user that the transaction has been submitted
     transaction.once('proposed', function() {
-      submissionDomain.dispose();
+      submissionDomain.exit();
       callback(null, transaction._clientID);
     });
 
