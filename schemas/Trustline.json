@@ -16,11 +16,11 @@
       "description": "The code of the currency in which this trustline denotes trust",
       "$ref": "Currency"
     },
-    "trust_limit": {
+    "limit": {
       "description": "The maximum value of the currency that the account may hold issued by the counterparty",
       "$ref": "FloatString"
     },
-    "reciprocated_trust_limit": {
+    "reciprocated_limit": {
       "description": "The maximum value of the currency that the counterparty may hold issued by the account",
       "$ref": "FloatString"
     },
