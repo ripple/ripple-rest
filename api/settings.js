@@ -187,7 +187,10 @@ function changeSettings($, req, res, next) {
         transaction.tx_json[fieldName] = value;
       }
 
-      transaction.submit(domain.intercept(callback));
+      transaction.submit(function(err, res) {
+        domain.exit();
+        callback(err, res);
+      });
     });
   };
 
