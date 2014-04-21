@@ -101,8 +101,6 @@ function addTrustLine($, req, res, next) {
   var remote = $.remote;
   var opts = req.params;
 
-  console.log('Adding trustline', opts);
-
   Object.keys(req.body).forEach(function(param) {
     opts[param] = req.body[param];
   });
@@ -164,8 +162,6 @@ function addTrustLine($, req, res, next) {
     if (!connected) {
       return res.json(500, { success: false, message: 'Remote is not connected' });
     }
-
-    console.log('SUBMIT');
 
     var domain = Domain.create();
 
