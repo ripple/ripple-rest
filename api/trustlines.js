@@ -30,7 +30,7 @@ function getTrustLines($, req, res, next) {
     }
 
     if (opts.counterparty && !ripple.UInt160.is_valid(opts.counterparty)) {
-      return res.json(400, { success: false, message: 'Parameter is not a valid Ripple address: issuer' });
+      return res.json(400, { success: false, message: 'Parameter is not a valid Ripple address: counterparty' });
     }
 
     if (opts.currency && !/^[A-Z0-9]{3}$/.test(opts.currency)) {
