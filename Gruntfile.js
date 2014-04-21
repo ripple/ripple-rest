@@ -1,6 +1,4 @@
 var fs        = require('fs');
-var pg        = require('pg');
-// var sqlite3   = require('sqlite3').verbose();
 var config    = require('./config/config-loader');
 var dbconnect; 
 
