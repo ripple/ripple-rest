@@ -1,65 +1,74 @@
 var ripple    = require('ripple-lib');
 var async     = require('async');
 var _         = require('lodash');
-var serverlib = require('../lib/server-lib');
+var server_lib = require('../lib/server-lib');
 var validator = require('../lib/schema-validator');
 
 var DEFAULT_RESULTS_PER_PAGE = 10;
 var NUM_TRANSACTION_TYPES = 5;
 
 exports.get = getTransaction;
+exports.getTransaction = _getTransaction;
 
-function getTransaction($, req, res, next) {
-  var remote = $.remote;
-  var dbinterface = $.dbinterface;
 
-  var opts = {
+function _getTransaction($, req, res, callback) {
+
+  var opts = $.opts || {
     account: req.params.account,
     identifier: req.params.identifier
-  }
+  };
 
-  function validateOptions(callback) {
+  function validateOptions(async_callback) {
     if (!opts.identifier) {
       res.json(400, { success: false, message: 'Missing parameter: identifier' });
     } else if (validator.isValid(opts.identifier, 'Hash256')) {
       opts.hash = opts.identifier;
-      callback();
+      async_callback();
     } else if (validator.isValid(opts.identifier, 'ResourceId')) {
       opts.client_resource_id = opts.identifier;
-      callback();
+      async_callback();
     } else {
       res.json(400, { success: false, message: 'Parameter not a valid transaction hash: identifier' });
     }
   };
 
-  function ensureConnected(callback) {
-    serverlib.ensureConnected(remote, callback);
+  function ensureConnected(async_callback) {
+    server_lib.ensureConnected($.remote, function(err, connected){
+      if (!connected) {
+        return res.json(500, { success: false, message: 'No connection to rippled' });
+      } else {
+        async_callback(err);
+      }
+    });
   };
 
-  function queryTransaction(connected, callback) {
-    if (!connected) {
-      return res.json(500, { success: false, message: 'No connection to rippled' });
-    }
-
-    dbinterface.getTransaction(opts, function(entry) {
+  function queryTransaction(async_callback) {
+    $.dbinterface.getTransaction(opts, function(entry) {
       if (entry && entry.transaction) {
-        callback(null, entry.transaction);
+        async_callback(null, entry.transaction);
       } else if (entry) {
-        remote.requestTx(entry.hash, callback);
+        $.remote.requestTx(entry.hash, async_callback);
       } else if (opts.hash) {
-        remote.requestTx(opts.hash, callback);
+        $.remote.requestTx(opts.hash, async_callback);
       } else {
         res.json(404, { success: false, message: 'Transaction not found' });
       }
     });
   };
 
-  function attachDate(transaction, callback) {
+  function attachResourceID(transaction, async_callback) {
+    if (transaction && opts.client_resource_id) {
+      transaction.client_resource_id = opts.client_resource_id;
+    }
+    async_callback(null, transaction);
+  };
+
+  function attachDate(transaction, async_callback) {
     if (!transaction || transaction.date || !transaction.ledger_index) {
-      return callback(null, transaction);
+      return async_callback(null, transaction);
     }
 
-    remote.requestLedger(transaction.ledger_index, function(err, res) {
+    $.remote.requestLedger(transaction.ledger_index, function(err, res) {
       if (err) {
         return res.json(404, { success: false, message: 'Transaction ledger not found' });
       }
@@ -68,15 +77,8 @@ function getTransaction($, req, res, next) {
         transaction.date = ripple.utils.toTimestamp(res.ledger.close_time);
       }
 
-      callback(null, transaction);
+      async_callback(null, transaction);
     });
-  };
-
-  function attachResourceID(transaction, callback) {
-    if (transaction && opts.client_resource_id) {
-      transaction.client_resource_id = opts.client_resource_id;
-    }
-    callback(null, transaction);
   };
 
   var steps = [
@@ -87,22 +89,18 @@ function getTransaction($, req, res, next) {
     attachDate
   ];
 
-  async.waterfall(steps, function(err, transaction) {
-    //    var isNotFound = err && err.remote && (err.remote.error === 'txnNotFound');
-    //    if (isNotFound) {
-    //      res.json(404, {
-    //        success: false,
-    //        message: 'Transaction Not Found. No transaction corresponding to the given hash or client_resource_id was found either in the local ripple-rest database or in the rippled\'s database. This may indicate that the transaction was never or not yet validated and written into the Ripple Ledger, or this error may be seen if either the ripple-rest or rippled database were recently created or deleted. ' + JSON.stringify(err)
-    //      });
-    //    }
+  async.waterfall(steps, callback);
+};
 
+function getTransaction($, req, res, next) {
+  _getTransaction($, req, res, function(err, transaction){
     if (err) {
       next(err);
     } else {
       res.json(200, { success: true, transaction: transaction });
     }
   });
-};
+}
 
 /**
  *  Get all failed and validated transactions for the specified account
@@ -126,6 +124,8 @@ function getTransaction($, req, res, next) {
 exports.getAccountTransactions = getAccountTransactions;
 
 function getAccountTransactions(remote, dbinterface, opts, callback, previous_transactions) {
+  console.log('getAccountTransactions called');
+
   if (!opts.max) {
     opts.max = DEFAULT_RESULTS_PER_PAGE;
   }
@@ -143,25 +143,24 @@ function getAccountTransactions(remote, dbinterface, opts, callback, previous_tr
     }
   }
 
-  function ensureConnected(callback) {
-    serverlib.ensureConnected(remote, callback);
+  function ensureConnected(async_callback) {
+    server_lib.ensureConnected(remote, async_callback);
   };
 
-  function queryTransactions(connected, callback) {
+  function queryTransactions(connected, async_callback) {
     // Get transactions from rippled and local db
-    getLocalAndRemoteTransactions(remote, dbinterface, opts, callback);
+    getLocalAndRemoteTransactions(remote, dbinterface, opts, async_callback);
   };
 
-  function filterTransactions(transactions, callback) {
+  function filterTransactions(transactions, async_callback) {
     // Filter results so that they are unique and match the given parameters
-    var filtered = filterTransactions(transactions, opts);
-    callback(null, filtered);
+    async_callback(null, filterTransactions(transactions, opts));
   };
 
-  function sortTransactions(transactions, callback) {
+  function sortTransactions(transactions, async_callback) {
     // Sort results
     transactions.sort(_.partialRight(compareTransactions, opts.descending));
-    callback(null, transactions);
+    async_callback(null, transactions);
   };
 
   var steps = [
@@ -176,17 +175,10 @@ function getAccountTransactions(remote, dbinterface, opts, callback, previous_tr
       return callback(err);
     }
 
+    console.log(transactions);
+
     // Combine transactions with previous_transactions from previous
     // recursive call of this function
-    if (previous_transactions) {
-      previous_transactions.forEach(function(ptx) {
-        console.log('previous: ' + ptx.ledger_index);
-      });
-    }
-
-    transactions.forEach(function(tx) {
-      console.log('tx: ' + tx.ledger_index);
-    });
 
     if (previous_transactions && previous_transactions.length > 0) {
       transactions = previous_transactions.concat(transactions);
