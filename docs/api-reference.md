@@ -11,10 +11,13 @@ __Contents:__
   - [UNIX Epoch instead of Ripple Epoch](#unix-epoch-instead-of-ripple-epoch)
   - [Not compatible with `ripple-lib`](#not-compatible-with-ripple-lib)
 - [Available Endpoints](#available-endpoints)
+  - [Settings](#settings)
+  - [Balances](#balances)
   - [Payments](#payments)
     - [POST /v1/payments](#post-v1payments)
     - [GET /v1/accounts/{address}/payments/{hash,client_resource_id}](#get-v1accountsaddresspaymentshashclient_resource_id)
     - [GET /v1/accounts/{address}/payments/paths/{destination_account}/{destination_amount as value+currency or value+currency+issuer}{?source_currencies}](#get-v1accountsaddresspaymentspathsdestination_accountdestination_amount-as-valuecurrency-or-valuecurrencyissuersource_currencies)
+  - [Trustlines](#trustlines)
   - [Notifications](#notifications)
     - [GET /v1/accounts/{address}/notifications/{hash,client_resource_id}](#get-v1accountsaddressnotificationshashclient_resource_id)
   - [Standard Ripple Transactions](#standard-ripple-transactions)
@@ -100,9 +103,109 @@ Or if there is an error immediately upon submission:
 
 ----------
 
-### Payments
+### Balances
+
+Get an account's existing balances. This includes XRP balance (which does not include a counterparty) and trustline balances.
+
+> GET /v1/accounts/{address}/balances
+
+**Query parameters**
+
++ `currency` The balance's currency
++ `counterparty` Counterparty (issuer) of balance
+
+**Response**
+
+```js
+{
+  "success": true,
+  "balances": [
+    {
+      "value": "938.929489",
+      "currency": "XRP",
+      "counterparty": ""
+    },
+    {
+      "value": "1.817194430379747",
+      "currency": "USD",
+      "counterparty": "rvYAfWj5gh67oV6fW32ZzP3Aw4Eubs59B"
+    },
+    ...
+  ]
+}
+```
 
 ----------
+
+### Settings
+
+Get or change an account's settings.
+
+In `GET` requests, Transaction `flags` are always present in the response. Transaction `fields` are optional, and only present when they are set.
+
+In `POST` requests, Transaction `flags` must be boolean (true or false). Transaction `fields` may be non-boolean.
+
+*Flags*
+
++ `disable_master`
++ `disallow_xrp`
++ `password_spent`
++ `require_authorization`
++ `require_destination_tag`
+
+*Fields*
+
++ `transaction_sequence`
++ `email_hash`
++ `wallet_locator`
++ `message_key`
++ `url`
++ `transfer_rate`
++ `signers`
+
+#### Get settings
+
+> GET /v1/accounts/{address}/settings
+
+**Response**
+
+```js
+{
+  "success": true,
+  "settings": {
+    "disable_master": false,
+    "disallow_xrp": false,
+    "password_spent": false,
+    "require_authorization": false,
+    "require_destination_tag": true,
+    "transaction_sequence": 2745,
+    "transfer_rate": 100,
+    "url": "www.example.com"
+  }
+}
+```
+
+#### Change settings
+
+> POST /v1/accounts/{address}/settings
+
+**Body parameters**
+
++ `secret` Account secret. Required for sending account_set transasction to change settings.
+
+Attach settings (flags or fields) as request body parameters. Example:
+
+```js
+{
+  "secret": "shzx3CdH7h4DnwQQBvZcwbz8N9pYS",
+  "require_destination_tag": true,
+  "url": "mysite.com"
+}
+```
+
+----------
+
+### Payments
 
 #### POST /v1/payments
 
@@ -270,7 +373,8 @@ Query string parameters:
 + `results_per_page` - Limits the number of resources displayed per page. Defaults to 20
 + `page` - The page to be displayed. If there are fewer than the `results_per_page` number displayed, this indicates that this is the last page
 
-Response:
+**Response**
+
 ```js
 {
   "success": true,
@@ -292,6 +396,84 @@ Response:
 
 Note that all of the filters available for browsing historical payments must be applied by `ripple-rest`, as opposed to by `rippled`, so applying more filters will cause `ripple-rest` to respond slower.
 
+----------
+
+### Trustlines
+
+Get an account's existing trustlines or add a new one.
+
+> GET /accounts/{address}/trustlines
+
+**Query parameters**
+
++ `currency` Trustline's currency
++ `counterparty` Counterparty (issuer) of trustline
+
+**Response**
+
+```js
+{
+  "success": true,
+  "lines": [
+    {
+      "account": "rMZ1STX5D4u9cv6HbhRZjNQqMzntD68Uc5",
+      "account_allows_rippling": false,
+      "counterparty": "rhuLZPKhKAdZGxwbFq5sBdpHzkQ418sWof",
+      "counterparty_allows_rippling": true,
+      "currency": "USD",
+      "limit": "1",
+      "reciprocated_limit": "0"
+    }
+    ...
+  ]
+```
+
+> POST /accounts/{address}/trustlines
+
+**Body parameters**
+
++ `secret` Account secret. Required for sending account_set transasction to change settings.
++ `limit` Trust limit. Either an `object` containing `value`, `currency`, `counterpaty` or a `string` form `value/currency/counterparty`.
++ `allow_rippling` Optional. Defaults to `true`. See [here](https://ripple.com/wiki/No_Ripple) for details
+
+**Example**
+
+```js
+{
+  "secret": "sn2zhhoggGghjAwa8h3U7628YvxST",
+  "limit": {
+    "value": 1,
+    "currency": "USD",
+    "counterparty": "rKKMpGKd4quYJWgFFK2GwhCfjbkd9s3jd5"
+  }
+}
+```
+
+**Equivalent to**
+
+```js
+{
+  "secret": "sn2zhhoggGghjAwa8h3U7628YvxST",
+  "limit": "1/USD/rKKMpGKd4quYJWgFFK2GwhCfjbkd9s3jd5"
+}
+```
+
+**Response**
+
+```js
+{
+  "success": true,
+  "hash": "FB12390090CA9265FDEA6F13DC65B33A7EDCB1ADCCBDDA8DE077B2BE5D0CB506",
+  "ledger": "620725",
+  "line": {
+    "account": "rKKMpGKd4quYJWgFFK2GwhCfjbkd9s3jd5",
+    "value": 1,
+    "currency": "USD",
+    "counterparty": "rB2ZG7Ju11CKRDaWFUvpvkd27XCdxDW2H4",
+    "allows_rippling": true,
+  }
+}
+```
 
 ----------
 

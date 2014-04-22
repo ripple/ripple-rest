@@ -11,9 +11,9 @@ function getBalances($, req, res, next) {
   var remote = $.remote;
 
   var opts = {
-    account:   req.params.account,
-    currency:  req.query.currency,
-    issuer:    req.query.issuer
+    account:       req.params.account,
+    currency:      req.query.currency,
+    counterparty:  req.query.counterparty
   }
 
   var currencyRE = new RegExp(opts.currency ? ('^' + opts.currency.toUpperCase() + '$') : /./);
@@ -24,8 +24,8 @@ function getBalances($, req, res, next) {
       return res.json(400, { success: false, message: 'Parameter is not a valid Ripple address: account' });
     }
 
-    if (opts.issuer && !ripple.UInt160.is_valid(opts.issuer)) {
-      return res.json(400, { success: false, message: 'Parameter is not a valid Ripple address: issuer'});
+    if (opts.counterparty && !ripple.UInt160.is_valid(opts.counterparty)) {
+      return res.json(400, { success: false, message: 'Parameter is not a valid Ripple address: counterparty'});
     }
 
     if (opts.currency && !/^[A-Z0-9]{3}$/.test(opts.currency)) {
@@ -52,9 +52,9 @@ function getBalances($, req, res, next) {
 
     request.once('success', function(info) {
       balances.push({
+        value: bignum(info.account_data.Balance).dividedBy('1000000').toString(),
         currency: 'XRP',
-        amount: bignum(info.account_data.Balance).dividedBy('1000000').toString(),
-        issuer: ''
+        counterparty: ''
       });
 
       callback();
@@ -66,8 +66,8 @@ function getBalances($, req, res, next) {
   function getLineBalances(callback) {
     var request = remote.requestAccountLines(opts.account);
 
-    if (opts.issuer) {
-      request.message.peer = opts.issuer;
+    if (opts.counterparty) {
+      request.message.peer = opts.counterparty;
     }
 
     request.once('error', callback);
@@ -76,9 +76,9 @@ function getBalances($, req, res, next) {
       res.lines.forEach(function(line) {
         if (currencyRE.test(line.currency)) {
           balances.push({
-            currency:  line.currency,
-            amount:    line.balance,
-            issuer:    line.account,
+            value:         line.balance,
+            currency:      line.currency,
+            counterparty:  line.account
           });
         }
       });

@@ -30,7 +30,7 @@ function getTrustLines($, req, res, next) {
     }
 
     if (opts.counterparty && !ripple.UInt160.is_valid(opts.counterparty)) {
-      return res.json(400, { success: false, message: 'Parameter is not a valid Ripple address: issuer' });
+      return res.json(400, { success: false, message: 'Parameter is not a valid Ripple address: counterparty' });
     }
 
     if (opts.currency && !/^[A-Z0-9]{3}$/.test(opts.currency)) {
@@ -66,8 +66,8 @@ function getTrustLines($, req, res, next) {
           account: opts.account,
           counterparty: line.account,
           currency: line.currency,
-          trust_limit: line.limit,
-          reciprocated_trust_limit: line.limit_peer,
+          limit: line.limit,
+          reciprocated__limit: line.limit_peer,
           account_allows_rippling: line.no_ripple ? !line.no_ripple : true,
           counterparty_allows_rippling: line.no_ripple_peer ? !line.no_ripple_peer : true,
         });
@@ -195,16 +195,14 @@ function addTrustLine($, req, res, next) {
         domain.exit();
 
         var summary = transaction.summary();
+        var line = summary.tx_json.LimitAmount;
+
+        line.account = opts.account;
+        line.allows_rippling = true;
 
         var result = {
           success: true,
-          line: {
-            account: opts.account,
-            counterparty: opts.limit.counterparty,
-            currency: opts.limit.currency,
-            trust_limit: opts.limit.amount,
-            allows_rippling: true
-          }
+          line: line
         }
 
         if (m.tx_json.Flags & TrustSetFlags.NoRipple.value) {
