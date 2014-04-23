@@ -1,4 +1,3 @@
-var Domain    = require('domain');
 var async     = require('async');
 var ripple    = require('ripple-lib');
 var serverLib = require('../lib/server-lib');
@@ -75,15 +74,17 @@ function getSettings($, req, res, next) {
   };
 
   function ensureConnected(callback) {
-    serverLib.ensureConnected(remote, callback);
+    serverLib.ensureConnected(remote, function(err, connected) {
+      if (err || !connected) {
+        res.json(500, { success: false, message: 'Remote is not connected' });
+      } else {
+        callback();
+      }
+    });
   };
 
-  function getAccountSettings(connected, callback) {
-    if (!connected) {
-      res.json(500, { success: false, message: 'No connection to rippled' });
-    } else {
-      _requestAccountSettings(remote, opts.account, callback);
-    }
+  function getAccountSettings(callback) {
+    _requestAccountSettings(remote, opts.account, callback);
   };
 
   var steps = [
@@ -118,46 +119,37 @@ function changeSettings($, req, res, next) {
     }
 
     if (!opts.secret) {
-      return res.json(400, { success: false, message: 'Parameter is not a valid Ripple secret: secret' });
+      return res.json(400, { success: false, message: 'Parameter missing: secret' });
     }
 
     callback();
   };
 
   function ensureConnected(callback) {
-    serverLib.ensureConnected(remote, callback);
+    serverLib.ensureConnected(remote, function(err, connected) {
+      if (err || !connected) {
+        res.json(500, { success: false, message: 'Remote is not connected' });
+      } else {
+        callback();
+      }
+    });
   };
 
-  function changeAccountSettings(connected, callback) {
-    if (!connected) {
-      return res.json(500, { success: false, message: 'Remote is not connected' });
+  function changeAccountSettings(callback) {
+    var FlagSet = {
+      require_destination_tag: { unset: 'OptionalDestTag', set: 'RequireDestTag', },
+      require_authorization: { unset: 'OptionalAuth', set: 'RequireAuth' },
+      disallow_xrp: { unset: 'AllowXRP', set: 'DisallowXRP' }
     }
 
-    var domain = Domain.create();
+    var transaction = remote.transaction();
 
-    domain.once('error', callback);
+    transaction.once('error', callback);
+    transaction.once('final', callback.bind(this, null));
 
-    domain.run(function() {
-      var transaction = remote.transaction().accountSet(opts.account);
-
-      domain.add(transaction);
-
+    try {
+      transaction.accountSet(opts.account);
       transaction.secret(opts.secret);
-
-      var FlagSet = {
-        require_destination_tag: {
-          unset: 'OptionalDestTag',
-          set: 'RequireDestTag',
-        },
-        require_authorization: {
-          unset: 'OptionalAuth',
-          set: 'RequireAuth'
-        },
-        disallow_xrp: {
-          unset: 'AllowXRP',
-          set: 'DisallowXRP'
-        }
-      }
 
       // Set transaction flags
       for (var flagName in FlagSet) {
@@ -167,7 +159,7 @@ function changeSettings($, req, res, next) {
         var value = opts[flagName];
 
         if (typeof value !== 'boolean') {
-          return callback(new TypeError('Parameter is not boolean: ' + flagName));
+          return res.json(400, { success: false, mesage: 'Parameter is not boolean: ' + flagName });
         }
 
         transaction.setFlags(value ? flag.set : flag.unset);
@@ -186,12 +178,11 @@ function changeSettings($, req, res, next) {
 
         transaction.tx_json[fieldName] = value;
       }
+    } catch (e) {
+      return res.json(500, { success: false, message: e.message });
+    }
 
-      transaction.submit(function(err, res) {
-        domain.exit();
-        callback(err, res);
-      });
-    });
+    transaction.submit();
   };
 
   function getAccountSettings(tx_res, callback) {
