@@ -1,4 +1,3 @@
-var Domain    = require('domain');
 var async     = require('async');
 var ripple    = require('ripple-lib');
 var serverLib = require('../lib/server-lib');
@@ -105,13 +104,14 @@ function addTrustLine($, req, res, next) {
     opts[param] = req.body[param];
   });
 
+
   function validateOptions(callback) {
     if (!ripple.UInt160.is_valid(opts.account)) {
       return res.json(400, { success: false, message: 'Parameter is not a Ripple address: account' });
     }
 
-    if (typeof opts.secret !== 'string') {
-      return res.json(400, { success: false, message: 'Parameter is not a Ripple secret: secret' });
+    if (!opts.secret) {
+      return res.json(400, { success: false, message: 'Parameter missing: secret' });
     }
 
     if (typeof opts.limit === 'string') {
@@ -124,7 +124,7 @@ function addTrustLine($, req, res, next) {
     }
 
     if (typeof opts.limit !== 'object') {
-      return res.json(400, { success: false, message: 'Parameter is not a valid limit: limit' });
+      return res.json(400, { success: false, message: 'Parameter missing: limit' });
     }
 
     if (isNaN(opts.limit.value)) {
@@ -155,24 +155,63 @@ function addTrustLine($, req, res, next) {
   };
 
   function ensureConnected(callback) {
-    serverLib.ensureConnected(remote, callback);
+    serverLib.ensureConnected(remote, function(err, connected) {
+      if (err || !connected) {
+        res.json(500, { success: false, message: 'Remote is not connected' });
+      } else {
+        callback();
+      }
+    });
   };
 
-  function addLine(connected, callback) {
-    if (!connected) {
-      return res.json(500, { success: false, message: 'Remote is not connected' });
-    }
+  function addLine(callback) {
+    var limit = [ opts.limit.value, opts.limit.currency, opts.limit.counterparty ].join('/');
+    var transaction = remote.transaction();
+    var complete = false;
 
-    var domain = Domain.create();
+    function transactionSent(m) {
+      complete = true;
 
-    domain.once('error', callback);
+      var summary = transaction.summary();
+      var line = summary.tx_json.LimitAmount;
 
-    domain.run(function() {
-      var limit = [ opts.limit.value, opts.limit.currency, opts.limit.counterparty ].join('/');
-      var transaction = remote.transaction().trustSet(opts.account, limit);
+      line.account = opts.account;
+      line.allows_rippling = true;
+      line.counterparty = line.issuer;
+      delete line.issuer;
 
-      domain.add(transaction);
+      var result = {
+        success: true,
+        line: line
+      }
 
+      if (m.tx_json.Flags & TrustSetFlags.NoRipple.value) {
+        result.line.allows_rippling = false;
+      }
+
+      if (m.tx_json.Flags & TrustSetFlags.SetAuth) {
+        result.line.authorized = true;
+      }
+
+      result.ledger = String(summary.submitIndex);
+      result.hash = m.tx_json.hash;
+
+      callback(null, result);
+    };
+
+    transaction.once('error', callback);
+
+    transaction.once('proposed', transactionSent);
+
+    transaction.once('success', function(m) {
+      if (!complete) {
+        transaction.removeAllListeners('proposed');
+        transactionSent(m);
+      }
+    });
+
+    try {
+      transaction.trustSet(opts.account, limit);
       transaction.secret(opts.secret);
 
       if (typeof opts.quality_in === 'number') {
@@ -190,37 +229,11 @@ function addTrustLine($, req, res, next) {
           transaction.setFlags('NoRipple');
         }
       }
+    } catch (e) {
+      return res.json(500, { success: false, message: e.message });
+    }
 
-      transaction.once('proposed', function(m) {
-        domain.exit();
-
-        var summary = transaction.summary();
-        var line = summary.tx_json.LimitAmount;
-
-        line.account = opts.account;
-        line.allows_rippling = true;
-
-        var result = {
-          success: true,
-          line: line
-        }
-
-        if (m.tx_json.Flags & TrustSetFlags.NoRipple.value) {
-          result.line.allows_rippling = false;
-        }
-
-        if (m.tx_json.Flags & TrustSetFlags.SetAuth) {
-          result.line.authorized = true;
-        }
-
-        result.ledger = String(summary.submitIndex);
-        result.hash = m.tx_json.hash;
-
-        callback(null, result);
-      });
-
-      transaction.submit();
-    });
+    transaction.submit();
   };
 
   var steps = [
