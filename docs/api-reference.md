@@ -12,12 +12,16 @@ __Contents:__
   - [Not compatible with `ripple-lib`](#not-compatible-with-ripple-lib)
 - [Available Endpoints](#available-endpoints)
   - [Settings](#settings)
+    - [GET /v1/accounts/{address}/settings](#get-settings)
+    - [POST /v1/accounts/{address}/settings](#change-settings)
   - [Balances](#balances)
   - [Payments](#payments)
     - [POST /v1/payments](#post-v1payments)
     - [GET /v1/accounts/{address}/payments/{hash,client_resource_id}](#get-v1accountsaddresspaymentshashclient_resource_id)
     - [GET /v1/accounts/{address}/payments/paths/{destination_account}/{destination_amount as value+currency or value+currency+issuer}{?source_currencies}](#get-v1accountsaddresspaymentspathsdestination_accountdestination_amount-as-valuecurrency-or-valuecurrencyissuersource_currencies)
   - [Trustlines](#trustlines)
+      - [GET /v1/accounts/{address}/trustlines](#get-trustlines)
+      - [POST /v1/accounts/{address}/trustlines](#add-trustline)
   - [Notifications](#notifications)
     - [GET /v1/accounts/{address}/notifications/{hash,client_resource_id}](#get-v1accountsaddressnotificationshashclient_resource_id)
   - [Standard Ripple Transactions](#standard-ripple-transactions)
@@ -402,6 +406,8 @@ Note that all of the filters available for browsing historical payments must be 
 
 Get an account's existing trustlines or add a new one.
 
+###Get trustlines
+
 > GET /accounts/{address}/trustlines
 
 **Query parameters**
@@ -414,7 +420,7 @@ Get an account's existing trustlines or add a new one.
 ```js
 {
   "success": true,
-  "lines": [
+  "trustlines": [
     {
       "account": "rMZ1STX5D4u9cv6HbhRZjNQqMzntD68Uc5",
       "account_allows_rippling": false,
@@ -427,6 +433,8 @@ Get an account's existing trustlines or add a new one.
     ...
   ]
 ```
+
+###Add trustline
 
 > POST /accounts/{address}/trustlines
 
@@ -441,10 +449,12 @@ Get an account's existing trustlines or add a new one.
 ```js
 {
   "secret": "sn2zhhoggGghjAwa8h3U7628YvxST",
-  "limit": {
-    "value": 1,
-    "currency": "USD",
-    "counterparty": "rKKMpGKd4quYJWgFFK2GwhCfjbkd9s3jd5"
+  "trustline": {
+    "limit": {
+      "value": 1,
+      "currency": "USD",
+      "counterparty": "rKKMpGKd4quYJWgFFK2GwhCfjbkd9s3jd5"
+    }
   }
 }
 ```
@@ -454,7 +464,9 @@ Get an account's existing trustlines or add a new one.
 ```js
 {
   "secret": "sn2zhhoggGghjAwa8h3U7628YvxST",
-  "limit": "1/USD/rKKMpGKd4quYJWgFFK2GwhCfjbkd9s3jd5"
+  "trustline": {
+    "limit": "1/USD/rKKMpGKd4quYJWgFFK2GwhCfjbkd9s3jd5"
+  }
 }
 ```
 
@@ -465,7 +477,7 @@ Get an account's existing trustlines or add a new one.
   "success": true,
   "hash": "FB12390090CA9265FDEA6F13DC65B33A7EDCB1ADCCBDDA8DE077B2BE5D0CB506",
   "ledger": "620725",
-  "line": {
+  "trustline": {
     "account": "rKKMpGKd4quYJWgFFK2GwhCfjbkd9s3jd5",
     "value": 1,
     "currency": "USD",
