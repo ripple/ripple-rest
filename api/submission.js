@@ -1,8 +1,8 @@
 var async            = require('async');
-var domain           = require('domain');
 var ripple           = require('ripple-lib');
-var paymentformatter = require('../lib/formatters/payment-formatter');
-var serverlib        = require('../lib/server-lib');
+var Amount           = require('ripple-lib').Amount;
+var paymentFormatter = require('../lib/formatters/payment-formatter');
+var serverLib        = require('../lib/server-lib');
 var validator        = require('../lib/schema-validator');
 
 var last_ledger_sequence_buffer = 6;
@@ -18,7 +18,30 @@ function submitPayment($, req, res, next) {
     payment: req.body.payment,
     secret: req.body.secret,
     client_resource_id: req.body.client_resource_id,
-    url_base: req.protocol + '://' + req.host + ({80: ':80', 443:':443'}[config.get('PORT')] || '')
+    url_base: req.protocol + '://' + req.host + ({ 80: ':80', 443:':443' }[config.get('PORT')] || '/')
+  }
+
+  if (!params.payment) {
+    params.payment = { };
+  }
+
+  if (!params.payment.source_account) {
+    params.payment.source_account = req.params.account
+    || req.body.source_account
+    || req.body.source
+    || params.payment.source;
+  }
+
+  if (!params.payment.destination_account) {
+    params.payment.destination_account = req.body.destination_account
+    || req.body.destination
+    || params.payment.destination;
+  }
+
+  if (!params.payment.destination_amount) {
+    params.payment.destination_amount = req.body.destination_amount
+    || req.body.amount
+    || params.payment.amount;
   }
 
   function validateOptions(callback) {
@@ -54,27 +77,22 @@ function submitPayment($, req, res, next) {
   };
 
   function ensureConnected(callback) {
-    serverlib.ensureConnected(remote, callback);
+    serverLib.ensureConnected(remote, function(err, connected) {
+      if (connected) {
+        callback();
+      } else {
+        res.json(500, { success: false, message: 'No connection to rippled' });
+      }
+    });
   };
 
-  function formatPayment(connected, callback) {
-    if (!connected) {
-      return res.json(500, { success: false, message: 'No connection to rippled' });
-    }
-
-    var formatDomain = domain.create();
-
-    formatDomain.once('error', callback);
-
-    formatDomain.run(function() {
-      paymentformatter.paymentToTransaction(params.payment, function(err, transaction) {
-        formatDomain.exit();
-        if (err) {
-          res.json(400, { success: false, message: err.message });
-        } else {
-          callback(null, transaction);
-        }
-      });
+  function formatPayment(callback) {
+    paymentFormatter.paymentToTransaction(params.payment, function(err, transaction) {
+      if (err) {
+        res.json(400, { success: false, message: err.message });
+      } else {
+        callback(null, transaction);
+      }
     });
   };
 
@@ -127,38 +145,28 @@ function submitRippleLibTransaction(remote, dbinterface, data, callback) {
       client_resource_id: data.client_resource_id,
       type: 'payment'
     }, function(err, db_record) {
-      if (err) {
-        return callback(err);
-      }
+        if (err) {
+          return callback(err);
+        }
 
-      if (db_record && db_record.state !== 'failed') {
-        callback(new Error('Duplicate Payment. A record already exists in the database for a payment from this account with the same client_resource_id. Payments must be submitted with distince client_resource_id\'s to prevent accidental double-spending'));
-      } else {
-        callback(null, transaction);
-      }
+        if (db_record && db_record.state !== 'failed') {
+          callback(new Error('Duplicate Payment. A record already exists in the database for a payment from this account with the same client_resource_id. Payments must be submitted with distince client_resource_id\'s to prevent accidental double-spending'));
+        } else {
+          callback(null, transaction);
+        }
     });
-  };
-
-  function setLastLedger(transaction, callback) {
-    async_callback(null, transaction);
   };
 
   function submitTransaction(transaction, callback) {
     transaction.remote = remote;
     transaction.lastLedger(Number(remote._ledger_current_index) + last_ledger_sequence_buffer);
 
-    // node.js domain is used to catch errors thrown during the submission process
-    var submissionDomain = domain.create();
-
-    submissionDomain.once('error', callback);
-
-    submissionDomain.add(transaction);
+    transaction.once('error', callback);
 
     // The 'proposed' event is fired when ripple-lib receives an initial tesSUCCESS response from
     // rippled. This does not guarantee that the transaction will be validated but it is at this
     // point that we want to respond to the user that the transaction has been submitted
     transaction.once('proposed', function() {
-      submissionDomain.exit();
       callback(null, transaction._clientID);
     });
 
@@ -166,9 +174,7 @@ function submitRippleLibTransaction(remote, dbinterface, data, callback) {
     // so that any errors thrown during the submission process will be picked up by that error handler.
     // Note that ripple-lib saves the transaction to the db throughout the submission process
     // using the persistence functions passed to the ripple-lib Remote instance
-    submissionDomain.run(function() {
-      transaction.submit();
-    });
+    transaction.submit();
   };
 
   var steps = [

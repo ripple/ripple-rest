@@ -3,8 +3,8 @@ var async            = require('async');
 var bignum           = require('bignumber.js');
 var validator        = require('../lib/schema-validator');
 var paymentformatter = require('../lib/formatters/payment-formatter');
-var transactionslib  = require('../lib/transactions-lib');
-var serverlib        = require('../lib/server-lib');
+var transactionsLib  = require('../lib/transactions-lib');
+var serverLib        = require('../lib/server-lib');
 var utils            = require('../lib/utils');
 
 var DEFAULT_RESULTS_PER_PAGE = 10;
@@ -43,16 +43,18 @@ function getPayment($, req, res, next) {
   };
 
   function ensureConnected(callback) {
-    serverlib.ensureConnected(remote, callback);
+    serverLib.ensureConnected(remote, function(err, connected) {
+      if (connected) {
+        callback();
+      } else {
+        res.json(500, { success: false, message: 'No connection to rippled' });
+      }
+    });
   };
 
   // If the transaction was not in the outgoing_transactions db, get it from rippled
-  function getTransaction(connected, callback) {
-    if (!connected) {
-      return res.json(500, { success: false, message: 'No connection to rippled' });
-    }
-
-    transactionslib.getTransaction(remote, dbinterface, opts, callback);
+  function getTransaction(callback) {
+    transactionsLib.getTransaction(remote, dbinterface, opts, callback);
   };
 
   function checkIsPayment(transaction, callback) {
@@ -106,7 +108,7 @@ function getBulkPayments($, req, res, next) {
   var dbinterface = $.dbinterface;
 
   function getTransactions(callback) {
-    transactionslib.getAccountTransactions(remote, dbinterface, {
+    transactionsLib.getAccountTransactions(remote, dbinterface, {
       account: req.params.account,
       source_account: req.query.source_account,
       destination_account: req.query.destination_account,
@@ -204,15 +206,17 @@ function getPathFind($, req, res, next) {
   };
 
   function ensureConnected(callback) {
-    serverlib.ensureConnected(remote, callback);
+    serverLib.ensureConnected(remote, function(err, connected) {
+      if (connected) {
+        callback();
+      } else {
+        res.json(500, { success: false, message: 'No connection to rippled' });
+      }
+    });
   };
 
   // If the transaction was not in the outgoing_transactions db, get it from rippled
-  function prepareOptions(connected, callback) {
-    if (!connected) {
-      return res.json(500, { success: false, message: 'No connection to rippled' });
-    }
-
+  function prepareOptions(callback) {
     parseParams(params, function(err, pathfind_params) {
       if (err) {
         res.json(400, { success: false, message: err.message });
