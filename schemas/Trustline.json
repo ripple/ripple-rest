@@ -58,5 +58,5 @@
       "$ref": "Trustline"
     }
   },
-  "required": ["account", "counterparty", "trust_limit"]
+  "required": ["account", "counterparty", "limit"]
 }
