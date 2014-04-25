@@ -16,9 +16,9 @@ __Contents:__
     - [POST /v1/accounts/{address}/settings](#change-settings)
   - [Balances](#balances)
   - [Payments](#payments)
-    - [POST /v1/payments](#post-v1payments)
-    - [GET /v1/accounts/{address}/payments/{hash,client_resource_id}](#get-v1accountsaddresspaymentshashclient_resource_id)
-    - [GET /v1/accounts/{address}/payments/paths/{destination_account}/{destination_amount as value+currency or value+currency+issuer}{?source_currencies}](#get-v1accountsaddresspaymentspathsdestination_accountdestination_amount-as-valuecurrency-or-valuecurrencyissuersource_currencies)
+    - [POST /v1/payments](#submit-a-payment)
+    - [GET /v1/accounts/{address}/payments/{hash,client_resource_id}](#get-historical-payments)
+    - [GET /v1/accounts/{address}/payments/paths/{destination_account}/{destination_amount as value+currency or value+currency+issuer}{?source_currencies}](#find-a-payment-path)
   - [Trustlines](#trustlines)
       - [GET /v1/accounts/{address}/trustlines](#get-trustlines)
       - [POST /v1/accounts/{address}/trustlines](#add-trustline)
@@ -167,7 +167,7 @@ In `POST` requests, Transaction `flags` must be boolean (true or false). Transac
 + `transfer_rate`
 + `signers`
 
-#### Get settings
+### Get settings
 
 > GET /v1/accounts/{address}/settings
 
@@ -189,7 +189,7 @@ In `POST` requests, Transaction `flags` must be boolean (true or false). Transac
 }
 ```
 
-#### Change settings
+### Change settings
 
 > POST /v1/accounts/{address}/settings
 
@@ -211,9 +211,9 @@ Attach settings (flags or fields) as request body parameters. Example:
 
 ### Payments
 
-#### POST /v1/payments
+### Submit a payment
 
-Submit a payment.
+> POST /v1/payments
 
 Note that the `client_resource_id` is required for all Payment submissions to `ripple-rest`. If another payment with the same `client_resource_id` as one that this instance of `ripple-rest` has marked as `pending` or `validated`, `ripple-rest` will assume that the second one was submitted accidentally. This helps clients prevent double spending on payments, even if the connection to `ripple-rest` is interrupted before the client can confirm the success or failure of a payment. In this case, the response will be the same but ONLY ONE of the duplicates will be submitted.
 
@@ -295,11 +295,14 @@ Note that payments will have additional fields after validation. Please refer to
 
 ----------
 
-#### GET /v1/accounts/{address}/payments/paths/{destination_account}/{destination_amount as value+currency or value+currency+issuer}{?source_currencies}
+### Find a payment path
+
+> GET /v1/accounts/{address}/payments/paths/{destination_account}/{destination_amount as value+currency or value+currency+issuer}{?source_currencies}
 
 Query `rippled` for possible payment "paths" through the Ripple Network to deliver the given amount to the specified `destination_account`. If the `destination_amount` issuer is not specified, paths will be returned for all of the issuers from whom the `destination_account` accepts the given currency.
 
-Query String Parameters:
+**Query parameters**
+
 + `source_currencies` - an optional comma-separated list of source currencies that can be used to constrain the results returned (e.g. `XRP,USD+r...,BTC+r...`. Currencies can be denoted by their currency code (e.g. `USD`) or by their currency code and issuer (e.g. `USD+r...`). If no issuer is specified for a currency other than XRP, the results will be limited to the specified currencies but any issuer for that currency will do.
 
 Response:
@@ -334,13 +337,15 @@ This query will respond with an array of fully-formed payments. The client can s
 
 ----------
 
-#### GET /v1/accounts/{address}/payments{/hash,client_resource_id}{?source_account,destination_account,exclude_failed,start_ledger,end_ledger,earliest_first,results_per_page,page}
+### Get historical payments
+
+> GET /v1/accounts/{address}/payments{/hash,client_resource_id}{?source_account,destination_account,exclude_failed,start_ledger,end_ledger,earliest_first,results_per_page,page}
 
 Retrieve the details of one or more payments from the `rippled` server or, if the transaction failled off-network or is still pending, from the `ripple-rest` instance's local database.
 
 ##### Retrieving an Individual Payment
 
-Individual payments can be retrieved by querying `/v1/accounts/{address}/payments/{hash,client_resource_id}`. 
+Individual payments can be retrieved by querying `/v1/accounts/{address}/payments/{hash,client_resource_id}`.
 
 If the `state` field is `validated`, then the payment has been validated and written into the Ripple Ledger.
 
@@ -363,7 +368,7 @@ If no payment is found with the given hash or client_resource_id the following e
 }
 ```
 
-##### Browsing Historical Payments
+##### Browsing Payments
 
 Historical payments can be browsed in bulk by supplying query string parameters: `/v1/accounts/{address}/payments?`
 
