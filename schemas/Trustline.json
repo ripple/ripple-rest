@@ -16,10 +16,6 @@
       "description": "The maximum value of the currency that the counterparty may hold issued by the account",
       "$ref": "FloatString"
     },
-    "balance": {
-      "description": "The Amount representing the currency held by the account that is issued by the counterparty",
-      "$ref": "Amount"
-    },
     "authorized_by_account": {
       "description": "Set to true if the account has explicitly authorized the counterparty to hold currency it issues. This is only necessary if the account's settings include require_authorization_for_incoming_trustlines",
       "type": "boolean"
