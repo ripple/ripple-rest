@@ -122,8 +122,8 @@ function addTrustLine($, req, res, next) {
       var spl = opts.trustline.limit.split('/');
       opts.trustline.limit = {
         value:         spl[0],
-        currency:      spl[1],
-        counterparty:  spl[2]
+        currency:      spl[1] || opts.trustline.currency,
+        counterparty:  spl[2] || opts.trustline.counterparty
       }
     }
 

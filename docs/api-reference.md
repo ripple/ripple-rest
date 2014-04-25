@@ -446,7 +446,7 @@ Get an account's existing trustlines or add a new one.
 **Body parameters**
 
 + `secret` Account secret. Required for sending account_set transasction to change settings.
-+ `limit` Trust limit. Either an `object` containing `value`, `currency`, `counterpaty` or a `string` form `value/currency/counterparty`.
++ `limit` Trust limit. Either a string representation of trustline limit, `object` containing `value`, `currency`, `counterpaty` or a `string` form `value/currency/counterparty`.
 + `allow_rippling` Optional. Defaults to `true`. See [here](https://ripple.com/wiki/No_Ripple) for details
 
 **Example**
@@ -455,11 +455,9 @@ Get an account's existing trustlines or add a new one.
 {
   "secret": "sn2zhhoggGghjAwa8h3U7628YvxST",
   "trustline": {
-    "limit": {
-      "value": 1,
-      "currency": "USD",
-      "counterparty": "rKKMpGKd4quYJWgFFK2GwhCfjbkd9s3jd5"
-    }
+    "limit": 1,
+    "currency": "USD",
+    "counterparty": "rKKMpGKd4quYJWgFFK2GwhCfjbkd9s3jd5"
   }
 }
 ```
@@ -484,7 +482,7 @@ Get an account's existing trustlines or add a new one.
   "ledger": "620725",
   "trustline": {
     "account": "rKKMpGKd4quYJWgFFK2GwhCfjbkd9s3jd5",
-    "value": 1,
+    "limit": 1,
     "currency": "USD",
     "counterparty": "rB2ZG7Ju11CKRDaWFUvpvkd27XCdxDW2H4",
     "allows_rippling": true,
