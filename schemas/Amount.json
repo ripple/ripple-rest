@@ -17,6 +17,11 @@
       "description": "The Ripple account address of the currency's issuer or gateway, or an empty string if the currency is XRP",
       "type": "string",
       "pattern": "^$|^r[1-9A-HJ-NP-Za-km-z]{25,33}$"
+    },
+    "counterparty": {
+      "description": "The Ripple account address of the currency's issuer or gateway, or an empty string if the currency is XRP",
+      "type": "string",
+      "pattern": "^$|^r[1-9A-HJ-NP-Za-km-z]{25,33}$"
     }
   },
   "required": ["value", "currency"]
