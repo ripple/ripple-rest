@@ -170,8 +170,6 @@ function submitRippleLibTransaction(remote, dbinterface, data, callback) {
       callback(null, transaction._clientID);
     });
 
-    // The ripple-lib transaction submission is run in the context of the node.js domain
-    // so that any errors thrown during the submission process will be picked up by that error handler.
     // Note that ripple-lib saves the transaction to the db throughout the submission process
     // using the persistence functions passed to the ripple-lib Remote instance
     transaction.submit();
