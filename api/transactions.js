@@ -10,9 +10,7 @@ var NUM_TRANSACTION_TYPES = 5;
 exports.get = getTransaction;
 exports.getTransaction = _getTransaction;
 
-
 function _getTransaction($, req, res, callback) {
-
   var opts = $.opts || {
     account: req.params.account,
     identifier: req.params.identifier
@@ -74,7 +72,7 @@ function _getTransaction($, req, res, callback) {
       }
 
       if (typeof res.ledger.close_time === 'number') {
-        transaction.date = ripple.utils.toTimestamp(res.ledger.close_time);
+        transaction.date = ripple.utils.time.fromRipple(res.ledger.close_time);
       }
 
       async_callback(null, transaction);
@@ -93,14 +91,14 @@ function _getTransaction($, req, res, callback) {
 };
 
 function getTransaction($, req, res, next) {
-  _getTransaction($, req, res, function(err, transaction){
+  _getTransaction($, req, res, function(err, transaction) {
     if (err) {
       next(err);
     } else {
       res.json(200, { success: true, transaction: transaction });
     }
   });
-}
+};
 
 /**
  *  Get all failed and validated transactions for the specified account
@@ -124,8 +122,6 @@ function getTransaction($, req, res, next) {
 exports.getAccountTransactions = getAccountTransactions;
 
 function getAccountTransactions(remote, dbinterface, opts, callback, previous_transactions) {
-  console.log('getAccountTransactions called');
-
   if (!opts.max) {
     opts.max = DEFAULT_RESULTS_PER_PAGE;
   }
@@ -154,7 +150,7 @@ function getAccountTransactions(remote, dbinterface, opts, callback, previous_tr
 
   function filterTransactions(transactions, async_callback) {
     // Filter results so that they are unique and match the given parameters
-    async_callback(null, filterTransactions(transactions, opts));
+    async_callback(null, transactionFilter(transactions, opts));
   };
 
   function sortTransactions(transactions, async_callback) {
@@ -175,11 +171,8 @@ function getAccountTransactions(remote, dbinterface, opts, callback, previous_tr
       return callback(err);
     }
 
-    console.log(transactions);
-
     // Combine transactions with previous_transactions from previous
     // recursive call of this function
-
     if (previous_transactions && previous_transactions.length > 0) {
       transactions = previous_transactions.concat(transactions);
     }
@@ -238,7 +231,8 @@ function getLocalAndRemoteTransactions(remote, dbinterface, opts, callback) {
       return callback(err);
     }
 
-    var transactions = _.uniq(results[0].concat(results[1]), function(tx) {
+    var results = results[0].concat(results[1]);
+    var transactions = _.uniq(results, function(tx) {
       return tx.hash;
     });
 
@@ -246,7 +240,7 @@ function getLocalAndRemoteTransactions(remote, dbinterface, opts, callback) {
   });
 };
 
-function filterTransactions(transactions, opts) {
+function transactionFilter(transactions, opts) {
   var filtered = transactions.filter(function(transaction) {
     if (opts.exclude_failed) {
       if (transaction.state === 'failed' || (transaction.meta && transaction.meta.TransactionResult !== 'tesSUCCESS')) {
@@ -349,11 +343,10 @@ function countAccountTransactionsInLedger(remote, dbinterface, opts, callback) {
     ledger_index_max: opts.ledger_index,
     binary: true
   }, function(err, transactions) {
-    if (err) {
-      callback(err);
-    } else {
-      callback(null, transactions.length);
-    }
+      if (err) {
+        callback(err);
+      } else {
+        callback(null, transactions.length);
+      }
   });
 };
-
