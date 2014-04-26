@@ -150,7 +150,7 @@ function submitRippleLibTransaction(remote, dbinterface, data, callback) {
         }
 
         if (db_record && db_record.state !== 'failed') {
-          callback(new Error('Duplicate Payment. A record already exists in the database for a payment from this account with the same client_resource_id. Payments must be submitted with distince client_resource_id\'s to prevent accidental double-spending'));
+          callback(new Error('Duplicate Payment. A record already exists in the database for a payment from this account with the same client_resource_id. Payments must be submitted with distinct client_resource_id\'s to prevent accidental double-spending'));
         } else {
           callback(null, transaction);
         }
