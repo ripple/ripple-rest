@@ -24,7 +24,7 @@ __Contents:__
       - [GET /v1/accounts/{address}/trustlines](#get-trustlines)
       - [POST /v1/accounts/{address}/trustlines](#add-trustline)
   - [Notifications](#notifications)
-    - [GET /v1/accounts/{address}/notifications/{hash,client_resource_id}](#get-notifications)
+    - [GET /v1/accounts/{address}/notifications/{hash}](#get-notifications)
   - [Standard Ripple Transactions](#standard-ripple-transactions)
     - [GET /v1/transactions/{hash}](#get-transaction)
   - [Server Info](#server-info)
