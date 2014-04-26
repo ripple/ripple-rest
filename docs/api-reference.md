@@ -453,7 +453,7 @@ Get an account's existing trustlines or add a new one.
 **Body parameters**
 
 + `secret` Account secret. Required for sending account_set transasction to change settings.
-+ `limit` Trust limit. Either a string representation of trustline limit, `object` containing `value`, `currency`, `counterpaty` or a `string` form `value/currency/counterparty`.
++ `trustline` Trust limit. Either a string representation of trustline limit, `object` containing `value`, `currency`, `counterparty` or a `string` form `value/currency/counterparty`.
 + `allow_rippling` Optional. Defaults to `true`. See [here](https://ripple.com/wiki/No_Ripple) for details
 
 **Example**
