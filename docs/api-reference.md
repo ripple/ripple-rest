@@ -1,4 +1,4 @@
-# `ripple-rest` API Reference
+# rest API Reference
 
 __Contents:__
 

@@ -1,4 +1,4 @@
-# `ripple-rest`
+# ripple-rest
 
 A RESTful API for submitting payments and monitoring accounts on the Ripple Network.
 
