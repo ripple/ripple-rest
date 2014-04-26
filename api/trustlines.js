@@ -118,28 +118,15 @@ function addTrustLine($, req, res, next) {
       return res.json(400, { success: false, message: 'Parameter missing: trustline' });
     }
 
-    if (typeof opts.trustline.limit === 'string') {
-      var spl = opts.trustline.limit.split('/');
-      opts.trustline.limit = {
-        value:         spl[0],
-        currency:      spl[1] || opts.trustline.currency,
-        counterparty:  spl[2] || opts.trustline.counterparty
-      }
-    }
-
-    if (typeof opts.trustline.limit !== 'object') {
-      return res.json(400, { success: false, message: 'Parameter missing: trustline.limit' });
-    }
-
-    if (isNaN(opts.trustline.limit.value)) {
+    if (isNaN(opts.trustline.limit = String(opts.trustline.limit))) {
       return res.json(400, { success: false, message: 'Parameter is not a number: trustline.limit.amount' });
     }
 
-    if (!/^[A-Z0-9]{3}$/.test(opts.trustline.limit.currency)) {
+    if (!/^[A-Z0-9]{3}$/.test(opts.trustline.currency)) {
       return res.json(400, { success: false, message: 'Parameter is not a valid currency: trustline.limit.currency' });
     }
 
-    if (!ripple.UInt160.is_valid(opts.trustline.limit.counterparty)) {
+    if (!ripple.UInt160.is_valid(opts.trustline.counterparty)) {
       return res.json(400, { success: false, message: 'Parameter is not a Ripple address: trustline.limit.counterparty' });
     }
 
@@ -170,9 +157,9 @@ function addTrustLine($, req, res, next) {
 
   function addLine(callback) {
     var limit = [
-      opts.trustline.limit.value,
-      opts.trustline.limit.currency,
-      opts.trustline.limit.counterparty
+      opts.trustline.limit,
+      opts.trustline.currency,
+      opts.trustline.counterparty
     ].join('/');
 
     var transaction = remote.transaction();
@@ -184,19 +171,19 @@ function addTrustLine($, req, res, next) {
       var summary = transaction.summary();
       var line = summary.tx_json.LimitAmount;
 
-      line.account = opts.account;
-      line.allows_rippling = true;
-      line.counterparty = line.issuer;
-
-      delete line.issuer;
-
       var result = {
         success: true,
-        trustline: line
+        trustline: {
+          account: opts.account,
+          limit: line.value,
+          currency: line.currency,
+          counterparty: line.issuer,
+          account_allows_rippling: true
+        }
       }
 
       if (m.tx_json.Flags & TrustSetFlags.NoRipple.value) {
-        result.trustline.allows_rippling = false;
+        result.trustline.account_allows_rippling = false;
       }
 
       if (m.tx_json.Flags & TrustSetFlags.SetAuth) {
@@ -224,16 +211,16 @@ function addTrustLine($, req, res, next) {
       transaction.trustSet(opts.account, limit);
       transaction.secret(opts.secret);
 
-      if (typeof opts.quality_in === 'number') {
-        transaction.tx_json.QualityIn = opts.quality_in;
+      if (typeof opts.trustline.quality_in === 'number') {
+        transaction.tx_json.QualityIn = opts.trustline.quality_in;
       }
 
-      if (typeof opts.quality_out === 'number') {
-        transaction.tx_json.QualityOut = opts.quality_out;
+      if (typeof opts.trustline.quality_out === 'number') {
+        transaction.tx_json.QualityOut = opts.trustline.quality_out;
       }
 
-      if (typeof opts.allow_rippling === 'boolean') {
-        if (opts.allow_rippling) {
+      if (typeof opts.trustline.allow_rippling === 'boolean') {
+        if (opts.trustline.allow_rippling) {
           transaction.setFlags('ClearNoRipple');
         } else {
           transaction.setFlags('NoRipple');
