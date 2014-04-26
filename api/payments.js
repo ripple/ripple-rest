@@ -239,8 +239,15 @@ function getPathFind($, req, res, next) {
       callback(null, path_res);
     });
 
-    request.timeout(1000 * 15, function() {
+    function reconnectRippled() {
+      remote.disconnect(function() {
+        remote.connect();
+      });
+    };
+
+    request.timeout(1000, function() {
       request.removeAllListeners();
+      reconnectRippled();
       res.json(502, { success: false, message: 'Path request timeout' });
     });
 
