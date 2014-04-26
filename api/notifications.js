@@ -66,25 +66,32 @@ function _getNotification($, req, res, callback) {
 exports.getNotification = getNotification;
 
 function getNotification($, req, res, next) {
-
   _getNotification($, req, res, function(err, notification) {
     if (err) {
       return next(err);
     }
 
     if (!notification) {
-      return res.json(404, { success: false, message: 'Transaction Not Found. Could not get the notification corresponding to this transaction identifier. This may be because the transaction was never validated and written into the Ripple ledger or because it was not submitted through this ripple-rest instance. This error may also be seen if the databases of either ripple-rest or rippled were recently created or deleted.' });
+      return res.json(404, {
+        success: false,
+        message: 'Transaction Not Found. Could not get the notification corresponding to this transaction identifier. This may be because the transaction was never validated and written into the Ripple ledger or because it was not submitted through this ripple-rest instance. This error may also be seen if the databases of either ripple-rest or rippled were recently created or deleted.'
+      });
     }
 
     var url_base = req.protocol + '://' + req.host + ({80: ':80', 443: ':443' }[$.config.get('PORT')] || '');
     var client_resource_id = notification.client_resource_id;
     delete notification.client_resource_id;
 
-    res.json({
+    var response = {
       success: true,
-      client_resource_id: client_resource_id,
       notification: notification
-    });
+    }
+
+    if (client_resource_id) {
+      response.client_resource_id = client_resource_id;
+    }
+
+    res.json(response);
   });
 };
 
