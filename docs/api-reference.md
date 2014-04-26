@@ -148,7 +148,7 @@ In `GET` requests, Transaction `flags` are always present in the response. Trans
 
 In `POST` requests, Transaction `flags` must be boolean (true or false). Transaction `fields` may be non-boolean.
 
-*Flags*
+**Settings flags**
 
 + `disable_master`
 + `disallow_xrp`
@@ -156,7 +156,7 @@ In `POST` requests, Transaction `flags` must be boolean (true or false). Transac
 + `require_authorization`
 + `require_destination_tag`
 
-*Fields*
+**Settings fields**
 
 + `transaction_sequence`
 + `email_hash`
