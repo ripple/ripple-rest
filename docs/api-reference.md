@@ -24,15 +24,14 @@ __Contents:__
       - [GET /v1/accounts/{address}/trustlines](#get-trustlines)
       - [POST /v1/accounts/{address}/trustlines](#add-trustline)
   - [Notifications](#notifications)
-    - [GET /v1/accounts/{address}/notifications/{hash,client_resource_id}](#get-v1accountsaddressnotificationshashclient_resource_id)
+    - [GET /v1/accounts/{address}/notifications/{hash,client_resource_id}](#get-notifications)
   - [Standard Ripple Transactions](#standard-ripple-transactions)
-    - [GET /v1/transactions/{hash}](#get-v1transactionshash)
+    - [GET /v1/transactions/{hash}](#get-transaction)
   - [Server Info](#server-info)
-    - [GET /v1/server/connected](#get-v1serverconnected)
-    - [GET /v1/server](#get-v1server)
+    - [GET /v1/server/connected](#get-connected-state)
+    - [GET /v1/server](#get-server)
   - [Utils](#utils)
-    - [GET /v1/uuid](#get-v1uuid)
-
+    - [GET /v1/uuid](#get-uuid)
 
 
 ----------
@@ -40,8 +39,6 @@ __Contents:__
 ## Data formats
 
 All of the data formats used by this API are defined by JSON Schemas. The full formats, which include descriptions of each field, can be found in [../schemas](../schemas). 
-
-----------
 
 ## Differences from standard Ripple data formats
 
@@ -108,9 +105,9 @@ Or if there is an error immediately upon submission:
 
 ----------
 
-### Balances
+## Balances
 
-#### Get balances
+### Get balances
 Get an account's existing balances. This includes XRP balance (which does not include a counterparty) and trustline balances.
 
 > GET /v1/accounts/{address}/balances
@@ -143,7 +140,7 @@ Get an account's existing balances. This includes XRP balance (which does not in
 
 ----------
 
-### Settings
+## Settings
 
 Get or change an account's settings.
 
@@ -211,7 +208,7 @@ Attach settings (flags or fields) as request body parameters. Example:
 
 ----------
 
-### Payments
+## Payments
 
 ### Submit a payment
 
@@ -271,7 +268,8 @@ Request JSON Body (with all of the fields available on submission):
 + `no_direct_ripple` - a boolean that can be set to true if paths are specified and the sender would like the Ripple Network to disregard any direct paths from the source_account to the destination_account. This may be used to take advantage of an arbitrage opportunity or by gateways wishing to issue balances from a hot wallet to a user who has mistakenly set a trustline directly to the hot wallet. Defaults to false
 
 
-Response:
+**Response**
+
 ```js
 {
   "success": true,
@@ -279,7 +277,9 @@ Response:
   "status_url": ".../v1/accounts/r1.../payments/f2f811b7-dc3b-4078-a2c2-e4ca9e453981"
 }
 ```
-Or if there was an error that was caught immediately:
+
+**Or if there was an error that was caught immediately**
+
 ```js
 {
   "success": false,
@@ -307,7 +307,8 @@ Query `rippled` for possible payment "paths" through the Ripple Network to deliv
 
 + `source_currencies` - an optional comma-separated list of source currencies that can be used to constrain the results returned (e.g. `XRP,USD+r...,BTC+r...`. Currencies can be denoted by their currency code (e.g. `USD`) or by their currency code and issuer (e.g. `USD+r...`). If no issuer is specified for a currency other than XRP, the results will be limited to the specified currencies but any issuer for that currency will do.
 
-Response:
+**Response**
+
 ```js
 {
   "success": true,
@@ -318,7 +319,9 @@ Response:
   } /* ... */]
 }
 ```
-Or if there are no paths found:
+
+**Or if there are no paths found**
+
 ```js
 {
   "success": false,
@@ -326,7 +329,9 @@ Or if there are no paths found:
   "message": "Please ensure that the source_account has sufficient funds to exectue the payment. If it does there may be insufficient liquidity in the network to execute this payment right now"
 }
 ```
-If `source_currencies` were specified the error message will be:
+
+**If `source_currencies` were specified the error message will be**
+
 ```js
 {
   "success": false,
@@ -345,7 +350,7 @@ This query will respond with an array of fully-formed payments. The client can s
 
 Retrieve the details of one or more payments from the `rippled` server or, if the transaction failled off-network or is still pending, from the `ripple-rest` instance's local database.
 
-##### Retrieving an Individual Payment
+#### Retrieving an Individual Payment
 
 Individual payments can be retrieved by querying `/v1/accounts/{address}/payments/{hash,client_resource_id}`.
 
@@ -370,7 +375,7 @@ If no payment is found with the given hash or client_resource_id the following e
 }
 ```
 
-##### Browsing Payments
+#### Browsing Payments
 
 Historical payments can be browsed in bulk by supplying query string parameters: `/v1/accounts/{address}/payments?`
 
@@ -409,11 +414,11 @@ Note that all of the filters available for browsing historical payments must be 
 
 ----------
 
-### Trustlines
+## Trustlines
 
 Get an account's existing trustlines or add a new one.
 
-###Get trustlines
+### Get trustlines
 
 > GET /accounts/{address}/trustlines
 
@@ -441,7 +446,7 @@ Get an account's existing trustlines or add a new one.
   ]
 ```
 
-###Add trustline
+### Add trustline
 
 > POST /accounts/{address}/trustlines
 
@@ -494,11 +499,11 @@ Get an account's existing trustlines or add a new one.
 
 ----------
 
-### Notifications
+## Notifications
 
-----------
+### Get notifications
 
-#### GET /v1/accounts/{address}/notifications/{hash,client_resource_id}{?types}
+> GET /v1/accounts/{address}/notifications/{hash,client_resource_id}{?types}
 
 Query String Parameters:
 
@@ -507,7 +512,8 @@ Query String Parameters:
 
 Retrieve a notification corresponding to a transaction with a particular hash or client_resource_id from either `rippled`'s historical database or `ripple-rest`'s local database if the transaction was submitted through this instance of `ripple-rest`.
 
-Response:
+**Response**
+
 ```js
 {
   "success": true,
@@ -515,7 +521,9 @@ Response:
   "notification": { /* Notification */ }
 }
 ```
-Or if no transaction corresponding to the given hash or client_resource_id:
+
+**Or if no transaction corresponding to the given hash or client_resource_id**
+
 ```js
 {
   "success": "false",
@@ -530,22 +538,25 @@ Notifications have `next_notification_url` and `previous_notification_url`'s. Ac
 
 ----------
 
-### Standard Ripple Transactions
+## Standard Ripple Transactions
 
-----------
+### Get transaction
 
-#### GET /v1/transactions/{hash}
+> GET /v1/transactions/{hash}
 
 Retrieve the details of a transaction in the standard Ripple JSON format. See the Ripple Wiki page on [Transaction Formats](https://ripple.com/wiki/Transactions) for more information.
 
-Response:
+**Response**
+
 ```js
 {
   "success": true,
   "tx": { /* Ripple Transaction */ }
 }
 ```
-Or if no transaction was found in the `rippled`'s historical database:
+
+**Or if no transaction was found in the `rippled`'s historical database**
+
 ```js
 {
   "success": false,
@@ -556,15 +567,15 @@ Or if no transaction was found in the `rippled`'s historical database:
 
 ----------
 
-### Server Info
+## Server Info
 
-----------
+### Get connected state
 
-#### GET /v1/server/connected
+> GET /v1/server/connected
 
 A simple endpoint that can be used to check if `ripple-rest` is connected to a `rippled` and is ready to serve. If used before querying the other endpoints this can be used to centralize the logic to handle if `rippled` is disconnected from the Ripple Network and unable to process transactions.
 
-Response:
+**Response**
 
 `true` if `ripple-rest` is ready to serve
 
@@ -572,11 +583,14 @@ Response:
 
 ----------
 
-#### GET /v1/server
+### Get server info
+
+> GET /v1/server
 
 Retrieve information about the `ripple-rest` and connected `rippled`'s current status.
 
-Response:
+**Response**
+
 ```js
 {
   "api_server_status": "online",
@@ -606,7 +620,9 @@ Response:
   "api_documentation_url": "https://github.com/ripple/ripple-rest"
 }
 ```
-Or if the server is not connected to the Ripple Network:
+
+**Or if the server is not connected to the Ripple Network**
+
 ```js
 {
   "success": false,
@@ -617,24 +633,19 @@ Or if the server is not connected to the Ripple Network:
 
 ----------
 
-### Utils
+## Utils
 
-----------
+###Get UUID
 
-#### GET /v1/uuid
+> GET /v1/uuid
 
 A UUID v4 generator, which can be used if the client wishes to use UUIDs for the `client_resource_id` but does not have a UUID generator handy.
 
-Response:
+**Response**
+
 ```js
 {
   "success": true,
   "uuid": "xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx"
 }
 ```
-
-
-
-
-
-
