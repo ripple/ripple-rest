@@ -227,16 +227,24 @@ function getPathFind($, req, res, next) {
   };
 
   function findPath(pathfind_params, callback) {
-    remote.requestRipplePathFind(pathfind_params, function(err, path_res) {
-      if (err) {
-        return callback(err);
-      }
+    var request = remote.requestRipplePathFind(pathfind_params);
 
-      path_res.source_account = pathfind_params.src_account;
-      path_res.source_currencies = pathfind_params.src_currencies;
+    request.once('error', callback);
+
+    request.once('success', function(path_res) {
+      path_res.source_account     = pathfind_params.src_account;
+      path_res.source_currencies  = pathfind_params.src_currencies;
       path_res.destination_amount = pathfind_params.dst_amount;
+
       callback(null, path_res);
     });
+
+    request.timeout(1000 * 15, function() {
+      request.removeAllListeners();
+      res.json(502, { success: false, message: 'Path request timeout' });
+    });
+
+    request.request();
   };
 
   function checkAddXRPPath(path_res, callback) {
