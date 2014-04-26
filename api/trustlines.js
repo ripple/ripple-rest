@@ -138,7 +138,7 @@ function addTrustLine($, req, res, next) {
       return res.json(400, { success: false, message: 'Parameter must be a number: trustline.quality_out' });
     }
 
-    if (!/^(undefined|boolean)$/.test(typeof opts.trustline.allow_rippling)) {
+    if (!/^(undefined|boolean)$/.test(typeof opts.trustline.account_allows_rippling)) {
       return res.json(400, { success: false, message: 'Parameter must be a boolean: trustline.allow_rippling' });
     }
 
@@ -219,8 +219,8 @@ function addTrustLine($, req, res, next) {
         transaction.tx_json.QualityOut = opts.trustline.quality_out;
       }
 
-      if (typeof opts.trustline.allow_rippling === 'boolean') {
-        if (opts.trustline.allow_rippling) {
+      if (typeof opts.trustline.account_allows_rippling === 'boolean') {
+        if (opts.trustline.account_allows_rippling) {
           transaction.setFlags('ClearNoRipple');
         } else {
           transaction.setFlags('NoRipple');
