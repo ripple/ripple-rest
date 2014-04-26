@@ -1,4 +1,4 @@
-# rest API Reference
+# API Reference
 
 __Contents:__
 
