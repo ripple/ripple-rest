@@ -15,6 +15,7 @@ __Contents:__
     - [GET /v1/accounts/{address}/settings](#get-settings)
     - [POST /v1/accounts/{address}/settings](#change-settings)
   - [Balances](#balances)
+      - [GET /v1/accounts/{address}/balances](#get-balances)
   - [Payments](#payments)
     - [POST /v1/payments](#submit-a-payment)
     - [GET /v1/accounts/{address}/payments/{hash,client_resource_id}](#get-historical-payments)
@@ -109,6 +110,7 @@ Or if there is an error immediately upon submission:
 
 ### Balances
 
+#### Get balances
 Get an account's existing balances. This includes XRP balance (which does not include a counterparty) and trustline balances.
 
 > GET /v1/accounts/{address}/balances
