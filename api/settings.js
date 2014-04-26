@@ -158,8 +158,8 @@ function changeSettings($, req, res, next) {
         var flag = FlagSet[flagName];
         var value = opts[flagName];
 
-        if (typeof value !== 'boolean') {
-          return res.json(400, { success: false, mesage: 'Parameter is not boolean: ' + flagName });
+        if (value.constructor === Boolean) {
+          return res.json(400, { success: false, message: 'Parameter is not boolean: ' + flagName });
         }
 
         transaction.setFlags(value ? flag.set : flag.unset);
