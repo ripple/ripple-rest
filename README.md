@@ -11,10 +11,11 @@ See the [__API Reference__](docs/api-reference.md) for details on the available 
 
 ### Running using in-memory SQLite3
 
-1. Run `git clone git@github.com:ripple/ripple-rest.git` to clone repository
-2. Run `npm install` to install dependencies
-3. Run `node server.js` to start the server
-4. Visit [`http://localhost:5990`](http://localhost:5990) to view available endpoints and to get started
+1. Run `git clone https://github.com/ripple/ripple-rest.git` in a terminal and switch into the `ripple-rest` directory
+2. `cp config-example.json config.json` and remove "DATABASE_URL" line.
+3. Run `npm install` to install dependencies
+4. Run `node server.js` to start the server
+5. Visit [`http://localhost:5990`](http://localhost:5990) to view available endpoints and to get started
 
 Note that restarting the server will delete the database so this CANNOT BE USED IN PRODUCTION.
 
@@ -81,7 +82,7 @@ Available configuration options are outlined in the [__Server Configuration__](d
   sudo useradd -U -m -r -s /dev/null restful
   ```
 
-3. Create a database that the `ripple-rest` server will store its back-end datain.  Also create a database service account which only has access to that database:
+3. Create a database that the `ripple-rest` server will store its back-end data in.  Also create a database service account which only has access to that database:
 
   ```bash
   sudo -u postgres createdb gateway_appliance
