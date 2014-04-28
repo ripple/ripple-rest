@@ -27,7 +27,7 @@
       "description": "A string representing an unsigned 32-bit integer most commonly used to refer to a receiver's hosted account at a Ripple gateway",
       "$ref": "UINT32"
     },
-    "destination_amount ": {
+    "destination_amount": {
       "description": "The amount the destination_account will receive",
       "$ref": "Amount"
     },
@@ -35,7 +35,7 @@
       "description": "A 256-bit hash that can be used to identify a particular payment",
       "$ref": "Hash256"
     },
-    "paths ": {
+    "paths": {
       "description": "A \"stringified\" version of the Ripple PathSet structure that users should treat as opaque",
       "type": "string"
     },
