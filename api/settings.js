@@ -29,7 +29,7 @@ function _requestAccountSettings(remote, account, callback) {
 
     var settings = {
       account: data.account,
-      transfer_rate: 100
+      transfer_rate: 0
     }
 
     // Attach account flags
