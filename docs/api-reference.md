@@ -162,7 +162,7 @@ In `POST` requests, Transaction `flags` must be boolean (true or false). Transac
 + `email_hash`
 + `wallet_locator`
 + `message_key`
-+ `url`
++ `domain`
 + `transfer_rate`
 + `signers`
 
@@ -183,7 +183,7 @@ In `POST` requests, Transaction `flags` must be boolean (true or false). Transac
     "require_destination_tag": true,
     "transaction_sequence": 2745,
     "transfer_rate": 100,
-    "url": "www.example.com"
+    "domain": "www.example.com"
   }
 }
 ```
@@ -201,8 +201,10 @@ Attach settings (flags or fields) as request body parameters. Example:
 ```js
 {
   "secret": "shzx3CdH7h4DnwQQBvZcwbz8N9pYS",
-  "require_destination_tag": true,
-  "url": "mysite.com"
+  "settings": {
+    "require_destination_tag": true,
+    "domain": "mysite.com"
+  }
 }
 ```
 
