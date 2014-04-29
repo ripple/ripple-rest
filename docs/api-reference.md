@@ -201,8 +201,16 @@ Attach settings (flags or fields) as request body parameters. Example:
 ```js
 {
   "secret": "shzx3CdH7h4DnwQQBvZcwbz8N9pYS",
-  "require_destination_tag": true,
-  "url": "mysite.com"
+  "settings": {
+    "disable_master": false,
+    "disallow_xrp": false,
+    "password_spent": false,
+    "require_authorization": false,
+    "require_destination_tag": true,
+    "transaction_sequence": 2745,
+    "transfer_rate": 100,
+    "url": "www.example.com"
+  }
 }
 ```
 
