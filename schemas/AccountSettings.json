@@ -27,7 +27,7 @@
     },
     "transfer_rate": {
       "description": "A number representation of the rate charged each time a holder of currency issued by this account transfers it. By default the rate is 100. A rate of 101 is a 1% charge on top of the amount being transferred. Up to nine decimal places are supported",
-      "type": "UINT32",
+      "type": "UINT32"
     },
     "require_destination_tag": {
       "description": "If set to true incoming payments will only be validated if they include a destination_tag. This may be used primarily by gateways that operate exclusively with hosted wallets",
