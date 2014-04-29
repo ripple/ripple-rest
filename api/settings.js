@@ -16,7 +16,7 @@ const AccountRootFields = {
   WalletLocator:  { name:  'wallet_locator' },
   WalletSize:     { name:  'wallet_size' },
   MessageKey:     { name:  'message_key' },
-  Domain:         { name:  'url', encoding: 'hex' },
+  Domain:         { name:  'domain', encoding: 'hex' },
   TransferRate:   { name:  'transfer_rate' },
   Signers:        { name:  'signers' }
 }
