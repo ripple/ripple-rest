@@ -126,6 +126,10 @@ function changeSettings($, req, res, next) {
       return res.json(400, { success: false, message: 'Parameter missing: secret' });
     }
 
+    if (!/(undefined|number)/.test(typeof opts.settings.transfer_rate)) {
+      return res.json(400, { success: false, message: 'Parameter must be a number: transfer_rate' });
+    }
+
     callback();
   };
 
@@ -147,9 +151,6 @@ function changeSettings($, req, res, next) {
     }
 
     var transaction = remote.transaction();
-
-    transaction.once('error', callback);
-    transaction.once('final', callback.bind(this, null));
 
     try {
       transaction.accountSet(opts.account);
@@ -186,7 +187,7 @@ function changeSettings($, req, res, next) {
       return res.json(500, { success: false, message: e.message });
     }
 
-    transaction.submit();
+    transaction.submit(callback);
   };
 
   function getAccountSettings(tx_res, callback) {
@@ -195,9 +196,12 @@ function changeSettings($, req, res, next) {
 
       var result = {
         success: true,
-        settings: settings,
-        hash: tx_res.transaction.hash,
-        ledger: String(tx_res.ledger_index)
+        settings: settings
+      }
+
+      if (tx_res.transaction) {
+        result.hash = tx_res.transaction.hash;
+        result.ledger = String(tx_res.ledger_index)
       }
 
       callback(null, result);
