@@ -114,6 +114,10 @@ function changeSettings($, req, res, next) {
   });
 
   function validateOptions(callback) {
+    if (typeof opts.settings !== 'object') {
+      return res.json(400, { success: false, message: 'Parameter missing: settings' });
+    }
+
     if (!ripple.UInt160.is_valid(opts.account)) {
       return res.json(400, { success: false, message: 'Parameter is not a valid Ripple address: account' });
     }
@@ -153,12 +157,12 @@ function changeSettings($, req, res, next) {
 
       // Set transaction flags
       for (var flagName in FlagSet) {
-        if (!(flagName in opts)) continue;
+        if (!(flagName in opts.settings)) continue;
 
         var flag = FlagSet[flagName];
-        var value = opts[flagName];
+        var value = opts.settings[flagName];
 
-        if (value.constructor === Boolean) {
+        if (typeof value !== 'boolean') {
           return res.json(400, { success: false, message: 'Parameter is not boolean: ' + flagName });
         }
 
@@ -168,7 +172,7 @@ function changeSettings($, req, res, next) {
       // Set transaction fields
       for (var fieldName in AccountRootFields) {
         var field = AccountRootFields[fieldName];
-        var value = opts[field.name];
+        var value = opts.settings[field.name];
 
         if (typeof value === 'undefined') continue;
 
