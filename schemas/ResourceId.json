@@ -1,0 +1,7 @@
+{
+  "$schema": "http://json-schema.org/draft-04/schema#",
+  "title": "ResourceId",
+  "description": "A client-supplied unique identifier (ideally a UUID) for this transaction used to prevent duplicate payments and help confirm the transaction's final status. All ASCII printable characters are allowed. Note that 256-bit hex strings are disallowed because of the potential confusion with transaction hashes.",
+  "type": "string",
+  "pattern": "^(?!$|^[A-Fa-f0-9]{64})[ -~]{1,255}$"
+}

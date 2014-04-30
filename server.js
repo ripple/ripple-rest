@@ -1,4 +1,12 @@
-/* Dependencies */
+var fs      = require('fs');
+var path    = require('path');
+var URL     = require('url');
+var https   = require('https');
+var ripple  = require('ripple-lib');
+var express = require('express');
+var app     = express();
+var remote;
+
 require('rconsole');
 
 console.set({
@@ -14,98 +22,102 @@ console.set({
   showTags:        true
 });
 
-var fs               = require('fs');
-var https            = require('https');
-var config           = require('./lib/configLoader');
-var ripple           = require('ripple-lib');
-var sequelizeConnect = require('./db/sequelizeConnect');
-var express          = require('express');
-var app              = express();
 
+/**** **** **** **** ****/
 
 
 /* Connect to db */
-var db = sequelizeConnect({
-  DATABASE_URL: config.get('DATABASE_URL')
-});
+var config = require('./config/config-loader');
+var DatabaseInterface = require('./lib/db-interface');
+var dbinterface = new DatabaseInterface(config.get('DATABASE_URL'));
 
 
-/* Initialize models */
-var OutgoingTx = require('./models/outgoingTx')(db);
-var RippleLibQueuedTx = require('./models/rippleLibQueuedTx')(db);
-
-
-/* Connect to ripple-lib */
-var remoteOpts = {
-  local_signing: true,
-  servers: config.get('rippled_servers')
-};
-
-/* Setup ripple-lib persistence */
-remoteOpts.storage = require('./lib/rippleLibStorage')({
-  db: db,
-  RippleLibQueuedTx: RippleLibQueuedTx
-});
+/**** **** **** **** ****/
 
 
 /* Connect to ripple-lib Remote */
-var remote = new ripple.Remote(remoteOpts);
+var remote_opts = {
+  servers: config.get('rippled_servers'),
+  storage: dbinterface,
+  ping: 15
+};
 
-var connect_timeout = setTimeout(function(){
-  throw(new Error('Cannot connect to the given rippled. Please ensure that the rippled is configured correctly and that the configuration points to the right port. rippled servers: ' + JSON.stringify(config.get('rippled_servers'))));
-}, 20000);
+var remote = (function(opts) {
+  var remote = new ripple.Remote(opts);
 
-remote.on('error', function(err) {
-  console.error('ripple-lib Remote error: ', err);
-});
-
-remote.on('disconnect', function() {
-  console.log('Disconnected from rippled');
-});
-
-remote.on('connect', function() {
-  clearTimeout(connect_timeout);
-  console.log('Waiting for confirmation of ripple connection...');
-  remote.once('ledger_closed', function() {
-    if (remote._getServer()) {
-      console.log('Connected to rippled server at: ', remote._getServer()._opts.url);
-      console.log('ripple-rest server ready');
-    }
+  remote.on('error', function(err) {
+    console.error('ripple-lib Remote error: ', err);
   });
-});
 
-console.log('Connecting to the Ripple Network...');
-remote.connect();
+  remote.on('disconnect', function() {
+    console.log('Disconnected from rippled');
+  });
+
+  remote.on('connect', function() {
+    console.log('Connected to rippled');
+    console.log('Waiting for confirmation of network activity...');
+
+    remote.once('ledger_closed', function() {
+      if (remote._getServer()) {
+        console.log('Connected to rippled server at:', remote._getServer()._opts.url);
+        console.log('ripple-rest server ready');
+      }
+    });
+  });
+
+  console.log('Attempting to connect to the Ripple Network...');
+
+  remote.connect();
+
+  return remote;
+})(remote_opts);
 
 
-/* Initialize controllers */
-var TxCtrl = require('./controllers/txCtrl')({
-  remote: remote,
-  OutgoingTx: OutgoingTx
-}),
+/**** **** **** **** ****/
 
-NotificationCtrl = require('./controllers/notificationCtrl')({
-  remote: remote,
-  OutgoingTx: OutgoingTx,
-  port: config.get('PORT'),
-  environment: config.get('NODE_ENV')
-}),
 
-PaymentCtrl = require('./controllers/paymentCtrl')({
-  remote: remote,
-  OutgoingTx: OutgoingTx
-}),
-
-StatusCtrl = require('./controllers/statusCtrl')({
-  remote: remote
-});
-
-/* Express middleware */
 app.configure(function() {
   app.disable('x-powered-by');
+
+  if (config.get('NODE_ENV') !== 'production') {
+    app.set('json spaces', 2);
+    app.use(express.logger(':method :url (:response-time ms)'));
+  }
+
   app.use(express.json());
   app.use(express.urlencoded());
 });
+
+app.use(function(req, res, next){
+  var match = req.path.match(/\/api\/(.*)/);
+  if (match) {
+    res.redirect(match[1]);
+  } else {
+    next();
+  }
+});
+
+app.use(function(req, res, next){
+  var new_path = req.path.replace('addresses', 'accounts').replace('address', 'account');
+  if (new_path !== req.path) {
+    res.redirect(new_path);
+  } else {
+    next();
+  }
+});
+
+function rippleAddressParam(param) {
+  return function(req, res, next, address) {
+    if (ripple.UInt160.is_valid(address)) {
+      next();
+    } else {
+      res.send({ success: false, message: 'Specified address is invalid: ' + param });
+    }
+  };
+};
+
+app.param('account', rippleAddressParam('account'));
+app.param('destination_account', rippleAddressParam('destination account'));
 
 app.all('*', function(req, res, next) {
   res.header('Access-Control-Allow-Origin', '*');
@@ -113,33 +125,91 @@ app.all('*', function(req, res, next) {
   next();
 });
 
+/* Initialize controllers */
+var controller_opts = {
+  remote:       remote,
+  dbinterface:  dbinterface,
+  config:       config
+};
 
-/* Routes */
+var api = require('./api')(controller_opts);
 
-/* Status */
-app.get('/', StatusCtrl.getStatus);
-app.get('/api/v1/status', StatusCtrl.getStatus);
 
-/* Ripple Txs */
-app.get('/api/v1/addresses/:address/txs/:tx_hash', TxCtrl.getTx);
+/**** **** **** **** ****/
 
-/* Notifications */
-app.get('/api/v1/addresses/:address/next_notification', NotificationCtrl.getNextNotification);
-app.get('/api/v1/addresses/:address/next_notification/:prev_tx_hash', NotificationCtrl.getNextNotification);
 
-/* Pathfinding */
-app.get('/api/v1/addresses/:address/payments/:dst_address/:dst_amount', PaymentCtrl.getPathFind);
+/* Endpoints */
+app.get('/', function(req, res) {
+  res.redirect('/v1');
+});
+
+app.get('/v1', function(req, res) {
+  var url_base = '/v1';
+
+  res.json({
+    success: true,
+    name: 'ripple-rest',
+    version: '1',
+    documentation: 'https://github.com/ripple/ripple-rest',
+    endpoints: {
+      submit_payment:         url_base + '/payments',
+      payment_paths:          url_base + '/accounts/{address}/payments/paths/{destination_account}/{destination_amount as value+currency or value+currency+issuer}',
+      account_payments:       url_base + '/accounts/{address}/payments/{hash,client_resource_id}{?direction,exclude_failed}',
+      account_notifications:  url_base + '/accounts/{address}/notifications{/hash,client_resource_id}{?types,exclude_failed}',
+      account_balances:       url_base + '/accounts/{address}/balances',
+      account_settings:       url_base + '/accounts/{address}/settings',
+      account_trustlines:     url_base + '/accounts/{address}/trustlines',
+      ripple_transactions:    url_base + '/transactions/{hash}',
+      server_status:          url_base + '/server',
+      server_connected:       url_base + '/server/connected',
+      uuid_generator:         url_base + '/uuid'
+    }
+  });
+});
+
+/* Server */
+app.get('/v1/server', api.info.serverStatus);
+app.get('/v1/server/connected', api.info.isConnected);
 
 /* Payments */
-app.get('/api/v1/addresses/:address/payments/', PaymentCtrl.getPayment);
-app.get('/api/v1/addresses/:address/payments/:tx_hash', PaymentCtrl.getPayment);
-app.post('/api/v1/addresses/:address/payments', PaymentCtrl.submitPayment);
+app.post('/v1/payments', api.submission.submit);
+app.post('/v1/accounts/:account/payments', api.submission.submit);
 
+app.get('/v1/accounts/:account/payments', api.payments.getBulkPayments);
+app.get('/v1/accounts/:account/payments/:identifier', api.payments.getPayment);
+app.get('/v1/accounts/:account/payments/paths/:destination_account/:destination_amount_string', api.payments.getPathFind);
+
+/* Notifications */
+app.get('/v1/accounts/:account/notifications', api.notifications.getNotification);
+app.get('/v1/accounts/:account/notifications/:identifier', api.notifications.getNotification);
+app.get('/v1/accounts/:account/next_notification/:identifier', api.notifications.getNextNotification);
+
+/* Balances */
+app.get('/v1/accounts/:account/balances', api.balances.get);
+
+/* Settings */
+app.get('/v1/accounts/:account/settings', api.settings.get);
+app.post('/v1/accounts/:account/settings', api.settings.change);
+
+/* Standard Ripple Transactions */
+app.get('/v1/tx/:identifier', api.transactions.get);
+app.get('/v1/transaction/:identifier', api.transactions.get);
+app.get('/v1/transactions/:identifier', api.transactions.get);
+
+/* Trust lines */
+app.get('/v1/accounts/:account/trustlines', api.trustlines.get);
+app.post('/v1/accounts/:account/trustlines', api.trustlines.add);
+
+/* Utils */
+app.get('/v1/uuid', api.info.uuid);
+
+/* Error handler */
+app.use(require('./lib/error-handler'));
 
 /* Configure SSL, if desired */
 if (typeof config.get('ssl') === 'object') {
-  var key_path  = config.get('ssl').key_path || './certs/server.key';
-  var cert_path = config.get('ssl').cert_path || './certs/server.crt';
+  var key_path  = config.get('ssl').key_path || path.join(__dirname, '/certs/server.key');
+  var cert_path = config.get('ssl').cert_path || path.join(__dirname, '/certs/server.crt');
 
   if (!fs.existsSync(key_path)) {
     throw new Error('Must provide key file and a key_path in the config.json in order to use SSL');
@@ -155,10 +225,10 @@ if (typeof config.get('ssl') === 'object') {
   };
 
   https.createServer(sslOptions, app).listen(config.get('PORT'), function() {
-    console.log('ripple-rest listening over HTTPS at port: ' + config.get('PORT'));
+    console.log('ripple-rest server listening over HTTPS at port:', config.get('PORT'));
   });
 } else {
   app.listen(config.get('PORT'), function() {
-    console.log('ripple-rest listening over unsecured HTTP at port: ' + config.get('PORT'));
+    console.log('ripple-rest server listening over UNSECURED HTTP at port:', config.get('PORT'));
   });
 }

@@ -1,0 +1,38 @@
+{
+  "source_account": "rKXCummUHnenhYudNb9UoJ4mGBR75vFcgz",
+  "source_tag": "",
+  "destination_account": "rNw4ozCG514KEjPs5cDrqEcdsi31Jtfm5r",
+  "destination_tag": "",
+  "source_amount": {
+    "value": "0.001",
+    "currency": "XRP",
+    "issuer": ""
+  },
+  "source_slippage": "0",
+  "destination_amount": {
+    "value": "0.001",
+    "currency": "XRP",
+    "issuer": ""
+  },
+  "invoice_id": "",
+  "paths": "[]",
+  "partial_payment": false,
+  "no_direct_ripple": false,
+  "direction": "outgoing",
+  "state": "validated",
+  "result": "tesSUCCESS",
+  "ledger": "5106524",
+  "hash": "3739745646D2090100513340AA687C5C4E6685DE8CEDAD76EFCBD573B94C41C8",
+  "timestamp": "2014-02-21T00:23:40+00:00",
+  "fee": "0.000012",
+  "source_balance_changes": [{
+    "value": "-0.001012",
+    "currency": "XRP",
+    "issuer": ""
+  }],
+  "destination_balance_changes": [{
+    "value": "0.001",
+    "currency": "XRP",
+    "issuer": ""
+  }]
+}

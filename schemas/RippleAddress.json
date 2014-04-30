@@ -1,0 +1,7 @@
+{
+  "$schema": "http://json-schema.org/draft-04/schema#",
+  "title": "RippleAddress",
+  "description": "A Ripple account address",
+  "type": "string",
+  "pattern": "^r[1-9A-HJ-NP-Za-km-z]{25,33}$"
+}

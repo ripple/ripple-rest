@@ -1,24 +1,45 @@
-# `ripple-rest`
+# ripple-rest
 
-A simplified RESTful API for interfacing with the [Ripple Network](http://ripple.com).
+A RESTful API for submitting payments and monitoring accounts on the Ripple Network.
+
+See the [__API Reference__](docs/api-reference.md) for details on the available endpoints and supported data formats.
 
 
-See the [__Guide__](docs/GUIDE.md) and the [__API Reference__](docs/REF.md) for details on how to use the API.
+## Installing and Running
 
-## Setup
+`ripple-rest` requires Node.js and PostgreSQL for production systems but supports in-memory sqlite3 for testing.
 
-#### Test Instance
+### Quick Start Guide (Running with in-memory SQLite3)
 
-A test version of the API can be found at [`https://ripple-rest.herokuapp.com`](https://ripple-rest.herokuapp.com). 
+Follow these instructions to get your `ripple-rest` server installed running with in-memory SQLite3.
 
-Even though the test API supports HTTPS connections, __only submit transactions from test accounts__, we make __NO GUARANTEES__ about the security of your secret keys on this server.
+1. Run `git clone https://github.com/ripple/ripple-rest.git` in a terminal and switch into the `ripple-rest` directory
+2. Install the pg module globally for postgres database access: `npm install -g pg`.**
+3. Install dependencies needed: `npm install`
+4. Copy the config example to config.json: `cp config-example.json config.json`
+5. Edit the config.json file and remove the lines that set `DATABASE_URL` and `ssl`
+4. Run `node server.js` to start the server
+5. Visit [`http://localhost:5990`](http://localhost:5990) to view available endpoints and to get started
 
-#### Dependencies
+Note: Restarting the server will delete the database so this CANNOT BE USED IN PRODUCTION.
 
-1. [Node.js](http://nodejs.org/)
-2. [PostgreSQL](http://www.postgresql.org/download/) (on a Mac use the [app](http://postgresapp.com/)). Follow the instructions [here](http://www.postgresql.org/docs/9.3/static/server-start.html) or those that came with your PostgreSQL to get the database server running on your machine  
+**This step is not needed if PostgreSQL is not installed.
 
-#### Installing
+### Running with an existing PostgreSQL Installation
+
+1. Run `git clone git@github.com:ripple/ripple-rest.git` to clone repository
+2. Set the `DATABASE_URL` environment variable to point to your (configured and running) PostgreSQL instance. You can temporarily set the environment variable by running `export DATABASE_URL=postgres://{user}:{password}@{host}:{port}/{database}`. That variable can be more permanently set by adding the export line your shell configuration (default is `$HOME/.bashrc`) or to `/etc/environment`.
+3. Install the pg module globally for postgres database access: `sudo npm install -g pg`.
+4. Run `npm install` to install dependencies and run database migrations
+5. If the PostgreSQL connection will run over HTTPS, run `npm install --save pg`. The default node.js PostgreSQL module does not require native drivers but this version does, which enables support for HTTPS.
+6. Run `node server.js` to start the server
+7. Visit [`http://localhost:5990`](http://localhost:5990) to view available endpoints and to get started
+
+Note that if `npm install` fails because the user running it does not have sufficient permissions to access and modify the database, the command `./node_modules/.bin/grunt` must be run with sufficient permissions to execute database migrations.
+
+### Running in a Virtual Machine
+
+#### On Linux
 
 1. Run `git clone https://github.com/ripple/ripple-rest.git` in a terminal and switch into the `ripple-rest` directory
 2. `cp config-example.json config.json` and configure DATABASE_URL appropriately
@@ -26,92 +47,71 @@ Even though the test API supports HTTPS connections, __only submit transactions 
 4. Run `node server.js` to start the server
 5. Visit `http://localhost:5990/api/v1/status` in your browser to confirm that the server is up and running
 
-#### Updating
+#### On Mac OSX
 
-1. From the root `ripple-rest` directory run `npm install` to update to the newest version, update dependencies, and reconfigure the database
-2. If the old version of the server is still running, kill the process with `CTRL-C` in the same terminal window where it is running or `killall node` to stop all Node.js processes on a Linux or Mac computer
-3. Run `node server.js` to restart the server
-4. Visit `http://localhost:5990/api/v1/status` in your browser to confirm that the server is up and running
+1. Install [Fig](http://orchardup.github.io/fig/install.html) and dependencies listed on that page
+2. Install [VirtualBox](https://www.virtualbox.org/wiki/Downloads)
+3. Run `docker-osx shell` (not needed on Linux)
+4. Run `fig up` or, on OSX, `PYTHONIOENCODING=utf-8 fig up` to start virtual machine
+5. Visit [`http://localdocker:5990`](http://localdocker:5990) to view available endpoints and to get started
 
-#### Customization
 
-+ Configuration options are loaded from various sources according to the following hierarchy (where 1 is the highest priority):
+## Configuring `ripple-rest`
 
-  1. Command line options: 
+The `ripple-rest` server loads configuration options from the following sources, according to the following hierarchy (where options from 1. override those below it):
 
-    `node server.js --DATABASE_URL=postgres://ripple_rest_user:password@localhost:5432/ripple_rest_db`
+1. Command line arguments
+2. Environment variables
+3. The `config.json` file
 
-  2. Environment variables: 
+The path to the `config.json` file can be specified as a command line argument (`node server.js --config /path/to/config.json`). If no path is specified, the default location for that file is in `ripple-rest`'s root directory.
 
-    `export DATABASE_URL=postgres://ripple_rest_user:password@localhost:5432/ripple_rest_db; node server.js`
+Available configuration options are outlined in the [__Server Configuration__](docs/server-configuration.md) document and an example configuration file is provided [here](config-example.json).
 
-  3. The `config.json` file, which follows the format of the `config-example.json` file: 
-   
-  ```js
-  { 
-    /* ... */
-    DATABASE_URL: "postgres://ripple_rest_user:password@localhost:5432/ripple_rest_db" 
-    /* ... */
-  }
-  ```
-  For more information on the `config.json` file and its versions see [docs/CONFIG.md](docs/CONFIG.md).
+`ripple-rest` uses the [nconf](https://github.com/flatiron/nconf) configuration loader so that any options that can be specified in the `config.json` file can also be specified as command line arguments or environment variables.
 
-+ Configure the PostgreSQL connection by setting the `DATABASE_URL` field in any of the aforementioned configuration sources to a string in the following format: `postgres://ripple_rest_user:password@localhost:5432/ripple_rest_db`.
 
-+ Configure the `rippled` connection by setting the `rippled_servers` field to a JSON object of the form:
+## Running `ripple-rest` Securely
 
-  ```js
-    "rippled_servers": [
-      {
-        "host": "s_west.ripple.com",
-        "port": 443,
-        "secure": true
-      }
-    ]
+### Prerequisites
+
+1. Install as small and lightweight a systemware build as possible. The Base system package set is ideal. Only install additional packages to support specific installation or maintenance objectives.
+2. At a minimum, install all extant security patches, and configure the server to do so on an ongoing basis (daily, ideally).
+3. Before installing the REST API server, harden the machine using industry best practices. For example, see [How to secure an Ubuntu 12.04 LTS server - Part 1 The Basics](https://www.thefanclub.co.za/how-to/how-secure-ubuntu-1204-lts-server-part-1-basics), [Ubuntu Security](https://help.ubuntu.com/community/Security), [CIS Debian Linux Benchmark v1.0.0](https://benchmarks.cisecurity.org/downloads/show-single/?file=debian.100).
+4. Use only strong passwords, a minimum of 16 characters with a mix of capital and lowercase letters, numbers, and symbols. For more on password security see [Dropbox: realistic password strength estimation](https://tech.dropbox.com/2012/04/zxcvbn-realistic-password-strength-estimation/)
+
+### Installing `ripple-rest`
+
+1. Install ripple-rest into a directory tree owned by the root user.  We use `/opt`.
+
+2. Create a service account that the `ripple-rest` instance will run as.  It should NOT have a home directory because an attacker could potentially make use of that for a point-in-time attack.
+  ```bash
+  sudo useradd -U -m -r -s /dev/null restful
   ```
 
-+ Enable SSL by including the following in the `config.json` in any of the configuration sources:
+3. Create a database that the `ripple-rest` server will store its back-end data in.  Also create a database service account which only has access to that database:
 
-  ```js
-  {
-  /* ... */
-    "ssl": {
-      "key_path": "path/to/server.key",
-      "cert_path": "path/to/server.crt"
-    }
-  /* ... */
-  }
+  ```bash
+  sudo -u postgres createdb gateway_appliance
+  sudo -u postgres createuser appliance -E -S -R -D
+  sudo -u postgres psql -c "ALTER USER appliance PASSWORD '<strong password here>';"
   ```
-  Note that you will need to connect to the server with `https://` if you have SSL enabled.
 
-+ If installing on Heroku you must add the Heroku PostgreSQL add-on first by running the command:
+4. Create SSL certificate to encrypt traffic to and from the `ripple-rest` server.  Ensure that all associated files are mode 0644 so that the service account can access them.  To mitigate the potential harm done by making those files accessible, proactively limit the number of people who can log into that machine.
 
-  `heroku addons:add heroku-postgresql:dev`
+  ```bash
+  openssl genrsa -out /etc/ssl/private/server.key 2048
+  openssl req -utf8 -new -key /etc/ssl/private/server.key -out /etc/ssl/server.csr -sha512
+    -batch
+  openssl x509 -req -days 730 -in /etc/ssl/server.csr -signkey /etc/ssl/private/server.key
+    -out /etc/ssl/certs/server.crt -sha512
+  ```
 
-## Testing
+5. When starting the `ripple-rest` server itself, start it as the service account:
 
-`npm test`
+  ```bash
+  cd /opt/ripple-rest
+  sudo -E -u restful /usr/bin/node server.js
+  ```
 
-## Bugs
 
-__This API is still in beta.__ Please open issues for any problems you encounter.
-
-## API Object Formats
-
-1. [Amount](docs/REF.md#1-amount)
-2. [Payment](docs/REF.md#2-payment)
-3. [Notification](docs/REF.md#3-notification)
-
-## Available API Routes
-
-1. [Notifications](docs/REF.md#1-notifications)
-    + [`GET /api/v1/addresses/:address/next_notification`](docs/REF.md#get-apiv1addressesaddressnext_notification)
-    + [`GET /api/v1/addresses/:address/next_notification/:prev_tx_hash`](docs/REF.md#get-apiv1addressesaddressnext_notificationprev_tx_hash)
-2. [Payments](docs/REF.md#2-payments)
-    + [`GET /api/v1/addresses/:address/payments/:dst_address/:dst_amount`](docs/REF.md#get-apiv1addressesaddresspaymentsdst_addressdst_amount)
-    + [`POST /api/v1/addresses/:address/payments`](docs/REF.md#post-apiv1addressesaddresspayments)
-    + [`GET /api/v1/addresses/:address/payments/:tx_hash`](docs/REF.md#get-apiv1addressesaddresspaymentstx_hash)
-3. [Standard Ripple Transactions](docs/REF.md#3-standard-ripple-transactions)
-    + [`GET /api/v1/addresses/:address/txs/:tx_hash`](docs/REF.md#get-apiv1addressesaddresstxstx_hash)
-4. [Server Info](docs/REF.md#4-server-info)
-    + [`GET /api/v1/status`](docs/REF.md#get-apiv1status)

@@ -6,5 +6,5 @@ exports.up = function(db, callback) {
 };
 
 exports.down = function(db, callback) {
-  db.dropTable('outgoing_transactions', {ifExists: true}, callback)
+  db.dropColumn('outgoing_transactions', reported, callback);
 };

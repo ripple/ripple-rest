@@ -1,0 +1,27 @@
+{
+  "account": "rLpq5RcRzA8FU1yUqEPW4xfsdwon7casuM",
+  "buy": false,
+  "base_amount": {
+    "value": "100",
+    "currency": "XRP",
+    "issuer": ""
+  },
+  "counter_amount": {
+    "value": "10",
+    "currency": "FAK",
+    "issuer": "r4nkJpL9se94ASQut4eXRRtnBPtDpY2PZ6"
+  },
+  "exchange_rate": "",
+  "expiration_timestamp": "",
+  "ledger_timeout": "",
+  "immediate_or_cancel": false,
+  "fill_or_kill": false,
+  "maximize_buy_or_sell": true,
+  "cancel_replace": "",
+  "sequence": "150",
+  "fee": "",
+  "state": "",
+  "ledger": "5364003",
+  "hash": "81B3B47837CD23D579C8828459A1E51AED0C46E512DAF1D00DE452CDB137C0D6",
+  "previous": null
+}

@@ -1,0 +1,13 @@
+db:
+  image: orchardup/postgresql
+  expose:
+    - "5432"
+rest:
+  build: .
+  command: ./env/dev-env/run-server.sh
+  volumes:
+    - .:/srv/ripple/ripple-rest
+  ports:
+    - "5990:5990"
+  links:
+    - db
