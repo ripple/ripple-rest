@@ -1,10 +1,10 @@
 var _                = require('lodash');
 var async            = require('async');
 var bignum           = require('bignumber.js');
-var transactionslib  = require('./transactions');
 var validator        = require('../lib/schema-validator');
 var paymentformatter = require('../lib/formatters/payment-formatter');
-var serverlib        = require('../lib/server-lib');
+var transactionsLib  = require('../lib/transactions-lib');
+var serverLib        = require('../lib/server-lib');
 var utils            = require('../lib/utils');
 
 var DEFAULT_RESULTS_PER_PAGE = 10;
@@ -18,7 +18,7 @@ function getPayment($, req, res, next) {
   var opts = {
     account: req.params.account,
     identifier: req.params.identifier
-  }
+  };
 
   function validateOptions(callback) {
     if (!opts.account) {
@@ -43,23 +43,30 @@ function getPayment($, req, res, next) {
   };
 
   function ensureConnected(callback) {
-    serverlib.ensureConnected(remote, callback);
+    serverLib.ensureConnected(remote, function(err, connected) {
+      if (connected) {
+        callback();
+      } else {
+        res.json(500, { success: false, message: 'No connection to rippled' });
+      }
+    });
   };
 
   // If the transaction was not in the outgoing_transactions db, get it from rippled
-  function getTransaction(connected, callback) {
-    if (!connected) {
-      return res.json(500, { success: false, message: 'No connection to rippled' });
-    }
-
-    transactionslib.getTransaction(remote, dbinterface, opts, callback);
+  function getTransaction(callback) {
+    transactionsLib.getTransaction(remote, dbinterface, opts, callback);
   };
 
   function checkIsPayment(transaction, callback) {
-    if (transaction.TransactionType.toLowerCase() !== 'payment') {
-      res.json(404, { success: false, message: 'Not a payment. The transaction corresponding to the given identifier is not a payment.' });
-    } else {
+    var isPayment = transaction && /^payment$/i.test(transaction.TransactionType);
+
+    if (isPayment) {
       callback(null, transaction);
+    } else {
+      res.json(404, {
+        success: false,
+        message: 'Not a payment. The transaction corresponding to the given identifier is not a payment.'
+      });
     }
   };
 
@@ -67,10 +74,13 @@ function getPayment($, req, res, next) {
     if (transaction) {
       paymentformatter.parsePaymentFromTx(transaction, { account: opts.account }, callback);
     } else {
-      res.json(404, { success: false, message: 'Payment Not Found. This may indicate that the payment was never validated and written into '
-                         + 'the Ripple ledger and it was not submitted through this ripple-rest instance. '
-                         + 'This error may also be seen if the databases of either ripple-rest '
-                         + 'or rippled were recently created or deleted.' });
+      res.json(404, {
+        success: false,
+        message: 'Payment Not Found. This may indicate that the payment was never validated and written into '
+        + 'the Ripple ledger and it was not submitted through this ripple-rest instance. '
+        + 'This error may also be seen if the databases of either ripple-rest '
+        + 'or rippled were recently created or deleted.'
+      });
     }
   };
 
@@ -97,37 +107,26 @@ function getBulkPayments($, req, res, next) {
   var remote = $.remote;
   var dbinterface = $.dbinterface;
 
-  var params = {
-    account: req.params.account,
-    source_account: req.query.source_account,
-    destination_account: req.query.destination_account,
-    exclude_failed: (req.query.exclude_failed === 'true'),
-    start_ledger: req.query.start_ledger,
-    end_ledger: req.query.end_ledger,
-    earliest_first: (req.query.earliest_first === 'true'),
-    results_per_page: req.query.results_per_page,
-    page: req.query.page
-  }
-
   function getTransactions(callback) {
-    transactionslib.getAccountTransactions(remote, dbinterface, {
-      account: params.account,
-      source_account: params.source_account,
-      destination_account: params.destination_account,
-      start_ledger: params.start_ledger,
-      end_ledger: params.end_ledger,
-      descending: !params.earliest_first,
-      exclude_failed: params.exclude_failed,
-      min: params.results_per_page,
-      max: params.results_per_page,
-      offset: (params.results_per_page || DEFAULT_RESULTS_PER_PAGE) * ((params.page || 1) - 1),
+    transactionsLib.getAccountTransactions(remote, dbinterface, {
+      account: req.params.account,
+      source_account: req.query.source_account,
+      destination_account: req.query.destination_account,
+      direction: req.query.direction,
+      ledger_index_min: req.query.start_ledger,
+      ledger_index_max: req.query.end_ledger,
+      descending: (req.query.earliest_first !== 'true'),
+      exclude_failed: (req.query.exclude_failed === 'true'),
+      min: req.query.results_per_page,
+      max: req.query.results_per_page,
+      offset: (req.query.results_per_page || DEFAULT_RESULTS_PER_PAGE) * ((req.query.page || 1) - 1),
       types: [ 'payment' ]
     }, callback);
   };
 
   function formatTransactions(transactions, callback) {
     async.map(transactions, function(transaction, map_callback) {
-      paymentformatter.parsePaymentFromTx(transaction, { account: params.account }, map_callback);
+      paymentformatter.parsePaymentFromTx(transaction, { account: req.params.account }, map_callback);
     }, callback);
   };
 
@@ -172,6 +171,9 @@ function attachClientResourceId(dbinterface, payment, callback) {
 exports.getPathFind = getPathFind;
 
 function getPathFind($, req, res, next) {
+  var remote = $.remote;
+  var dbinterface = $.dbinterface;
+
   var params = {
     source_account: req.params.account,
     source_currencies_string: req.param('source_currencies'),
@@ -194,7 +196,7 @@ function getPathFind($, req, res, next) {
 
     params.destination_amount_array = params.destination_amount_string.split('+');
 
-    parmams.destination_amount = {
+    params.destination_amount = {
       value: params.destination_amount_array[0],
       currency: params.destination_amount_array[1],
       issuer: (params.destination_amount_array.length >= 3 ? params.destination_amount_array[2] : '')
@@ -204,15 +206,17 @@ function getPathFind($, req, res, next) {
   };
 
   function ensureConnected(callback) {
-    serverlib.ensureConnected(remote, callback);
+    serverLib.ensureConnected(remote, function(err, connected) {
+      if (connected) {
+        callback();
+      } else {
+        res.json(500, { success: false, message: 'No connection to rippled' });
+      }
+    });
   };
 
   // If the transaction was not in the outgoing_transactions db, get it from rippled
-  function prepareOptions(connected, callback) {
-    if (!connected) {
-      return res.json(500, { success: false, message: 'No connection to rippled' });
-    }
-
+  function prepareOptions(callback) {
     parseParams(params, function(err, pathfind_params) {
       if (err) {
         res.json(400, { success: false, message: err.message });
@@ -223,16 +227,31 @@ function getPathFind($, req, res, next) {
   };
 
   function findPath(pathfind_params, callback) {
-    remote.requestRipplePathFind(pathfind_params, function(err, path_res) {
-      if (err) {
-        return callback(err);
-      }
+    var request = remote.requestRipplePathFind(pathfind_params);
 
-      path_res.source_account = pathfind_params.src_account;
-      path_res.source_currencies = pathfind_params.src_currencies;
+    request.once('error', callback);
+
+    request.once('success', function(path_res) {
+      path_res.source_account     = pathfind_params.src_account;
+      path_res.source_currencies  = pathfind_params.src_currencies;
       path_res.destination_amount = pathfind_params.dst_amount;
+
       callback(null, path_res);
     });
+
+    function reconnectRippled() {
+      remote.disconnect(function() {
+        remote.connect();
+      });
+    };
+
+    request.timeout(1000 * 20, function() {
+      request.removeAllListeners();
+      reconnectRippled();
+      res.json(502, { success: false, message: 'Path request timeout' });
+    });
+
+    request.request();
   };
 
   function checkAddXRPPath(path_res, callback) {

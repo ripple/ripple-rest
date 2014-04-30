@@ -1,7 +1,7 @@
 {
   "$schema": "http://json-schema.org/draft-04/schema#",
-  "title": "Amount",
-  "description": "An Amount on the Ripple Protocol, used also for XRP in the ripple-rest API",
+  "title": "Balance",
+  "description": "A simplified representation of an account Balance",
   "type": "object",
   "properties": {
     "value": {
@@ -13,16 +13,11 @@
       "description": "The currency expressed as a three-character code",
       "$ref": "Currency"
     },
-    "issuer": {
-      "description": "The Ripple account address of the currency's issuer or gateway, or an empty string if the currency is XRP",
-      "type": "string",
-      "pattern": "^$|^r[1-9A-HJ-NP-Za-km-z]{25,33}$"
-    },
     "counterparty": {
       "description": "The Ripple account address of the currency's issuer or gateway, or an empty string if the currency is XRP",
       "type": "string",
       "pattern": "^$|^r[1-9A-HJ-NP-Za-km-z]{25,33}$"
     }
   },
-  "required": ["value", "currency"]
+  "required": [ "value", "currency" ]
 }

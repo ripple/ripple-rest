@@ -4,21 +4,57 @@ var serverLib = require('../lib/server-lib');
 
 const AccountRootFlags = {
   PasswordSpent:   { name: 'password_spent', value: 0x00010000 },
-  RequireDestTag:  { name: 'require_dest_tag', value: 0x00020000 },
-  RequireAuth:     { name: 'require_auth', value: 0x00040000 },
+  RequireDestTag:  { name: 'require_destination_tag', value: 0x00020000 },
+  RequireAuth:     { name: 'require_authorization', value: 0x00040000 },
   DisallowXRP:     { name: 'disallow_xrp', value: 0x00080000 },
   DisableMaster:   { name: 'disable_master', value: 0x00100000 }
 }
 
 const AccountRootFields = {
-  EmailHash:      { name: 'email_hash' },
-  WalletLocator:  { name: 'wallet_locator' },
-  WalletSize:     { name: 'wallet_size' },
-  MessageKey:     { name: 'message_key' },
-  Domain:         { name: 'domain', encoding: 'hex' },
-  TransferRate:   { name: 'transfer_rate' },
-  Signers:        { name: 'signers' }
+  Sequence:       { name:  'transaction_sequence' },
+  EmailHash:      { name:  'email_hash' },
+  WalletLocator:  { name:  'wallet_locator' },
+  WalletSize:     { name:  'wallet_size' },
+  MessageKey:     { name:  'message_key' },
+  Domain:         { name:  'domain', encoding: 'hex' },
+  TransferRate:   { name:  'transfer_rate' },
+  Signers:        { name:  'signers' }
 }
+
+function _requestAccountSettings(remote, account, callback) {
+  remote.requestAccountInfo(account, function(err, info) {
+    if (err) return callback(err);
+
+    var data = info.account_data;
+
+    var settings = {
+      account: data.account,
+      transfer_rate: '0'
+    }
+
+    // Attach account flags
+    for (var flagName in AccountRootFlags) {
+      var flag = AccountRootFlags[flagName];
+      settings[flag.name] = Boolean(data.Flags & flag.value);
+    }
+
+    // Attach account fields
+    for (var fieldName in AccountRootFields) {
+      if (!(fieldName in data)) continue;
+
+      var field = AccountRootFields[fieldName];
+      var value = data[fieldName];
+
+      if (field.encoding === 'hex') {
+        value = new Buffer(value, 'hex').toString();
+      }
+
+      settings[field.name] = value;
+    }
+
+    callback(null, settings);
+  });
+};
 
 exports.get = getSettings;
 
@@ -38,40 +74,17 @@ function getSettings($, req, res, next) {
   };
 
   function ensureConnected(callback) {
-    serverLib.ensureConnected(remote, callback);
+    serverLib.ensureConnected(remote, function(err, connected) {
+      if (err || !connected) {
+        res.json(500, { success: false, message: 'Remote is not connected' });
+      } else {
+        callback();
+      }
+    });
   };
 
-  function getAccountSettings(connected, callback) {
-    if (!connected) {
-      return res.json(500, { success: false, message: 'No connection to rippled' });
-    }
-
-    remote.requestAccountInfo(opts.account, function(err, info) {
-      if (err) return callback(err);
-
-      var settings = { };
-      var data = info.account_data;
-
-      for (var flagName in AccountRootFlags) {
-        var flag = AccountRootFlags[flagName];
-        settings[flag.name] = Boolean(data.Flags & flag.value);
-      }
-
-      for (var fieldName in AccountRootFields) {
-        if (!(fieldName in data)) continue;
-
-        var field = AccountRootFields[fieldName];
-        var value = data[fieldName];
-
-        if (field.encoding === 'hex') {
-          value = new Buffer(value, 'hex').toString();
-        }
-
-        settings[field.name] = value;
-      }
-
-      callback(null, settings);
-    });
+  function getAccountSettings(callback) {
+    _requestAccountSettings(remote, opts.account, callback);
   };
 
   var steps = [
@@ -101,80 +114,112 @@ function changeSettings($, req, res, next) {
   });
 
   function validateOptions(callback) {
+    if (typeof opts.settings !== 'object') {
+      return res.json(400, { success: false, message: 'Parameter missing: settings' });
+    }
+
     if (!ripple.UInt160.is_valid(opts.account)) {
       return res.json(400, { success: false, message: 'Parameter is not a valid Ripple address: account' });
     }
 
     if (!opts.secret) {
-      return res.json(400, { success: false, message: 'Parameter is not a valid Ripple secret: secret' });
+      return res.json(400, { success: false, message: 'Parameter missing: secret' });
+    }
+
+    if (!/(undefined|number)/.test(typeof opts.settings.transfer_rate)) {
+      return res.json(400, { success: false, message: 'Parameter must be a number: transfer_rate' });
     }
 
     callback();
   };
 
   function ensureConnected(callback) {
-    serverLib.ensureConnected(remote, callback);
+    serverLib.ensureConnected(remote, function(err, connected) {
+      if (err || !connected) {
+        res.json(500, { success: false, message: 'Remote is not connected' });
+      } else {
+        callback();
+      }
+    });
   };
 
-  function changeAccountSettings(connected, callback) {
-    var transaction = remote.transaction().accountSet(opts.account);
-    transaction.secret(opts.secret);
-
+  function changeAccountSettings(callback) {
     var FlagSet = {
-      require_dest_tag: {
-        unset: 'OptionalDestTag',
-        set: 'RequireDestTag',
-      },
-      require_auth: {
-        unset: 'OptionalAuth',
-        set: 'RequireAuth'
-      },
-      disallow_xrp: {
-        unset: 'AllowXRP',
-        set: 'DisallowXRP'
-      }
+      require_destination_tag: { unset: 'OptionalDestTag', set: 'RequireDestTag', },
+      require_authorization: { unset: 'OptionalAuth', set: 'RequireAuth' },
+      disallow_xrp: { unset: 'AllowXRP', set: 'DisallowXRP' }
     }
 
-    Object.keys(FlagSet).forEach(function(flagName) {
-      if (!(flagName in opts)) return
+    var transaction = remote.transaction();
 
-      var flag = FlagSet[flagName];
-      var value = opts[flagName];
+    try {
+      transaction.accountSet(opts.account);
+      transaction.secret(opts.secret);
 
-      if (typeof value !== 'boolean') {
-        return callback(new TypeError('Parameter is not boolean: ' + flagName));
+      // Set transaction flags
+      for (var flagName in FlagSet) {
+        if (!(flagName in opts.settings)) continue;
+
+        var flag = FlagSet[flagName];
+        var value = opts.settings[flagName];
+
+        if (typeof value !== 'boolean') {
+          return res.json(400, { success: false, message: 'Parameter is not boolean: ' + flagName });
+        }
+
+        transaction.setFlags(value ? flag.set : flag.unset);
       }
 
-      transaction.setFlags(value ? flag.set : flag.unset);
-    });
+      // Set transaction fields
+      for (var fieldName in AccountRootFields) {
+        var field = AccountRootFields[fieldName];
+        var value = opts.settings[field.name];
 
-    Object.keys(AccountRootFields).forEach(function(fieldName) {
-      var field = AccountRootFields[fieldName];
-      var value = opts[field.name];
+        if (typeof value === 'undefined') continue;
 
-      if (typeof value === 'undefined') return;
+        if (field.encoding === 'hex') {
+          value = new Buffer(value).toString('hex');
+        }
 
-      if (field.encoding === 'hex') {
-        value = new Buffer(value).toString('hex');
+        transaction.tx_json[fieldName] = value;
       }
-
-      transaction.tx_json[fieldName] = value;
-    });
+    } catch (e) {
+      return res.json(500, { success: false, message: e.message });
+    }
 
     transaction.submit(callback);
+  };
+
+  function getAccountSettings(tx_res, callback) {
+    _requestAccountSettings(remote, opts.account, function(err, settings) {
+      if (err) return callback(err);
+
+      var result = {
+        success: true,
+        settings: settings
+      }
+
+      if (tx_res.transaction) {
+        result.hash = tx_res.transaction.hash;
+        result.ledger = String(tx_res.ledger_index)
+      }
+
+      callback(null, result);
+    });
   };
 
   var steps = [
     validateOptions,
     ensureConnected,
-    changeAccountSettings
+    changeAccountSettings,
+    getAccountSettings
   ]
 
   async.waterfall(steps, function(err, settings) {
     if (err) {
       next(err);
     } else {
-      getSettings($, req, res, next);
+      res.json(200, settings);
     }
   });
 };

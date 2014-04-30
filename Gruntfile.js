@@ -1,6 +1,4 @@
 var fs        = require('fs');
-var pg        = require('pg');
-// var sqlite3   = require('sqlite3').verbose();
 var config    = require('./config/config-loader');
 var dbconnect; 
 
@@ -11,7 +9,10 @@ module.exports = function(grunt) {
   grunt.initConfig({
 
     jshint: {
-      all: watched_files
+      all: watched_files,
+      options: {
+        '-W032': true
+      }
     },
 
     simplemocha: {
