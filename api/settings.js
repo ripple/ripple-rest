@@ -40,8 +40,6 @@ function _requestAccountSettings(remote, account, callback) {
 
     // Attach account fields
     for (var fieldName in AccountRootFields) {
-      if (!(fieldName in data)) continue;
-
       var field = AccountRootFields[fieldName];
       var value = data[fieldName];
 
@@ -49,7 +47,7 @@ function _requestAccountSettings(remote, account, callback) {
         value = new Buffer(value, 'hex').toString();
       }
 
-      settings[field.name] = value;
+      settings[field.name] = value || '';
     }
 
     callback(null, settings);
