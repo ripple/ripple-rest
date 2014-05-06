@@ -1,5 +1,5 @@
 var fs        = require('fs');
-var config    = require('./config/config-loader');
+var config    = require('./lib/config-loader');
 var dbconnect; 
 var spawn = require('child_process').spawn;
 
@@ -8,8 +8,8 @@ module.exports = function(grunt) {
 
   function dbMigrateUp(callback){
     var migration = spawn('db-migrate', ['up'], { cwd: __dirname+"/db" });
-    migration.stdout.on('data', function(data){ console.log(data.toString()) });
-    migration.stderr.on('data', function(data){ console.log(data.toString()) });
+    migration.stdout.on('data', function(data){ console.log(data.toString()); });
+    migration.stderr.on('data', function(data){ console.log(data.toString()); });
     migration.on('close', callback);
   }
 
@@ -32,7 +32,7 @@ module.exports = function(grunt) {
           reporter: 'spec'
         },
       local: {
-        src: ['test/**/*.test.js']
+        src: ['test/**/*-test.js']
       }
     },
 
