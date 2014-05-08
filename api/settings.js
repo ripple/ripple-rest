@@ -196,6 +196,19 @@ function changeSettings($, req, res, next) {
 
         if (typeof value === 'undefined') continue;
 
+        if (value === '' || value === null) {
+          switch (fieldName) {
+            case 'Emailhash':
+            case 'WalletLocator':
+              value = '0';
+              break;
+
+            case 'WalletSize':
+              value = 0;
+              break;
+          }
+        }
+
         if (field.encoding === 'hex') {
           if (field.length) {
             // Fixed length
