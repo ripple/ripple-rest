@@ -8,18 +8,18 @@ const AccountRootFlags = {
   RequireAuth:     { name: 'require_authorization', value: 0x00040000 },
   DisallowXRP:     { name: 'disallow_xrp', value: 0x00080000 },
   DisableMaster:   { name: 'disable_master', value: 0x00100000 }
-}
+};
 
 const AccountRootFields = {
   Sequence:       { name:  'transaction_sequence' },
-  EmailHash:      { name:  'email_hash' },
-  WalletLocator:  { name:  'wallet_locator' },
+  EmailHash:      { name:  'email_hash', encoding: 'hex', length: 32 },
+  WalletLocator:  { name:  'wallet_locator', encoding: 'hex', length: 64 },
   WalletSize:     { name:  'wallet_size' },
   MessageKey:     { name:  'message_key' },
   Domain:         { name:  'domain', encoding: 'hex' },
   TransferRate:   { name:  'transfer_rate' },
   Signers:        { name:  'signers' }
-}
+};
 
 function _requestAccountSettings(remote, account, callback) {
   remote.requestAccountInfo(account, function(err, info) {
@@ -41,13 +41,13 @@ function _requestAccountSettings(remote, account, callback) {
     // Attach account fields
     for (var fieldName in AccountRootFields) {
       var field = AccountRootFields[fieldName];
-      var value = data[fieldName];
+      var value = data[fieldName] || '';
 
-      if (field.encoding === 'hex') {
-        value = new Buffer(value, 'hex').toString();
+      if (field.encoding === 'hex' && !field.length) {
+        value = new Buffer(value, 'hex').toString('ascii');
       }
 
-      settings[field.name] = value || '';
+      settings[field.name] = value;
     }
 
     callback(null, settings);
@@ -148,7 +148,26 @@ function changeSettings($, req, res, next) {
       disallow_xrp: { unset: 'AllowXRP', set: 'DisallowXRP' }
     }
 
+    var settings = { };
+
     var transaction = remote.transaction();
+
+    transaction.once('error', callback);
+
+    transaction.once('proposed', function() {
+      var summary = transaction.summary();
+
+      var result = { success: true }
+
+      if (summary.result) {
+        result.hash = summary.result.transaction_hash;
+        result.ledger = String(summary.submitIndex)
+      }
+
+      result.settings = settings;
+
+      callback(null, result);
+    });
 
     try {
       transaction.accountSet(opts.account);
@@ -165,6 +184,8 @@ function changeSettings($, req, res, next) {
           return res.json(400, { success: false, message: 'Parameter is not boolean: ' + flagName });
         }
 
+        settings[flagName] = value;
+
         transaction.setFlags(value ? flag.set : flag.unset);
       }
 
@@ -176,41 +197,37 @@ function changeSettings($, req, res, next) {
         if (typeof value === 'undefined') continue;
 
         if (field.encoding === 'hex') {
-          value = new Buffer(value).toString('hex');
+          if (field.length) {
+            // Fixed length
+            if (value.length > field.length) {
+              return res.json(400, { success: false, message: 'Parameter length exceeded: ' + fieldName });
+            }
+            while (value.length < field.length) {
+              value = '0' + value;
+            }
+          } else {
+            // Variable length
+            value = new Buffer(value, 'ascii').toString('hex');
+          }
+          value = value.toUpperCase();
         }
+
+        settings[field.name] = opts.settings[field.name];
 
         transaction.tx_json[fieldName] = value;
       }
+
     } catch (e) {
       return res.json(500, { success: false, message: e.message });
     }
 
-    transaction.submit(callback);
-  };
-
-  function getAccountSettings(tx_res, callback) {
-    _requestAccountSettings(remote, opts.account, function(err, settings) {
-      if (err) return callback(err);
-
-      var result = {
-        success: true,
-        settings: settings
-      }
-
-      if (tx_res.transaction) {
-        result.hash = tx_res.transaction.hash;
-        result.ledger = String(tx_res.ledger_index)
-      }
-
-      callback(null, result);
-    });
+    transaction.submit();
   };
 
   var steps = [
     validateOptions,
     ensureConnected,
-    changeAccountSettings,
-    getAccountSettings
+    changeAccountSettings
   ]
 
   async.waterfall(steps, function(err, settings) {
