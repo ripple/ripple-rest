@@ -28,7 +28,7 @@ function _requestAccountSettings(remote, account, callback) {
     var data = info.account_data;
 
     var settings = {
-      account: data.account,
+      account: data.Account,
       transfer_rate: '0'
     }
 
@@ -124,8 +124,32 @@ function changeSettings($, req, res, next) {
       return res.json(400, { success: false, message: 'Parameter missing: secret' });
     }
 
+    if (!/(undefined|string)/.test(typeof opts.settings.domain)) {
+      return res.json(400, { success: false, message: 'Parameter must be a string: domain' });
+    }
+
+    if (!/(undefined|string)/.test(typeof opts.settings.wallet_locator)) {
+      return res.json(400, { success: false, message: 'Parameter must be a string: wallet_locator' });
+    }
+
+    if (!/(undefined|string)/.test(typeof opts.settings.email_hash)) {
+      return res.json(400, { success: false, message: 'Parameter must be a string: email_hash' });
+    }
+
+    if (!/(undefined|string)/.test(typeof opts.settings.message_key)) {
+      return res.json(400, { success: false, message: 'Parameter must be a string: message_key' });
+    }
+
     if (!/(undefined|number)/.test(typeof opts.settings.transfer_rate)) {
-      return res.json(400, { success: false, message: 'Parameter must be a number: transfer_rate' });
+      if (opts.settings.transfer_rate !== '') {
+        return res.json(400, { success: false, message: 'Parameter must be a number: transfer_rate' });
+      }
+    }
+
+    if (!/(undefined|number)/.test(typeof opts.settings.wallet_size)) {
+      if (opts.settings.wallet_size !== '') {
+        return res.json(400, { success: false, message: 'Parameter must be a number: wallet_size' });
+      }
     }
 
     callback();
@@ -180,6 +204,10 @@ function changeSettings($, req, res, next) {
         var flag = FlagSet[flagName];
         var value = opts.settings[flagName];
 
+        if (value === '') {
+          value = Boolean(value);
+        }
+
         if (typeof value !== 'boolean') {
           return res.json(400, { success: false, message: 'Parameter is not boolean: ' + flagName });
         }
@@ -196,13 +224,14 @@ function changeSettings($, req, res, next) {
 
         if (typeof value === 'undefined') continue;
 
-        if (value === '' || value === null) {
+        if (value === '') {
           switch (fieldName) {
             case 'Emailhash':
             case 'WalletLocator':
               value = '0';
               break;
 
+            case 'TransferRate':
             case 'WalletSize':
               value = 0;
               break;
