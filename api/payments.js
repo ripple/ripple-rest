@@ -280,7 +280,7 @@ function getPathFind($, req, res, next) {
 
       path_res.source_currencies.length > 0) {
       res.json(404, { success: false, message: 'No paths found.' +
-        ' Please ensure that the source_account has sufficient funds to exectue' +
+        ' Please ensure that the source_account has sufficient funds to execute' +
         ' the payment in one of the specified source_currencies. If it does' +
         ' there may be insufficient liquidity in the network to execute' +
         ' this payment right now' });
@@ -288,7 +288,7 @@ function getPathFind($, req, res, next) {
     } else {
 
       res.json(404, { success: false, message: 'No paths found.' +
-        ' Please ensure that the source_account has sufficient funds to exectue' +
+        ' Please ensure that the source_account has sufficient funds to execute' +
         ' the payment. If it does there may be insufficient liquidity in the' +
         ' network to execute this payment right now' });
 
