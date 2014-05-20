@@ -381,7 +381,7 @@ function parseParams(params, callback) {
 
 function addDirectXrpPath(remote, path_res, callback) {
   // Check if destination_account accepts XRP
-  if (~path_res.destination_currencies.indexOf('XRP')) {
+  if (path_res.destination_currencies.indexOf('XRP') === -1) {
     return callback(null, path_res);
   }
 
