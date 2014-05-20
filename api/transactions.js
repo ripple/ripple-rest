@@ -41,13 +41,22 @@ function _getTransaction($, req, res, callback) {
   };
 
   function queryTransaction(async_callback) {
-    $.dbinterface.getTransaction(opts, function(entry) {
+    $.dbinterface.getTransaction(opts, function(error, entry) {
       if (entry && entry.transaction) {
+        // If the whole transaction was found in the database,
+        // pass it back to the callback
         async_callback(null, entry.transaction);
-      } else if (entry) {
-        $.remote.requestTx(entry.hash, async_callback);
       } else if (opts.hash) {
-        $.remote.requestTx(opts.hash, async_callback);
+        $.remote.requestTx(opts.hash, function(err, transaction){
+
+          // If some record for the transaction was found in the database
+          // attach the client_resource_id to the transaction retrieved from rippled
+          if (entry && transaction) {
+            transaction.client_resource_id = entry.client_resource_id;
+          }
+
+          async_callback(err, transaction);
+        });
       } else {
         res.json(404, { success: false, message: 'Transaction not found' });
       }
