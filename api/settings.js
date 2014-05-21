@@ -50,6 +50,8 @@ function _requestAccountSettings(remote, account, callback) {
       settings[field.name] = value;
     }
 
+    settings.transaction_sequence = String(settings.transaction_sequence);
+
     callback(null, settings);
   });
 };
