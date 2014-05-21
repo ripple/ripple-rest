@@ -78,7 +78,7 @@ describe('settings', function() {
         expect(obj.settings).to.have.property('require_destination_tag', true);
         expect(obj.settings).to.have.property('require_authorization', false);
         expect(obj.settings).to.have.property('disallow_xrp', true);
-        expect(obj.settings).to.have.property('transaction_sequence', accountInfo.account_data.Sequence);
+        expect(obj.settings).to.have.property('transaction_sequence', String(accountInfo.account_data.Sequence));
         expect(obj.settings).to.have.property('email_hash', accountInfo.account_data.EmailHash);
         expect(obj.settings).to.have.property('wallet_locator', accountInfo.account_data.WalletLocator);
         expect(obj.settings).to.have.property('wallet_size', '');
