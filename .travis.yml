@@ -6,6 +6,8 @@ addons:
 script: "npm test"
 before_install:
   - npm install -g pg
+before_script:
+  - psql -c 'create database ripple_rest_test;' -U postgres
 env:
   - DATABASE_URL=postgres://postgres:@localhost:5432/ripple_rest_test
 notifications:
