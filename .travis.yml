@@ -4,6 +4,10 @@ node_js:
 addons:
   postgresql: "9.3"
 script: "npm test"
+before_script:
+  - grunt
+env:
+  - DATABASE_URL=postgres://postgres:@localhost:5432/ripple_rest_test
 notifications:
   email:
     false
