@@ -4,8 +4,8 @@ node_js:
 addons:
   postgresql: "9.3"
 script: "npm test"
-before_script:
-  - grunt
+before_install:
+  - npm install -g pg
 env:
   - DATABASE_URL=postgres://postgres:@localhost:5432/ripple_rest_test
 notifications:
