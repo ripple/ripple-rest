@@ -51,7 +51,8 @@ nconf.defaults({
       port: 443,
       secure: true
     }
-  ]
+  ],
+  debug: false
 });
 
 module.exports = nconf;

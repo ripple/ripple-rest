@@ -39,8 +39,13 @@ var dbinterface = new DatabaseInterface(config.get('DATABASE_URL'));
 var remote_opts = {
   servers: config.get('rippled_servers'),
   storage: dbinterface,
-  ping: 15
+  ping: 15,
 };
+
+// If in debug mode, set server trace option to true
+if (config.get('debug')) {
+  remote_opts.trace = true;
+}
 
 var remote = (function(opts) {
   var remote = new ripple.Remote(opts);
@@ -79,7 +84,7 @@ var remote = (function(opts) {
 app.configure(function() {
   app.disable('x-powered-by');
 
-  if (config.get('NODE_ENV') !== 'production') {
+  if (config.get('NODE_ENV') !== 'production' || config.get('debug')) {
     app.set('json spaces', 2);
     app.use(express.logger(':method :url (:response-time ms)'));
   }

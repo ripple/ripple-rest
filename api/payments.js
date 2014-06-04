@@ -268,24 +268,30 @@ function getPathFind($, req, res, next) {
       return paymentformatter.parsePaymentsFromPathfind(path_res, callback);
     }
 
-    if (~path_res.destination_currencies.indexOf(params.destination_amount.currency)) {
+    if (path_res.destination_currencies.indexOf(params.destination_amount.currency) === -1) {
+
       res.json(404, { success: false, message: 'No paths found.' +
         'The destination_account does not accept ' +
         params.destination_amount.currency +
         ', they only accept: ' +
         path_res.destination_currencies.join(', ') });
+
     } else if (path_res.source_currencies &&
+
       path_res.source_currencies.length > 0) {
       res.json(404, { success: false, message: 'No paths found.' +
-        ' Please ensure that the source_account has sufficient funds to exectue' +
+        ' Please ensure that the source_account has sufficient funds to execute' +
         ' the payment in one of the specified source_currencies. If it does' +
         ' there may be insufficient liquidity in the network to execute' +
         ' this payment right now' });
+
     } else {
+
       res.json(404, { success: false, message: 'No paths found.' +
-        ' Please ensure that the source_account has sufficient funds to exectue' +
+        ' Please ensure that the source_account has sufficient funds to execute' +
         ' the payment. If it does there may be insufficient liquidity in the' +
         ' network to execute this payment right now' });
+
     }
   };
 

@@ -63,6 +63,20 @@ function _getTransaction($, req, res, callback) {
     });
   };
 
+  function checkIfRelatedToAccount(transaction, async_callback) {
+
+    if (opts.account) {
+      var transaction_string = JSON.stringify(transaction);
+      var account_regex = new RegExp(opts.account);
+      if (!account_regex.test(transaction_string)) {
+        return res.json(400, { success: false, message: 'Transaction specified did not affect the given account' });
+      }
+    }
+
+    async_callback(null, transaction);
+
+  };
+
   function attachResourceID(transaction, async_callback) {
     if (transaction && opts.client_resource_id) {
       transaction.client_resource_id = opts.client_resource_id;
@@ -92,6 +106,7 @@ function _getTransaction($, req, res, callback) {
     validateOptions,
     ensureConnected,
     queryTransaction,
+    checkIfRelatedToAccount,
     attachResourceID,
     attachDate
   ];
