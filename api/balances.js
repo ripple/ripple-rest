@@ -1,5 +1,5 @@
 var async     = require('async');
-var bignum    = require('bignumber.js')
+var bignum    = require('bignumber.js');
 var ripple    = require('ripple-lib');
 var serverLib = require('../lib/server-lib');
 
@@ -14,7 +14,7 @@ function getBalances($, req, res, next) {
     account:       req.params.account,
     currency:      req.query.currency,
     counterparty:  req.query.counterparty
-  }
+  };
 
   var currencyRE = new RegExp(opts.currency ? ('^' + opts.currency.toUpperCase() + '$') : /./);
   var balances = [ ];
@@ -91,11 +91,15 @@ function getBalances($, req, res, next) {
 
   var steps = [ validateOptions, ensureConnected ];
 
-  if (currencyRE.test('XRP') && !opts.issuer) {
-    steps.push(getXRPBalance);
+  if (opts.currency) {
+    if (opts.currency === 'XRP') {
+      steps.push(getXRPBalance);
+    } else {
+      steps.push(getLineBalances);
+    }
+  } else {
+    steps.push(getXRPBalance, getLineBalances);
   }
-
-  steps.push(getLineBalances);
 
   async.series(steps, function(err) {
     if (err) {
