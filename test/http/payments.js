@@ -5,7 +5,7 @@ var ADDRESS = 'r4EwBWxrx5HxYRyisfGzMto3AT8FZiYdWk';
 var VALID_TRANSACTION_HASH = 'E60D0518D907491FDFD1984269369827DEC41E910C91013F8F2C44F884AE725B';
 
 var rippleRest = require(__dirname+'/../../index');
-var app = require(__dirname+'/../../app');
+var app = require(__dirname+'/../../lib/express_app');
 
 describe('HTTP Payments endpoints', function(){
   before(function(callback){

@@ -3,7 +3,7 @@ var path    = require('path');
 var https   = require('https');
 var config = require('./config/config-loader');
 var rippleRest  = require(__dirname+'/index.js');
-var app = require(__dirname+'/app.js');
+var app = require(__dirname+'/lib/express_app.js');
 
 require('rconsole');
 
