@@ -9,7 +9,7 @@
   ],
   "scripts": {
     "postinstall": "./node_modules/.bin/grunt",
-    "test": "mocha --reporter spec test/*.js",
+    "test": "mocha --recursive --reporter spec test/ --timeout 7000",
     "start": "node server.js"
   },
   "repository": {
