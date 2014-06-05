@@ -9,7 +9,7 @@
   ],
   "scripts": {
     "postinstall": "./node_modules/.bin/grunt",
-    "test": "mocha --reporter spec test/*-test.js",
+    "test": "mocha --reporter spec test/*.js",
     "start": "node server.js"
   },
   "repository": {
