@@ -10,7 +10,8 @@
   "scripts": {
     "postinstall": "./node_modules/.bin/grunt",
     "test": "mocha --reporter spec test/*.js",
-    "start": "node server.js"
+    "start": "node server.js",
+    "coveralls": "cat ./coverage/lcov.info | ./node_modules/.bin/coveralls"
   },
   "repository": {
     "type": "git",
@@ -36,7 +37,8 @@
     "grunt-simple-mocha": "*",
     "sinon": "~1.10.0",
     "sinon-chai": "~2.5.0",
-    "clone": "~0.1.15"
+    "clone": "~0.1.15",
+    "coveralls": "~2.10.0"
   },
   "dependencies": {
     "express": "~3.4.7",
