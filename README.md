@@ -1,6 +1,7 @@
 # ripple-rest
 
 [![Build Status](https://travis-ci.org/ripple/ripple-rest.svg?branch=develop)](https://travis-ci.org/ripple/ripple-rest)
+[![Coverage Status](https://coveralls.io/repos/ripple/ripple-rest/badge.png?branch=develop)](https://coveralls.io/r/ripple/ripple-rest?branch=develop)
 
 A RESTful API for submitting payments and monitoring accounts on the Ripple Network.
 
