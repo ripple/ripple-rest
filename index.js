@@ -4,6 +4,7 @@ var URL     = require('url');
 var https   = require('https');
 var ripple  = require('ripple-lib');
 var express = require('express');
+var bodyParser = require('body-parser')
 var router  = express.Router();
 var config = require('./config/config-loader');
 
@@ -83,6 +84,8 @@ function connectRemote(callback) {
 
 
 /**** **** **** **** ****/
+
+router.use(bodyParser());
 
 router.use(function(req, res, next){
   var match = req.path.match(/\/api\/(.*)/);
