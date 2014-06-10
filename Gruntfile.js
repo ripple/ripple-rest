@@ -38,6 +38,7 @@ module.exports = function(grunt) {
 
     migrate: {
       options: {
+        config: 'db/database.json',
         dir: 'db/migrations',
         env: {
           DATABASE_URL: config.get('DATABASE_URL')
