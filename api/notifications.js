@@ -94,6 +94,12 @@ function getNotificationHelper($, req, res, callback) {
     identifier: req.params.identifier
   };
 
+  // opts.account is not required for transactions.getTransactionHelper
+  // but it is required here
+  if (!opts.account) {
+    return res.json(400, { success: false, message: 'Missing parameter: account. Must be a valid Ripple Address' });
+  }
+
   // Get the base transaction corresponding to the given identifier
   // Note that getTransaction also handles parameter validation and
   // checks the status of the connection to rippled
