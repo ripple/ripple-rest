@@ -396,7 +396,7 @@ describe('balances', function() {
   });
 
   it('getBalances -- specify line currency', function(done) {
-    testBalances = accountLines.lines
+    var testBalances = accountLines.lines
     .filter(function(line) {
       return line.currency === 'EUR';
     })
@@ -507,7 +507,7 @@ describe('balances', function() {
   });
 
   it('getBalances -- specify counterparty', function(done) {
-    testBalances = accountLines.lines
+    var testBalances = accountLines.lines
     .filter(function(line) {
       return line.currency === 'EUR';
     })
