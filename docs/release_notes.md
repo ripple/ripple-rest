@@ -1,3 +1,11 @@
+##06/10/2014
+
+###Version:
+1.0.2
+
+###Fixed bugs:
+- GET /v1/accounts/{:account}/payments/{:hash} not responding
+
 ##06/04/2014
 
 ###Version: 
