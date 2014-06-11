@@ -3,7 +3,9 @@ node_js:
   - "0.10"
 addons:
   postgresql: "9.3"
-script: "npm test"
+script: npm test --coverage
+after_success:
+- npm run coveralls
 before_install:
   - npm install -g pg
   - psql -c 'create database ripple_rest_test;' -U postgres

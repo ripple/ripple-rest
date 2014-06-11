@@ -1,6 +1,6 @@
 {
   "name": "ripple-rest",
-  "version": "1.0.2",
+  "version": "1.1.0",
   "author": "Evan Schwartz <evan@ripple.com>",
   "contributors": [
     "wltsmrz <wltsmrz@gmail.com>",
@@ -9,8 +9,9 @@
   ],
   "scripts": {
     "postinstall": "./node_modules/.bin/grunt",
-    "test": "mocha --reporter spec test/*.js",
-    "start": "node server.js"
+    "test": "./node_modules/.bin/istanbul test ./node_modules/.bin/_mocha -- --reporter spec test/*.js",
+    "start": "node server.js",
+    "coveralls": "cat ./coverage/lcov.info | ./node_modules/.bin/coveralls"
   },
   "repository": {
     "type": "git",
@@ -29,23 +30,25 @@
     "node": "~0.10.22"
   },
   "devDependencies": {
-    "mocha": "*",
     "chai": "*",
+    "clone": "~0.1.15",
+    "coveralls": "~2.10.0",
     "grunt-cli": "~0.1.13",
     "grunt-contrib-jshint": "~0.8.0",
     "grunt-simple-mocha": "*",
+    "istanbul": "^0.2.10",
+    "mocha": "*",
     "sinon": "~1.10.0",
-    "sinon-chai": "~2.5.0",
-    "clone": "~0.1.15"
+    "sinon-chai": "~2.5.0"
   },
   "dependencies": {
     "express": "~3.4.7",
-    "ripple-lib": "git://github.com/ripple/ripple-lib.git#903e480130fa24001e27b48b07ef3171f2fcc9e5",
+    "ripple-lib": "~0.7.36",
     "grunt": "~0.4.5",
     "grunt-db-migrate": "~0.2.0",
     "db-migrate": "~0.6.4",
-    "sequelize": "~1.7.5",
-    "async": "~0.9.0",
+    "sequelize": "~2.0.0-dev1",
+    "async": "~0.2.9",
     "lodash": "~2.4.1",
     "bignumber.js": "~1.4.0",
     "nconf": "~0.6.9",
