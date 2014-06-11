@@ -1,6 +1,6 @@
 {
   "name": "ripple-rest",
-  "version": "1.0.1",
+  "version": "1.0.2",
   "author": "Evan Schwartz <evan@ripple.com>",
   "contributors": [
     "wltsmrz <wltsmrz@gmail.com>",
@@ -29,7 +29,7 @@
   "engines": {
     "node": "~0.10.22"
   },
-  "devDependencies": {
+  "dependencies": {
     "chai": "*",
     "clone": "~0.1.15",
     "coveralls": "~2.10.0",
@@ -40,9 +40,7 @@
     "mocha": "*",
     "sinon": "~1.10.0",
     "sinon-chai": "~2.5.0",
-    "clone": "~0.1.15"
-  },
-  "dependencies": {
+    "clone": "~0.1.15",
     "express": "~3.4.7",
     "ripple-lib": "git://github.com/ripple/ripple-lib.git#903e480130fa24001e27b48b07ef3171f2fcc9e5",
     "grunt": "~0.4.5",
@@ -57,6 +55,7 @@
     "jayschema": "*",
     "pg.js": "~3.2.0",
     "sqlite3": "~2.2.0",
-    "node-uuid": "~1.4.1"
+    "node-uuid": "~1.4.1",
+    "pg": "^3.0.3"
   }
 }
