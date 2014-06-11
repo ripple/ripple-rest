@@ -1,17 +1,8 @@
 var fs        = require('fs');
 var config    = require('./config/config-loader');
 var dbconnect; 
-var spawn = require('child_process').spawn;
-
 
 module.exports = function(grunt) {
-
-  function dbMigrateUp(callback){
-    var migration = spawn('db-migrate', ['up'], { cwd: __dirname+"/db" });
-    migration.stdout.on('data', function(data){ console.log(data.toString()) });
-    migration.stderr.on('data', function(data){ console.log(data.toString()) });
-    migration.on('close', callback);
-  }
 
   var watched_files = ['config/*', 'controllers/*', 'lib/*', '*.js', '*.json'];
 
@@ -38,14 +29,17 @@ module.exports = function(grunt) {
 
     migrate: {
       options: {
-        dir: 'db/migrations',
+        config: './db/database.json',
+        'migrations-dir': './db/migrations',
         env: {
           DATABASE_URL: config.get('DATABASE_URL')
         }
       }
     }
+
   });
 
+  grunt.loadNpmTasks('grunt-db-migrate');
   grunt.loadNpmTasks('grunt-contrib-jshint');
   grunt.loadNpmTasks('grunt-simple-mocha');
 
@@ -62,8 +56,9 @@ module.exports = function(grunt) {
         if (err) {
           grunt.fail.fatal(err);
         } else {
-          dbMigrateUp(done);
+          grunt.task.run('migrate:up');
         }
+        done();
       });
     } else {
       grunt.log.writeln('No DATABASE_URL specified, defaulting to sqlite3 in memory. DO NOT USE THIS FOR A PRODUCTION SYSTEM');
