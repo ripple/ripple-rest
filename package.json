@@ -38,6 +38,7 @@
     "grunt-simple-mocha": "*",
     "istanbul": "^0.2.10",
     "mocha": "*",
+    "require-directory": "^1.2.0",
     "sinon": "~1.10.0",
     "sinon-chai": "~2.5.0"
   },
