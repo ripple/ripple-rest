@@ -35,6 +35,8 @@ describe('HTTP Payments endpoints', function(){
       .expect(500)
       .end(function(error, response){
         assert.strictEqual(response.statusCode, 500);
+        assert(!response.body.success);
+        assert.strictEqual(response.body.message, 'Specified address is invalid: account');
         callback();
       });
   });
