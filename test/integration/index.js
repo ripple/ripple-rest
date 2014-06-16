@@ -1,10 +1,10 @@
 var request = require('supertest');
 var assert = require('assert');
 
-var ADDRESS = 'r4EwBWxrx5HxYRyisfGzMto3AT8FZiYdWk';
+var ADDRESS = 'r34hCTPrhtKntvxGChTRhLGu7zenBd627J';
 var SECRET = process.env.RIPPLE_ACCOUNT_SECRET;
 var RECIPIENT = 'rp4u5gEskM8DtBZvonZwbu6dspgVdeAGM6';
-var VALID_TRANSACTION_HASH = 'E60D0518D907491FDFD1984269369827DEC41E910C91013F8F2C44F884AE725B';
+var VALID_TRANSACTION_HASH = '605A22E57C5ACA2D8F7C54930F5F93085D25AFB7BBB2967EE041FA4BA58A0C0E';
 
 var app = require(__dirname+'/../../lib/express_app.js');
 
@@ -141,8 +141,9 @@ describe('HTTP Payments endpoints', function(){
           request(app)
             .get('/v1/uuid')
             .end(function(error, response){
+              var clientResourceId = response.body.uuid
               var params = {
-                client_resource_id: response.body.uuid,
+                client_resource_id: clientResourceId,
                 payment: payment,
                 secret: SECRET
               };
@@ -150,7 +151,9 @@ describe('HTTP Payments endpoints', function(){
                 .post('/v1/payments')
                 .send(params)
                 .end(function(error, response) {
-                  assert(response.success);
+                  assert(response.body.success);
+                  assert(response.body.status_url);
+                  assert.strictEqual(response.body.client_resource_id, clientResourceId);
                   done();
                 });
             });
