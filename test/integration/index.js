@@ -141,7 +141,7 @@ describe('HTTP Payments endpoints', function(){
           request(app)
             .get('/v1/uuid')
             .end(function(error, response){
-              var clientResourceId = response.body.uuid
+              var clientResourceId = response.body.uuid;
               var params = {
                 client_resource_id: clientResourceId,
                 payment: payment,
