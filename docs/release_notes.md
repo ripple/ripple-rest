@@ -1,3 +1,16 @@
+##06/18/2014
+
+##Version:
+1.1.1
+
+##Added features
+- Add Istanbul code coverage tests
+- Refactor out express app object
+- Add a few integration tests using superagent
+
+##Bug Fixes
+- Return 500 instead of 200 on invalid ripple address
+
 ##06/11/2014
 
 ##Version:
