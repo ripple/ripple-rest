@@ -4,3 +4,4 @@ accounts.json
 *.sqlite
 config.json
 .DS_Store
+coverage/

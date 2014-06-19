@@ -1,22 +1,175 @@
-var ripple    = require('ripple-lib');
-var async     = require('async');
-var _         = require('lodash');
+var _          = require('lodash');
+var async      = require('async');
+var ripple     = require('ripple-lib');
 var server_lib = require('../lib/server-lib');
-var validator = require('../lib/schema-validator');
+var validator  = require('../lib/schema-validator');
 
-var DEFAULT_RESULTS_PER_PAGE = 10;
-var NUM_TRANSACTION_TYPES = 5;
+module.exports = {
 
-exports.get = getTransaction;
-exports.getTransaction = _getTransaction;
+  DEFAULT_RESULTS_PER_PAGE: 10,
+  NUM_TRANSACTION_TYPES: 5,
+  DEFAULT_LEDGER_BUFFER: 6,
 
-function _getTransaction($, req, res, callback) {
+  submit: submitTransaction,
+  get: getTransaction,
+  getTransactionHelper: getTransactionHelper,
+  getAccountTransactions: getAccountTransactions
+
+};
+
+/**
+ *  Submit a normal ripple-lib transaction, blocking duplicates
+ *  for payments and orders.
+ *
+ *  @param {Remote} $.remote
+ *  @param {/lib/db-interface} $.dbinterface
+ *  @param {Transaction} data.transaction
+ *  @param {String} data.secret
+ *  @param {String} data.client_resource_id
+ *  @param {Express.js Response} res Used to send error messages directly to the client
+ *  @param {Function} callback
+ *
+ *  @callback
+ *  @param {Error} error Submission Error
+ *  @param {submission response} response The response received from the 'proposed' event
+ */
+function submitTransaction($, data, res, callback) {
+
+  function ensureConnected(async_callback) {
+    server_lib.ensureConnected($.remote, function(err, connected) {
+      if (connected) {
+        async_callback();
+      } else if (err) {
+        res.json(500, { success: false, message: err.message });
+      } else {
+        res.json(500, { success: false, message: 'No connection to rippled' });
+      }
+    });
+  };
+
+  function prepareTransaction(async_callback) {
+    // Secret is stored in transaction object, not in ripple-lib Remote
+    // Note that transactions submitted with incorrect secrets will be passed
+    // to rippled, which will respond with a 'temBAD_AUTH_MASTER' error
+    // TODO: locally verify that the secret corresponds to the given account
+    data.transaction.secret(data.secret);
+    data.transaction.clientID(data.client_resource_id);
+
+    async_callback(null, data.transaction);
+  };
+
+  function blockDuplicates(transaction, async_callback) {    
+    // Block duplicate payments and orders
+    // Don't block other transaction types because the clients may use a specific
+    // client_resource_id to identify a particular trustline or account settings resource
+    // instead of a particular "transaction" to change one of those resources 
+    var type = transaction.tx_json.TransactionType;
+    if (type !== 'Payment' && type !== 'OfferCreate' && type !== 'OfferCancel') {
+      return async_callback(null, transaction);
+    }
+
+    $.dbinterface.getTransaction({
+      source_account: transaction.tx_json.Account,
+      client_resource_id: data.client_resource_id,
+      type: transaction.tx_json.TransactionType.toLowerCase()
+    }, function(err, db_record) {
+        if (err) {
+          return async_callback(err);
+        }
+
+        // Don't block resubmissions of failed transactions
+        if (db_record && db_record.state !== 'failed') {
+          res.json(500, { success: false, message: 'Duplicate Transaction. ' +
+            'A record already exists in the database for a transaction of this type ' +
+            'with the same client_resource_id. If this was not an accidental resubmission ' +
+            'please submit the transaction again with a unique client_resource_id' });
+        } else {
+          async_callback(null, transaction);
+        }
+    });
+  };
+
+  function submitTransaction(transaction, async_callback) {
+    transaction.remote = $.remote;
+    transaction.lastLedger(Number($.remote._ledger_current_index) + module.exports.DEFAULT_LEDGER_BUFFER);
+
+    transaction.once('error', async_callback);
+
+    // The 'proposed' event is fired when ripple-lib receives an initial tesSUCCESS response from
+    // rippled. This does not guarantee that the transaction will be validated but it is at this
+    // point that we want to respond to the user that the transaction has been submitted
+    transaction.once('proposed', function() {
+      transaction.removeListener('error', async_callback);
+      async_callback(null, transaction._clientID);
+    });
+
+    // Note that ripple-lib saves the transaction to the db throughout the submission process
+    // using the persistence functions passed to the ripple-lib Remote instance
+    transaction.submit();
+  };
+
+  var steps = [
+    ensureConnected,
+    prepareTransaction,
+    blockDuplicates,
+    submitTransaction
+  ];
+
+  async.waterfall(steps, callback);
+};
+
+/**
+ *  Wrapper around getTransactionHelper function that is
+ *  meant to be used directly as a client-facing function.
+ *  Unlike getTransactionHelper, it will call next with any errors
+ *  and send a JSON response to the client on success.
+ *
+ *  See getTransactionHelper for parameter details
+ */
+function getTransaction($, req, res, next) {
+  getTransactionHelper($, req, res, function(err, transaction) {
+    if (err) {
+      next(err);
+    } else {
+      res.json(200, { success: true, transaction: transaction });
+    }
+  });
+};
+
+/**
+ *  Retrieve a transaction from the Remote and local database
+ *  based on the account and either hash or client_resource_id.
+ *
+ *  Note that if any errors are encountered while executing this function
+ *  they will be sent back to the client through the res. If the query is
+ *  successful it will be passed to the callback function which can either
+ *  send the transaction directly back to the client (e.g. in the case of
+ *  getTransaction) or can process the transaction more (e.g. in the case
+ *  of the Notification or Payment related functions).
+ *
+ *  @param {Remote} $.remote
+ *  @param {/lib/db-interface} $.dbinterface
+ *  @param {RippleAddress} req.params.account
+ *  @param {Hex-encoded String|ASCII printable character String} req.params.identifier
+ *  @param {Express.js Response} res
+ *  @param {Function} callback
+ *
+ *  @callback
+ *  @param {Error} error
+ *  @param {Transaction} transaction
+ */
+function getTransactionHelper($, req, res, callback) {
   var opts = $.opts || {
     account: req.params.account,
     identifier: req.params.identifier
   };
 
   function validateOptions(async_callback) {
+    // opts.account may not be present in the case of the GET /transactions/{hash} endpoint
+    if (opts.account && !validator.isValid(opts.account, 'RippleAddress')) {
+      return res.json(400, { success: false, message: 'Invalid parameter: account. Must be a valid Ripple Address' });
+    }
+
     if (!opts.identifier) {
       res.json(400, { success: false, message: 'Missing parameter: identifier' });
     } else if (validator.isValid(opts.identifier, 'Hash256')) {
@@ -26,22 +179,34 @@ function _getTransaction($, req, res, callback) {
       opts.client_resource_id = opts.identifier;
       async_callback();
     } else {
-      res.json(400, { success: false, message: 'Parameter not a valid transaction hash: identifier' });
+      res.json(400, { success: false, message: 'Parameter not a valid transaction hash or client_resource_id: identifier' });
     }
   };
 
   function ensureConnected(async_callback) {
     server_lib.ensureConnected($.remote, function(err, connected){
-      if (!connected) {
-        return res.json(500, { success: false, message: 'No connection to rippled' });
+      if (connected) {
+        async_callback();
+      } else if (err) {
+        res.json(500, { success: false, message: err.message });
       } else {
-        async_callback(err);
+        res.json(500, { success: false, message: 'No connection to rippled' });
       }
     });
   };
 
   function queryTransaction(async_callback) {
-    $.dbinterface.getTransaction(opts, function(error, entry) {
+    $.dbinterface.getTransaction(opts, function(err, entry) {
+      if (err) {
+        return async_callback(err);
+      }
+
+      // Store the client_resource_id in the greater function's scope
+      // so that it can be used further down the async waterfall
+      if (entry && entry.client_resource_id) {
+        opts.client_resource_id = entry.client_resource_id;
+      }
+
       if (entry && entry.transaction) {
         // If the whole transaction was found in the database,
         // pass it back to the callback
@@ -74,7 +239,6 @@ function _getTransaction($, req, res, callback) {
     }
 
     async_callback(null, transaction);
-
   };
 
   function attachResourceID(transaction, async_callback) {
@@ -89,13 +253,14 @@ function _getTransaction($, req, res, callback) {
       return async_callback(null, transaction);
     }
 
-    $.remote.requestLedger(transaction.ledger_index, function(err, res) {
+    // Get ledger containing the transaction to determine date
+    $.remote.requestLedger(transaction.ledger_index, function(err, ledger_res) {
       if (err) {
         return res.json(404, { success: false, message: 'Transaction ledger not found' });
       }
 
-      if (typeof res.ledger.close_time === 'number') {
-        transaction.date = ripple.utils.time.fromRipple(res.ledger.close_time);
+      if (typeof ledger_res.ledger.close_time === 'number') {
+        transaction.date = ripple.utils.time.fromRipple(ledger_res.ledger.close_time);
       }
 
       async_callback(null, transaction);
@@ -114,62 +279,74 @@ function _getTransaction($, req, res, callback) {
   async.waterfall(steps, callback);
 };
 
-function getTransaction($, req, res, next) {
-  _getTransaction($, req, res, function(err, transaction) {
-    if (err) {
-      next(err);
-    } else {
-      res.json(200, { success: true, transaction: transaction });
-    }
-  });
-};
-
 /**
- *  Get all failed and validated transactions for the specified account
- *  from the local database as well as the rippled.
+ *  Recursively get transactions for the specified account from 
+ *  the Remote and local database. If opts.min is set, this will
+ *  recurse until it has retrieved that number of transactions or
+ *  it has reached the end of the account's transaction history.
  *
- *  opts:
- *    account
- *    source_account
- *    destination_account
- *    ledger_index or ledger_index_min / ledger_index_max
- *    descending
- *    max
- *    min
- *    offset
- *    exclude_failed
- *    types
+ *  @param {Remote} $.remote
+ *  @param {/lib/db-interface} $.dbinterface
+ *  @param {RippleAddress} opts.account
+ *  @param {Number} [-1] opts.ledger_index_min
+ *  @param {Number} [-1] opts.ledger_index_max
+ *  @param {Boolean} [false] opts.earliest_first
+ *  @param {Boolean} [false] opts.binary
+ *  @param {Boolean} [false] opts.exclude_failed
+ *  @param {Number} [DEFAULT_RESULTS_PER_PAGE] opts.min
+ *  @param {Number} [DEFAULT_RESULTS_PER_PAGE] opts.max
+ *  @param {Array of Strings} opts.types Possible values are "payment", "offercreate", "offercancel", "trustset", "accountset"
+ *  @param {opaque value} opts.marker
+ *  @param {Array of Transactions} opts.previous_transactions Included automatically when this function is called recursively
+ *  @param {Express.js Response} res
+ *  @param {Function} callback
+ *
+ *  @callback
+ *  @param {Error} error
+ *  @param {Array of transactions in JSON format} transactions
  */
-
-// TODO Refactor this code and clean up the logic
-
-exports.getAccountTransactions = getAccountTransactions;
-
-function getAccountTransactions(remote, dbinterface, opts, callback, previous_transactions) {
-  if (!opts.max) {
-    opts.max = DEFAULT_RESULTS_PER_PAGE;
-  }
+function getAccountTransactions($, opts, res, callback) {
 
   if (!opts.min) {
-    opts.min = DEFAULT_RESULTS_PER_PAGE;
+    opts.min = module.exports.DEFAULT_RESULTS_PER_PAGE;
   }
 
-  // Limit will be set if this function is called recursively
+  if (!opts.max) {
+    opts.max = Math.max(opts.min, module.exports.DEFAULT_RESULTS_PER_PAGE);
+  }
+
   if (!opts.limit) {
-    if (opts.types && opts.types.length < NUM_TRANSACTION_TYPES) {
-      opts.limit = 2 * Math.max(opts.max, DEFAULT_RESULTS_PER_PAGE);
-    } else {
-      opts.limit = opts.max;
-    }
+    opts.limit = Math.max(opts.max, module.exports.DEFAULT_RESULTS_PER_PAGE);
   }
 
-  function ensureConnected(async_callback) {
-    server_lib.ensureConnected(remote, async_callback);
+  function validateOptions(async_callback) {
+    if (!opts.account) {
+      return res.json(400, { success: false, message: 'Missing parameter: account. ' +
+        'Must supply a valid Ripple Address to query account transactions' });
+    }
+
+    if (!validator.isValid(opts.account, 'RippleAddress')) {
+      return res.json(400, { success: false, message: 'Invalid parameter: account. ' +
+        'Must supply a valid Ripple Address to query account transactions' });
+    }
+
+    async_callback();
   };
 
-  function queryTransactions(connected, async_callback) {
-    // Get transactions from rippled and local db
-    getLocalAndRemoteTransactions(remote, dbinterface, opts, async_callback);
+  function ensureConnected(async_callback) {
+    server_lib.ensureConnected($.remote, function(err, connected){
+      if (connected) {
+        async_callback();
+      } else if (err) {
+        res.json(500, { success: false, message: err.message });
+      } else {
+        res.json(500, { success: false, message: 'No connection to rippled' });
+      }
+    });
+  };
+
+  function queryTransactions(async_callback) {
+    getLocalAndRemoteTransactions($, opts, async_callback);
   };
 
   function filterTransactions(transactions, async_callback) {
@@ -178,27 +355,18 @@ function getAccountTransactions(remote, dbinterface, opts, callback, previous_tr
   };
 
   function sortTransactions(transactions, async_callback) {
-    // Sort results
-    transactions.sort(_.partialRight(compareTransactions, opts.descending));
+    transactions.sort(function(first, second) {
+      return compareTransactions(first, second, opts.earliest_first);
+    });
+
     async_callback(null, transactions);
   };
 
-  var steps = [
-    ensureConnected,
-    queryTransactions,
-    filterTransactions,
-    sortTransactions
-  ];
-
-  async.waterfall(steps, function(err, transactions) {
-    if (err) {
-      return callback(err);
-    }
-
+  function mergeAndTruncateResults(transactions, async_callback) {
     // Combine transactions with previous_transactions from previous
     // recursive call of this function
-    if (previous_transactions && previous_transactions.length > 0) {
-      transactions = previous_transactions.concat(transactions);
+    if (opts.previous_transactions && opts.previous_transactions.length > 0) {
+      transactions = opts.previous_transactions.concat(transactions);
     }
 
     // Handle offset
@@ -213,21 +381,62 @@ function getAccountTransactions(remote, dbinterface, opts, callback, previous_tr
       transactions = transactions.slice(0, opts.max);
     }
 
+    async_callback(null, transactions);
+  };
+
+  var steps = [
+    validateOptions,
+    ensureConnected,
+    queryTransactions,
+    filterTransactions,
+    sortTransactions,
+    mergeAndTruncateResults
+  ];
+
+  async.waterfall(steps, function(err, transactions) {
+    if (err) {
+      return callback(err);
+    }
+
     // If there are enough transactions, send them back to the client
     // Otherwise recurse
     if (!opts.min || transactions.length >= opts.min || !opts.marker) {
+
       callback(null, transactions);
+
     } else {
+
+      opts.previous_transactions = transactions;
       setImmediate(function() {
-        getAccountTransactions(remote, dbinterface, opts, callback, transactions);
+        getAccountTransactions($, opts, res, callback);
       });
+
     }
   });
 };
 
-function getLocalAndRemoteTransactions(remote, dbinterface, opts, callback) {
+/**
+ *  Retrieve transactions from the Remote as well as the local database.
+ *
+ *  @param {Remote} $.remote
+ *  @param {/lib/db-interface} $.dbinterface
+ *  @param {RippleAddress} opts.account
+ *  @param {Number} [-1] opts.ledger_index_min
+ *  @param {Number} [-1] opts.ledger_index_max
+ *  @param {Boolean} [false] opts.earliest_first
+ *  @param {Boolean} [false] opts.binary
+ *  @param {Boolean} [false] opts.exclude_failed
+ *  @param {opaque value} opts.marker
+ *  @param {Function} callback
+ *
+ *  @callback
+ *  @param {Error} error
+ *  @param {Array of transactions in JSON format} transactions
+ */
+function getLocalAndRemoteTransactions($, opts, callback) {
+
   function queryRippled(callback) {
-    getAccountTx(remote, opts, function(err, results) {
+    getAccountTx($.remote, opts, function(err, results) {
       if (err) {
         callback(err);
       } else {
@@ -244,18 +453,21 @@ function getLocalAndRemoteTransactions(remote, dbinterface, opts, callback) {
     if (opts.exclude_failed) {
       callback(null, [ ]);
     } else {
-      dbinterface.getFailedTransactions(opts, callback);
+      $.dbinterface.getFailedTransactions(opts, callback);
     }
   };
 
-  var transaction_sources = [ queryRippled, queryDB ];
+  var transaction_sources = [ 
+    queryRippled, 
+    queryDB
+  ];
 
-  async.parallel(transaction_sources, function(err, results) {
+  async.parallel(transaction_sources, function(err, source_results) {
     if (err) {
       return callback(err);
     }
 
-    var results = results[0].concat(results[1]);
+    var results = source_results[0].concat(source_results[1]);
     var transactions = _.uniq(results, function(tx) {
       return tx.hash;
     });
@@ -264,8 +476,20 @@ function getLocalAndRemoteTransactions(remote, dbinterface, opts, callback) {
   });
 };
 
+/**
+ *  Filter transactions based on the given set of options.
+ *  
+ *  @param {Array of transactions in JSON format} transactions
+ *  @param {Boolean} [false] opts.exclude_failed
+ *  @param {Array of Strings} opts.types Possible values are "payment", "offercreate", "offercancel", "trustset", "accountset"
+ *  @param {RippleAddress} opts.source_account
+ *  @param {RippleAddress} opts.destination_account
+ *  @param {String} opts.direction Possible values are "incoming", "outgoing"
+ *
+ *  @returns {Array of transactions in JSON format} filtered_transactions
+ */
 function transactionFilter(transactions, opts) {
-  var filtered = transactions.filter(function(transaction) {
+  var filtered_transactions = transactions.filter(function(transaction) {
     if (opts.exclude_failed) {
       if (transaction.state === 'failed' || (transaction.meta && transaction.meta.TransactionResult !== 'tesSUCCESS')) {
         return false;
@@ -290,52 +514,102 @@ function transactionFilter(transactions, opts) {
       }
     }
 
+    if (opts.direction) {
+      if (opts.direction === 'outgoing' && transaction.Account !== opts.account) {
+        return false;
+      }
+      if (opts.direction === 'incoming' && transaction.Destination && transaction.Destination !== opts.account) {
+        return false;
+      }
+    }
+
     return true;
   });
 
-  return filtered;
+  return filtered_transactions;
 };
 
 /**
- *  Order two transactions based on their ledger_index and date
+ *  Order two transactions based on their ledger_index.
+ *  If two transactions took place in the same ledger, sort
+ *  them based on a lexicographical comparison of their hashes
+ *  to ensure the ordering is deterministic.
+ *
+ *  @param {transaction in JSON format} first
+ *  @param {transaction in JSON format} second
+ *  @param {Boolean} [false] earliest_first
+ *  @returns {Number} comparison Returns -1 or 1
  */
+function compareTransactions(first, second, earliest_first) {
+  var first_index = first.ledger || first.ledger_index;
+  var second_index = second.ledger || second.ledger_index;
 
-function compareTransactions(a, b, descending) {
-  var a_index = a.ledger || a.ledger_index;
-  var b_index = b.ledger || b.ledger_index;
-  var a_less_than_b = true;
+  var first_less_than_second = true;
 
-  if (a_index === b_index) {
-    if (a.date <= b.date) {
-      a_less_than_b = true;
+  if (first_index === second_index) {
+
+    if (first.hash <= second.hash) {
+      first_less_than_second = true;
     } else {
-      a_less_than_b = false;
+      first_less_than_second = false;
     }
-  } else if (a_index < b_index) {
-    a_less_than_b = true;
+
+  } else if (first_index < second_index) {
+    first_less_than_second = true;
   } else {
-    a_less_than_b = false;
+    first_less_than_second = false;
   }
 
-  // If the results are meant to be descending, swap this value
-  if (descending) {
-    a_less_than_b = !a_less_than_b;
+  if (earliest_first) {
+
+    if (first_less_than_second) {
+      return -1;
+    } else {
+      return 1;
+    }
+
+  } else  {
+
+    if (first_less_than_second) {
+      return 1;
+    } else {
+      return -1;
+    }
+
   }
 
-  return a_less_than_b ? -1 : 1;
 };
 
+/**
+ *  Wrapper around the standard ripple-lib requestAccountTx function
+ *
+ *  @param {Remote} remote
+ *  @param {RippleAddress} opts.account
+ *  @param {Number} [-1] opts.ledger_index_min
+ *  @param {Number} [-1] opts.ledger_index_max
+ *  @param {Boolean} [false] opts.earliest_first
+ *  @param {Boolean} [false] opts.binary
+ *  @param {opaque value} opts.marker
+ *  @param {Function} callback
+ *
+ *  @callback
+ *  @param {Error} error
+ *  @param {Array of transactions in JSON format} response.transactions
+ *  @param {opaque value} response.marker
+ */
 function getAccountTx(remote, opts, callback) {
   var params = {
     account: opts.account,
     ledger_index_min: opts.ledger_index_min || opts.ledger_index || -1,
     ledger_index_max: opts.ledger_index_max || opts.ledger_index || -1,
     limit: opts.limit || DEFAULT_RESULTS_PER_PAGE,
-    forward: (opts.hasOwnProperty('descending') ? !opts.descending : true),
+    forward: opts.earliest_first,
     marker: opts.marker
   };
 
-  if (opts.binary) params.binary = true;
+  if (opts.binary) {
+    params.binary = true;
+  }
 
   remote.requestAccountTx(params, function(err, account_tx_results) {
     if (err) {
@@ -355,22 +629,5 @@ function getAccountTx(remote, opts, callback) {
       transactions: transactions,
       marker: account_tx_results.marker
     });
-  });
-};
-
-exports.countAccountTransactionsInLedger = countAccountTransactionsInLedger;
-
-function countAccountTransactionsInLedger(remote, dbinterface, opts, callback) {
-  getAccountTransactions(remote, dbinterface, {
-    account: opts.account,
-    ledger_index_min: opts.ledger_index,
-    ledger_index_max: opts.ledger_index,
-    binary: true
-  }, function(err, transactions) {
-      if (err) {
-        callback(err);
-      } else {
-        callback(null, transactions.length);
-      }
   });
 };
