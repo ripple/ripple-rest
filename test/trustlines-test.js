@@ -11,7 +11,7 @@ function createInterface() {
   server._lastLedgerClose = Date.now() - 1;
   server._opts = { url: 'wss://example.com' };
 
-  server.computeFee = function() {
+  server._computeFee = function() {
     return '12';
   };
 
