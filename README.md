@@ -118,4 +118,7 @@ Note that the server can be run in Debug Mode by running `node server.js --debug
   sudo -E -u restful /usr/bin/node server.js
   ```
 
+## Deploying with Capistrano
+
+Deploying with Capistrano is [__documented here__](docs/capistrano.md) 
 
