@@ -233,7 +233,7 @@ function paymentIsValid(payment, callback) {
  *
  *  @param {Payment} payment
  *  @param {Function} callback
- * 
+ *
  *  @callback
  *  @param {Error} error
  *  @param {ripple-lib Transaction} transaction
@@ -270,7 +270,7 @@ function paymentToTransaction(payment, callback) {
     }
 
     if (payment.invoice_id) {
-      transaction_data.invoiceID = payment.invoice_id;
+      transaction.invoiceID(payment.invoice_id);
     }
 
     transaction.payment(transaction_data);
@@ -295,8 +295,8 @@ function paymentToTransaction(payment, callback) {
         } else {
           transaction.sendMax({
             value: max_value,
-            currency: source_amount.currency,
-            issuer: source_amount.issuer
+            currency: payment.source_amount.currency,
+            issuer: payment.source_amount.issuer
           });
         }
       }
@@ -533,7 +533,7 @@ function parsePaymentFromTx(tx, opts) {
 
 /**
  *  Retrieve the details of multiple payments from the Remote
- *  and the local database. 
+ *  and the local database.
  *
  *  This function calls transactions.getAccountTransactions
  *  recursively to retrieve results_per_page number of transactions
@@ -707,7 +707,7 @@ function getPathFind($, req, res, next) {
           params.source_currencies.push(currency_object);
         } else {
           return res.json(400, { success: false, message: 'Invalid parameter: source_currencies. ' +
-            'Must be a list of valid currencies' });          
+            'Must be a list of valid currencies' });
         }
 
       } else {
@@ -716,7 +716,7 @@ function getPathFind($, req, res, next) {
           params.source_currencies.push({ currency: source_currency_strings[c] });
         } else {
           return res.json(400, { success: false, message: 'Invalid parameter: source_currencies. ' +
-            'Must be a list of valid currencies' });          
+            'Must be a list of valid currencies' });
         }
 
       }
@@ -1064,106 +1064,17 @@ function parsePaymentFromTx(tx, opts) {
 
 
 
-function paymentToTransaction(payment, callback) {
-  // Validate Input
-  try {
-    // Convert blank issuer to sender's address (Ripple convention for 'any issuer')
-    if (payment.source_amount && payment.source_amount.currency !== 'XRP' && payment.source_amount.issuer === '') {
-      payment.source_amount.issuer = payment.source_account;
-    }
-    if (payment.destination_amount && payment.destination_amount.currency !== 'XRP' && payment.destination_amount.issuer === '') {
-      payment.destination_amount.issuer = payment.destination_account;
-    }
 
-    // Uppercase currency codes
-    if (payment.source_amount) {
-      payment.source_amount.currency = payment.source_amount.currency.toUpperCase();
-    }
-    if (payment.destination_amount) {
-      payment.destination_amount.currency = payment.destination_amount.currency.toUpperCase();
-    }
-
-    /* Construct payment */
-    var transaction = new ripple.Transaction(),
-    transaction_data = {
-      from: payment.source_account,
-      to: payment.destination_account
-    };
-
-    if (payment.destination_amount.currency === 'XRP') {
-      transaction_data.amount = utils.xrpToDrops(payment.destination_amount.value);
-    } else {
-      transaction_data.amount = payment.destination_amount;
-    }
-
-    if (payment.invoice_id) {
-      transaction_data.invoiceID = payment.invoice_id;
-    }
-
-    transaction.payment(transaction_data);
-
-    // Tags
-    if (payment.source_tag) {
-      transaction.sourceTag(parseInt(payment.source_tag, 10));
-    }
-    if (payment.destination_tag) {
-      transaction.destinationTag(parseInt(payment.destination_tag, 10));
-    }
-
-    // SendMax
-    if (payment.source_amount) {
-      // Only set send max if source and destination currencies are different
-      if (!(payment.source_amount.currency === payment.destination_amount.currency && payment.source_amount.issuer === payment.source_amount.issuer)) {
-
-        var max_value = bignum(payment.source_amount.value).plus(payment.source_slippage).toString();
-
-        if (payment.source_amount.currency === 'XRP') {
-          transaction.sendMax(utils.xrpToDrops(max_value));
-        } else {
-          transaction.sendMax({
-            value: max_value,
-            currency: source_amount.currency,
-            issuer: source_amount.issuer
-          });
-        }
-      }
-    }
-
-    // Paths
-    if (typeof payment.paths === 'string') {
-      transaction.paths(JSON.parse(payment.paths));
-    } else if (typeof payment.paths === 'object') {
-      transaction.paths(payment.paths);
-    }
-
-    // Flags
-    var flags = [];
-    if (payment.partial_payment) {
-      flags.push('PartialPayment');
-    }
-    if (payment.no_direct_ripple) {
-      flags.push('NoRippleDirect');
-    }
-    if (flags.length > 0) {
-      transaction.setFlags(flags);
-    }
-
-  } catch (e) {
-    return callback(e);
-  }
-
-  callback(null, transaction);
-};
 
 /**
  *  Convert the pathfind results returned from rippled into an
- *  array of payments in the ripple-rest format. The client should be 
+ *  array of payments in the ripple-rest format. The client should be
  *  able to submit any of the payments in the array back to ripple-rest.
  *
  *  @param {rippled Pathfind results} pathfind_results
  *  @param {Amount} opts.destination_amount Since this is not returned by rippled in the pathfind results it can either be added to the results or included in the opts here
  *  @param {RippleAddress} opts.source_account Since this is not returned by rippled in the pathfind results it can either be added to the results or included in the opts here
- *  
+ *
  *  @returns {Array of Payments} payments
  */
 function parsePaymentsFromPathfind(pathfind_results, opts) {
@@ -1196,8 +1107,8 @@ function parsePaymentsFromPathfind(pathfind_results, opts) {
       {
         value: alternative.source_amount.value,
         currency: alternative.source_amount.currency,
-        issuer: (alternative.source_amount.issuer === pathfind_results.source_account ? 
-          '' : 
+        issuer: (alternative.source_amount.issuer === pathfind_results.source_account ?
+          '' :
           alternative.source_amount.issuer)
       }),
       source_slippage: '0',
@@ -1228,4 +1139,3 @@ function parsePaymentsFromPathfind(pathfind_results, opts) {
 
   return payments;
 };
-
