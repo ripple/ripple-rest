@@ -34,9 +34,9 @@ describe('HTTP Payments endpoints', function(){
   it('should error with an invalid ripple address', function(callback){
     request(app)
       .get('/v1/accounts/someinvalidaddress/payments')
-      .expect(500)
+      .expect(400)
       .end(function(error, response){
-        assert.strictEqual(response.statusCode, 500);
+        assert.strictEqual(response.statusCode, 400);
         assert(!response.body.success);
         assert.strictEqual(response.body.message, 'Specified address is invalid: account');
         callback();
