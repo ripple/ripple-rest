@@ -233,7 +233,7 @@ function paymentIsValid(payment, callback) {
  *
  *  @param {Payment} payment
  *  @param {Function} callback
- * 
+ *
  *  @callback
  *  @param {Error} error
  *  @param {ripple-lib Transaction} transaction
@@ -295,8 +295,8 @@ function paymentToTransaction(payment, callback) {
         } else {
           transaction.sendMax({
             value: max_value,
-            currency: source_amount.currency,
-            issuer: source_amount.issuer
+            currency: payment.source_amount.currency,
+            issuer: payment.source_amount.issuer
           });
         }
       }
@@ -533,7 +533,7 @@ function parsePaymentFromTx(tx, opts) {
 
 /**
  *  Retrieve the details of multiple payments from the Remote
- *  and the local database. 
+ *  and the local database.
  *
  *  This function calls transactions.getAccountTransactions
  *  recursively to retrieve results_per_page number of transactions
@@ -707,7 +707,7 @@ function getPathFind($, req, res, next) {
           params.source_currencies.push(currency_object);
         } else {
           return res.json(400, { success: false, message: 'Invalid parameter: source_currencies. ' +
-            'Must be a list of valid currencies' });          
+            'Must be a list of valid currencies' });
         }
 
       } else {
@@ -716,7 +716,7 @@ function getPathFind($, req, res, next) {
           params.source_currencies.push({ currency: source_currency_strings[c] });
         } else {
           return res.json(400, { success: false, message: 'Invalid parameter: source_currencies. ' +
-            'Must be a list of valid currencies' });          
+            'Must be a list of valid currencies' });
         }
 
       }
@@ -1068,13 +1068,13 @@ function parsePaymentFromTx(tx, opts) {
 
 /**
  *  Convert the pathfind results returned from rippled into an
- *  array of payments in the ripple-rest format. The client should be 
+ *  array of payments in the ripple-rest format. The client should be
  *  able to submit any of the payments in the array back to ripple-rest.
  *
  *  @param {rippled Pathfind results} pathfind_results
  *  @param {Amount} opts.destination_amount Since this is not returned by rippled in the pathfind results it can either be added to the results or included in the opts here
  *  @param {RippleAddress} opts.source_account Since this is not returned by rippled in the pathfind results it can either be added to the results or included in the opts here
- *  
+ *
  *  @returns {Array of Payments} payments
  */
 function parsePaymentsFromPathfind(pathfind_results, opts) {
@@ -1107,8 +1107,8 @@ function parsePaymentsFromPathfind(pathfind_results, opts) {
       {
         value: alternative.source_amount.value,
         currency: alternative.source_amount.currency,
-        issuer: (alternative.source_amount.issuer === pathfind_results.source_account ? 
-          '' : 
+        issuer: (alternative.source_amount.issuer === pathfind_results.source_account ?
+          '' :
           alternative.source_amount.issuer)
       }),
       source_slippage: '0',
@@ -1139,4 +1139,3 @@ function parsePaymentsFromPathfind(pathfind_results, opts) {
 
   return payments;
 };
-
