@@ -2,6 +2,7 @@
 
 [![Build Status](https://travis-ci.org/ripple/ripple-rest.svg?branch=develop)](https://travis-ci.org/ripple/ripple-rest)
 [![Coverage Status](https://coveralls.io/repos/ripple/ripple-rest/badge.png?branch=develop)](https://coveralls.io/r/ripple/ripple-rest?branch=develop)
+[![Code Climate](https://codeclimate.com/github/ripple/ripple-rest.png)](https://codeclimate.com/github/ripple/ripple-rest)
 
 A RESTful API for submitting payments and monitoring accounts on the Ripple Network.
 
@@ -118,4 +119,7 @@ Note that the server can be run in Debug Mode by running `node server.js --debug
   sudo -E -u restful /usr/bin/node server.js
   ```
 
+## Deploying with Capistrano
+
+Deploying with Capistrano is [__documented here__](docs/capistrano.md) 
 

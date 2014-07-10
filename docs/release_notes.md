@@ -1,3 +1,17 @@
+##07/10/2014
+
+##Version:
+1.1.2
+
+##Added features
+- Code climate integration badge
+- capistrano scripts for server deployment
+- new version of ripple-lib
+
+##Bug Fixes
+- Setting SendMax on payments
+- Fix broken outgoing payments endpoint
+
 ##06/18/2014
 
 ##Version:
