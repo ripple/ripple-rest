@@ -1,3 +1,15 @@
+##07/16/2014
+
+##Version:
+1.2.0
+
+##Added features
+- Return 502 Bad Gateway middleware when remote is not connected to rippled.
+
+##Bug Fixes
+- 502 Middleware fixes the crash-on-startup bug when clients try to connect before
+  ripple rest is connected to rippled.
+
 ##07/10/2014
 
 ##Version:
