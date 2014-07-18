@@ -1,6 +1,7 @@
 var assert = require('assert');
 var async = require('async');
-var httpClient = require('superagent');
+var httpClient = require('supertest');
+var appServer = require(__dirname+'/../../lib/express_app.js');
 
 describe('Getting next and previous notification urls', function() {
   before(function() {
@@ -32,9 +33,10 @@ describe('Getting next and previous notification urls', function() {
     this.timeout = 30000;
     function buildNotificationCallback(hash, index) {
       return function(callback) {
-        httpClient
-          .get('http://localhost:5990/v1/accounts/'+account+'/notifications/'+hash)
+        httpClient(appServer)
+          .get('/v1/accounts/'+account+'/notifications/'+hash)
           .end(function(error, response) {
+            console.log('ERROR',error);
             var notification = response.body.notification;
             var expectedHash = transactionHashesOrderedOldestToNewest[index];
             var expectedNextHash = transactionHashesOrderedOldestToNewest[index+1];
@@ -42,9 +44,9 @@ describe('Getting next and previous notification urls', function() {
               console.log(notification.hash, expectedHash);
               console.log(notification.next_hash, expectedNextHash);
               assert.strictEqual(notification.hash, expectedHash);
-              assert.strictEqual(notification.next_notification_url, 'http://localhost:5990/v1/accounts/'+account+'/notifications/'+expectedNextHash);
               assert.strictEqual(notification.hash, expectedHash);
               if (index < index.length-1) {
+                assert.strictEqual(notification.next_notification_url, 'http://127.0.0.1:5990/v1/accounts/'+account+'/notifications/'+expectedNextHash);
                 assert.strictEqual(notification.next_hash, expectedNextHash);
               }
             } else {
@@ -58,10 +60,12 @@ describe('Getting next and previous notification urls', function() {
     transactionHashesOrderedOldestToNewest.forEach(function(transactionHash, index) {
       notificationCallbacks.push(buildNotificationCallback(transactionHash, index));
     }); 
-    async.series(notificationCallbacks, function(error, response) {
-      console.log('ERROR', error);
-      done();
-    });
+    setTimeout(function() {
+      async.series(notificationCallbacks, function(error, response) {
+        console.log('ERROR', error);
+        done();
+      });
+    }, 10000);
   });
 });
 

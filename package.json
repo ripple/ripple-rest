@@ -58,6 +58,7 @@
     "pg.js": "~3.2.0",
     "sqlite3": "~2.2.0",
     "node-uuid": "~1.4.1",
-    "supertest": "^0.13.0"
+    "supertest": "^0.13.0",
+    "superagent": "^0.18.2"
   }
 }
