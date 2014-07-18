@@ -195,7 +195,40 @@ function getTransactionHelper($, req, res, callback) {
     });
   };
 
-  function queryTransaction(callback) {
+  function _queryTransactionFromDatabaseOrNetwork(async_callback) {
+    $.dbinterface.getTransaction(opts, function(err, entry) {
+      if (err) {
+        return async_callback(err);
+      }
+
+      // Store the client_resource_id in the greater function's scope
+      // so that it can be used further down the async waterfall
+      if (entry && entry.client_resource_id) {
+        opts.client_resource_id = entry.client_resource_id;
+      }
+
+      if (entry && entry.transaction) {
+        // If the whole transaction was found in the database,
+        // pass it back to the callback
+        async_callback(null, entry.transaction);
+      } else if (opts.hash) {
+        $.remote.requestTx(opts.hash, function(err, transaction){
+
+          // If some record for the transaction was found in the database
+          // attach the client_resource_id to the transaction retrieved from rippled
+          if (entry && transaction) {
+            transaction.client_resource_id = entry.client_resource_id;
+          }
+
+          async_callback(err, transaction);
+        });
+      } else {
+        res.json(404, { success: false, message: 'Transaction not found' });
+      }
+    });
+  };
+
+  function _queryTransactionFromNetwork(callback) {
     if (opts.hash) {
       $.remote.requestTx(opts.hash, function(error, transaction){
         callback(error, transaction);
@@ -247,14 +280,27 @@ function getTransactionHelper($, req, res, callback) {
     });
   };
 
-  var steps = [
-    validateOptions,
-    ensureConnected,
-    queryTransaction,
-    checkIfRelatedToAccount,
-    attachResourceID,
-    attachDate
-  ];
+  // Separate out behavior for Notifications versus Payments
+  // Removes database support for notifictions, retrieving all from the network
+  if (req.route.path === '/v1/accounts/:account/notifications/:identifier') {
+    var steps = [
+      validateOptions,
+      ensureConnected,
+      _queryTransactionFromNetwork,
+      checkIfRelatedToAccount,
+      attachResourceID,
+      attachDate
+    ];
+  } else {
+    var steps = [
+      validateOptions,
+      ensureConnected,
+      _queryTransactionFromDatabaseOrNetwork,
+      checkIfRelatedToAccount,
+      attachResourceID,
+      attachDate
+    ];
+  }
 
   async.waterfall(steps, callback);
 };
