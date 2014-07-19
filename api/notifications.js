@@ -24,33 +24,33 @@ module.exports = {
  *  @param {Express.js Response} res
  *  @param {Express.js Next} next
  */
-function getNotification($, req, res, next) {
-  getNotificationHelper($, req, res, function(err, notification) {
-    if (err) {
-      return next(err);
+function getNotification($, request, response, callback) {
+  getNotificationHelper($, request, response, function(error, notification) {
+    if (error) {
+      return callback(error);
     }
 
-    var response = {
+    var body = {
       success: true,
       notification: notification
     };
 
     // Add url_base to each url in notification
-    var url_base = req.protocol + '://' + req.host + ($.config && $.config.get('PORT') ? ':' + $.config.get('PORT') : '');
-    Object.keys(response.notification).forEach(function(key){
-      if (/url/.test(key) && response.notification[key]) {
-        response.notification[key] = url_base + response.notification[key];
+    var url_base = request.protocol + '://' + request.host + ($.config && $.config.get('PORT') ? ':' + $.config.get('PORT') : '');
+    Object.keys(body.notification).forEach(function(key){
+      if (/url/.test(key) && body.notification[key]) {
+        body.notification[key] = url_base + body.notification[key];
       }
     });
 
-    // Move client_resource_id to response body instead of inside the Notification
-    var client_resource_id = response.notification.client_resource_id;
-    delete response.notification.client_resource_id;    
-    if (client_resource_id) {
-      response.client_resource_id = client_resource_id;
+    // Move client_responseource_id to g instead of inside the Notification
+    var client_responseource_id = body.notification.client_responseource_id;
+    delete body.notification.client_responseource_id;    
+    if (client_responseource_id) {
+      body.client_responseource_id = client_responseource_id;
     }
 
-    res.json(200, response);
+    response.json(200, body);
   });
 };
 

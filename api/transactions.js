@@ -195,7 +195,7 @@ function getTransactionHelper($, req, res, callback) {
     });
   };
 
-  function queryTransaction(async_callback) {
+  function _queryTransactionFromDatabaseOrNetwork(async_callback) {
     $.dbinterface.getTransaction(opts, function(err, entry) {
       if (err) {
         return async_callback(err);
@@ -226,6 +226,19 @@ function getTransactionHelper($, req, res, callback) {
         res.json(404, { success: false, message: 'Transaction not found' });
       }
     });
+  };
+
+  function _queryTransactionFromNetwork(callback) {
+    if (opts.hash) {
+      $.remote.requestTx(opts.hash, function(error, transaction){
+        callback(error, transaction);
+      });
+    } else {
+      res.json(404, {
+        success: false,
+        message: 'Transaction not found'
+      });
+    }
   };
 
   function checkIfRelatedToAccount(transaction, async_callback) {
@@ -267,14 +280,27 @@ function getTransactionHelper($, req, res, callback) {
     });
   };
 
-  var steps = [
-    validateOptions,
-    ensureConnected,
-    queryTransaction,
-    checkIfRelatedToAccount,
-    attachResourceID,
-    attachDate
-  ];
+  // Separate out behavior for Notifications versus Payments
+  // Removes database support for notifictions, retrieving all from the network
+  if (req.route.path === '/v1/accounts/:account/notifications/:identifier') {
+    var steps = [
+      validateOptions,
+      ensureConnected,
+      _queryTransactionFromNetwork,
+      checkIfRelatedToAccount,
+      attachResourceID,
+      attachDate
+    ];
+  } else {
+    var steps = [
+      validateOptions,
+      ensureConnected,
+      _queryTransactionFromDatabaseOrNetwork,
+      checkIfRelatedToAccount,
+      attachResourceID,
+      attachDate
+    ];
+  }
 
   async.waterfall(steps, callback);
 };

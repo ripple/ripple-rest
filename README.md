@@ -13,6 +13,10 @@ See the [__API Reference__](docs/api-reference.md) for details on the available 
 
 `ripple-rest` requires Node.js and PostgreSQL for production systems but supports in-memory sqlite3 for testing.
 
+## Integration Testing
+
+The integration test suite is found under `test/integration/`, and uses the live ripple network ledger for testing.
+
 ### Quick Start Guide (Running with in-memory SQLite3)
 
 Follow these instructions to get your `ripple-rest` server installed running with in-memory SQLite3.
