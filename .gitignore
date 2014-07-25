@@ -5,3 +5,4 @@ accounts.json
 config.json
 .DS_Store
 coverage/
+.idea/
