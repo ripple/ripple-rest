@@ -1,3 +1,15 @@
+##07/29/2014
+
+##Version:
+1.2.1
+
+##Added Features
+- Enable invoiceID
+
+##Bug Fixes
+- Do not limit the amount of account transactions per ledger to 10,
+  fixing the issue where no incoming transactions were ever notified.
+
 ##07/16/2014
 
 ##Version:

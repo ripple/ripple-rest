@@ -268,7 +268,8 @@ function paymentToTransaction(payment, callback) {
     } else {
       transaction_data.amount = payment.destination_amount;
     }
-
+    
+    // invoice_id  Because transaction_data is a object,  transaction.payment function is ignored invoiceID
     if (payment.invoice_id) {
       transaction.invoiceID(payment.invoice_id);
     }

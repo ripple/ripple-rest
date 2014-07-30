@@ -18,12 +18,11 @@ See the [__API Reference__](docs/api-reference.md) for details on the available 
 Follow these instructions to get your `ripple-rest` server installed running with in-memory SQLite3.
 
 1. Run `git clone https://github.com/ripple/ripple-rest.git` in a terminal and switch into the `ripple-rest` directory
-2. Install the pg module globally for postgres database access: `npm install -g pg`.**
-3. Install dependencies needed: `npm install`
-4. Copy the config example to config.json: `cp config-example.json config.json`
-5. Edit the config.json file and remove the lines that set `DATABASE_URL` and `ssl`
-4. Run `node server.js` to start the server
-5. Visit [`http://localhost:5990`](http://localhost:5990) to view available endpoints and to get started
+2. Install dependencies needed: `npm install`
+3. Copy the config example to config.json: `cp config-example.json config.json`
+4. Edit the config.json file and remove the lines that set `DATABASE_URL` and `ssl`
+5. Run `node server.js` to start the server
+6. Visit [`http://localhost:5990`](http://localhost:5990) to view available endpoints and to get started
 
 Note: Restarting the server will delete the database so this CANNOT BE USED IN PRODUCTION.
 
@@ -121,5 +120,5 @@ Note that the server can be run in Debug Mode by running `node server.js --debug
 
 ## Deploying with Capistrano
 
-Deploying with Capistrano is [__documented here__](docs/capistrano.md) 
+Deploying with Capistrano is [__documented here__](docs/capistrano.md)
 
