@@ -199,6 +199,7 @@ function attachPreviousAndNextTransactionIdentifiers($, res, notification_detail
       ledger_index_min: notification_details.transaction.ledger_index,
       ledger_index_max: notification_details.transaction.ledger_index,
       exclude_failed: false,
+      max: 99999999,
       limit: 200 // arbitrary, just checking number of transactions in ledger
     };
 
