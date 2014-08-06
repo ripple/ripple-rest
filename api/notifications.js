@@ -4,6 +4,8 @@ var ripple = require('ripple-lib');
 var transactions = require('./transactions');
 var validator = require('../lib/schema-validator');
 var server_lib = require('../lib/server-lib');
+var remote = require(__dirnmae+'/../lib/remote.js');
+var config = require(__dirnmae+'/../lib/config-loader.js');
 
 module.exports = {
   getNotification: getNotification
@@ -22,8 +24,8 @@ module.exports = {
  *  @param {Express.js Response} res
  *  @param {Express.js Next} next
  */
-function getNotification($, request, response, next) {
-  getNotificationHelper($, request, response, function(error, notification) {
+function getNotification(server, request, response, next) {
+  getNotificationHelper(server, request, response, function(error, notification) {
     if (error) {
       return next(error);
     }
@@ -34,7 +36,7 @@ function getNotification($, request, response, next) {
     };
 
     // Add url_base to each url in notification
-    var url_base = request.protocol + '://' + request.host + ($.config && $.config.get('PORT') ? ':' + $.config.get('PORT') : '');
+    var url_base = request.protocol + '://' + request.host + (config && config.get('PORT') ? ':' + config.get('PORT') : '');
     Object.keys(responseBody.notification).forEach(function(key){
       if (/url/.test(key) && response.notification[key]) {
         responseBody.notification[key] = url_base + responseBody.notification[key];
@@ -69,7 +71,7 @@ function getNotification($, request, response, next) {
  *  @param {Error} error
  *  @param {Notification} notification
  */
-function getNotificationHelper($, request, response, callback) {
+function getNotificationHelper(server, request, response, callback) {
   var account = request.params.account;
   var identifier = request.params.identifier
 
@@ -81,11 +83,11 @@ function getNotificationHelper($, request, response, callback) {
   }
 
   function getTransaction(async_callback) {
-    transactions.getTransactionHelper($, request, response, async_callback);
+    transactions.getTransactionHelper(server, request, response, async_callback);
   };
 
   function checkLedger(base_transaction, async_callback) {
-    server_lib.remoteHasLedger($.remote, base_transaction.ledger_index, function(error, remote_has_ledger) {
+    server_lib.remoteHasLedger(remote, base_transaction.ledger_index, function(error, remote_has_ledger) {
       if (error) {
         return async_callback(error);
       }
@@ -115,7 +117,7 @@ function getNotificationHelper($, request, response, callback) {
       notification_details.client_resource_id = base_transaction.client_resource_id;
     }
 
-    attachPreviousAndNextTransactionIdentifiers($, res, notification_details, async_callback);
+    attachPreviousAndNextTransactionIdentifiers(server, res, notification_details, async_callback);
   };
 
   // Parse the Notification object from the notification_details
@@ -155,7 +157,7 @@ function getNotificationHelper($, request, response, callback) {
  *    "next_transaction_identifier", "next_hash",
  *    "previous_transaction_identifier", "previous_hash"} notification_details
  */
-function attachPreviousAndNextTransactionIdentifiers($, response, notification_details, callback) {
+function attachPreviousAndNextTransactionIdentifiers(server, response, notification_details, callback) {
 
   // Get all of the transactions affecting the specified
   // account in the given ledger. This is done so that 
@@ -173,7 +175,7 @@ function attachPreviousAndNextTransactionIdentifiers($, response, notification_d
       limit: 200 // arbitrary, just checking number of transactions in ledger
     };
 
-    transactions.getAccountTransactions($, params, response, async_callback);
+    transactions.getAccountTransactions(server, params, response, async_callback);
   };
 
   // All we care about is the count of the transactions
@@ -204,7 +206,7 @@ function attachPreviousAndNextTransactionIdentifiers($, response, notification_d
         params.ledger_index_min = -1;
       }
 
-      transactions.getAccountTransactions($, params, response, async_concat_callback);
+      transactions.getAccountTransactions(server, params, response, async_concat_callback);
 
     }, async_callback);
 
