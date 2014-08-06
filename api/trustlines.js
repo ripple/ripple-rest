@@ -12,7 +12,7 @@ const TrustSetFlags = {
 exports.get = getTrustLines;
 exports.add = addTrustLine;
 
-function getTrustLines(server, request, response, next) {
+function getTrustLines(request, response, next) {
   var steps = [
     validateOptions,
     ensureConnected,
@@ -97,7 +97,7 @@ function getTrustLines(server, request, response, next) {
 };
 
 
-function addTrustLine(server, request, response, next) {
+function addTrustLine(request, response, next) {
   var self = this;
   var options = request.params;
 
