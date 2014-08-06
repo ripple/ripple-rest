@@ -333,7 +333,6 @@ function parseNotification(notification_details){
     notification.transaction_url = '/v1/transaction/' + notification.hash;
   }
 
-  // Change type to resource name
   if (notification.type === 'offercreate' || notification.type === 'offercancel') {
     notification.type = 'order';
   } else if (notification.type === 'trustset') {

@@ -2,78 +2,77 @@ var async     = require('async');
 var bignum    = require('bignumber.js');
 var ripple    = require('ripple-lib');
 var serverLib = require('../lib/server-lib');
+var remote    = require(__dirname+'/../lib/remote.js');
 
 exports.get = getBalances;
 
-function getBalances($, req, res, next) {
+function getBalances(server, request, response, next) {
   var self = this;
-
-  var remote = $.remote;
-
-  var opts = {
-    account:       req.params.account,
-    currency:      req.query.currency,
-    counterparty:  req.query.counterparty
+  var options = {
+    account:       request.params.account,
+    currency:      request.query.currency,
+    counterparty:  request.query.counterparty
   };
-
-  var currencyRE = new RegExp(opts.currency ? ('^' + opts.currency.toUpperCase() + '$') : /./);
-  var balances = [ ];
+  var currencyRE = new RegExp(options.currency ? ('^' + options.currency.toUpperCase() + '$') : /./);
+  var balances = [];
 
   function validateOptions(callback) {
-    if (!ripple.UInt160.is_valid(opts.account)) {
-      return res.json(400, { success: false, message: 'Parameter is not a valid Ripple address: account' });
+    if (!ripple.UInt160.is_valid(options.account)) {
+      return response.json(400, {
+        success: false,
+        message: 'Parameter is not a valid Ripple address: account'
+      });
     }
-
-    if (opts.counterparty && !ripple.UInt160.is_valid(opts.counterparty)) {
-      return res.json(400, { success: false, message: 'Parameter is not a valid Ripple address: counterparty'});
+    if (options.counterparty && !ripple.UInt160.is_valid(options.counterparty)) {
+      return response.json(400, {
+        success: false,
+        message: 'Parameter is not a valid Ripple address: counterparty'
+      });
     }
-
-    if (opts.currency && !/^[A-Z0-9]{3}$/.test(opts.currency)) {
-      return res.json(400, { success: false, message: 'Parameter is not a valid currency: currency'});
+    if (options.currency && !/^[A-Z0-9]{3}$/.test(options.currency)) {
+      return response.json(400, {
+        success: false,
+        message: 'Parameter is not a valid currency: currency'
+      });
     }
-
     callback();
   };
 
   function ensureConnected(callback) {
-    serverLib.ensureConnected(remote, function(err, connected) {
+    serverLib.ensureConnected(remote, function(error, connected) {
       if (connected) {
         callback();
       } else {
-        res.json(500, { success: false, message: 'No connection to rippled' });
+        response.json(500, {
+          success: false,
+          message: 'No connection to rippled'
+        });
       }
     });
   };
 
   function getXRPBalance(callback) {
-    var request = remote.requestAccountInfo(opts.account);
-
+    var request = remote.requestAccountInfo(options.account);
     request.once('error', callback);
-
     request.once('success', function(info) {
       balances.push({
         value: bignum(info.account_data.Balance).dividedBy('1000000').toString(),
         currency: 'XRP',
         counterparty: ''
       });
-
       callback();
     });
-
     request.request();
   };
 
   function getLineBalances(callback) {
-    var request = remote.requestAccountLines(opts.account);
-
-    if (opts.counterparty) {
-      request.message.peer = opts.counterparty;
+    var request = remote.requestAccountLines(options.account);
+    if (options.counterparty) {
+      request.message.peer = options.counterparty;
     }
-
     request.once('error', callback);
-
-    request.once('success', function(res) {
-      res.lines.forEach(function(line) {
+    request.once('success', function(result) {
+      result.lines.forEach(function(line) {
         if (currencyRE.test(line.currency)) {
           balances.push({
             value:         line.balance,
@@ -82,17 +81,18 @@ function getBalances($, req, res, next) {
           });
         }
       });
-
       callback();
     });
-
     request.request();
   };
 
-  var steps = [ validateOptions, ensureConnected ];
+  var steps = [
+    validateOptions,
+    ensureConnected
+  ];
 
-  if (opts.currency) {
-    if (opts.currency === 'XRP') {
+  if (options.currency) {
+    if (options.currency === 'XRP') {
       steps.push(getXRPBalance);
     } else {
       steps.push(getLineBalances);
@@ -101,11 +101,14 @@ function getBalances($, req, res, next) {
     steps.push(getXRPBalance, getLineBalances);
   }
 
-  async.series(steps, function(err) {
-    if (err) {
-      next(err);
+  async.series(steps, function(error) {
+    if (error) {
+      next(error);
     } else {
-      res.json(200, { success: true, balances: balances });
+      response.json(200, {
+        success: true,
+        balances: balances
+      });
     }
   });
 };
