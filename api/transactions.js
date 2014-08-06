@@ -149,7 +149,7 @@ function getTransaction(server, request, response, next) {
  *  @param {Transaction} transaction
  */
 function getTransactionHelper(server, request, response, callback) {
-  var options = server.opts || {
+  var options = server.options || {
     account: request.params.account,
     identifier: request.params.identifier
   };
@@ -278,23 +278,23 @@ function getTransactionHelper(server, request, response, callback) {
 
 /**
  *  Recursively get transactions for the specified account from 
- *  the Remote and local database. If opts.min is set, this will
+ *  the Remote and local database. If options.min is set, this will
  *  recurse until it has retrieved that number of transactions or
  *  it has reached the end of the account's transaction history.
  *
  *  @param {Remote} remote
  *  @param {/lib/db-interface} dbinterface
- *  @param {RippleAddress} opts.account
- *  @param {Number} [-1] opts.ledger_index_min
- *  @param {Number} [-1] opts.ledger_index_max
- *  @param {Boolean} [false] opts.earliest_first
- *  @param {Boolean} [false] opts.binary
- *  @param {Boolean} [false] opts.exclude_failed
- *  @param {Number} [DEFAULT_RESULTS_PER_PAGE] opts.min
- *  @param {Number} [DEFAULT_RESULTS_PER_PAGE] opts.max
- *  @param {Array of Strings} opts.types Possible values are "payment", "offercreate", "offercancel", "trustset", "accountset"
- *  @param {opaque value} opts.marker
- *  @param {Array of Transactions} opts.previous_transactions Included automatically when this function is called recursively
+ *  @param {RippleAddress} options.account
+ *  @param {Number} [-1] options.ledger_index_min
+ *  @param {Number} [-1] options.ledger_index_max
+ *  @param {Boolean} [false] options.earliest_first
+ *  @param {Boolean} [false] options.binary
+ *  @param {Boolean} [false] options.exclude_failed
+ *  @param {Number} [DEFAULT_RESULTS_PER_PAGE] options.min
+ *  @param {Number} [DEFAULT_RESULTS_PER_PAGE] options.max
+ *  @param {Array of Strings} options.types Possible values are "payment", "offercreate", "offercancel", "trustset", "accountset"
+ *  @param {opaque value} options.marker
+ *  @param {Array of Transactions} options.previous_transactions Included automatically when this function is called recursively
  *  @param {Express.js Response} res
  *  @param {Function} callback
  *
@@ -330,7 +330,7 @@ function getAccountTransactions(server, options, response, callback) {
         'Must supply a valid Ripple Address to query account transactions'
       });
     }
-    if (!validator.isValid(opts.account, 'RippleAddress')) {
+    if (!validator.isValid(options.account, 'RippleAddress')) {
       return response.json(400, {
         success: false,
         message: 'Invalid parameter: account. ' +
@@ -344,7 +344,7 @@ function getAccountTransactions(server, options, response, callback) {
     server_lib.ensureConnected(remote, function(error, connected){
       if (connected) {
         async_callback();
-      } else if (err) {
+      } else if (error) {
         response.json(500, {
           success: false,
           message: error.message
@@ -400,7 +400,7 @@ function getAccountTransactions(server, options, response, callback) {
         getAccountTransactions(server, options, response, callback);
       });
     }
-  });
+  };
 };
 
 /**
@@ -408,13 +408,13 @@ function getAccountTransactions(server, options, response, callback) {
  *
  *  @param {Remote} remote
  *  @param {/lib/db-interface} dbinterface
- *  @param {RippleAddress} opts.account
- *  @param {Number} [-1] opts.ledger_index_min
- *  @param {Number} [-1] opts.ledger_index_max
- *  @param {Boolean} [false] opts.earliest_first
- *  @param {Boolean} [false] opts.binary
- *  @param {Boolean} [false] opts.exclude_failed
- *  @param {opaque value} opts.marker
+ *  @param {RippleAddress} options.account
+ *  @param {Number} [-1] options.ledger_index_min
+ *  @param {Number} [-1] options.ledger_index_max
+ *  @param {Boolean} [false] options.earliest_first
+ *  @param {Boolean} [false] options.binary
+ *  @param {Boolean} [false] options.exclude_failed
+ *  @param {opaque value} options.marker
  *  @param {Function} callback
  *
  *  @callback
@@ -465,11 +465,11 @@ function getLocalAndRemoteTransactions(server, options, callback) {
  *  Filter transactions based on the given set of options.
  *  
  *  @param {Array of transactions in JSON format} transactions
- *  @param {Boolean} [false] opts.exclude_failed
- *  @param {Array of Strings} opts.types Possible values are "payment", "offercreate", "offercancel", "trustset", "accountset"
- *  @param {RippleAddress} opts.source_account
- *  @param {RippleAddress} opts.destination_account
- *  @param {String} opts.direction Possible values are "incoming", "outgoing"
+ *  @param {Boolean} [false] options.exclude_failed
+ *  @param {Array of Strings} options.types Possible values are "payment", "offercreate", "offercancel", "trustset", "accountset"
+ *  @param {RippleAddress} options.source_account
+ *  @param {RippleAddress} options.destination_account
+ *  @param {String} options.direction Possible values are "incoming", "outgoing"
  *
  *  @returns {Array of transactions in JSON format} filtered_transactions
  */
@@ -553,12 +553,12 @@ function compareTransactions(first, second, earliest_first) {
  *  Wrapper around the standard ripple-lib requestAccountTx function
  *
  *  @param {Remote} remote
- *  @param {RippleAddress} opts.account
- *  @param {Number} [-1] opts.ledger_index_min
- *  @param {Number} [-1] opts.ledger_index_max
- *  @param {Boolean} [false] opts.earliest_first
- *  @param {Boolean} [false] opts.binary
- *  @param {opaque value} opts.marker
+ *  @param {RippleAddress} options.account
+ *  @param {Number} [-1] options.ledger_index_min
+ *  @param {Number} [-1] options.ledger_index_max
+ *  @param {Boolean} [false] options.earliest_first
+ *  @param {Boolean} [false] options.binary
+ *  @param {opaque value} options.marker
  *  @param {Function} callback
  *
  *  @callback

@@ -23,7 +23,7 @@ function getServerStatus(server, request, response, next) {
     } else {
       response.json(200, {
         success: true,
-        api_documentation_url = 'https://github.com/ripple/ripple-rest'
+        api_documentation_url: 'https://github.com/ripple/ripple-rest'
       });
     }
   });

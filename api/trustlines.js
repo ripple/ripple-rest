@@ -1,7 +1,7 @@
 var async     = require('async');
 var ripple    = require('ripple-lib');
 var serverLib = require('../lib/server-lib');
-var remote = require(__dirname+'/../lib/server-lib');
+var remote = require(__dirname+'/../lib/remote.js');
 
 const TrustSetFlags = {
   SetAuth:        { name: 'authorized', value: 0x00010000 },
@@ -12,7 +12,7 @@ const TrustSetFlags = {
 exports.get = getTrustLines;
 exports.add = addTrustLine;
 
-function getTrustLines(remote, request, response, next) {
+function getTrustLines(server, request, response, next) {
   var steps = [
     validateOptions,
     ensureConnected,
