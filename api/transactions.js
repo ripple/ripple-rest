@@ -3,6 +3,7 @@ var async      = require('async');
 var ripple     = require('ripple-lib');
 var server_lib = require('../lib/server-lib');
 var validator  = require('../lib/schema-validator');
+var remote = require(__dirname+'/../lib/remote.js');
 
 module.exports = {
 
@@ -36,7 +37,7 @@ module.exports = {
 function submitTransaction($, data, res, callback) {
 
   function ensureConnected(async_callback) {
-    server_lib.ensureConnected($.remote, function(err, connected) {
+    server_lib.ensureConnected(remote, function(err, connected) {
       if (connected) {
         async_callback();
       } else if (err) {
@@ -90,8 +91,8 @@ function submitTransaction($, data, res, callback) {
   };
 
   function submitTransaction(transaction, async_callback) {
-    transaction.remote = $.remote;
-    transaction.lastLedger(Number($.remote._ledger_current_index) + module.exports.DEFAULT_LEDGER_BUFFER);
+    transaction.remote = remote;
+    transaction.lastLedger(Number(remote._ledger_current_index) + module.exports.DEFAULT_LEDGER_BUFFER);
 
     transaction.once('error', async_callback);
 
@@ -126,12 +127,15 @@ function submitTransaction($, data, res, callback) {
  *
  *  See getTransactionHelper for parameter details
  */
-function getTransaction($, req, res, next) {
-  getTransactionHelper($, req, res, function(err, transaction) {
-    if (err) {
-      next(err);
+function getTransaction(server, request, response, next) {
+  getTransactionHelper(server, request, response, function(error, transaction) {
+    if (error) {
+      next(error);
     } else {
-      res.json(200, { success: true, transaction: transaction });
+      res.json(200, {
+        success: true,
+        transaction: transaction
+      });
     }
   });
 };
@@ -158,20 +162,26 @@ function getTransaction($, req, res, next) {
  *  @param {Error} error
  *  @param {Transaction} transaction
  */
-function getTransactionHelper($, req, res, callback) {
-  var opts = $.opts || {
-    account: req.params.account,
-    identifier: req.params.identifier
+function getTransactionHelper(server, request, response, callback) {
+  var opts = server.opts || {
+    account: request.params.account,
+    identifier: request.params.identifier
   };
 
   function validateOptions(async_callback) {
     // opts.account may not be present in the case of the GET /transactions/{hash} endpoint
     if (opts.account && !validator.isValid(opts.account, 'RippleAddress')) {
-      return res.json(400, { success: false, message: 'Invalid parameter: account. Must be a valid Ripple Address' });
+      return res.json(400, {
+        success: false,
+        message: 'Invalid parameter: account. Must be a valid Ripple Address'
+      });
     }
 
     if (!opts.identifier) {
-      res.json(400, { success: false, message: 'Missing parameter: identifier' });
+      response.json(400, {
+        success: false,
+        message: 'Missing parameter: identifier'
+      });
     } else if (validator.isValid(opts.identifier, 'Hash256')) {
       opts.hash = opts.identifier;
       async_callback();
@@ -179,18 +189,27 @@ function getTransactionHelper($, req, res, callback) {
       opts.client_resource_id = opts.identifier;
       async_callback();
     } else {
-      res.json(400, { success: false, message: 'Parameter not a valid transaction hash or client_resource_id: identifier' });
+      response.json(400, {
+        success: false,
+        message: 'Parameter not a valid transaction hash or client_resource_id: identifier'
+      });
     }
   };
 
   function ensureConnected(async_callback) {
-    server_lib.ensureConnected($.remote, function(err, connected){
+    server_lib.ensureConnected(remote, function(error, connected){
       if (connected) {
         async_callback();
-      } else if (err) {
-        res.json(500, { success: false, message: err.message });
+      } else if (error) {
+        response.json(500, {
+          success: false,
+          message: error.message
+        });
       } else {
-        res.json(500, { success: false, message: 'No connection to rippled' });
+        response.json(500, {
+          success: false,
+          message: 'No connection to rippled'
+        });
       }
     });
   };
@@ -212,7 +231,7 @@ function getTransactionHelper($, req, res, callback) {
         // pass it back to the callback
         async_callback(null, entry.transaction);
       } else if (opts.hash) {
-        $.remote.requestTx(opts.hash, function(err, transaction){
+        remote.requestTx(opts.hash, function(err, transaction){
 
           // If some record for the transaction was found in the database
           // attach the client_resource_id to the transaction retrieved from rippled
@@ -254,7 +273,7 @@ function getTransactionHelper($, req, res, callback) {
     }
 
     // Get ledger containing the transaction to determine date
-    $.remote.requestLedger(transaction.ledger_index, function(err, ledger_res) {
+    remote.requestLedger(transaction.ledger_index, function(err, ledger_res) {
       if (err) {
         return res.json(404, { success: false, message: 'Transaction ledger not found' });
       }
@@ -334,7 +353,7 @@ function getAccountTransactions($, opts, res, callback) {
   };
 
   function ensureConnected(async_callback) {
-    server_lib.ensureConnected($.remote, function(err, connected){
+    server_lib.ensureConnected(remote, function(err, connected){
       if (connected) {
         async_callback();
       } else if (err) {
@@ -436,7 +455,7 @@ function getAccountTransactions($, opts, res, callback) {
 function getLocalAndRemoteTransactions($, opts, callback) {
 
   function queryRippled(callback) {
-    getAccountTx($.remote, opts, function(err, results) {
+    getAccountTx(remote, opts, function(err, results) {
       if (err) {
         callback(err);
       } else {
