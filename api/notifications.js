@@ -6,9 +6,7 @@ var validator = require('../lib/schema-validator');
 var server_lib = require('../lib/server-lib');
 
 module.exports = {
-  get: getNotification,
-  getNotification: getNotification,
-  getNextNotification: getNextNotification
+  getNotification: getNotification
 };
 
 /**
@@ -51,22 +49,6 @@ function getNotification($, request, response, next) {
     }
 
     response.json(200, responseBody);
-  });
-};
-
-/**
- *  (Deprecated) Get the notification for the transaction
- *  following the one corresponding to the given identifier
- */
-function getNextNotification($, request, response, next) {
-  getNotificationHelper($, request, response, function(error, notification) {
-    if (error) {
-      next(error);
-    } else if (notification.next_notification_url) {
-      response.redirect(notification.next_notification_url);
-    } else {
-      // No next notification
-    }
   });
 };
 

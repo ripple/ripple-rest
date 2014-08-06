@@ -40,8 +40,7 @@ module.exports = (function() {
     },
 
     notifications: {
-      getNotification: Notifications.getNotification,
-      getNextNotification: Notifications.getNextNotification
+      getNotification: Notifications.getNotification
     }
   }
 
