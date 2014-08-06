@@ -46,7 +46,7 @@ var paymentToTransactionConverter = new RestToLibTransactionConverter();
  *  @param {Express.js Response} res
  *  @param {Express.js Next} next
  */
-function submitPayment(server, request, response, next) {
+function submitPayment(request, response, next) {
   var steps = [
     validateOptions,
     validatePayment,
@@ -138,7 +138,7 @@ function submitPayment(server, request, response, next) {
 
   function submitTransaction(transaction, async_callback) {
     params.transaction = transaction;
-    transactions.submit(server, params, response, async_callback);
+    transactions.submit(params, response, async_callback);
   };
 };
 
@@ -232,7 +232,7 @@ function paymentIsValid(payment, callback) {
  *  @param {Express.js Response} res
  *  @param {Express.js Next} next
  */
-function getPayment(server, request, response, next) {
+function getPayment(request, response, next) {
   var options = {
     account: request.params.account,
     identifier: request.params.identifier
@@ -282,8 +282,7 @@ function getPayment(server, request, response, next) {
 
   // If the transaction was not in the outgoing_transactions db, get it from rippled
   function getTransaction(async_callback) {
-    server.options = options;
-    transactions.getTransactionHelper(server, request, response, async_callback);
+    transactions.getTransactionHelper(request, response, async_callback);
   };
 
   function checkIsPayment(transaction, async_callback) {
@@ -458,7 +457,7 @@ function parsePaymentFromTx(tx, options) {
  *  @param {Express.js Response} res
  *  @param {Express.js Next} next
  */
-function getAccountPayments(server, request, response, next) {
+function getAccountPayments(request, response, next) {
 
   function getTransactions(async_callback) {
     var options = {
@@ -476,7 +475,7 @@ function getAccountPayments(server, request, response, next) {
       types: [ 'payment' ]
     };
 
-    transactions.getAccountTransactions(server, options, response, async_callback);
+    transactions.getAccountTransactions(options, response, async_callback);
   };
 
   function formatTransactions(transactions, async_callback) {
@@ -536,7 +535,7 @@ function getAccountPayments(server, request, response, next) {
  *  @param {Express.js Response} res
  *  @param {Express.js Next} next
  */
-function getPathFind(server, request, response, next) {
+function getPathFind(request, response, next) {
 
   // Parse and validate parameters
   var params = {

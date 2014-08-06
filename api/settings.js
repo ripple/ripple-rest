@@ -50,7 +50,7 @@ function _requestAccountSettings(account, callback) {
 };
 
 
-function getSettings(server, request, response, next) {
+function getSettings(request, response, next) {
   var account = request.params.account;
   function validateOptions(callback) {
     if (!ripple.UInt160.is_valid(account)) {
@@ -94,7 +94,7 @@ function getSettings(server, request, response, next) {
 };
 
 
-function changeSettings(server, request, response, next) {
+function changeSettings(request, response, next) {
   var self = this;
   var options = request.params;
   Object.keys(request.body).forEach(function(param) {

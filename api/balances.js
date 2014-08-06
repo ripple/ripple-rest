@@ -6,7 +6,7 @@ var remote    = require(__dirname+'/../lib/remote.js');
 
 exports.get = getBalances;
 
-function getBalances(server, request, response, next) {
+function getBalances(request, response, next) {
   var self = this;
   var options = {
     account:       request.params.account,

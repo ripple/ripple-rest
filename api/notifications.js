@@ -24,8 +24,8 @@ module.exports = {
  *  @param {Express.js Response} res
  *  @param {Express.js Next} next
  */
-function getNotification(server, request, response, next) {
-  getNotificationHelper(server, request, response, function(error, notification) {
+function getNotification(request, response, next) {
+  getNotificationHelper(request, response, function(error, notification) {
     if (error) {
       return next(error);
     }
@@ -71,7 +71,7 @@ function getNotification(server, request, response, next) {
  *  @param {Error} error
  *  @param {Notification} notification
  */
-function getNotificationHelper(server, request, response, callback) {
+function getNotificationHelper(request, response, callback) {
   var account = request.params.account;
   var identifier = request.params.identifier
 
@@ -83,7 +83,7 @@ function getNotificationHelper(server, request, response, callback) {
   }
 
   function getTransaction(async_callback) {
-    transactions.getTransactionHelper(server, request, response, async_callback);
+    transactions.getTransactionHelper(request, response, async_callback);
   };
 
   function checkLedger(base_transaction, async_callback) {
@@ -117,7 +117,7 @@ function getNotificationHelper(server, request, response, callback) {
       notification_details.client_resource_id = base_transaction.client_resource_id;
     }
 
-    attachPreviousAndNextTransactionIdentifiers(server, response, notification_details, async_callback);
+    attachPreviousAndNextTransactionIdentifiers(response, notification_details, async_callback);
   };
 
   // Parse the Notification object from the notification_details
@@ -157,7 +157,7 @@ function getNotificationHelper(server, request, response, callback) {
  *    "next_transaction_identifier", "next_hash",
  *    "previous_transaction_identifier", "previous_hash"} notification_details
  */
-function attachPreviousAndNextTransactionIdentifiers(server, response, notification_details, callback) {
+function attachPreviousAndNextTransactionIdentifiers(response, notification_details, callback) {
 
   // Get all of the transactions affecting the specified
   // account in the given ledger. This is done so that 
@@ -175,7 +175,7 @@ function attachPreviousAndNextTransactionIdentifiers(server, response, notificat
       limit: 200 // arbitrary, just checking number of transactions in ledger
     };
 
-    transactions.getAccountTransactions(server, params, response, async_callback);
+    transactions.getAccountTransactions(params, response, async_callback);
   };
 
   // All we care about is the count of the transactions
@@ -206,7 +206,7 @@ function attachPreviousAndNextTransactionIdentifiers(server, response, notificat
         params.ledger_index_min = -1;
       }
 
-      transactions.getAccountTransactions(server, params, response, async_concat_callback);
+      transactions.getAccountTransactions(params, response, async_concat_callback);
 
     }, async_callback);
 

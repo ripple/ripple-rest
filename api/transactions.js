@@ -32,7 +32,7 @@ module.exports = {
  *  @param {Error} error Submission Error
  *  @param {submission response} response The response received from the 'proposed' event
  */
-function submitTransaction(server, data, response, callback) {
+function submitTransaction(data, response, callback) {
 
   function ensureConnected(async_callback) {
     server_lib.ensureConnected(remote, function(error, connected) {
@@ -113,12 +113,12 @@ function submitTransaction(server, data, response, callback) {
  *
  *  See getTransactionHelper for parameter details
  */
-function getTransaction(server, request, response, next) {
-  getTransactionHelper(server, request, response, function(error, transaction) {
+function getTransaction(request, response, next) {
+  getTransactionHelper(request, response, function(error, transaction) {
     if (error) {
       next(error);
     } else {
-      res.json(200, {
+      response.json(200, {
         success: true,
         transaction: transaction
       });
@@ -148,8 +148,8 @@ function getTransaction(server, request, response, next) {
  *  @param {Error} error
  *  @param {Transaction} transaction
  */
-function getTransactionHelper(server, request, response, callback) {
-  var options = server.options || {
+function getTransactionHelper(request, response, callback) {
+  var options = {
     account: request.params.account,
     identifier: request.params.identifier
   };
@@ -302,7 +302,7 @@ function getTransactionHelper(server, request, response, callback) {
  *  @param {Error} error
  *  @param {Array of transactions in JSON format} transactions
  */
-function getAccountTransactions(server, options, response, callback) {
+function getAccountTransactions(options, response, callback) {
   var steps = [
     validateOptions,
     ensureConnected,
@@ -359,7 +359,7 @@ function getAccountTransactions(server, options, response, callback) {
   };
 
   function queryTransactions(async_callback) {
-    getLocalAndRemoteTransactions(server, options, async_callback);
+    getLocalAndRemoteTransactions(options, async_callback);
   };
 
   function filterTransactions(transactions, async_callback) {
@@ -397,7 +397,7 @@ function getAccountTransactions(server, options, response, callback) {
     } else {
       options.previous_transactions = transactions;
       setImmediate(function() {
-        getAccountTransactions(server, options, response, callback);
+        getAccountTransactions(options, response, callback);
       });
     }
   };
@@ -421,7 +421,7 @@ function getAccountTransactions(server, options, response, callback) {
  *  @param {Error} error
  *  @param {Array of transactions in JSON format} transactions
  */
-function getLocalAndRemoteTransactions(server, options, callback) {
+function getLocalAndRemoteTransactions(options, callback) {
 
   function queryRippled(callback) {
     getAccountTx(remote, options, function(error, results) {
@@ -444,7 +444,6 @@ function getLocalAndRemoteTransactions(server, options, callback) {
       dbinterface.getFailedTransactions(options, callback);
     }
   };
-
   var transaction_sources = [ 
     queryRippled, 
     queryDB

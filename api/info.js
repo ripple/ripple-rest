@@ -6,14 +6,14 @@ exports.uuid = getUUID;
 exports.serverStatus = getServerStatus;
 exports.isConnected = getServerConnected;
 
-function getUUID(server, request, response, next) {
+function getUUID(request, response, next) {
   response.send(200, {
     success: true,
     uuid: uuid.v4()
   });
 };
 
-function getServerStatus(server, request, response, next) {
+function getServerStatus(request, response, next) {
   serverlib.getStatus(remote, function(error, status) {
     if (error) {
       response.json(500, {
@@ -29,7 +29,7 @@ function getServerStatus(server, request, response, next) {
   });
 };
 
-function getServerConnected(server, request, response, next) {
+function getServerConnected(request, response, next) {
   serverlib.ensureConnected(remote, function(error, status) {
     if (error) {
       response.json(500, {
