@@ -4,8 +4,8 @@ var ripple = require('ripple-lib');
 var transactions = require('./transactions');
 var validator = require('../lib/schema-validator');
 var server_lib = require('../lib/server-lib');
-var remote = require(__dirnmae+'/../lib/remote.js');
-var config = require(__dirnmae+'/../lib/config-loader.js');
+var remote = require(__dirname+'/../lib/remote.js');
+var config = require(__dirname+'/../lib/config-loader.js');
 
 module.exports = {
   getNotification: getNotification
@@ -38,7 +38,7 @@ function getNotification(server, request, response, next) {
     // Add url_base to each url in notification
     var url_base = request.protocol + '://' + request.host + (config && config.get('PORT') ? ':' + config.get('PORT') : '');
     Object.keys(responseBody.notification).forEach(function(key){
-      if (/url/.test(key) && response.notification[key]) {
+      if (/url/.test(key) && responseBody.notification[key]) {
         responseBody.notification[key] = url_base + responseBody.notification[key];
       }
     });
@@ -117,7 +117,7 @@ function getNotificationHelper(server, request, response, callback) {
       notification_details.client_resource_id = base_transaction.client_resource_id;
     }
 
-    attachPreviousAndNextTransactionIdentifiers(server, res, notification_details, async_callback);
+    attachPreviousAndNextTransactionIdentifiers(server, response, notification_details, async_callback);
   };
 
   // Parse the Notification object from the notification_details
