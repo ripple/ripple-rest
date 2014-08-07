@@ -16,7 +16,7 @@ describe('api/transactions', function(){
 
   describe('.submit()', function(){
 
-    it('should respond with an error if the remote is disconnected', function(done){
+    it.skip('should respond with an error if the remote is disconnected', function(done){
 
       var $ = {
         remote: {
@@ -43,7 +43,7 @@ describe('api/transactions', function(){
 
     });
 
-    it('should block duplicate Payments (same account same client_resource_id)', function(done){
+    it.skip('should block duplicate Payments (same account same client_resource_id)', function(done){
 
       var test_transaction = new ripple.Transaction(),
         client_resource_id = 'ebb9d857-fc71-440f-8b0a-f1ea3535986a';
@@ -103,7 +103,7 @@ describe('api/transactions', function(){
 
     });
 
-    it('should block duplicate OfferCreates and OfferCancels', function(done){
+    it.skip('should block duplicate OfferCreates and OfferCancels', function(done){
 
       var test_transaction = new ripple.Transaction(),
         client_resource_id = 'a107e1e3-b552-41a5-8452-c8a413cdb7c2';
@@ -167,7 +167,7 @@ describe('api/transactions', function(){
 
     });
 
-    it('should call the callback if there is an error before the "proposed" event is emitted', function(done){
+    it.skip('should call the callback if there is an error before the "proposed" event is emitted', function(done){
 
       var test_transaction = new ripple.Transaction(),
         client_resource_id = 'ebb9d857-fc71-440f-8b0a-f1ea3535986a';
@@ -214,7 +214,7 @@ describe('api/transactions', function(){
 
     });
 
-    it('should save the transaction to the database every time the transaction state is changed', function(done){
+    it.skip('should save the transaction to the database every time the transaction state is changed', function(done){
 
       var states = [ 'unsubmitted', 'submitted', 'pending', 'validated' ];
  
@@ -299,7 +299,7 @@ describe('api/transactions', function(){
 
     });
 
-    it('should call the callback with the client_resource_id when the "proposed" event is emitted', function(done){
+    it.skip('should call the callback with the client_resource_id when the "proposed" event is emitted', function(done){
 
       var test_transaction = new ripple.Transaction(),
         client_resource_id = 'ebb9d857-fc71-440f-8b0a-f1ea3535986a';
@@ -346,7 +346,7 @@ describe('api/transactions', function(){
 
     });
 
-    it('should save errors that happen after the "proposed" event to the database but not report them to the client', function(done){
+    it.skip('should save errors that happen after the "proposed" event to the database but not report them to the client', function(done){
       
       var callback_function_already_called = false;
 
@@ -434,7 +434,7 @@ describe('api/transactions', function(){
   // Note that internally .get() is .getTransaction
   describe('.get()', function(){
 
-    // it('should call getTransactionHelper and respond directly to the client with the transaction', function(done){
+    // it.skip('should call getTransactionHelper and respond directly to the client with the transaction', function(done){
 
     //   var normal_getTransactionHelper = transactions.getTransactionHelper;
     //   transactions.getTransactionHelper = function($, req, res, callback) {
@@ -457,7 +457,7 @@ describe('api/transactions', function(){
 
     // });
 
-    // it('should pass errors to the Express.js next() function', function(){
+    // it.skip('should pass errors to the Express.js next() function', function(){
 
     //   var normal_getTransactionHelper = transactions.getTransactionHelper;
     //   transactions.getTransactionHelper = function($, req, res, callback) {
@@ -477,7 +477,7 @@ describe('api/transactions', function(){
 
   describe('.getTransactionHelper()', function(){
 
-    it('should respond with an error if the identifier is neither a hash nor a valid client_resource_id', function(done){
+    it.skip('should respond with an error if the identifier is neither a hash nor a valid client_resource_id', function(done){
 
       var $ = {
         remote: {},
@@ -505,7 +505,7 @@ describe('api/transactions', function(){
 
     });
 
-    it('should respond with an error if there is no connection to rippled', function(done){
+    it.skip('should respond with an error if there is no connection to rippled', function(done){
 
       var normal_CONNECTION_TIMEOUT = server_lib.CONNECTION_TIMEOUT;
       server_lib.CONNECTION_TIMEOUT = 0;
@@ -548,7 +548,7 @@ describe('api/transactions', function(){
 
     });
 
-    it('should query the remote if no record is found in the database', function(done){
+    it.skip('should query the remote if no record is found in the database', function(done){
 
       var tx_hash = '1C3FFA4EDD96193BE0DF65E0C2D8692803538DEF761E721B571812B7B527D702';
 
@@ -593,7 +593,7 @@ describe('api/transactions', function(){
 
     });
 
-    it('should query the remote if only the record in the client_resource_id_records is found', function(done){
+    it.skip('should query the remote if only the record in the client_resource_id_records is found', function(done){
 
       var tx_hash = '1C3FFA4EDD96193BE0DF65E0C2D8692803538DEF761E721B571812B7B527D702';
 
@@ -652,7 +652,7 @@ describe('api/transactions', function(){
 
     });
 
-    it('should respond with an error if the account is specified but the transaction did not affect the given account', function(done){
+    it.skip('should respond with an error if the account is specified but the transaction did not affect the given account', function(done){
 
       var tx_hash = '1C3FFA4EDD96193BE0DF65E0C2D8692803538DEF761E721B571812B7B527D702';
 
@@ -716,7 +716,7 @@ describe('api/transactions', function(){
 
     });
 
-    it('should query the remote to attach the date to the transaction', function(done){
+    it.skip('should query the remote to attach the date to the transaction', function(done){
 
       var tx_hash = '1B724D76A5B800B3AB380A92D0EFCD542F033D73A872A67B9EF11B77C58AD38B';
 
@@ -806,7 +806,7 @@ describe('api/transactions', function(){
 
     });
 
-    it('should call the callback with the transaction in JSON format (Payment)', function(done){
+    it.skip('should call the callback with the transaction in JSON format (Payment)', function(done){
 
       var tx_hash = '1B724D76A5B800B3AB380A92D0EFCD542F033D73A872A67B9EF11B77C58AD38B';
 
@@ -941,7 +941,7 @@ describe('api/transactions', function(){
 
     });
 
-    it('should handle OfferCreate transactions', function(done){
+    it.skip('should handle OfferCreate transactions', function(done){
 
       var tx_hash = '956BF1E33BA2F09EB7C499F2A20D8417CD21BDC0CF0AE63E3004267159B49CFA';
 
@@ -1101,7 +1101,7 @@ describe('api/transactions', function(){
 
     });
 
-    it('should handle OfferCancel transactions', function(done){
+    it.skip('should handle OfferCancel transactions', function(done){
 
       var tx_hash = '2BC30199857879FA3F17C6AF4F4C0D5B294C0E8B30B74E2061676D7ECE378642';
 
@@ -1264,15 +1264,15 @@ describe('api/transactions', function(){
 
     });
 
-    // it('should handle TrustSet transactions', function(){
+    // it.skip('should handle TrustSet transactions', function(){
     //   // TODO
     // });
 
-    // it('should handle AccountSet transactions', function(){
+    // it.skip('should handle AccountSet transactions', function(){
     //   // TODO
     // });
 
-    // it('should handle RegularKeySet transactions', function(){
+    // it.skip('should handle RegularKeySet transactions', function(){
     //   // TODO
     // });
 
@@ -1280,7 +1280,7 @@ describe('api/transactions', function(){
 
   describe('.getAccountTransactions()', function(){
 
-    it('should respond with an error if the account is missing', function(done){
+    it.skip('should respond with an error if the account is missing', function(done){
 
       var dbinterface = {
         getFailedTransactions: function(params, callback) {
@@ -1318,7 +1318,7 @@ describe('api/transactions', function(){
 
     });
 
-    it('should respond with an error if the account is invalid', function(done){
+    it.skip('should respond with an error if the account is invalid', function(done){
 
       var dbinterface = {
         getFailedTransactions: function(params, callback) {
@@ -1356,7 +1356,7 @@ describe('api/transactions', function(){
 
     });
 
-    it('should report an error if there is no connection to rippled', function(done){
+    it.skip('should report an error if there is no connection to rippled', function(done){
 
       var dbinterface = {
         getFailedTransactions: function(params, callback) {
@@ -1394,7 +1394,7 @@ describe('api/transactions', function(){
        
     });
       
-    it('should query the database for failed transactions matching the given opts', function(done){
+    it.skip('should query the database for failed transactions matching the given opts', function(done){
 
       var dbinterface = {
         getFailedTransactions: function(params, callback) {
@@ -1438,7 +1438,7 @@ describe('api/transactions', function(){
 
     });
 
-    it('should query the Remote for transactions', function(done){
+    it.skip('should query the Remote for transactions', function(done){
 
       var dbinterface = {
         getFailedTransactions: function(params, callback) {
@@ -1485,7 +1485,7 @@ describe('api/transactions', function(){
 
     });
 
-    it('should merge the local and remote transactions and filter them based on the given opts (exclude_failed = true)', function(done){
+    it.skip('should merge the local and remote transactions and filter them based on the given opts (exclude_failed = true)', function(done){
 
       var dbinterface = {
         getFailedTransactions: function(params, callback) {
@@ -1606,7 +1606,7 @@ describe('api/transactions', function(){
 
     });
 
-    it('should merge the local and remote transactions and filter them based on the given opts (exclude_failed = false)', function(done){
+    it.skip('should merge the local and remote transactions and filter them based on the given opts (exclude_failed = false)', function(done){
 
       var dbinterface = {
         getFailedTransactions: function(params, callback) {
@@ -1743,7 +1743,7 @@ describe('api/transactions', function(){
 
     });
 
-    it('should sort the transactions based on ledger index and hash for transactions in the same ledger', function(done){
+    it.skip('should sort the transactions based on ledger index and hash for transactions in the same ledger', function(done){
 
       var dbinterface = {
         getFailedTransactions: function(params, callback) {
@@ -1852,7 +1852,7 @@ describe('api/transactions', function(){
 
     });
 
-    it('should reverse the sorting order if earliest_first is set', function(done){
+    it.skip('should reverse the sorting order if earliest_first is set', function(done){
 
       var dbinterface = {
         getFailedTransactions: function(params, callback) {
@@ -1961,7 +1961,7 @@ describe('api/transactions', function(){
 
     });
 
-    it('should merge the transactions with any transactions carried over from a previous recursive call', function(done){
+    it.skip('should merge the transactions with any transactions carried over from a previous recursive call', function(done){
 
       var dbinterface = {
         getFailedTransactions: function(params, callback) {
@@ -2067,7 +2067,7 @@ describe('api/transactions', function(){
 
     });
 
-    it('should truncate the results if they exceed the opts.max', function(done){
+    it.skip('should truncate the results if they exceed the opts.max', function(done){
 
       var dbinterface = {
         getFailedTransactions: function(params, callback) {
@@ -2175,7 +2175,7 @@ describe('api/transactions', function(){
 
     });
 
-    it('should remove the first transactions based on the specified offset', function(done){
+    it.skip('should remove the first transactions based on the specified offset', function(done){
 
       var dbinterface = {
         getFailedTransactions: function(params, callback) {
@@ -2282,7 +2282,7 @@ describe('api/transactions', function(){
 
     });
 
-    it('should call the callback with the transactions if no opts.min is specified', function(done){
+    it.skip('should call the callback with the transactions if no opts.min is specified', function(done){
 
       var dbinterface = {
         getFailedTransactions: function(params, callback) {
@@ -2379,7 +2379,7 @@ describe('api/transactions', function(){
 
     });
 
-    it('should call the callback with the transactions if opts.marker is undefined (meaning rippled had no more transactions to return)', function(done){
+    it.skip('should call the callback with the transactions if opts.marker is undefined (meaning rippled had no more transactions to return)', function(done){
 
       var dbinterface = {
         getFailedTransactions: function(params, callback) {
@@ -2473,7 +2473,7 @@ describe('api/transactions', function(){
 
     });
 
-    it('should call itself recursively until the opts.min requirement is filled', function(done){
+    it.skip('should call itself recursively until the opts.min requirement is filled', function(done){
 
       var MIN_TRANSACTIONS = 25;
 
@@ -2575,7 +2575,7 @@ describe('api/transactions', function(){
 
     });
 
-    it('should call itself recursively until the rippled does not return a marker (meaning there are no more transactions for the account)', function(done){
+    it.skip('should call itself recursively until the rippled does not return a marker (meaning there are no more transactions for the account)', function(done){
 
       var MIN_TRANSACTIONS = 25;
 
