@@ -9,7 +9,7 @@
   ],
   "scripts": {
     "postinstall": "./node_modules/.bin/grunt",
-    "test": "./node_modules/.bin/istanbul test ./node_modules/.bin/_mocha -- --reporter spec test/** --timeout 10000",
+    "test": "./node_modules/.bin/istanbul test ./node_modules/.bin/_mocha -- --reporter spec test/ --timeout 10000",
     "start": "node server.js",
     "coveralls": "cat ./coverage/lcov.info | ./node_modules/.bin/coveralls"
   },
