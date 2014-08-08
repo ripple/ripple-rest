@@ -1,16 +1,15 @@
 var request = require('supertest');
 var assert = require('assert');
-var app = require(__dirname+'/../lib/express_app.js');
+var app = require(__dirname+'/../../lib/express_app.js');
 
 describe('Handling no connection to Rippled', function() {
-  it.skip('should respond with 200 when reconnected', function(done) {
+  it('should respond with 200 when reconnected', function(done) {
     this.timeout(10000);
     app.remote.once('connect',function() {
       request(app) 
         .get('/v1/server')
         .expect(200)
         .end(function(error, response) {
-          console.log(response.body);
           assert(response.body.success);
           assert(!response.body.error);
           done();

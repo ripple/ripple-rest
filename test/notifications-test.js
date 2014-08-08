@@ -16,7 +16,7 @@ describe('api/notifications', function(){
 
   describe('.getNotification()', function(done){
 
-    it('should respond with an error if there is no connection to rippled', function(done){
+    it.skip('should respond with an error if there is no connection to rippled', function(done){
 
       var $ = {
         remote: {
@@ -49,7 +49,7 @@ describe('api/notifications', function(){
 
     });
 
-    it('should respond with an error if the account is missing', function(done){
+    it.skip('should respond with an error if the account is missing', function(done){
 
       var $ = {
         remote: {
@@ -85,7 +85,7 @@ describe('api/notifications', function(){
 
     });
 
-    it('should respond with an error if the account is invalid', function(done){
+    it.skip('should respond with an error if the account is invalid', function(done){
 
       var $ = {
         remote: {
@@ -122,7 +122,7 @@ describe('api/notifications', function(){
 
     });
 
-    it('should respond with an error if the identifier is missing', function(done){
+    it.skip('should respond with an error if the identifier is missing', function(done){
 
       var $ = {
         remote: {
@@ -158,7 +158,7 @@ describe('api/notifications', function(){
 
     });
 
-    it('should respond with an error if the identifier is invalid', function(done){
+    it.skip('should respond with an error if the identifier is invalid', function(done){
 
       var $ = {
         remote: {
@@ -195,7 +195,7 @@ describe('api/notifications', function(){
 
     });
 
-    it('should respond with an error if the transaction corresponding to the given hash did not affect the specified account', function(done){
+    it.skip('should respond with an error if the transaction corresponding to the given hash did not affect the specified account', function(done){
 
       var $ = {
         remote: {
@@ -298,7 +298,7 @@ describe('api/notifications', function(){
 
     });
 
-    it('should respond with an error if the ledger containing the base transaction is not in the rippleds complete ledger set', function(done){
+    it.skip('should respond with an error if the ledger containing the base transaction is not in the rippleds complete ledger set', function(done){
 
       var $ = {
         remote: {
@@ -421,7 +421,7 @@ describe('api/notifications', function(){
 
     });
 
-    it('should include the hashes of the previous and next transactions', function(done){
+    it.skip('should include the hashes of the previous and next transactions', function(done){
 
       var $ = {
         remote: {
@@ -886,7 +886,7 @@ describe('api/notifications', function(){
 
     });
 
-    it('should include urls pointing to the previous and next transactions', function(done){
+    it.skip('should include urls pointing to the previous and next transactions', function(done){
 
       var $ = {
         remote: {
@@ -1360,7 +1360,7 @@ describe('api/notifications', function(){
 
     });
 
-    it('should include the client_resource_id in the JSON response -- but not in the notification body -- when one is found in the database', function(done){
+    it.skip('should include the client_resource_id in the JSON response -- but not in the notification body -- when one is found in the database', function(done){
 
       var $ = {
         remote: {
@@ -1503,7 +1503,7 @@ describe('api/notifications', function(){
 
     });
 
-    it('should correctly identify outgoing transactions', function(done){
+    it.skip('should correctly identify outgoing transactions', function(done){
 
       var $ = {
         remote: {
@@ -1636,7 +1636,7 @@ describe('api/notifications', function(){
 
     });
 
-    it('should correctly identify incoming transactions', function(done){
+    it.skip('should correctly identify incoming transactions', function(done){
 
       var $ = {
         remote: {
@@ -1769,7 +1769,7 @@ describe('api/notifications', function(){
 
     });
 
-    it('should correctly identify passthrough transactions', function(done){
+    it.skip('should correctly identify passthrough transactions', function(done){
 
       var $ = {
         remote: {
@@ -2020,7 +2020,7 @@ describe('api/notifications', function(){
 
     });
 
-    // it('should list the type as the resource, rather than transaction, type (payment, order, trustline, settings)', function(){
+    // it.skip('should list the type as the resource, rather than transaction, type (payment, order, trustline, settings)', function(){
 
     // });
 
