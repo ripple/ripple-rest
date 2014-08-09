@@ -1,6 +1,7 @@
 var uuid = require('node-uuid');
 var serverlib = require('../lib/server-lib');
 var remote = require('../lib/remote.js');
+var _ = require('underscore-node');
 
 exports.uuid = getUUID;
 exports.serverStatus = getServerStatus;
@@ -13,7 +14,7 @@ function getUUID(request, response, next) {
   });
 };
 
-function getServerStatus(request, response, next) {
+function getServerStatus(request, response) {
   serverlib.getStatus(remote, function(error, status) {
     if (error) {
       response.json(500, {
@@ -21,15 +22,15 @@ function getServerStatus(request, response, next) {
         message: error.message
       });
     } else {
-      response.json(200, {
+      response.json(200, _.extend({
         success: true,
         api_documentation_url: 'https://github.com/ripple/ripple-rest'
-      });
+      }, status));
     }
   });
 };
 
-function getServerConnected(request, response, next) {
+function getServerConnected(request, response) {
   serverlib.ensureConnected(remote, function(error, status) {
     if (error) {
       response.json(500, {
