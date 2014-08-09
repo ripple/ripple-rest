@@ -37,11 +37,11 @@ if (typeof config.get('ssl') === 'object') {
     cert:  fs.readFileSync(cert_path)
   };
 
-  https.createServer(sslOptions, app).listen(config.get('PORT'), function() {
+  https.createServer(sslOptions, app).listen(config.get('PORT'), config.get('HOST'), function() {
     console.log('ripple-rest server listening over HTTPS at port:', config.get('PORT'));
   });
 } else {
-  app.listen(config.get('PORT'), function() {
+  app.listen(config.get('PORT'), config.get('HOST'), function() {
     console.log('ripple-rest server listening over UNSECURED HTTP at port:', config.get('PORT'));
   });
 }
