@@ -1,8 +1,14 @@
-var fs      = require('fs');
-var https   = require('https');
-var path    = require('path');
-var app = require(__dirname+'/lib/express_app.js');
+var fs     = require('fs');
+var https  = require('https');
+var path   = require('path');
+var app    = require(__dirname+'/lib/express_app.js');
 var config = require(__dirname+'/lib/config-loader');
+
+if (~process.argv.indexOf('--checkconfig')) {
+  // Print configuration and exit
+  console.log(JSON.stringify(config.get(), null, 2));
+  process.exit(0);
+}
 
 require('rconsole');
 
