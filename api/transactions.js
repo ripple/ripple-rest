@@ -153,6 +153,7 @@ function getTransactionHelper(request, response, callback) {
     account: request.params.account,
     identifier: request.params.identifier
   };
+
   var steps = [
     validateOptions,
     ensureConnected,
@@ -161,7 +162,9 @@ function getTransactionHelper(request, response, callback) {
     attachResourceID,
     attachDate
   ];
+
   async.waterfall(steps, callback);
+
   function validateOptions(async_callback) {
     if (options.account && !validator.isValid(options.account, 'RippleAddress')) {
       return response.json(400, {
@@ -169,12 +172,15 @@ function getTransactionHelper(request, response, callback) {
         message: 'Invalid parameter: account. Must be a valid Ripple Address'
       });
     }
+
     if (!options.identifier) {
-      response.json(400, {
+      return response.json(400, {
         success: false,
         message: 'Missing parameter: identifier'
       });
-    } else if (validator.isValid(options.identifier, 'Hash256')) {
+    }
+
+    if (validator.isValid(options.identifier, 'Hash256')) {
       options.hash = options.identifier;
       async_callback();
     } else if (validator.isValid(options.identifier, 'ResourceId')) {
@@ -209,32 +215,42 @@ function getTransactionHelper(request, response, callback) {
   function queryTransaction(async_callback) {
     dbinterface.getTransaction(options, function(error, entry) {
       if (error) {
-        return async_callback(error);
-      }
-      if (entry && entry.client_resource_id) {
-        options.client_resource_id = entry.client_resource_id;
+        return response.json(500, {
+          success: false,
+          message: 'Error querying transaction'
+        });
       }
 
-      if (entry && entry.transaction) {
-        async_callback(null, entry.transaction);
-      } else if (options.hash) {
-        remote.requestTx(options.hash, function(error, transaction){
-          if (entry && transaction) {
-            transaction.client_resource_id = entry.client_resource_id;
-          }
-          async_callback(error, transaction);
-        });
-      } else {
-        response.json(404, {
+      if (!(entry || options.hash)) {
+        // Need transaction hash
+        return response.json(404, {
           success: false,
           message: 'Transaction not found'
         });
       }
+
+      if (options.hash && entry) {
+        // Verify that transaction hashes match
+        if (options.hash !== entry.transaction.hash) {
+          return response.json(404, {
+            success: false,
+            message: 'Transaction not found'
+          });
+        }
+      }
+
+      var transactionHash = options.hash || entry.transaction.hash;
+
+      remote.requestTx(transactionHash, function(error, transaction) {
+        if (entry && transaction) {
+          transaction.client_resource_id = entry.client_resource_id;
+        }
+        async_callback(error, transaction);
+      });
     });
   };
 
   function checkIfRelatedToAccount(transaction, async_callback) {
-
     if (options.account) {
       var transaction_string = JSON.stringify(transaction);
       var account_regex = new RegExp(options.account);
@@ -260,6 +276,7 @@ function getTransactionHelper(request, response, callback) {
     if (!transaction || transaction.date || !transaction.ledger_index) {
       return async_callback(null, transaction);
     }
+
     remote.requestLedger(transaction.ledger_index, function(error, ledger_res) {
       if (error) {
         return response.json(404, {
