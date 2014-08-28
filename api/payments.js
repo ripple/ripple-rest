@@ -21,12 +21,6 @@ module.exports = {
   getPathFind: getPathFind
 };
 
-function respondToError(status, message) {
-  response.json(status, {
-    success: false,
-    message: message
-  });
-}
 var paymentToTransactionConverter = new RestToLibTransactionConverter();
 
 /**
@@ -74,7 +68,10 @@ function submitPayment(request, response, next) {
 
   function validateOptions(async_callback) {
     if (!params.payment) {
-      return respondToError(400, 'Missing parameter: payment. Submission must have payment object in JSON form');
+      return response.json(400, {
+        success: false,
+        message: 'Missing parameter: payment. Submission must have payment object in JSON form'
+      });
     }
     if (!params.secret) {
       return response.json(400, {
@@ -257,7 +254,10 @@ function getPayment(request, response, next) {
         'Must provide a transaction hash or client_resource_id to get payment details';
     }
     if (invalid) {
-      return respondToError(400, message);
+      return response.json(400, {
+        success: false,
+        message: invalid
+      });
     }
     async_callback();
   };
