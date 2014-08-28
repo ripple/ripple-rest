@@ -4,11 +4,11 @@ var ripple = require('ripple-lib');
 var transactions = require('./transactions');
 var validator = require('../lib/schema-validator');
 var server_lib = require('../lib/server-lib');
+var remote = require(__dirname+'/../lib/remote.js');
+var config = require(__dirname+'/../lib/config-loader.js');
 
 module.exports = {
-  get: getNotification,
-  getNotification: getNotification,
-  getNextNotification: getNextNotification
+  getNotification: getNotification
 };
 
 /**
@@ -24,49 +24,33 @@ module.exports = {
  *  @param {Express.js Response} res
  *  @param {Express.js Next} next
  */
-function getNotification($, req, res, next) {
-  getNotificationHelper($, req, res, function(err, notification) {
-    if (err) {
-      return next(err);
+function getNotification(request, response, next) {
+  getNotificationHelper(request, response, function(error, notification) {
+    if (error) {
+      return next(error);
     }
 
-    var response = {
+    var responseBody = {
       success: true,
       notification: notification
     };
 
     // Add url_base to each url in notification
-    var url_base = req.protocol + '://' + req.host + ($.config && $.config.get('PORT') ? ':' + $.config.get('PORT') : '');
-    Object.keys(response.notification).forEach(function(key){
-      if (/url/.test(key) && response.notification[key]) {
-        response.notification[key] = url_base + response.notification[key];
+    var url_base = request.protocol + '://' + request.host + (config && config.get('PORT') ? ':' + config.get('PORT') : '');
+    Object.keys(responseBody.notification).forEach(function(key){
+      if (/url/.test(key) && responseBody.notification[key]) {
+        responseBody.notification[key] = url_base + responseBody.notification[key];
       }
     });
 
     // Move client_resource_id to response body instead of inside the Notification
-    var client_resource_id = response.notification.client_resource_id;
-    delete response.notification.client_resource_id;    
+    var client_resource_id = responseBody.notification.client_resource_id;
+    delete responseBody.notification.client_resource_id;    
     if (client_resource_id) {
-      response.client_resource_id = client_resource_id;
+      responseBody.client_resource_id = client_resource_id;
     }
 
-    res.json(200, response);
-  });
-};
-
-/**
- *  (Deprecated) Get the notification for the transaction
- *  following the one corresponding to the given identifier
- */
-function getNextNotification($, req, res, next) {
-  getNotificationHelper($, req, res, function(err, notification) {
-    if (err) {
-      next(err);
-    } else if (notification.next_notification_url) {
-      res.redirect(notification.next_notification_url);
-    } else {
-      // No next notification
-    }
+    response.json(200, responseBody);
   });
 };
 
@@ -87,56 +71,44 @@ function getNextNotification($, req, res, next) {
  *  @param {Error} error
  *  @param {Notification} notification
  */
-function getNotificationHelper($, req, res, callback) {
+function getNotificationHelper(request, response, callback) {
+  var account = request.params.account;
+  var identifier = request.params.identifier
 
-  var opts = {
-    account: req.params.account,
-    identifier: req.params.identifier
-  };
-
-  // opts.account is not required for transactions.getTransactionHelper
-  // but it is required here
-  if (!opts.account) {
-    return res.json(400, { success: false, message: 'Missing parameter: account. Must be a valid Ripple Address' });
+  if (!account) {
+    return response.json(400, {
+      success: false,
+      message: 'Missing parameter: account. Must be a valid Ripple Address'
+    });
   }
 
-  // Get the base transaction corresponding to the given identifier
-  // Note that getTransaction also handles parameter validation and
-  // checks the status of the connection to rippled
   function getTransaction(async_callback) {
-    transactions.getTransactionHelper($, req, res, async_callback);
+    transactions.getTransactionHelper(request, response, async_callback);
   };
 
-  // Check that the rippled has the ledger containing the
-  // base transaction in its complete ledger set. If it does
-  // not we cannot return a notification because there may be
-  // gaps in the ledger history that cause the previous and
-  // next transactions to be reported incorrectly
   function checkLedger(base_transaction, async_callback) {
-    server_lib.remoteHasLedger($.remote, base_transaction.ledger_index, function(err, remote_has_ledger) {
-      if (err) {
-        return async_callback(err);
+    server_lib.remoteHasLedger(remote, base_transaction.ledger_index, function(error, remote_has_ledger) {
+      if (error) {
+        return async_callback(error);
       }
-
       if (remote_has_ledger) {
         async_callback(null, base_transaction);
       } else {
-        res.json(500, { success: false, message: 'Cannot Get Notification. ' +
+        response.json(500, {
+          success: false,
+          message: 'Cannot Get Notification. ' +
           'This transaction is not in the ripple\'s complete ledger set. ' +
           'Because there is a gap in the rippled\'s historical database it is ' +
-          'not possible to determine the transactions that precede this one' });
+          'not possible to determine the transactions that precede this one'
+        });
       }
     });
   };
 
-  // Assemble the notification details
-  // into the format expected by the parseNotification
-  // function, including attaching the previous
-  // and next transaction identifiers
   function prepareNotificationDetails(base_transaction, async_callback) {
     var notification_details = {
-      account:         opts.account,
-      identifier:      opts.identifier,
+      account:         account,
+      identifier:      identifier,
       transaction:     base_transaction
     };
 
@@ -145,7 +117,7 @@ function getNotificationHelper($, req, res, callback) {
       notification_details.client_resource_id = base_transaction.client_resource_id;
     }
 
-    attachPreviousAndNextTransactionIdentifiers($, res, notification_details, async_callback);
+    attachPreviousAndNextTransactionIdentifiers(response, notification_details, async_callback);
   };
 
   // Parse the Notification object from the notification_details
@@ -185,7 +157,7 @@ function getNotificationHelper($, req, res, callback) {
  *    "next_transaction_identifier", "next_hash",
  *    "previous_transaction_identifier", "previous_hash"} notification_details
  */
-function attachPreviousAndNextTransactionIdentifiers($, res, notification_details, callback) {
+function attachPreviousAndNextTransactionIdentifiers(response, notification_details, callback) {
 
   // Get all of the transactions affecting the specified
   // account in the given ledger. This is done so that 
@@ -203,7 +175,7 @@ function attachPreviousAndNextTransactionIdentifiers($, res, notification_detail
       limit: 200 // arbitrary, just checking number of transactions in ledger
     };
 
-    transactions.getAccountTransactions($, params, res, async_callback);
+    transactions.getAccountTransactions(params, response, async_callback);
   };
 
   // All we care about is the count of the transactions
@@ -234,7 +206,7 @@ function attachPreviousAndNextTransactionIdentifiers($, res, notification_detail
         params.ledger_index_min = -1;
       }
 
-      transactions.getAccountTransactions($, params, res, async_concat_callback);
+      transactions.getAccountTransactions(params, response, async_concat_callback);
 
     }, async_callback);
 
@@ -361,7 +333,6 @@ function parseNotification(notification_details){
     notification.transaction_url = '/v1/transaction/' + notification.hash;
   }
 
-  // Change type to resource name
   if (notification.type === 'offercreate' || notification.type === 'offercancel') {
     notification.type = 'order';
   } else if (notification.type === 'trustset') {
