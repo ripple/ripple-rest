@@ -284,9 +284,11 @@ function getTransactionHelper(request, response, callback) {
           message: 'Transaction ledger not found'
         });
       }
+
       if (typeof ledger_res.ledger.close_time === 'number') {
-        transaction.date = ripple.utils.time.fromRipple(ledger_res.ledger.close_time);
+        transaction.date = ledger_res.ledger.close_time;
       }
+
       async_callback(null, transaction);
     });
   };
