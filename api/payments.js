@@ -409,7 +409,7 @@ function parsePaymentFromTx(tx, options) {
     result: tx.meta.TransactionResult || '',
     ledger: '' + (tx.inLedger || tx.ledger_index),
     hash: tx.hash || '',
-    timestamp: (tx.date ? new Date(ripple.utils.toTimestamp(tx.date)).toISOString() : ''),
+    timestamp: (tx.date ? new Date(ripple.utils.fromRipple(tx.date)).toISOString() : ''),
     fee: utils.dropsToXrp(tx.Fee) || '',
     source_balance_changes: [],
     destination_balance_changes: []

@@ -307,7 +307,7 @@ function parseNotification(notification_details){
     result: (transaction.meta ? transaction.meta.TransactionResult : ''),
     ledger: '' + transaction.ledger_index,
     hash: transaction.hash,
-    timestamp: '' + new Date(transaction.date).toISOString(),
+    timestamp: new Date(ripple.utils.fromRipple(transaction.date)).toISOString(),
     transaction_url: '', // set below
     previous_hash: notification_details.previous_hash,
     previous_notification_url: '', // set below
