@@ -303,7 +303,7 @@ function parseNotification(notification_details){
     account: account,
     type: transaction.TransactionType.toLowerCase(),
     direction: '', // set below
-    state: (transaction.meta ? (transaction.meta.result === 'tesSUCCESS' ? 'validated' : 'failed') : ''),
+    state: (transaction.meta ? (transaction.meta.TransactionResult === 'tesSUCCESS' ? 'validated' : 'failed') : ''),
     result: (transaction.meta ? transaction.meta.TransactionResult : ''),
     ledger: '' + transaction.ledger_index,
     hash: transaction.hash,
