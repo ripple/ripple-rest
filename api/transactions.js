@@ -86,13 +86,23 @@ function submitTransaction(data, response, callback) {
   };
 
   function submitTransaction(transaction, async_callback) {
+    var ledgerIndex = remote._ledger_current_index;
+
+    if (isNaN(ledgerIndex)) {
+      remote.once('ledger_closed', function() {
+        submitTransaction(transaction, async_callback);
+      });
+      return;
+    }
+
     transaction.remote = remote;
-    transaction.lastLedger(Number(remote._ledger_current_index) + module.exports.DEFAULT_LEDGER_BUFFER);
+    transaction.lastLedger(Number(ledgerIndex) + module.exports.DEFAULT_LEDGER_BUFFER);
     transaction.once('error', async_callback);
     transaction.once('proposed', function() {
       transaction.removeListener('error', async_callback);
       async_callback(null, transaction._clientID);
     });
+
     transaction.submit();
   };
 
