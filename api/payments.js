@@ -928,7 +928,7 @@ function parsePaymentFromTx(tx, options) {
           'incoming' :
           'passthrough')) :
       ''),
-    state: tx.state || (tx.meta.TransactionResult === 'tesSUCCESS' ? 'validated' : 'failed'),
+    state: tx.state || tx.meta ? (tx.meta.TransactionResult === 'tesSUCCESS' ? 'validated' : 'failed') : '',
     result: tx.meta.TransactionResult || '',
     ledger: '' + (tx.inLedger || tx.ledger_index),
     hash: tx.hash || '',
