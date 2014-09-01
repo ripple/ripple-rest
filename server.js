@@ -1,9 +1,3 @@
-var fs     = require('fs');
-var https  = require('https');
-var path   = require('path');
-var config = require(__dirname+'/lib/config-loader');
-var app = require(__dirname+'/lib/express_app.js');
-
 require('rconsole');
 
 console.set({
@@ -18,6 +12,12 @@ console.set({
   showFile:        true,
   showTags:        true
 });
+
+var fs     = require('fs');
+var https  = require('https');
+var path   = require('path');
+var config = require(__dirname+'/lib/config-loader');
+var app = require(__dirname+'/lib/express_app.js');
 
 /* Configure SSL, if desired */
 if (typeof config.get('ssl') === 'object') {
