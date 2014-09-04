@@ -6,6 +6,7 @@ var validator = require('../lib/schema-validator');
 var server_lib = require('../lib/server-lib');
 var remote = require(__dirname+'/../lib/remote.js');
 var config = require(__dirname+'/../lib/config-loader.js');
+var NotificationParser = require(__dirname+'/../lib/notification_parser.js');
 
 module.exports = {
   getNotification: getNotification
@@ -116,13 +117,14 @@ function getNotificationHelper(request, response, callback) {
     if (base_transaction.client_resource_id) {
       notification_details.client_resource_id = base_transaction.client_resource_id;
     }
-
     attachPreviousAndNextTransactionIdentifiers(response, notification_details, async_callback);
   };
 
   // Parse the Notification object from the notification_details
   function parseNotificationDetails(notification_details, async_callback) {
-    var notification = parseNotification(notification_details);
+    var notificationParser = new NotificationParser();
+    var notification = notificationParser.parse(notification_details);
+    console.log("NTF", notification);
     async_callback(null, notification);
   };
 
@@ -266,7 +268,6 @@ function attachPreviousAndNextTransactionIdentifiers(response, notification_deta
       notification_details.next_hash = next_transaction.hash;
     }
 
-
     async_callback(null, notification_details);
   };
 
@@ -281,20 +282,3 @@ function attachPreviousAndNextTransactionIdentifiers(response, notification_deta
   async.waterfall(steps, callback);
 };
 
-/**
- *  Convert a Ripple transaction in the JSON format, 
- *  along with some additional pieces of information, 
- *  into a Notification object.
- *
- *  @param {Ripple Transaction in JSON Format} notification_details.transaction
- *  @param {RippleAddress} notification_details.account
- *  @param {Hex-encoded String|ResourceId} notification_details.previous_transaction_identifier
- *  @param {Hex-encoded String|ResourceId} notification_details.next_transaction_identifier
- *  
- *  @returns {Notification}
- */
-function parseNotification(notification_details){
-  var notificationParser = new NotificationParser();
-  var notification = notificationParser.parse(notification_details);
-  return notification;
-}
