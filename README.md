@@ -117,8 +117,3 @@ Note that the server can be run in Debug Mode by running `node server.js --debug
   cd /opt/ripple-rest
   sudo -E -u restful /usr/bin/node server.js
   ```
-
-## Deploying with Capistrano
-
-Deploying with Capistrano is [__documented here__](docs/capistrano.md)
-
