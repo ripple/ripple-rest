@@ -1,7 +1,7 @@
 var uuid = require('node-uuid');
 var serverlib = require('../lib/server-lib');
 var remote = require('../lib/remote.js');
-var _ = require('underscore-node');
+var _ = require('lodash');
 
 exports.uuid = getUUID;
 exports.serverStatus = getServerStatus;
