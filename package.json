@@ -44,7 +44,7 @@
   },
   "dependencies": {
     "express": "~3.4.7",
-    "ripple-lib": "~0.7.39",
+    "ripple-lib": "~0.8.0-rc2",
     "grunt": "~0.4.5",
     "grunt-db-migrate": "~0.2.0",
     "db-migrate": "~0.6.4",
