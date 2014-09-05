@@ -929,7 +929,7 @@ function parsePaymentFromTx(tx, options) {
           'passthrough')) :
       ''),
     state: tx.state || tx.meta ? (tx.meta.TransactionResult === 'tesSUCCESS' ? 'validated' : 'failed') : '',
-    result: tx.meta.TransactionResult || '',
+    result: tx.meta ? tx.meta.TransactionResult : '',
     ledger: '' + (tx.inLedger || tx.ledger_index),
     hash: tx.hash || '',
     timestamp: (tx.date ? new Date(ripple.utils.toTimestamp(tx.date)).toISOString() : ''),
