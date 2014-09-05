@@ -55,4 +55,6 @@ if (config.get('ssl_enabled')) {
 }
 
 // Connect to Ripple
-app.remote.connect();
+if (!process.env.TRAVIS) {
+  app.remote.connect();
+}
