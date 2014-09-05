@@ -14,7 +14,7 @@ module.exports = function(database_url, callback) {
   }
 
   // Use postgres database if provided, otherwise use sqlite3
-  if (database_url && database_url.indexOf('postgres') !== -1) {
+  if (typeof database_url === 'string' && database_url.indexOf('postgres') !== -1) {
 
     db = new sequelize(database_url, {
       logging:  false,
@@ -28,7 +28,7 @@ module.exports = function(database_url, callback) {
 
     db = new sequelize('ripple_rest_db', 'ripple_rest_user', 'ripple_rest', {
       dialect: 'sqlite',
-      storage: database_url || ':memory:',
+      storage: ':memory:',
       logging: false,
       sync: { force: true },
       define: { 
