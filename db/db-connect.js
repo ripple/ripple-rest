@@ -1,21 +1,20 @@
-var fs        = require('fs');
+var fs = require('fs');
+var pg = require('pg.js');
 var sequelize = require('sequelize');
-var pg        = require('pg.js');
 
 module.exports = function(database_url, callback) {
-
   var db;
 
   // If database connection uses HTTPS, node-postgres module must be installed.
   // By default only the pg.js module is used, which does not require the
   // Postgres drivers to be installed. The line "require('pg').native" uses the
   // native drivers, which permit connecting to the database over HTTPS
-  if (/https/.test(database_url)) {
+  if (/^https/.test(database_url)) {
     pg = require('pg').native;
   }
 
   // Use postgres database if provided, otherwise use sqlite3
-  if (database_url && database_url.indexOf('postgres') !== -1) {
+  if (typeof database_url === 'string' && database_url.indexOf('postgres') !== -1) {
 
     db = new sequelize(database_url, {
       logging:  false,
@@ -39,7 +38,7 @@ module.exports = function(database_url, callback) {
     });
 
   }
-  
+
   db.authenticate()
   .error(function(err){
     var error = new Error('Cannot connect to database: ' + database_url + '. ' + err);
