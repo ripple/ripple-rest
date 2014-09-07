@@ -1,6 +1,9 @@
-var fs = require('fs');
-var path = require('path');
-var config = require('./lib/config-loader');
+var fs      = require('fs');
+var https   = require('https');
+var path    = require('path');
+var app = require(__dirname+'/lib/express_app.js');
+var config = require(__dirname+'/lib/config-loader');
+var remote = require(__dirname+'/lib/remote.js');
 
 require('rconsole');
 
@@ -17,8 +20,7 @@ console.set({
   showTags: false
 });
 
-var app = require('./lib/express_app.js');
-var port = config.get('port');
+var port = config.get('port') || 5990;
 var host = config.get('host');
 
 function loadSSLConfig() {
