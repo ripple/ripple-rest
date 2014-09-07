@@ -18,8 +18,8 @@ console.set({
 });
 
 var app = require('./lib/express_app.js');
-var port = config.get('port');
-var host = config.get('host');
+var port = config.get('PORT') || 5990;
+var host = config.get('HOST');
 
 function loadSSLConfig() {
   var keyPath  = config.get('ssl').key_path
