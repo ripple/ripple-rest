@@ -2,12 +2,15 @@ var async     = require('async');
 var bignum    = require('bignumber.js');
 var ripple    = require('ripple-lib');
 var serverLib = require('../lib/server-lib');
-var remote    = require(__dirname+'/../lib/remote.js');
+var remote    = require('./../lib/remote.js');
+var respond   = require('../lib/http_utils.js');
 
-exports.get = getBalances;
+module.exports = {
+  get: getBalances
+};
 
 function getBalances(request, response, next) {
-  var self = this;
+
   var options = {
     account:       request.params.account,
     currency:      request.query.currency,
@@ -18,22 +21,13 @@ function getBalances(request, response, next) {
 
   function validateOptions(callback) {
     if (!ripple.UInt160.is_valid(options.account)) {
-      return response.json(400, {
-        success: false,
-        message: 'Parameter is not a valid Ripple address: account'
-      });
+      respond.bad(response, 'Parameter is not a valid Ripple address: account');
     }
     if (options.counterparty && !ripple.UInt160.is_valid(options.counterparty)) {
-      return response.json(400, {
-        success: false,
-        message: 'Parameter is not a valid Ripple address: counterparty'
-      });
+      respond.bad(response, 'Parameter is not a valid Ripple address: counterparty');
     }
     if (options.currency && !/^[A-Z0-9]{3}$/.test(options.currency)) {
-      return response.json(400, {
-        success: false,
-        message: 'Parameter is not a valid currency: currency'
-      });
+      respond.bad(response, 'Parameter is not a valid currency: currency');
     }
     callback();
   };
@@ -43,10 +37,7 @@ function getBalances(request, response, next) {
       if (connected) {
         callback();
       } else {
-        response.json(500, {
-          success: false,
-          message: 'No connection to rippled'
-        });
+        respond.error(response, 'No connection to rippled');
       }
     });
   };
@@ -105,10 +96,7 @@ function getBalances(request, response, next) {
     if (error) {
       next(error);
     } else {
-      response.json(200, {
-        success: true,
-        balances: balances
-      });
+      respond.success(response, { balances : balances});
     }
   });
 };
