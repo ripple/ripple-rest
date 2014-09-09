@@ -3,7 +3,7 @@ var bignum    = require('bignumber.js');
 var ripple    = require('ripple-lib');
 var serverLib = require('../lib/server-lib');
 var remote    = require('./../lib/remote.js');
-var respond   = require('../lib/http_utils.js');
+var respond   = require('../lib/response-handler.js');
 
 module.exports = {
   get: getBalances

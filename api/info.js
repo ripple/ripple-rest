@@ -3,7 +3,7 @@ var _ =         require('lodash');
 
 var serverlib = require('../lib/server-lib');
 var remote =    require('../lib/remote.js');
-var respond =   require('../lib/http_utils.js');
+var respond =   require('../lib/response-handler.js');
 
 module.exports = {
   serverStatus: getServerStatus,
