@@ -17,7 +17,7 @@ console.set({
   showTags: false
 });
 
-var app = require('./lib/express_app.js');
+var app = require('./lib/app.js');
 var port = config.get('port');
 var host = config.get('host');
 
