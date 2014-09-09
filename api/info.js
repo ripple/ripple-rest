@@ -14,7 +14,7 @@ module.exports = {
 function getServerStatus(request, response) {
   serverlib.getStatus(remote, function(error, status) {
     if (error) {
-      respond.error(response, error.message);
+      respond.connectionError(response, error.message);
     } else {
       respond.success(response, _.extend(
         {
@@ -28,7 +28,7 @@ function getServerStatus(request, response) {
 function getServerConnected(request, response) {
   serverlib.ensureConnected(remote, function(error, status) {
     if (error) {
-      respond.error(response, error.message);
+      respond.connectionError(response, error.message);
     } else {
       respond.success(response, {connected: Boolean(status)});
     }

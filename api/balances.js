@@ -21,23 +21,23 @@ function getBalances(request, response, next) {
 
   function validateOptions(callback) {
     if (!ripple.UInt160.is_valid(options.account)) {
-      respond.bad(response, 'Parameter is not a valid Ripple address: account');
+      respond.invalidRequest(response, 'Parameter is not a valid Ripple address: account');
     }
     if (options.counterparty && !ripple.UInt160.is_valid(options.counterparty)) {
-      respond.bad(response, 'Parameter is not a valid Ripple address: counterparty');
+      respond.invalidRequest(response, 'Parameter is not a valid Ripple address: counterparty');
     }
     if (options.currency && !/^[A-Z0-9]{3}$/.test(options.currency)) {
-      respond.bad(response, 'Parameter is not a valid currency: currency');
+      respond.invalidRequest(response, 'Parameter is not a valid currency: currency');
     }
     callback();
   };
 
   function ensureConnected(callback) {
-    serverLib.ensureConnected(remote, function(error, connected) {
-      if (connected) {
-        callback();
+    serverLib.ensureConnected(remote, function(error, status) {
+      if (error) {
+        respond.connectionError(response, error.message);
       } else {
-        respond.error(response, 'No connection to rippled');
+        respond.success(response, {connected: Boolean(status)});
       }
     });
   };
@@ -96,7 +96,7 @@ function getBalances(request, response, next) {
     if (error) {
       next(error);
     } else {
-      respond.success(response, { balances : balances});
+      respond.success(response, { balances: balances });
     }
   });
 };
