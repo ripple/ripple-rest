@@ -275,9 +275,11 @@ function getPayment(request, response, next) {
 
   function formatTransaction(transaction, async_callback) {
     if (transaction) {
-      var payment = parsePaymentFromTx(transaction, {
-        account: options.account
-      });
+      var payment = parsePaymentFromTx(transaction,
+        {
+          account: options.account
+        },
+        async_callback);
       async_callback(null, payment);
     } else {
       response.json(404, {
@@ -310,103 +312,6 @@ function getPayment(request, response, next) {
   });
 };
 
-/**
- *  Parse a Payment from the standard ripple
- *  transaction JSON format.
- *
- *  @param {ripple Transaction in JSON format} tx
- *  @param {RippleAddress} options.account Required to determine "direction"
- *  @returns {Payment}
- */
-function parsePaymentFromTx(tx, options) {
-  if (typeof options === 'function') {
-    callback = options;
-    options = {};
-  }
-
-  if (!options.account) {
-    callback(new Error('Internal Error. must supply options.account'));
-    return;
-  }
-
-  if (tx.TransactionType !== 'Payment') {
-    callback(new Error('Not a payment. The transaction corresponding to the given identifier is not a payment.'));
-    return;
-  }
-
-  var payment = {
-
-    // User supplied
-    source_account: tx.Account,
-    source_tag: (tx.SourceTag ? '' + tx.SourceTag : ''),
-    source_amount: (tx.SendMax ?
-      (typeof tx.SendMax === 'object' ?
-        tx.SendMax :
-        {
-          value: utils.dropsToXrp(tx.SendMax),
-          currency: 'XRP',
-          issuer: ''
-        }) :
-      (typeof tx.Amount === 'string' ?
-        {
-          value: utils.dropsToXrp(tx.Amount),
-          currency: 'XRP',
-          issuer: ''
-        } :
-        tx.Amount)),
-    source_slippage: '0',
-
-    destination_account: tx.Destination,
-    destination_tag: (tx.DestinationTag ? '' + tx.DestinationTag : ''),
-    destination_amount: (typeof tx.Amount === 'object' ?
-      tx.Amount :
-      {
-        value: utils.dropsToXrp(tx.Amount),
-        currency: 'XRP',
-        issuer: ''
-      }),
-
-    // Advanced options
-    invoice_id: tx.InvoiceID || '',
-    paths: JSON.stringify(tx.Paths || []),
-    no_direct_ripple: (tx.Flags & 0x00010000 ? true : false),
-    partial_payment: (tx.Flags & 0x00020000 ? true : false),
-
-    // Generated after validation
-    direction: (options.account ?
-      (options.account === tx.Account ?
-        'outgoing' :
-        (options.account === tx.Destination ?
-          'incoming' :
-          'passthrough')) :
-      ''),
-    state: tx.state || (tx.meta.TransactionResult === 'tesSUCCESS' ? 'validated' : 'failed'),
-    result: tx.meta.TransactionResult || '',
-    ledger: '' + (tx.inLedger || tx.ledger_index),
-    hash: tx.hash || '',
-    timestamp: (tx.date ? new Date(ripple.utils.time.fromRipple(tx.date)).toISOString() : ''),
-    fee: utils.dropsToXrp(tx.Fee) || '',
-    source_balance_changes: [],
-    destination_balance_changes: []
-
-  };
-
-  // Add source_balance_changes
-  utils.parseBalanceChanges(tx, tx.Account).forEach(function(amount){
-    if (amount.value < 0) {
-      payment.source_balance_changes.push(amount);
-    }
-  });
-
-  // Add destination_balance_changes
-  utils.parseBalanceChanges(tx, tx.Destination).forEach(function(amount){
-    if (amount.value > 0) {
-      payment.destination_balance_changes.push(amount);
-    }
-  });
-
-  return payment;
-};
 
 /**
  *  Retrieve the details of multiple payments from the Remote
@@ -454,14 +359,29 @@ function getAccountPayments(request, response, next) {
   };
 
   function formatTransactions(transactions, async_callback) {
-    var payments = _.map(transactions, function(transaction) {
-      return parsePaymentFromTx(transaction, { account: request.params.account });
-    });
+
+    // we're not passing in the async_callback to the parsePaymentFromTx
+    // meaning there could be null entries in the payments array after the transactions processing
+    // filter the empty payments out
+    var payments = [];
+    if (Array.isArray(transactions)) {
+      for (var i=0; i < transactions.length; i++) {
+        var parsedPayment = parsePaymentFromTx(transactions[i], { account: request.params.account });
+        if (parsedPayment) {
+          payments.push(parsedPayment);
+        }
+      }
+    }
+
     async_callback(null, payments);
   };
 
   function attachResourceId(transactions, async_callback) {
     async.map(transactions, function(payment, async_map_callback) {
+      if (!payment) {
+        async_map_callback(new Error('No payment found'));
+      }
+
       dbinterface.getTransaction({ hash: payment.hash }, function(error, db_entry) {
         if (error) {
           return callback(error);
@@ -848,19 +768,34 @@ function addDirectXrpPath(pathfind_results, callback) {
   });
 };
 
-function parsePaymentFromTx(tx, options) {
+function parsePaymentFromTx(tx, options, callback) {
+
   if (typeof options === 'function') {
     callback = options;
     options = {};
   }
+
   if (!options.account) {
-    callback(new Error('Internal Error. must supply options.account'));
+    if (callback !== void(0)) {
+      callback(new Error('Internal Error. must supply options.account'));
+    }
     return;
   }
   if (tx.TransactionType !== 'Payment') {
-    callback(new Error('Not a payment. The transaction corresponding to the given identifier is not a payment.'));
+    if (callback !== void(0)) {
+      callback(new Error('Not a payment. The transaction corresponding to the given identifier is not a payment.'));
+    }
     return;
   }
+  if (tx.meta !== void(0) && tx.meta.TransactionResult !== void(0)) {
+    if (tx.meta.TransactionResult === 'tejSecretInvalid') {
+      if (callback !== void(0)) {
+        callback(new Error('Invalid secret provided.'));
+      }
+      return;
+    }
+  }
+
   var payment = {
     // User supplied
     source_account: tx.Account,
