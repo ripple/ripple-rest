@@ -389,10 +389,10 @@ function getAccountPayments(request, response, next) {
     // meaning there could be null entries in the payments array after the transactions processing
     // filter the empty payments out
     var payments = [];
-    if (transactions !== void(0) && typeof transactions.length === 'number' && transactions.length > 0) {
+    if (Array.isArray(transactions)) {
       for (var i=0; i < transactions.length; i++) {
         var parsedPayment = parsePaymentFromTx(transactions[i], { account: request.params.account });
-        if (parsedPayment !== void(0)) {
+        if (parsedPayment) {
           payments.push(parsedPayment);
         }
       }
@@ -403,7 +403,7 @@ function getAccountPayments(request, response, next) {
 
   function attachResourceId(transactions, async_callback) {
     async.map(transactions, function(payment, async_map_callback) {
-      if (payment === void(0)) {
+      if (!payment) {
         async_map_callback(new Error('No payment found'));
       }
 
