@@ -2,16 +2,21 @@ var _                     = require('lodash');
 var async                 = require('async');
 var bignum                = require('bignumber.js');
 var ripple                = require('ripple-lib');
-var validator             = require('../lib/schema-validator');
 var transactions          = require('./transactions');
-var serverLib             = require('../lib/server-lib');
-var utils                 = require('../lib/utils');
-var remote                = require(__dirname+'/../lib/remote.js');
-var dbinterface           = require(__dirname+'/../lib/db-interface.js');
-var config                = require(__dirname+'/../lib/config-loader.js');
-var currency_schema       = require('../schemas/Currency.json');
-var ripple_address_schema = require('../schemas/RippleAddress.json');
-var RestToLibTransactionConverter = require(__dirname+'/../lib/rest_to_lib_transaction_converter.js');
+var validator             = require('./../lib/schema-validator');
+var serverLib             = require('./../lib/server-lib');
+var utils                 = require('./../lib/utils');
+var remote                = require('./../lib/remote.js');
+var dbinterface           = require('./../lib/db-interface.js');
+var config                = require('./../lib/config-loader.js');
+var RestToLibTxConverter  = require('./../lib/rest_to_lib_transaction_converter.js');
+var respond               = require('./../lib/response-handler.js');
+var errors                = require('./../lib/errors.js');
+
+var InvalidRequestError   = errors.InvalidRequestError;
+var NetworkError          = errors.NetworkError;
+var RippledNetworkError   = errors.RippledNetworkError;
+
 var DEFAULT_RESULTS_PER_PAGE = 10;
 
 module.exports = {
@@ -21,7 +26,7 @@ module.exports = {
   getPathFind: getPathFind
 };
 
-var paymentToTransactionConverter = new RestToLibTransactionConverter();
+var paymentToTransactionConverter = new RestToLibTxConverter();
 
 /**
  *  Submit a payment in the ripple-rest format.
@@ -41,6 +46,7 @@ var paymentToTransactionConverter = new RestToLibTransactionConverter();
  *  @param {Express.js Next} next
  */
 function submitPayment(request, response, next) {
+
   var steps = [
     validateOptions,
     validatePayment,
@@ -48,17 +54,18 @@ function submitPayment(request, response, next) {
     formatPayment,
     submitTransaction
   ];
+
   async.waterfall(steps, function(error, client_resource_id) {
     if (error) {
       next(error);
     } else {
-      response.json(200, {
-        success: true,
+      respond.success(response, {
         client_resource_id: client_resource_id,
         status_url: params.url_base + '/v1/accounts/' + params.payment.source_account + '/payments/' + client_resource_id
       });
     }
   });
+
   var params = {
     payment: request.body.payment,
     secret: request.body.secret,
@@ -68,76 +75,54 @@ function submitPayment(request, response, next) {
 
   function validateOptions(async_callback) {
     if (!params.payment) {
-      return response.json(400, {
-        success: false,
-        message: 'Missing parameter: payment. Submission must have payment object in JSON form'
-      });
+      async_callback(new InvalidRequestError('Missing parameter: payment. Submission must have payment object in JSON form'));
     }
-    if (!params.secret) {
-      return response.json(400, {
-        success: false,
-        message: 'Missing parameter: secret. Submission must have account secret to sign and submit payment'
-      });
+    else if (!params.secret) {
+      async_callback(new InvalidRequestError('Missing parameter: secret. Submission must have account secret to sign and submit payment'));
     }
-    if (!params.client_resource_id) {
-      return response.json(400, {
-        success: false,
-        message: 'Missing parameter: client_resource_id. All payments must be submitted with a client_resource_id to prevent duplicate payments'
-      });
+    else if (!params.client_resource_id) {
+      async_callback(new InvalidRequestError('Missing parameter: client_resource_id. All payments must be submitted with a client_resource_id to prevent duplicate payments'));
     }
-    if (!validator.isValid(params.client_resource_id, 'ResourceId')) {
-      return response.json(400, {
-        success: false,
-        message: 'Invalid parameter: client_resource_id. Must be a string of ASCII-printable characters. Note that 256-bit hex strings are disallowed because of the potential confusion with transaction hashes.'
-      });
+    else if (!validator.isValid(params.client_resource_id, 'ResourceId')) {
+      async_callback(new InvalidRequestError('Invalid parameter: client_resource_id. Must be a string of ASCII-printable characters. Note that 256-bit hex strings are disallowed because of the potential confusion with transaction hashes.'));
     }
-    async_callback();
-  };
+    else {
+      async_callback();
+    }
+  }
 
   function validatePayment(async_callback) {
     paymentIsValid(params.payment, function(error, payment){
-      if (error) {
-        response.json(400, {
-          success: false,
-          message: error.message || error
-        });
-      } else {
-        async_callback();
-      }
+      async_callback(error ? error : void(0));
     });
-  };
+  }
 
   function ensureConnected(async_callback) {
     serverLib.ensureConnected(remote, function(error, connected) {
       if (connected) {
         async_callback();
       } else {
-        response.json(500, {
-          success: false,
-          message: 'No connection to rippled'
-        });
+        async_callback(new RippledNetworkError());
       }
     });
-  };
+  }
 
   function formatPayment(async_callback) {
     paymentToTransactionConverter.convert(params.payment, function(error, transaction) {
       if (error) {
-        response.json(400, {
-          success: false,
-          message: error.message
-        });
+        async_callback(error);
       } else {
         async_callback(null, transaction);
       }
     });
-  };
+  }
 
   function submitTransaction(transaction, async_callback) {
     params.transaction = transaction;
     transactions.submit(params, response, async_callback);
-  };
-};
+  }
+
+}
 
 /**
  *  Check that the given payment is valid. If not
@@ -254,28 +239,18 @@ function getPayment(request, response, next) {
         'Must provide a transaction hash or client_resource_id to get payment details';
     }
     if (invalid) {
-      return response.json(400, {
-        success: false,
-        message: invalid
-      });
+      async_callback(new InvalidRequestError(invalid));
+    } else {
+      async_callback();
     }
-    async_callback();
   };
 
   function ensureConnected(async_callback) {
     serverLib.ensureConnected(remote, function(error, connected) {
       if (connected) {
         async_callback();
-      } else if (error) {
-        response.json(500, {
-          success: false,
-          message: error.message
-        });
       } else {
-        response.json(500, {
-          success: false,
-          message: 'No connection to rippled'
-        });
+        async_callback(new RippledNetworkError(error !== void(0) ? error.message : void(0)));
       }
     });
   };
