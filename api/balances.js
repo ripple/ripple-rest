@@ -2,12 +2,15 @@ var async     = require('async');
 var bignum    = require('bignumber.js');
 var ripple    = require('ripple-lib');
 var serverLib = require('../lib/server-lib');
-var remote    = require(__dirname+'/../lib/remote.js');
+var remote    = require('./../lib/remote.js');
+var respond   = require('../lib/response-handler.js');
 
-exports.get = getBalances;
+module.exports = {
+  get: getBalances
+};
 
 function getBalances(request, response, next) {
-  var self = this;
+
   var options = {
     account:       request.params.account,
     currency:      request.query.currency,
@@ -18,35 +21,23 @@ function getBalances(request, response, next) {
 
   function validateOptions(callback) {
     if (!ripple.UInt160.is_valid(options.account)) {
-      return response.json(400, {
-        success: false,
-        message: 'Parameter is not a valid Ripple address: account'
-      });
+      respond.invalidRequest(response, 'Parameter is not a valid Ripple address: account');
     }
     if (options.counterparty && !ripple.UInt160.is_valid(options.counterparty)) {
-      return response.json(400, {
-        success: false,
-        message: 'Parameter is not a valid Ripple address: counterparty'
-      });
+      respond.invalidRequest(response, 'Parameter is not a valid Ripple address: counterparty');
     }
     if (options.currency && !/^[A-Z0-9]{3}$/.test(options.currency)) {
-      return response.json(400, {
-        success: false,
-        message: 'Parameter is not a valid currency: currency'
-      });
+      respond.invalidRequest(response, 'Parameter is not a valid currency: currency');
     }
     callback();
   };
 
   function ensureConnected(callback) {
-    serverLib.ensureConnected(remote, function(error, connected) {
-      if (connected) {
-        callback();
+    serverLib.ensureConnected(remote, function(error, status) {
+      if (error) {
+        respond.connectionError(response, error.message);
       } else {
-        response.json(500, {
-          success: false,
-          message: 'No connection to rippled'
-        });
+        respond.success(response, {connected: Boolean(status)});
       }
     });
   };
@@ -105,10 +96,7 @@ function getBalances(request, response, next) {
     if (error) {
       next(error);
     } else {
-      response.json(200, {
-        success: true,
-        balances: balances
-      });
+      respond.success(response, { balances: balances });
     }
   });
 };

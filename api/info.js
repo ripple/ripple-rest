@@ -1,31 +1,26 @@
-var uuid = require('node-uuid');
+var uuid =      require('node-uuid');
+var _ =         require('lodash');
+
 var serverlib = require('../lib/server-lib');
-var remote = require('../lib/remote.js');
-var _ = require('lodash');
+var remote =    require('../lib/remote.js');
+var respond =   require('../lib/response-handler.js');
 
-exports.uuid = getUUID;
-exports.serverStatus = getServerStatus;
-exports.isConnected = getServerConnected;
-
-function getUUID(request, response, next) {
-  response.send(200, {
-    success: true,
-    uuid: uuid.v4()
-  });
+module.exports = {
+  serverStatus: getServerStatus,
+  isConnected: getServerConnected,
+  uuid: getUUID
 };
 
 function getServerStatus(request, response) {
   serverlib.getStatus(remote, function(error, status) {
     if (error) {
-      response.json(500, {
-        success: false,
-        message: error.message
-      });
+      respond.connectionError(response, error.message);
     } else {
-      response.json(200, _.extend({
-        success: true,
-        api_documentation_url: 'https://github.com/ripple/ripple-rest'
-      }, status));
+      respond.success(response, _.extend(
+        {
+          api_documentation_url: 'https://github.com/ripple/ripple-rest'
+        },
+        status));
     }
   });
 };
@@ -33,16 +28,13 @@ function getServerStatus(request, response) {
 function getServerConnected(request, response) {
   serverlib.ensureConnected(remote, function(error, status) {
     if (error) {
-      response.json(500, {
-        success: false,
-        message: error.message
-      });
+      respond.connectionError(response, error.message);
     } else {
-      response.json(200, {
-        success: true,
-        connected: Boolean(status)
-      });
+      respond.success(response, {connected: Boolean(status)});
     }
   });
 };
 
+function getUUID(request, response, next) {
+  respond.success(response, { uuid: uuid.v4() });
+};
