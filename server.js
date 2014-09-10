@@ -1,9 +1,3 @@
-var fs      = require('fs');
-var https   = require('https');
-var path    = require('path');
-var app = require(__dirname+'/lib/express_app.js');
-var config = require(__dirname+'/lib/config-loader');
-
 require('rconsole');
 
 console.set({
@@ -18,6 +12,12 @@ console.set({
   showFile:        true,
   showTags:        true
 });
+
+var fs     = require('fs');
+var https  = require('https');
+var path   = require('path');
+var config = require(__dirname+'/lib/config-loader');
+var app = require(__dirname+'/lib/express_app.js');
 
 /* Configure SSL, if desired */
 if (typeof config.get('ssl') === 'object') {
@@ -37,11 +37,11 @@ if (typeof config.get('ssl') === 'object') {
     cert:  fs.readFileSync(cert_path)
   };
 
-  https.createServer(sslOptions, app).listen(config.get('PORT'), function() {
+  https.createServer(sslOptions, app).listen(config.get('PORT'), config.get('HOST'), function() {
     console.log('ripple-rest server listening over HTTPS at port:', config.get('PORT'));
   });
 } else {
-  app.listen(config.get('PORT'), function() {
+  app.listen(config.get('PORT'), config.get('HOST'), function() {
     console.log('ripple-rest server listening over UNSECURED HTTP at port:', config.get('PORT'));
   });
 }
