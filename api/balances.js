@@ -1,7 +1,6 @@
 var async     = require('async');
 var bignum    = require('bignumber.js');
 var ripple    = require('ripple-lib');
-var serverLib = require('../lib/server-lib');
 var remote    = require('./../lib/remote.js');
 var respond   = require('../lib/response-handler.js');
 var errors    = require('./../lib/errors.js');
@@ -10,7 +9,6 @@ module.exports = {
   get: getBalances
 };
 
-var RippledNetworkError   = errors.RippledNetworkError;
 var InvalidRequestError   = errors.InvalidRequestError;
 
 function getBalances(request, response, next) {
@@ -34,15 +32,6 @@ function getBalances(request, response, next) {
       return callback(new InvalidRequestError('Parameter is not a valid currency: currency'));
     }
     callback();
-  };
-
-  function ensureConnected(callback) {
-    serverLib.ensureConnected(remote, function(error, status) {
-      if (error) {
-        return callback(new RippledNetworkError(error.message));
-      }
-      callback();
-    });
   };
 
   function getXRPBalance(callback) {
@@ -81,8 +70,7 @@ function getBalances(request, response, next) {
   };
 
   var steps = [
-    validateOptions,
-    ensureConnected
+    validateOptions
   ];
 
   if (options.currency) {
