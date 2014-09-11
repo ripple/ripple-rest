@@ -6,7 +6,7 @@ var controller = {
     response
       .status(200)
       .send({
-        succes: true,
+        success: true,
         account: wallet
       });
   }
