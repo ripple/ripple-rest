@@ -15,7 +15,6 @@ var errors                = require('./../lib/errors.js');
 
 var InvalidRequestError   = errors.InvalidRequestError;
 var NetworkError          = errors.NetworkError;
-var RippledNetworkError   = errors.RippledNetworkError;
 var NotFoundError         = errors.NotFoundError;
 var TimeOutError          = errors.TimeOutError;
 
@@ -52,7 +51,6 @@ function submitPayment(request, response, next) {
   var steps = [
     validateOptions,
     validatePayment,
-    ensureConnected,
     formatPayment,
     submitTransaction
   ];
@@ -96,16 +94,6 @@ function submitPayment(request, response, next) {
   function validatePayment(async_callback) {
     paymentIsValid(params.payment, function(error, payment){
       async_callback(error ? error : void(0));
-    });
-  }
-
-  function ensureConnected(async_callback) {
-    serverLib.ensureConnected(remote, function(error, connected) {
-      if (connected) {
-        async_callback();
-      } else {
-        async_callback(new RippledNetworkError());
-      }
     });
   }
 
@@ -247,16 +235,6 @@ function getPayment(request, response, next) {
     }
   };
 
-  function ensureConnected(async_callback) {
-    serverLib.ensureConnected(remote, function(error, connected) {
-      if (connected) {
-        async_callback();
-      } else {
-        async_callback(new RippledNetworkError(error !== void(0) ? error.message : void(0)));
-      }
-    });
-  };
-
   // If the transaction was not in the outgoing_transactions db, get it from rippled
   function getTransaction(async_callback) {
     transactions.getTransactionHelper(request, response, async_callback);
@@ -290,7 +268,6 @@ function getPayment(request, response, next) {
 
   var steps = [
     validateOptions,
-    ensureConnected,
     getTransaction,
     checkIsPayment,
     formatTransaction
@@ -501,16 +478,6 @@ function getPathFind(request, response, next) {
     }
   }
 
-  function ensureConnected(async_callback) {
-    serverLib.ensureConnected(remote, function(error, connected) {
-      if (connected) {
-        async_callback();
-      } else {
-        async_callback(new RippledNetworkError());
-      }
-    });
-  };
-
   function prepareOptions(async_callback) {
     var pathfind_params = {
       src_account: params.source_account,
@@ -603,7 +570,6 @@ function getPathFind(request, response, next) {
     }
   };
   var steps = [
-    ensureConnected,
     prepareOptions,
     findPath,
     addDirectXrpPath,
