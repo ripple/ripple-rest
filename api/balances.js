@@ -4,10 +4,14 @@ var ripple    = require('ripple-lib');
 var serverLib = require('../lib/server-lib');
 var remote    = require('./../lib/remote.js');
 var respond   = require('../lib/response-handler.js');
+var errors    = require('./../lib/errors.js');
 
 module.exports = {
   get: getBalances
 };
+
+var RippledNetworkError   = errors.RippledNetworkError;
+var InvalidRequestError   = errors.InvalidRequestError;
 
 function getBalances(request, response, next) {
 
@@ -21,13 +25,13 @@ function getBalances(request, response, next) {
 
   function validateOptions(callback) {
     if (!ripple.UInt160.is_valid(options.account)) {
-      respond.invalidRequest(response, 'Parameter is not a valid Ripple address: account');
+      return callback(new InvalidRequestError('Parameter is not a valid Ripple address: account'));
     }
     if (options.counterparty && !ripple.UInt160.is_valid(options.counterparty)) {
-      respond.invalidRequest(response, 'Parameter is not a valid Ripple address: counterparty');
+      return callback(new InvalidRequestError('Parameter is not a valid Ripple address: counterparty'));
     }
     if (options.currency && !/^[A-Z0-9]{3}$/.test(options.currency)) {
-      respond.invalidRequest(response, 'Parameter is not a valid currency: currency');
+      return callback(new InvalidRequestError('Parameter is not a valid currency: currency'));
     }
     callback();
   };
@@ -35,10 +39,9 @@ function getBalances(request, response, next) {
   function ensureConnected(callback) {
     serverLib.ensureConnected(remote, function(error, status) {
       if (error) {
-        respond.connectionError(response, error.message);
-      } else {
-        respond.success(response, {connected: Boolean(status)});
+        return callback(new RippledNetworkError(error.message));
       }
+      callback();
     });
   };
 
