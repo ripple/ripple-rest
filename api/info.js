@@ -26,7 +26,7 @@ function getServerStatus(request, response, next) {
   });
 };
 
-function getServerConnected(request, response) {
+function getServerConnected(request, response, next) {
   serverlib.ensureConnected(remote, function(error, status) {
     if (error) {
       respond.connectionError(response, error.message);
