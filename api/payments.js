@@ -15,7 +15,6 @@ var errors                = require('./../lib/errors.js');
 
 var InvalidRequestError   = errors.InvalidRequestError;
 var NetworkError          = errors.NetworkError;
-var RippledNetworkError   = errors.RippledNetworkError;
 var NotFoundError         = errors.NotFoundError;
 var TimeOutError          = errors.TimeOutError;
 
@@ -52,7 +51,6 @@ function submitPayment(request, response, next) {
   var steps = [
     validateOptions,
     validatePayment,
-    ensureConnected,
     formatPayment,
     submitTransaction
   ];
@@ -96,16 +94,6 @@ function submitPayment(request, response, next) {
   function validatePayment(async_callback) {
     paymentIsValid(params.payment, function(error, payment){
       async_callback(error ? error : void(0));
-    });
-  }
-
-  function ensureConnected(async_callback) {
-    serverLib.ensureConnected(remote, function(error, connected) {
-      if (connected) {
-        async_callback();
-      } else {
-        async_callback(new RippledNetworkError());
-      }
     });
   }
 
@@ -247,16 +235,6 @@ function getPayment(request, response, next) {
     }
   };
 
-  function ensureConnected(async_callback) {
-    serverLib.ensureConnected(remote, function(error, connected) {
-      if (connected) {
-        async_callback();
-      } else {
-        async_callback(new RippledNetworkError(error !== void(0) ? error.message : void(0)));
-      }
-    });
-  };
-
   // If the transaction was not in the outgoing_transactions db, get it from rippled
   function getTransaction(async_callback) {
     transactions.getTransactionHelper(request, response, async_callback);
@@ -290,7 +268,6 @@ function getPayment(request, response, next) {
 
   var steps = [
     validateOptions,
-    ensureConnected,
     getTransaction,
     checkIsPayment,
     formatTransaction
@@ -501,16 +478,6 @@ function getPathFind(request, response, next) {
     }
   }
 
-  function ensureConnected(async_callback) {
-    serverLib.ensureConnected(remote, function(error, connected) {
-      if (connected) {
-        async_callback();
-      } else {
-        async_callback(new RippledNetworkError());
-      }
-    });
-  };
-
   function prepareOptions(async_callback) {
     var pathfind_params = {
       src_account: params.source_account,
@@ -603,7 +570,6 @@ function getPathFind(request, response, next) {
     }
   };
   var steps = [
-    ensureConnected,
     prepareOptions,
     findPath,
     addDirectXrpPath,
@@ -615,107 +581,6 @@ function getPathFind(request, response, next) {
     } else {
       respond.success(response, { payments: payments });
     }
-  });
-};
-
-/**
- *  Validate and parse the pathfinding parameters.
- *
- *  @param {RippleAddress} params.source_account
- *  @param {RippleAddress} params.destination_account
- *  @param {Amount} params.destination_amount
- *  @param {Array of Currencies} params.source_currencies
- */
-function parseParams(params, callback) {
-  var source_currencies = [];
-  if (!validator.isValid(params.source_account, 'RippleAddress')) {
-    return callback(new TypeError('Invalid parameter: source_account. Must be a valid Ripple address'));
-  }
-  if (!validator.isValid(params.destination_account, 'RippleAddress')) {
-    return callback(new TypeError('Invalid parameter: destination_account. Must be a valid Ripple address'));
-  }
-  if (!validator.isValid(params.destination_amount, 'Amount')) {
-    return callback(new TypeError('Invalid parameter: destination_amount. Must be an object of the form { value: \'1\', currency: \'XRP\', issuer: \' }'));
-  }
-  // Parse source currencies
-  if (typeof params.source_currencies === 'object') {
-    params.source_currencies.forEach(function(currency_string) {
-      // Note that express middleware replaces '+' with ' ' in the query string
-      if (/ /.test(currency_string)) {
-        var currency_issuer_array = currency_string.split(' '),
-        currency_object = {
-          currency: currency_issuer_array[0],
-          issuer: currency_issuer_array[1]
-        };
-        var validCurrency = validator.isValid(currency_object.currency, 'Currency')
-                        || validator.isValid(currency_object.issuer, 'RippleAddress')
-        if (!validCurrency) {
-          return callback(new TypeError('Invalid parameter: source_currencies. Must be a list of valid currencies'));
-        } else {
-          source_currencies.push(currency_object);
-        }
-      } else {
-        if (!validator.isValid(currency_string, 'Currency')) {
-          return callback(new TypeError('Invalid parameter: source_currencies. Must be a list of valid currencies'));
-        } else {
-          source_currencies.push({ currency: currency_string });
-        }
-      }
-    });
-  }
-  var pathfindParams = {
-    src_account: params.source_account,
-    dst_account: params.destination_account,
-    dst_amount: (params.destination_amount.currency === 'XRP' ?
-      utils.xrpToDrops(params.destination_amount.value) :
-      params.destination_amount)
-  };
-  if (typeof pathfindParams.dst_amount === 'object' && !pathfindParams.dst_amount.issuer) {
-    pathfindParams.dst_amount.issuer = pathfindParams.dst_account;
-  }
-  if (source_currencies.length > 0) {
-    pathfindParams.src_currencies = source_currencies;
-  }
-  callback(null, pathfindParams);
-};
-
-/**
- *  Since ripple_path_find does not return XRP to XRP paths,
- *  add the direct XRP "path", if the source account has a sufficient balance
- *
- *  @param {Remote} remote
- *  @param {rippled Pathfind results} pathfind_results
- *  @param {Function} callback
- *
- *  @callback
- *  @param {Error} error
- *  @param {rippled Pathfind results with XRP path added} pathfind_results
- */
-function addDirectXrpPath(pathfind_results, callback) {
-  // Check if destination_account accepts XRP
-  if (pathfind_results.destination_currencies.indexOf('XRP') === -1) {
-    return callback(null, pathfind_results);
-  }
-
-  // Check source_account balance
-  remote.requestAccountInfo(pathfind_results.source_account, function(error, result) {
-    if (error) {
-      return callback(new Error('Cannot get account info for source_account. ' + error));
-    }
-
-    if (!result || !result.account_data || !result.account_data.Balance) {
-      return callback(new Error('Internal Error. Malformed account info : ' + JSON.stringify(result)));
-    }
-
-    // Add XRP "path" only if the source_account has enough money to execute the payment
-    if (bignum(result.account_data.Balance).greaterThan(pathfind_results.destination_amount)) {
-      pathfind_results.alternatives.unshift({
-        paths_canonical:  [],
-        paths_computed:   [],
-        source_amount:    pathfind_results.destination_amount
-      });
-    }
-    callback(null, pathfind_results);
   });
 };
 
