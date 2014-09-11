@@ -11,7 +11,7 @@ before(function() {
 describe('Wallet Generation', function() {
   it('should fail to create a new wallet', function(done) {
     app
-    .get('/v1/new')
+    .get('/v1/accounts/new')
     .expect('Content-Type', /json/)
     .expect(200)
     .expect(function(res, error) {
