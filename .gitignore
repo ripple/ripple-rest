@@ -1,4 +1,4 @@
-*log*
+*log
 node_modules/
 accounts.json
 *.sqlite

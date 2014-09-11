@@ -5,21 +5,6 @@ var app = require(__dirname+'/lib/express_app.js');
 var config = require(__dirname+'/lib/config-loader');
 var remote = require(__dirname+'/lib/remote.js');
 
-require('rconsole');
-
-console.set({
-  facility: 'local7',
-  title: 'ripple-rest-server',
-  stdout: false,
-  stderr: true,
-  syslog: true,
-  syslogHashtags: false,
-  showTime: true,
-  showLine: true,
-  showFile: true,
-  showTags: false
-});
-
 var port = config.get('port') || 5990;
 var host = config.get('host');
 
