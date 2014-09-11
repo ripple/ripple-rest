@@ -16,6 +16,8 @@ var errors                = require('./../lib/errors.js');
 var InvalidRequestError   = errors.InvalidRequestError;
 var NetworkError          = errors.NetworkError;
 var RippledNetworkError   = errors.RippledNetworkError;
+var NotFoundError         = errors.NotFoundError;
+var TimeOutError          = errors.TimeOutError;
 
 var DEFAULT_RESULTS_PER_PAGE = 10;
 
@@ -266,10 +268,7 @@ function getPayment(request, response, next) {
     if (isPayment) {
       async_callback(null, transaction);
     } else {
-      response.json(400, {
-        success: false,
-        message: 'Not a payment. The transaction corresponding to the given identifier is not a payment.'
-      });
+      async_callback(new InvalidRequestError('Not a payment. The transaction corresponding to the given identifier is not a payment.'));
     }
   };
 
@@ -282,13 +281,10 @@ function getPayment(request, response, next) {
         async_callback);
       async_callback(null, payment);
     } else {
-      response.json(404, {
-        success: false,
-        message: 'Payment Not Found. This may indicate that the payment was never validated and written into '
+      async_callback(new NotFoundError('Payment Not Found. This may indicate that the payment was never validated and written into '
         + 'the Ripple ledger and it was not submitted through this ripple-rest instance. '
         + 'This error may also be seen if the databases of either ripple-rest '
-        + 'or rippled were recently created or deleted.'
-      });
+        + 'or rippled were recently created or deleted.'));
     }
   };
 
@@ -304,10 +300,7 @@ function getPayment(request, response, next) {
     if (error) {
       next(error);
     } else {
-      response.json(200, {
-        success: true,
-        payment: payment
-      });
+      respond.success(response, { payment: payment });
     }
   });
 };
@@ -408,10 +401,7 @@ function getAccountPayments(request, response, next) {
     if (error) {
       next(error);
     } else {
-      response.json(200, {
-        success: true,
-        payments: payments
-      });
+      respond.success(response, { payments: payments });
     }
   });
 };
@@ -441,27 +431,19 @@ function getPathFind(request, response, next) {
   };
 
   if (!params.source_account) {
-    return response.json(400, {
-      success: false,
-      message: 'Missing parameter: source_account. ' +
-      'Must be a valid Ripple address' });
+    next(new InvalidRequestError('Missing parameter: source_account. Must be a valid Ripple address'));
+    return;
   }
 
   if (!params.destination_account) {
-    return response.json(400, {
-      success: false,
-      message: 'Missing parameter: destination_account. ' +
-        'Must be a valid Ripple address'
-    });
+    next(new InvalidRequestError('Missing parameter: destination_account. Must be a valid Ripple address'));
+    return;
   }
 
   // Parse destination amount
   if (!request.params.destination_amount_string) {
-    return response.json(400, {
-      success: false,
-      message: 'Missing parameter: destination_amount. ' +
-      'Must be an amount string in the form value+currency+issuer'
-    });
+    next(new InvalidRequestError('Missing parameter: destination_amount. Must be an amount string in the form value+currency+issuer'));
+    return;
   }
   var destination_amount_array = request.params.destination_amount_string.split('+');
   params.destination_amount = {
@@ -471,27 +453,18 @@ function getPathFind(request, response, next) {
   };
 
   if (!validator.isValid(params.source_account, 'RippleAddress')) {
-    return response.json(400, {
-      success: false,
-      message: 'Invalid parameter: source_account. ' +
-      'Must be a valid Ripple address'
-    });
+    next(new InvalidRequestError('Invalid parameter: source_account. Must be a valid Ripple address'));
+    return;
   }
 
   if (!validator.isValid(params.destination_account, 'RippleAddress')) {
-    return response.json(400, {
-      success: false,
-      message: 'Invalid parameter: destination_account. ' +
-      'Must be a valid Ripple address'
-    });
+    next(new InvalidRequestError('Invalid parameter: destination_account. Must be a valid Ripple address'));
+    return;
   }
 
   if (!validator.isValid(params.destination_amount, 'Amount')) {
-    return response.json(400, {
-      success: false,
-      message: 'Invalid parameter: destination_amount. ' +
-      'Must be an amount string in the form value+currency+issuer'
-    });
+    next(new InvalidRequestError('Invalid parameter: destination_amount. Must be an amount string in the form value+currency+issuer'));
+    return;
   }
 
   // Parse source currencies
@@ -513,21 +486,15 @@ function getPathFind(request, response, next) {
         if (validator.isValid(currency_object.currency, 'Currency') && validator.isValid(currency_object.issuer, 'RippleAddress')) {
           params.source_currencies.push(currency_object);
         } else {
-          return response.json(400, {
-            success: false,
-            message: 'Invalid parameter: source_currencies. ' +
-            'Must be a list of valid currencies'
-          });
+          next(new InvalidRequestError('Invalid parameter: source_currencies. Must be a list of valid currencies'));
+          return;
         }
       } else {
         if (validator.isValid(source_currency_strings[c], 'Currency')) {
           params.source_currencies.push({ currency: source_currency_strings[c] });
         } else {
-          return response.json(400, {
-            success: false,
-            message: 'Invalid parameter: source_currencies. ' +
-            'Must be a list of valid currencies'
-          });
+          next(new InvalidRequestError('Invalid parameter: source_currencies. Must be a list of valid currencies'));
+          return;
         }
 
       }
@@ -539,10 +506,7 @@ function getPathFind(request, response, next) {
       if (connected) {
         async_callback();
       } else {
-        response.json(500, {
-          success: false,
-          message: 'No connection to rippled'
-        });
+        async_callback(new RippledNetworkError());
       }
     });
   };
@@ -582,10 +546,7 @@ function getPathFind(request, response, next) {
     request.timeout(serverLib.CONNECTION_TIMEOUT, function() {
       request.removeAllListeners();
       reconnectRippled();
-      response.json(502, {
-        success: false,
-        message: 'Path request timeout'
-      });
+      async_callback(new TimeOutError('Path request timeout'));
     });
     request.request();
   };
@@ -621,31 +582,24 @@ function getPathFind(request, response, next) {
       return async_callback(null, payment_options);
     }
     if (pathfind_results.destination_currencies.indexOf(params.destination_amount.currency) === -1) {
-      response.json(404, {
-        success: false,
-        message: 'No paths found. ' +
-          'The destination_account does not accept ' +
-          params.destination_amount.currency +
-          ', they only accept: ' +
-          pathfind_results.destination_currencies.join(', ')
-      });
+      async_callback(new NotFoundError('No paths found. ' +
+        'The destination_account does not accept ' +
+        params.destination_amount.currency +
+        ', they only accept: ' +
+        pathfind_results.destination_currencies.join(', ')));
+
     } else if (pathfind_results.source_currencies && pathfind_results.source_currencies.length > 0) {
-      response.json(404, {
-        success: false,
-        message: 'No paths found.' +
-          ' Please ensure that the source_account has sufficient funds to execute' +
-          ' the payment in one of the specified source_currencies. If it does' +
-          ' there may be insufficient liquidity in the network to execute' +
-          ' this payment right now'
-      });
+      async_callback(new NotFoundError('No paths found.' +
+        ' Please ensure that the source_account has sufficient funds to execute' +
+        ' the payment in one of the specified source_currencies. If it does' +
+        ' there may be insufficient liquidity in the network to execute' +
+        ' this payment right now'));
+
     } else {
-      response.json(404, {
-        success: false,
-        message: 'No paths found.' +
-          ' Please ensure that the source_account has sufficient funds to execute' +
-          ' the payment. If it does there may be insufficient liquidity in the' +
-          ' network to execute this payment right now'
-      });
+      async_callback(new NotFoundError('No paths found.' +
+        ' Please ensure that the source_account has sufficient funds to execute' +
+        ' the payment. If it does there may be insufficient liquidity in the' +
+        ' network to execute this payment right now'));
     }
   };
   var steps = [
@@ -659,10 +613,7 @@ function getPathFind(request, response, next) {
     if (error) {
       next(error);
     } else {
-      response.json(200, {
-        success: true,
-        payments: payments
-      });
+      respond.success(response, { payments: payments });
     }
   });
 };
