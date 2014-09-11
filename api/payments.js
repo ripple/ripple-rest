@@ -72,7 +72,7 @@ function submitPayment(request, response, next) {
     payment: request.body.payment,
     secret: request.body.secret,
     client_resource_id: request.body.client_resource_id,
-    url_base: request.protocol + '://' + request.host + (config && config.get('PORT') ? ':' + config.get('PORT') : '')
+    url_base: request.protocol + '://' + request.hostname + (config && config.get('PORT') ? ':' + config.get('PORT') : '')
   };
 
   function validateOptions(async_callback) {
