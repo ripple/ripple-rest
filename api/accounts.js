@@ -1,15 +1,16 @@
-var Wallet  = require('ripple-lib').Wallet;
-var respond = require('./../lib/response-handler.js');
+const Wallet  = require('ripple-lib').Wallet;
+const errors  = require('./../lib/errors.js');
+const respond = require('./../lib/response-handler.js');
 
-var controller = {
-  generate: function(request, response) {
-    var wallet = Wallet.generate();
-    if (wallet) {
-      respond.success(response, { account: wallet });
-    } else {
-      respond.apiError(response, 'Could not generate wallet');
-    }
+module.exports = {
+  generate: generate
+};
+
+function generate(request, response, next) {
+  var wallet = Wallet.generate();
+  if (wallet) {
+    respond.success(response, { account: wallet });
+  } else {
+    next(new errors.ApiError('Could not generate wallet'));
   }
 }
-
-module.exports = controller;
