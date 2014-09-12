@@ -43,7 +43,7 @@
     "sinon-chai": "~2.5.0"
   },
   "dependencies": {
-    "ripple-lib": "~0.8.1-rc2",
+    "ripple-lib": "~0.8.1-rc3",
     "grunt": "~0.4.5",
     "grunt-db-migrate": "~0.2.0",
     "db-migrate": "~0.6.4",
