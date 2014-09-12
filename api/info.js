@@ -1,4 +1,4 @@
-var uuid =      require('node-uuid');
+
 var _ =         require('lodash');
 
 var serverlib = require('./../lib/server-lib');
@@ -7,9 +7,7 @@ var respond   = require('./../lib/response-handler.js');
 var errors    = require('./../lib/errors.js');
 
 module.exports = {
-  serverStatus: getServerStatus,
-  isConnected: getServerConnected,
-  uuid: getUUID
+  serverStatus: getServerStatus
 };
 
 function getServerStatus(request, response, next) {
@@ -24,18 +22,4 @@ function getServerStatus(request, response, next) {
         status));
     }
   });
-};
-
-function getServerConnected(request, response, next) {
-  serverlib.ensureConnected(remote, function(error, status) {
-    if (error) {
-      respond.connectionError(response, error.message);
-    } else {
-      respond.success(response, {connected: Boolean(status)});
-    }
-  });
-};
-
-function getUUID(request, response, next) {
-  respond.success(response, { uuid: uuid.v4() });
-};
+}
