@@ -1,7 +1,6 @@
 var _           = require('lodash');
 var async       = require('async');
 var ripple      = require('ripple-lib');
-var server_lib  = require('./../lib/server-lib');
 var validator   = require('./../lib/schema-validator');
 var remote      = require('./../lib/remote.js');
 var dbinterface = require('./../lib/db-interface.js');

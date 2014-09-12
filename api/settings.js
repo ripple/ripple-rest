@@ -1,6 +1,5 @@
 var async     = require('async');
 var ripple    = require('ripple-lib');
-var serverLib = require('./../lib/server-lib');
 var remote    = require('./../lib/remote.js');
 var respond   = require('./../lib/response-handler.js');
 var errors    = require('./../lib/errors.js');
