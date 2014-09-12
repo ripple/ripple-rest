@@ -1,6 +1,5 @@
-var uuid =      require('node-uuid');
-var _ =         require('lodash');
-
+var _         = require('lodash');
+var uuid      = require('node-uuid');
 var serverlib = require('./../lib/server-lib');
 var remote    = require('./../lib/remote.js');
 var respond   = require('./../lib/response-handler.js');
@@ -24,18 +23,17 @@ function getServerStatus(request, response, next) {
         status));
     }
   });
-};
+}
 
+/**
+ *  Connected
+ *  if we hit this method it means the server is connected
+ *  otherwise the connected check in the router would have already returned an error
+ */
 function getServerConnected(request, response, next) {
-  serverlib.ensureConnected(remote, function(error, status) {
-    if (error) {
-      respond.connectionError(response, error.message);
-    } else {
-      respond.success(response, {connected: Boolean(status)});
-    }
-  });
-};
+  respond.success(response, { connected: true });
+}
 
 function getUUID(request, response, next) {
   respond.success(response, { uuid: uuid.v4() });
-};
+}

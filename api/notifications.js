@@ -1,12 +1,13 @@
-var _ = require('lodash');
-var async = require('async');
-var ripple = require('ripple-lib');
-var transactions = require('./transactions');
-var validator = require('../lib/schema-validator');
-var server_lib = require('../lib/server-lib');
-var remote = require(__dirname+'/../lib/remote.js');
-var config = require(__dirname+'/../lib/config-loader.js');
-var NotificationParser = require(__dirname+'/../lib/notification_parser.js');
+var _                   = require('lodash');
+var async               = require('async');
+var ripple              = require('ripple-lib');
+var transactions        = require('./transactions');
+var server_lib          = require('../lib/server-lib');
+var remote              = require('./../lib/remote.js');
+var config              = require('./../lib/config-loader.js');
+var NotificationParser  = require('./../lib/notification_parser.js');
+var respond             = require('./../lib/response-handler.js');
+var errors              = require('./../lib/errors.js');
 
 module.exports = {
   getNotification: getNotification
@@ -32,12 +33,11 @@ function getNotification(request, response, next) {
     }
 
     var responseBody = {
-      success: true,
       notification: notification
     };
 
     // Add url_base to each url in notification
-    var url_base = request.protocol + '://' + request.host + (config && config.get('PORT') ? ':' + config.get('PORT') : '');
+    var url_base = request.protocol + '://' + request.hostname + (config && config.get('port') ? ':' + config.get('port') : '');
     Object.keys(responseBody.notification).forEach(function(key){
       if (/url/.test(key) && responseBody.notification[key]) {
         responseBody.notification[key] = url_base + responseBody.notification[key];
@@ -51,9 +51,9 @@ function getNotification(request, response, next) {
       responseBody.client_resource_id = client_resource_id;
     }
 
-    response.json(200, responseBody);
+    respond.success(response, responseBody);
   });
-};
+}
 
 /**
  *  Get a notification corresponding to the specified
@@ -77,15 +77,12 @@ function getNotificationHelper(request, response, callback) {
   var identifier = request.params.identifier
 
   if (!account) {
-    return response.json(400, {
-      success: false,
-      message: 'Missing parameter: account. Must be a valid Ripple Address'
-    });
+    return next(new errors.InvalidRequestError('Missing parameter: account. Must be a valid Ripple Address'));
   }
 
   function getTransaction(async_callback) {
     transactions.getTransactionHelper(request, response, async_callback);
-  };
+  }
 
   function checkLedger(base_transaction, async_callback) {
     server_lib.remoteHasLedger(remote, base_transaction.ledger_index, function(error, remote_has_ledger) {
@@ -95,16 +92,14 @@ function getNotificationHelper(request, response, callback) {
       if (remote_has_ledger) {
         async_callback(null, base_transaction);
       } else {
-        response.json(500, {
-          success: false,
-          message: 'Cannot Get Notification. ' +
+        next(new errors.NotFoundError('Cannot Get Notification. ' +
           'This transaction is not in the ripple\'s complete ledger set. ' +
           'Because there is a gap in the rippled\'s historical database it is ' +
-          'not possible to determine the transactions that precede this one'
-        });
+          'not possible to determine the transactions that precede this one')
+        );
       }
     });
-  };
+  }
 
   function prepareNotificationDetails(base_transaction, async_callback) {
     var notification_details = {
@@ -118,15 +113,12 @@ function getNotificationHelper(request, response, callback) {
       notification_details.client_resource_id = base_transaction.client_resource_id;
     }
     attachPreviousAndNextTransactionIdentifiers(response, notification_details, async_callback);
-  };
+  }
 
   // Parse the Notification object from the notification_details
   function parseNotificationDetails(notification_details, async_callback) {
-    var notificationParser = new NotificationParser();
-    var notification = notificationParser.parse(notification_details);
-    console.log("NTF", notification);
-    async_callback(null, notification);
-  };
+    async_callback(null, NotificationParser.parse(notification_details));
+  }
 
   var steps = [
     getTransaction,
@@ -136,7 +128,7 @@ function getNotificationHelper(request, response, callback) {
   ];
 
   async.waterfall(steps, callback);
-};
+}
 
 /**
  *  Find the previous and next transaction hashes or
@@ -178,12 +170,12 @@ function attachPreviousAndNextTransactionIdentifiers(response, notification_deta
     };
 
     transactions.getAccountTransactions(params, response, async_callback);
-  };
+  }
 
   // All we care about is the count of the transactions
   function countAccountTransactionsInBaseTransactionledger(transactions, async_callback) {
     async_callback(null, transactions.length);
-  };
+  }
 
   // Query for one more than the num_transactions_in_ledger
   // going forward and backwards to get a range of transactions
@@ -212,7 +204,7 @@ function attachPreviousAndNextTransactionIdentifiers(response, notification_deta
 
     }, async_callback);
 
-  };
+  }
 
   // Sort the transactions returned by ledger_index and remove duplicates
   function sortTransactions(all_possible_transactions, async_callback) {
@@ -232,7 +224,7 @@ function attachPreviousAndNextTransactionIdentifiers(response, notification_deta
     });
 
     async_callback(null, transactions);
-  };
+  }
 
   // Find the base_transaction amongst the results. Because the
   // transactions have been sorted, the next and previous transactions
@@ -280,5 +272,4 @@ function attachPreviousAndNextTransactionIdentifiers(response, notification_deta
   ];
 
   async.waterfall(steps, callback);
-};
-
+}
