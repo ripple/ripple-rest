@@ -9,7 +9,9 @@ var Accounts      = require('./accounts');
 
 module.exports = {
   info: {
-    serverStatus: Info.serverStatus
+    uuid: Info.uuid,
+    serverStatus: Info.serverStatus,
+    isConnected: Info.isConnected
   },
 
   balances: {
