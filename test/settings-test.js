@@ -3,6 +3,7 @@ var ripple = require('ripple-lib');
 var testutils = require('./testutils');
 var fixtures = require('./fixtures').settings;
 var errors = require('./fixtures').errors;
+var addresses = require('./fixtures').addresses;
 
 describe('get settings', function() {
   var self = this;
@@ -16,19 +17,15 @@ describe('get settings', function() {
   it('/accounts/:account/settings', function(done) {
     self.wss.once('request_account_info', function(message, conn) {
       assert.strictEqual(message.command, 'account_info');
-      assert.strictEqual(message.account, 'rLy6UWsjzxsQrTATf1bwDYSaJMoTGvfY2Q');
+      assert.strictEqual(message.account, addresses.VALID);
       conn.send(fixtures.accountInfoResponse(message));
     });
 
     self.app
-    .get('/v1/accounts/rLy6UWsjzxsQrTATf1bwDYSaJMoTGvfY2Q/settings')
+    .get('/v1/accounts/' + addresses.VALID + '/settings')
     .expect(200)
     .expect(testutils.checkHeaders)
-    .expect(function(res, err) {
-      assert.ifError(err);
-      assert.strictEqual(res.body.success, true);
-      assert.strictEqual(JSON.stringify(res.body), fixtures.RESTAccountSettingsResponse);
-    })
+    .expect(testutils.checkBody(fixtures.RESTAccountSettingsResponse))
     .end(done);
   });
 
@@ -38,13 +35,10 @@ describe('get settings', function() {
     });
 
     self.app
-    .get('/v1/accounts/rxxLy6UWsjzxsQrTATf1bwDYSaJMoTGvfY2Q/settings')
+    .get('/v1/accounts/' + addresses.INVALID + '/settings')
     .expect(400)
     .expect(testutils.checkHeaders)
-    .expect(function(res, err) {
-      assert.ifError(err);
-      assert.deepEqual(JSON.stringify(res.body), errors.RESTInvalidAccount);
-    })
+    .expect(testutils.checkBody(errors.RESTInvalidAccount))
     .end(done);
   });
 });

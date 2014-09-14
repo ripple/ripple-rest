@@ -63,3 +63,12 @@ function checkHeaders(res) {
   assert.strictEqual(res.headers['access-control-allow-origin'], '*');
   assert.strictEqual(res.headers['access-control-allow-headers'], 'X-Requested-With, Content-Type');
 };
+
+module.exports.checkBody = checkBody;
+
+function checkBody(expected) {
+  return function(res, err) {
+    assert.ifError(err);
+    assert.strictEqual(JSON.stringify(res.body), expected);
+  };
+};

@@ -1,5 +1,6 @@
 var assert = require('assert');
 var ripple = require('ripple-lib');
+var remote = require('../lib/remote');
 var testutils = require('./testutils');
 var fixtures = require('./fixtures').server;
 var errors = require('./fixtures').errors;
@@ -23,10 +24,7 @@ describe('get server info', function() {
     .get('/v1/server')
     .expect(200)
     .expect(testutils.checkHeaders)
-    .expect(function(res, err) {
-      assert.ifError(err);
-      assert.strictEqual(JSON.stringify(res.body), fixtures.RESTServerInfoResponse);
-    })
+    .expect(testutils.checkBody(fixtures.RESTServerInfoResponse))
     .end(done);
   });
 
@@ -39,10 +37,24 @@ describe('get server info', function() {
     .get('/v1/server/connected')
     .expect(200)
     .expect(testutils.checkHeaders)
-    .expect(function(res, err) {
-      assert.ifError(err);
-      assert.strictEqual(JSON.stringify(res.body), fixtures.RESTServerConnectedResponse);
-    })
+    .expect(testutils.checkBody(fixtures.RESTServerConnectedResponse))
+    .end(done);
+  });
+
+  it('/server/connected -- no ledger close', function(done) {
+    self.wss.once('request_server_info', function(message, conn) {
+      assert(false, 'Should not request server info');
+    });
+
+    var closeTime = new Date();
+    closeTime.setSeconds(closeTime.getSeconds() - 60);
+    remote.getServer()._lastLedgerClose = closeTime.getTime();
+
+    self.app
+    .get('/v1/server/connected')
+    .expect(502)
+    .expect(testutils.checkHeaders)
+    .expect(testutils.checkBody(errors.RESTNoLedgerClose))
     .end(done);
   });
 });

@@ -1,4 +1,5 @@
 module.exports.startup = require('./startup');
+module.exports.addresses = require('./addresses');
 module.exports.errors = require('./errors');
 module.exports.server = require('./server');
 module.exports.transactions = require('./transactions');

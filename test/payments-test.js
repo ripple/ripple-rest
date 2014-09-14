@@ -3,6 +3,7 @@ var ripple = require('ripple-lib');
 var testutils = require('./testutils');
 var fixtures = require('./fixtures').payments;
 var errors = require('./fixtures').errors;
+var addresses = require('./fixtures').addresses;
 
 describe('get payments', function() {
   var self = this;
@@ -16,19 +17,15 @@ describe('get payments', function() {
   it('/accounts/:account/payments/:identifier', function(done) {
     self.wss.once('request_tx', function(message, conn) {
       assert.strictEqual(message.command, 'tx');
-      assert.strictEqual(message.transaction, 'F4AB442A6D4CBB935D66E1DA7309A5FC71C7143ED4049053EC14E3875B0CF9BF');
+      assert.strictEqual(message.transaction, fixtures.VALID_TRANSACTION_HASH);
       conn.send(fixtures.transactionResponse(message));
     });
 
     self.app
-    .get('/v1/accounts/r9cZA1mLK5R5Am25ArfXFmqgNwjZgnfk59/payments/F4AB442A6D4CBB935D66E1DA7309A5FC71C7143ED4049053EC14E3875B0CF9BF')
+    .get('/v1/accounts/' + addresses.VALID + '/payments/' + fixtures.VALID_TRANSACTION_HASH)
     .expect(200)
     .expect(testutils.checkHeaders)
-    .expect(function(res, err) {
-      assert.ifError(err);
-      assert.strictEqual(res.body.success, true);
-      assert.deepEqual(JSON.stringify(res.body), fixtures.RESTTransactionResponse);
-    })
+    .expect(testutils.checkBody(fixtures.RESTTransactionResponse))
     .end(done);
   });
 
@@ -38,12 +35,10 @@ describe('get payments', function() {
     });
 
     self.app
-    .get('/v1/accounts/r9cZA1mLK5R5Am25ArfXFmqgNwjZgnfk59/payments/XF4AB442A6D4CBB935D66E1DA7309A5FC71C7143ED4049053EC14E3875B0CF9BF')
+    .get('/v1/accounts/' + addresses.VALID + '/payments/' + fixtures.INVALID_TRANSACTION_HASH)
     .expect(404) //XXX Should be 400
     .expect(testutils.checkHeaders)
-    .expect(function(res, err) {
-      assert.strictEqual(JSON.stringify(res.body), errors.RESTInvalidTransactionHash);
-    })
+    .expect(testutils.checkBody(errors.RESTInvalidTransactionHash))
     .end(done);
   });
 });

@@ -1,3 +1,7 @@
+module.exports.requestPath = function(address, params) {
+  return '/v1/accounts/' + address + '/settings' + ( params || '' );
+};
+
 module.exports.accountInfoResponse = function(request) {
   return JSON.stringify({
     id: request.id,
