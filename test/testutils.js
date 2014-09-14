@@ -27,22 +27,19 @@ function setup(done) {
   self.wss.once('request_subscribe', function(message, conn) {
     assert.strictEqual(message.command, 'subscribe');
     assert.deepEqual(message.streams, [ 'ledger', 'server' ]);
-
     conn.send(fixtures.subscribeResponse(message));
+  });
 
-    setImmediate(function() {
-      conn.send(fixtures.ledgerClose());
+  app.get('remote').once('connect', function() {
+    app.get('remote').getServer().once('ledger_closed', function() {
+      dbinterface.db.sync().complete(done);
     });
+    app.get('remote').getServer().emit('message', fixtures.ledgerClose());
   });
 
   //app.get('remote').trace = true;
-
+  app.get('remote')._servers = [ ];
   app.get('remote').addServer('ws://localhost:5995');
-
-  app.get('remote').once('ledger_closed', function() {
-    dbinterface.db.sync().complete(done);
-  });
-
   app.get('remote').connect();
 };
 
