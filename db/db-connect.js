@@ -1,6 +1,7 @@
 var fs = require('fs');
 var pg = require('pg.js');
 var sequelize = require('sequelize');
+var config = require('../lib/config-loader');
 
 module.exports = function(database_url, callback) {
   var db;
@@ -53,10 +54,12 @@ module.exports = function(database_url, callback) {
       callback(null, db);
     }
 
-    if (database_url) {
-      console.log('Connected to database: ' + database_url);
-    } else {
-      console.log('Using sqlite3 in memory database. DO NOT USE THIS FOR A PRODUCTION SYSTEM');
+    if (config.get('NODE_ENV') !== 'test') {
+      if (database_url) {
+        console.log('Connected to database: ' + database_url);
+      } else {
+        console.log('Using sqlite3 in memory database. DO NOT USE THIS FOR A PRODUCTION SYSTEM');
+      }
     }
   });
 
