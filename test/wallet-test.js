@@ -4,7 +4,7 @@ var testutils = require('./testutils');
 var fixtures = require('./fixtures');
 var errors = require('./fixtures').errors;
 
-describe('create wallet', function() {
+describe('get wallet', function() {
   var self = this;
 
   //self.wss: rippled mock

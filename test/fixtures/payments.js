@@ -1,13 +1,17 @@
 module.exports.VALID_TRANSACTION_HASH = 'F4AB442A6D4CBB935D66E1DA7309A5FC71C7143ED4049053EC14E3875B0CF9BF';
 module.exports.INVALID_TRANSACTION_HASH = 'XF4AB442A6D4CBB935D66E1DA7309A5FC71C7143ED4049053EC14E3875B0CF9BF';
 
+module.exports.requestPath = function(address, params) {
+  return '/v1/accounts/' + address + '/payments' + ( params || '' );
+};
+
 module.exports.transactionResponse = function(request) {
   return JSON.stringify({
     id: request.id,
     status: 'success',
     type: 'response',
     result: {
-      Account: 'rLy6UWsjzxsQrTATf1bwDYSaJMoTGvfY2Q',
+      Account: 'r3GgMwvgvP8h4yVWvjH1dPZNvC37TjzBBE',
       Amount: {
         currency: 'USD',
         issuer: 'r3PDtZSa5LiYp1Ysn1vMuMzB59RzV3W9QH',
@@ -112,7 +116,7 @@ module.exports.transactionResponse = function(request) {
         {
           ModifiedNode: {
             FinalFields: {
-              Account: 'rLy6UWsjzxsQrTATf1bwDYSaJMoTGvfY2Q',
+              Account: 'r3GgMwvgvP8h4yVWvjH1dPZNvC37TjzBBE',
               Balance: '9998898762',
               Flags: 0,
               OwnerCount: 3,
@@ -193,7 +197,7 @@ module.exports.transactionResponse = function(request) {
 module.exports.RESTTransactionResponse = JSON.stringify({
   success: true,
   payment: {
-    source_account: 'rLy6UWsjzxsQrTATf1bwDYSaJMoTGvfY2Q',
+    source_account: 'r3GgMwvgvP8h4yVWvjH1dPZNvC37TjzBBE',
     source_tag: '',
     source_amount: {
       value: '1.112209',

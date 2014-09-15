@@ -4,7 +4,7 @@ var testutils = require('./testutils');
 var fixtures = require('./fixtures');
 var errors = require('./fixtures').errors;
 
-describe('create uuid', function() {
+describe('get uuid', function() {
   var self = this;
 
   //self.wss: rippled mock
@@ -16,7 +16,7 @@ describe('create uuid', function() {
   it('/uuid', function(done) {
     self.app
     .get('/v1/uuid')
-    .expect(200)
+    .expect(testutils.checkStatus(200))
     .expect(testutils.checkHeaders)
     .expect(function(res, err) {
       assert.ifError(err);

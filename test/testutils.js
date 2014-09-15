@@ -13,6 +13,7 @@ function setup(done) {
   var self = this;
 
   self.app = supertest(app);
+  self.app.remote = app.get('remote');
 
   self.wss = new WSS({ port: 5995 });
 
@@ -56,6 +57,14 @@ function teardown(done) {
   app.get('remote').disconnect();
 };
 
+module.exports.checkStatus = checkStatus;
+
+function checkStatus(expected) {
+  return function(res) {
+    assert.strictEqual(res.statusCode, expected);
+  };
+};
+
 module.exports.checkHeaders = checkHeaders;
 
 function checkHeaders(res) {
@@ -72,3 +81,4 @@ function checkBody(expected) {
     assert.strictEqual(JSON.stringify(res.body), expected);
   };
 };
+

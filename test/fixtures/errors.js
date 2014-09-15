@@ -23,6 +23,13 @@ module.exports.RESTInvalidTransactionHash = JSON.stringify({
   message: 'Missing hash'
 });
 
+module.exports.RESTTransactionNotFound = JSON.stringify({
+  success: false,
+  error_type: 'transaction',
+  error: 'txnNotFound',
+  message: 'Transaction not found.'
+});
+
 module.exports.RESTInvalidCurrency = JSON.stringify({
   success: false,
   error_type: 'invalid_request',

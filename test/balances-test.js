@@ -30,7 +30,7 @@ describe('get balances', function() {
 
     self.app
     .get(requestPath(addresses.VALID))
-    .expect(200)
+    .expect(testutils.checkStatus(200))
     .expect(testutils.checkHeaders)
     .expect(testutils.checkBody(fixtures.RESTAccountBalancesResponse))
     .end(done);
@@ -47,7 +47,7 @@ describe('get balances', function() {
 
     self.app
     .get(requestPath(addresses.INVALID))
-    .expect(400)
+    .expect(testutils.checkStatus(400))
     .expect(testutils.checkHeaders)
     .expect(testutils.checkBody(errors.RESTInvalidAccount))
     .end(done);
@@ -69,7 +69,7 @@ describe('get balances', function() {
 
     self.app
     .get(requestPath(addresses.VALID))
-    //XXX .expect(404)
+    //XXX .expect(testutils.checkStatus(404))
     .expect(testutils.checkHeaders)
     .expect(testutils.checkBody(errors.RESTAccountNotFound))
     .end(done);
@@ -88,7 +88,7 @@ describe('get balances', function() {
 
     self.app
     .get(requestPath(addresses.VALID, '?currency=USD'))
-    .expect(200)
+    .expect(testutils.checkStatus(200))
     .expect(testutils.checkHeaders)
     .expect(testutils.checkBody(fixtures.RESTAccountBalancesUSDResponse))
     .end(done);
@@ -107,7 +107,7 @@ describe('get balances', function() {
 
     self.app
     .get(requestPath(addresses.VALID, '?currency=XRP'))
-    .expect(200)
+    .expect(testutils.checkStatus(200))
     .expect(testutils.checkHeaders)
     .expect(testutils.checkBody(fixtures.RESTAccountBalancesXRPResponse))
     .end(done);
@@ -124,7 +124,7 @@ describe('get balances', function() {
 
     self.app
     .get(requestPath(addresses.VALID, '?currency=AAAA'))
-    .expect(400)
+    .expect(testutils.checkStatus(400))
     .expect(testutils.checkHeaders)
     .expect(testutils.checkBody(errors.RESTInvalidCurrency))
     .end(done);
@@ -147,7 +147,7 @@ describe('get balances', function() {
 
     self.app
     .get(requestPath(addresses.VALID, '?counterparty=' + addresses.COUNTERPARTY))
-    .expect(200)
+    .expect(testutils.checkStatus(200))
     .expect(testutils.checkHeaders)
     .expect(testutils.checkBody(fixtures.RESTAccountBalancesCounterpartyResponse))
     .end(done);
@@ -164,7 +164,7 @@ describe('get balances', function() {
 
     self.app
     .get(requestPath(addresses.VALID, '?counterparty=asdf'))
-    .expect(400)
+    .expect(testutils.checkStatus(400))
     .expect(testutils.checkHeaders)
     .expect(testutils.checkBody(errors.RESTInvalidCounterparty))
     .end(done);
@@ -187,7 +187,7 @@ describe('get balances', function() {
 
     self.app
     .get(requestPath(addresses.VALID, '?counterparty=' + addresses.COUNTERPARTY))
-    .expect(200)
+    .expect(testutils.checkStatus(200))
     .expect(testutils.checkHeaders)
     .expect(testutils.checkBody(fixtures.RESTAccountBalancesNoCounterpartyResponse))
     .end(done);
@@ -207,7 +207,7 @@ describe('get balances', function() {
 
     self.app
     .get(requestPath(addresses.VALID, '?counterparty=' + addresses.COUNTERPARTY + '&currency=EUR'))
-    .expect(200)
+    .expect(testutils.checkStatus(200))
     .expect(testutils.checkHeaders)
     .expect(testutils.checkBody(fixtures.RESTAccountBalancesCounterpartyCurrencyResponse))
     .end(done);

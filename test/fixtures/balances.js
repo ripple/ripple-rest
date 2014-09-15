@@ -9,7 +9,7 @@ module.exports.accountInfoResponse = function(request) {
     type: 'response',
     result: {
       account_data: {
-        Account: 'rLy6UWsjzxsQrTATf1bwDYSaJMoTGvfY2Q',
+        Account: 'r3GgMwvgvP8h4yVWvjH1dPZNvC37TjzBBE',
         Balance: '922913243',
         Domain: '6578616D706C652E636F6D',
         EmailHash: '23463B99B62A72F26ED677CC556C44E8',
@@ -34,13 +34,13 @@ module.exports.accountNotFoundResponse = function(request) {
     id: request.id,
     status: 'error',
     type: 'response',
-    account: 'rLy6UWsjzxsQrTATf1bwDYSaJMoTGvfY2Q',
+    account: 'r3GgMwvgvP8h4yVWvjH1dPZNvC37TjzBBE',
     error: 'actNotFound',
     error_code: 15,
     error_message: 'Account not found.',
     ledger_current_index: 8861245,
     request: {
-      account: 'rLy6UWsjzxsQrTATf1bwDYSaJMoTGvfY2Q',
+      account: 'r3GgMwvgvP8h4yVWvjH1dPZNvC37TjzBBE',
       command: 'account_info',
       id: request.id
     },
@@ -54,7 +54,7 @@ module.exports.accountLinesResponse = function(request) {
     status: 'success',
     type: 'response',
     result: {
-      account: 'rLy6UWsjzxsQrTATf1bwDYSaJMoTGvfY2Q',
+      account: 'r3GgMwvgvP8h4yVWvjH1dPZNvC37TjzBBE',
       lines: [
         {
         account: 'r3vi7mWxru9rJCxETCyA1CHvzL96eZWx5z',
@@ -299,7 +299,7 @@ module.exports.accountLinesCounterpartyResponse = function(request) {
     status: 'success',
     type: 'response',
     result: {
-      account: 'rLy6UWsjzxsQrTATf1bwDYSaJMoTGvfY2Q',
+      account: 'r3GgMwvgvP8h4yVWvjH1dPZNvC37TjzBBE',
       lines: [
       {
         account: 'rvYAfWj5gh67oV6fW32ZzP3Aw4Eubs59B',
@@ -359,7 +359,7 @@ module.exports.accountLinesNoCounterpartyResponse = function(request) {
     status: 'success',
     type: 'response',
     result: {
-      account: 'rLy6UWsjzxsQrTATf1bwDYSaJMoTGvfY2Q',
+      account: 'r3GgMwvgvP8h4yVWvjH1dPZNvC37TjzBBE',
       lines: [ ]
     }
   });

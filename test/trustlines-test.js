@@ -22,8 +22,8 @@ describe('get trustlines', function() {
     });
 
     self.app
-    .get('/v1/accounts/' + addresses.VALID + '/trustlines')
-    .expect(200)
+    .get(fixtures.requestPath(addresses.VALID))
+    .expect(testutils.checkStatus(200))
     .expect(testutils.checkHeaders)
     .expect(testutils.checkBody(fixtures.RESTAccountTrustlinesResponse))
     .end(done);
@@ -35,8 +35,8 @@ describe('get trustlines', function() {
     });
 
     self.app
-    .get('/v1/accounts/' + addresses.INVALID + '/trustlines')
-    .expect(400)
+    .get(fixtures.requestPath(addresses.INVALID))
+    .expect(testutils.checkStatus(400))
     .expect(testutils.checkHeaders)
     .expect(testutils.checkBody(errors.RESTInvalidAccount))
     .end(done);

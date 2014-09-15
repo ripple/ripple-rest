@@ -22,7 +22,7 @@ describe('get server info', function() {
 
     self.app
     .get('/v1/server')
-    .expect(200)
+    .expect(testutils.checkStatus(200))
     .expect(testutils.checkHeaders)
     .expect(testutils.checkBody(fixtures.RESTServerInfoResponse))
     .end(done);
@@ -35,7 +35,7 @@ describe('get server info', function() {
 
     self.app
     .get('/v1/server/connected')
-    .expect(200)
+    .expect(testutils.checkStatus(200))
     .expect(testutils.checkHeaders)
     .expect(testutils.checkBody(fixtures.RESTServerConnectedResponse))
     .end(done);
@@ -52,7 +52,7 @@ describe('get server info', function() {
 
     self.app
     .get('/v1/server/connected')
-    .expect(502)
+    .expect(testutils.checkStatus(502))
     .expect(testutils.checkHeaders)
     .expect(testutils.checkBody(errors.RESTNoLedgerClose))
     .end(done);
