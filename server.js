@@ -9,7 +9,7 @@ console.set({
   syslogHashtags:  false,
   showTime:        true,
   showLine:        false,
-  showFile:        true,
+  showFile:        false,
   showTags:        true
 });
 
