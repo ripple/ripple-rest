@@ -1,9 +1,10 @@
 {
   "name": "ripple-rest",
-  "version": "1.2.2",
+  "version": "1.2.4",
   "author": "Evan Schwartz <evan@ripple.com>",
   "contributors": [
     "wltsmrz <wltsmrz@gmail.com>",
+    "Geert Weening <geertweening@gmail.com>",
     "Roberto Catini <roberto.catini@gmail.com>",
     "Yeechan Lu <github@orzfly.com> (http://orzfly.com)"
   ],
