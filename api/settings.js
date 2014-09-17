@@ -23,6 +23,8 @@ const AccountRootFields = {
   Signers:        { name:  'signers' }
 };
 
+var InvalidRequestError = errors.InvalidRequestError;
+
 module.exports = {
   get: getSettings,
   change: changeSettings
@@ -82,41 +84,41 @@ function changeSettings(request, response, next) {
     if (error) {
       next(error);
     } else {
-      response.json(200, settings);
+      respond.success(response, settings);
     }
   });
 
   function validateOptions(callback) {
     if (typeof options.settings !== 'object') {
-      return respond.invalidRequest('Parameter missing: settings');
+      return callback(new InvalidRequestError('Parameter missing: settings'));
     }
     if (!ripple.UInt160.is_valid(options.account)) {
-      return respond.invalidRequest('Parameter is not a valid Ripple address: account');
+      return callback(new InvalidRequestError('Parameter is not a valid Ripple address: account'));
     }
     if (!options.secret) {
-      return respond.invalidRequest('Parameter missing: secret');
+      return callback(new InvalidRequestError('Parameter missing: secret'));
 
     }
     if (!/(undefined|string)/.test(typeof options.settings.domain)) {
-      return respond.invalidRequest('Parameter must be a string: domain');
+      return callback(new InvalidRequestError('Parameter must be a string: domain'));
     }
     if (!/(undefined|string)/.test(typeof options.settings.wallet_locator)) {
-      return respond.invalidRequest('Parameter must be a string: wallet_locator');
+      return callback(new InvalidRequestError('Parameter must be a string: wallet_locator'));
     }
     if (!/(undefined|string)/.test(typeof options.settings.email_hash)) {
-      return respond.invalidRequest('Parameter must be a string: email_hash');
+      return callback(new InvalidRequestError('Parameter must be a string: email_hash'));
     }
     if (!/(undefined|string)/.test(typeof options.settings.message_key)) {
-      return respond.invalidRequest('Parameter must be a string: message_key');
+      return callback(new InvalidRequestError('Parameter must be a string: message_key'));
     }
     if (!/(undefined|number)/.test(typeof options.settings.transfer_rate)) {
       if (options.settings.transfer_rate !== '') {
-        return respond.invalidRequest('Parameter must be a number: transfer_rate');
+        return callback(new InvalidRequestError('Parameter must be a number: transfer_rate'));
       }
     }
     if (!/(undefined|number)/.test(typeof options.settings.wallet_size)) {
       if (options.settings.wallet_size !== '') {
-        return respond.invalidRequest('Parameter must be a number: wallet_size');
+        return callback(new InvalidRequestError('Parameter must be a number: wallet_size'));
       }
     }
 
@@ -160,10 +162,7 @@ function changeSettings(request, response, next) {
           value = Boolean(value);
         }
         if (typeof value !== 'boolean') {
-          return response.json(400, {
-            success: false,
-            message: 'Parameter is not boolean: ' + flagName
-          });
+          return callback(new InvalidRequestError('Parameter is not boolean: ' + flagName));
         }
         settings[flagName] = value;
         transaction.setFlags(value ? flag.set : flag.unset);
@@ -191,10 +190,7 @@ function changeSettings(request, response, next) {
           if (field.length) {
             // Fixed length
             if (value.length > field.length) {
-              return response.json(400, {
-                success: false,
-                message: 'Parameter length exceeded: ' + fieldName
-              });
+              return callback(new InvalidRequestError('Parameter length exceeded: ' + fieldName));
             }
             while (value.length < field.length) {
               value = '0' + value;

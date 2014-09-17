@@ -32,11 +32,6 @@ var paymentToTransactionConverter = new RestToLibTxConverter();
 /**
  *  Submit a payment in the ripple-rest format.
  *
- *  If the payment is successful response.json will be called with
- *  a status_code of 200, the client_resource_id, and a status_url.
- *  Otherwise, most errors will be reported immediately with 400 or
- *  500 status codes, or submission errors will be passed to next
- *
  *  @param {Remote} remote
  *  @param {/lib/db-interface} dbinterface
  *  @param {/config/config-loader} config
