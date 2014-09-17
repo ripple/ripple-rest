@@ -3,8 +3,8 @@ require('rconsole');
 console.set({
   facility:        'local7',
   title:           'ripple-rest-server',
-  stdout:          false,
-  stderr:          true,
+  stdout:          true,
+  stderr:          false,
   syslog:          true,
   syslogHashtags:  false,
   showTime:        true,
