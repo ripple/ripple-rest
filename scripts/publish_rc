@@ -1,0 +1,16 @@
+echo "PUBLISH RELEASE CANDIDATE"
+
+function exit_on_error {
+  res=$?
+  [[ ${res:-99} -eq 0 ]] || exit $res
+}
+
+rm -rf node_modules
+
+npm install
+npm test
+exit_on_error
+
+echo ""
+echo "publish to npm"
+npm publish --tag beta
