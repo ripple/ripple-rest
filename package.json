@@ -1,6 +1,6 @@
 {
   "name": "ripple-rest",
-  "version": "1.2.4",
+  "version": "1.3.0-rc1",
   "description": "A RESTful API for submitting payments and monitoring accounts on the Ripple Network.",
   "scripts": {
     "postinstall": "./node_modules/.bin/grunt",
