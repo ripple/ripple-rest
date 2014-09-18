@@ -12,7 +12,7 @@
 
 + Centralize connection checking, improves consistency of connected responses
 
-+ Complete new test-suite
++ New test-suite
 
 + Update ripple-lib which fixes several stability problems and crashes
 
