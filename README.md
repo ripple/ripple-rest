@@ -22,7 +22,7 @@ Follow these instructions to get your `ripple-rest` server installed running wit
 3. Copy the config example to config.json: `cp config-example.json config.json`
 4. Edit the config.json file and remove the lines that set `DATABASE_URL` and `ssl`
 5. Run `node server.js` to start the server
-6. Visit [`http://localhost:5990`](http://localhost:5990) to view available endpoints and to get started
+6. Visit [`http://localhost:5990/v1`](http://localhost:5990/v1) to view available endpoints and to get started
 
 Note: Restarting the server will delete the database so this CANNOT BE USED IN PRODUCTION.
 
@@ -36,7 +36,7 @@ Note: Restarting the server will delete the database so this CANNOT BE USED IN P
 4. Run `npm install` to install dependencies and run database migrations
 5. If the PostgreSQL connection will run over HTTPS, run `npm install --save pg`. The default node.js PostgreSQL module does not require native drivers but this version does, which enables support for HTTPS.
 6. Run `node server.js` to start the server
-7. Visit [`http://localhost:5990`](http://localhost:5990) to view available endpoints and to get started
+7. Visit [`http://localhost:5990/v1`](http://localhost:5990/v1) to view available endpoints and to get started
 
 Note that if `npm install` fails because the user running it does not have sufficient permissions to access and modify the database, the command `./node_modules/.bin/grunt` must be run with sufficient permissions to execute database migrations.
 
