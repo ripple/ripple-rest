@@ -25,6 +25,13 @@
 + Code refactor and cleanup
 
 
+## 1.2.5
+
++ Fix: Check that tx.meta exists before accessing
+
++ Fix: Case where ripple-rest would crash when rippled could not be connected to
+
+
 ## 1.2.4
 
 + Change rconsole logging from stderr to stdout
