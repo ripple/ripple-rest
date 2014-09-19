@@ -139,6 +139,12 @@ var ripple_path_find = function(data,ws) {
             ))
         }
     }
+    if (data.source_account == accounts.bob.address) {
+        if (data.destination_account == accounts.alice.address) {
+            ws.send(JSON.stringify({"id":data.id,"result":{"alternatives":[],"destination_account":"rJRLoJSErtNRFnbCyHEUYnRUKNwkVYDM7U","destination_currencies":["XRP"],"ledger_current_index":4,"validated":false},"status":"success","type":"response"}               
+            ))
+        }
+    }
 };
 exports.ripple_path_find = ripple_path_find
 
@@ -184,6 +190,11 @@ var account_info = function(data,ws) {
                 type: 'response' 
             }))
         break;     
+        case accounts.bob.address :
+            ws.send(JSON.stringify({"id":data.id,
+            "result":{"account_data":{"Account":"rwmityd4Ss34DBUsRy7Pacv6UA5n7yjfe5","Balance":"200000000","Flags":0,"LedgerEntryType":"AccountRoot","OwnerCount":0,"PreviousTxnID":"E05706F92475436BEA5570743331E2D62DBCECA2B9FA6F7FED39C8A85490EF68","PreviousTxnLgrSeq":4,"Sequence":1,"index":"F44A494EEF93D6AD5D257D7A23A075FF29FF142B0FC8DE68DA43F0F176D47A6E"},"ledger_current_index":4,"validated":false},"status":"success","type":"response"
+            }))
+        break;
         default :
         break;
     }
@@ -203,6 +214,11 @@ var account_lines = function(data,ws) {
                 "type":"response"
             }))
         break;
+        case accounts.bob.address :
+            ws.send(JSON.stringify({"id":data.id,
+            "result":{"account":"rwmityd4Ss34DBUsRy7Pacv6UA5n7yjfe5","lines":[]},"status":"success","type":"response"
+            }))
+        break; 
         default:
         break;
     }
