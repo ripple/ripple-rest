@@ -2,7 +2,7 @@
 node_modules/
 accounts.json
 *.sqlite
-config.json
+./config.json
 .DS_Store
 coverage/
 .idea/
