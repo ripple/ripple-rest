@@ -247,6 +247,59 @@ describe('payments', function() {
             done()
         })
     })
+    it('check amount bob has',function(done) {
+        console.log("checking amount bob has") 
+        app.get('/v1/accounts/'+lib.accounts.bob.address+'/balances')
+        .end(function(err, resp) {
+            console.log("Balances of bob", resp.body)
+            var balance = resp.body.balances[0]
+// change all instances of 200 with reserve base xrp
+    //        assert.equal(balance.value,store.reserve_base_xrp)
+            store.bob_balance = balance.value
+            done()
+        })
+    })
+    // bob should try to send all money back to alice
+    it('try to send all of bobs money to alice below reserve', function(done) {
+        console.log("Calling paths for bob back to alice.")
+        var sendamount = store.bob_balance;
+        app.get('/v1/accounts/'+lib.accounts.bob.address+'/payments/paths/'+lib.accounts.alice.address+'/'+sendamount+'+XRP')
+        .end(function(err, resp) {
+            inspect(resp.body)
+            assert.equal(404, resp.status)
+            assert.deepEqual(resp.body, { success: false,
+  error_type: 'invalid_request',
+  error: 'No paths found',
+  message: 'Please ensure that the source_account has sufficient funds to execute the payment. If it does there may be insufficient liquidity in the network to execute this payment right now' })
+            done()
+        })
+    })
+    // bob should try to send all money back to alice
+    it.skip('try to send 95% of bobs money to alice below reserve', function(done) {
+        console.log("Calling paths for bob 95% back to alice.")
+        var sendamount = store.bob_balance * 0.95;
+        app.get('/v1/accounts/'+lib.accounts.bob.address+'/payments/paths/'+lib.accounts.alice.address+'/'+sendamount+'+XRP')
+        .end(function(err, resp) {
+            console.log("Bob sends back 95% of his money to alice..")
+            inspect(resp.body)
+            assert.equal(404, resp.status)
+            assert.deepEqual(resp.body, { success: false,
+  error_type: 'invalid_request',
+  error: 'No paths found',
+  message: 'Please ensure that the source_account has sufficient funds to execute the payment. If it does there may be insufficient liquidity in the network to execute this payment right now' })
+            done()
+        })
+    })
+    // have alice send bob 10 USD/alice
+    it('alice sends bob 10USD/alice without trust', function(done) {
+        console.log('alice sends bob 10usd/alice without trust')
+        app.get('/v1/accounts/'+lib.accounts.alice.address+'/payments/paths/'+lib.accounts.bob.address+'/10+USD+'+lib.accounts.alice)
+        .end(function(err, resp) {
+        
+            inspect(resp.body)
+        })
+        
+    })
     after(function(done) {
         console.log("Cleanup: closing down")
         _app.remote.disconnect()
