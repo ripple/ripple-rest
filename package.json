@@ -4,7 +4,7 @@
   "description": "A RESTful API for submitting payments and monitoring accounts on the Ripple Network.",
   "scripts": {
     "postinstall": "./node_modules/.bin/grunt",
-    "test": "NODE_ENV=test ./node_modules/.bin/istanbul test ./node_modules/.bin/mocha -- --reporter spec --timeout 10000 --slow 500 test/*-test.js",
+    "test": "./test.sh" ,
     "start": "node server.js",
     "coveralls": "cat ./coverage/lcov.info | ./node_modules/.bin/coveralls"
   },
