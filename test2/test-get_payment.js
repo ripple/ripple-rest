@@ -320,6 +320,15 @@ describe('payments', function() {
         })
         .end(function(err, resp) {
             inspect(resp.body);
+            delete resp.body.ledger;
+            delete resp.body.hash;
+            assert.deepEqual(resp.body,{ success: true,
+  trustline: 
+   { account: 'rwmityd4Ss34DBUsRy7Pacv6UA5n7yjfe5',
+     limit: '10',
+     currency: 'USD',
+     counterparty: 'rJRLoJSErtNRFnbCyHEUYnRUKNwkVYDM7U',
+     account_allows_rippling: true }})
             done()
         })
     })
