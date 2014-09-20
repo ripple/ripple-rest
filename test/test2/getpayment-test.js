@@ -11,54 +11,60 @@ var inspect = function(item) {
     console.log(util.inspect(item, { showHidden: true, depth: null }))
 }
 
-var rippled;
-
-before(function(done) {
-
-  var route = new ee;
-
-  console.log("NEW RIPPLED!");
-  rippled = new ws.Server({port: 5153});
-
-  route.on('ping', lib.ping)
-  route.on('subscribe', lib.subscribe)
-  route.on('server_info',lib.server_info)
-  route.on('account_info', lib.account_info)
-  route.on('ripple_path_find',lib.ripple_path_find)
-  route.on('account_lines', lib.account_lines)
-  route.on('submit',lib.submit)
-  route.on('tx', lib.tx)
-
-  rippled.on('connection', lib.connection.bind({route:route}));
-  rippled.on('close',function(){
-    console.log("WS closed")
-  })
-
-  _app.remote.once('connect', function() {
-    console.log("Setting on ledger_closed from server")
-    _app.remote.getServer().once('ledger_closed', function() {
-      console.log("got server's ledger_closed")
-      // proceed to the tests, api is ready
-      done()
-    });
-  });
-
-  _app.remote._servers = [ ];
-  _app.remote.addServer('ws://localhost:5153');
-
-  console.log("Connecting remote")
-  _app.remote.connect();
-
-})
-
-after(function(done) {
-  console.log("Cleanup: closing down")
-  _app.remote.disconnect()
-  rippled.close()
-  done()
-})
 
 describe('payments', function() {
+
+  var rippled;
+
+  before(function(done) {
+
+    var route = new ee;
+
+    console.log("NEW RIPPLED!");
+    rippled = new ws.Server({port: 5153});
+
+    route.on('ping', lib.ping)
+    route.on('subscribe', lib.subscribe)
+    route.on('server_info',lib.server_info)
+    route.on('account_info', lib.account_info)
+    route.on('ripple_path_find',lib.ripple_path_find)
+    route.on('account_lines', lib.account_lines)
+    route.on('submit',lib.submit)
+    route.on('tx', lib.tx)
+
+    rippled.on('connection', lib.connection.bind({route:route}));
+    rippled.on('close',function(){
+      console.log("WS closed")
+    })
+
+    _app.remote.once('connect', function() {
+      console.log("Setting on ledger_closed from server")
+      _app.remote.getServer().once('ledger_closed', function() {
+        console.log("got server's ledger_closed")
+        // proceed to the tests, api is ready
+        done()
+      });
+    });
+
+    _app.remote._servers = [ ];
+    _app.remote.addServer('ws://localhost:5153');
+
+    console.log("Connecting remote")
+    _app.remote.connect();
+
+  })
+
+  after(function(done) {
+    console.log("Cleanup: closing down")
+
+    _app.remote.once('disconnect', function() {
+      rippled.close();
+      setImmediate(done);
+    });
+
+    _app.remote.disconnect();
+
+  })
 
     var store = {}
 
