@@ -29,7 +29,7 @@ module.exports = function(database_url, callback) {
 
     db = new sequelize('ripple_rest_db', 'ripple_rest_user', 'ripple_rest', {
       dialect: 'sqlite',
-      storage: ':memory:',
+      storage: database_url || ':memory:',
       logging: false,
       sync: { force: true },
       define: { 
