@@ -274,6 +274,7 @@ describe('payments', function() {
             done()
         })
     })
+/*
     // bob should try to send all money back to alice
     it.skip('try to send 95% of bobs money to alice below reserve', function(done) {
         console.log("Calling paths for bob 95% back to alice.")
@@ -290,15 +291,37 @@ describe('payments', function() {
             done()
         })
     })
+*/
     // have alice send bob 10 USD/alice
     it('alice sends bob 10USD/alice without trust', function(done) {
         console.log('alice sends bob 10usd/alice without trust')
-        app.get('/v1/accounts/'+lib.accounts.alice.address+'/payments/paths/'+lib.accounts.bob.address+'/10+USD+'+lib.accounts.alice)
+        app.get('/v1/accounts/'+lib.accounts.alice.address+'/payments/paths/'+lib.accounts.bob.address+'/10+USD+'+lib.accounts.alice.address)
         .end(function(err, resp) {
-        
             inspect(resp.body)
+            assert.deepEqual(resp.body, { success: false,
+  error_type: 'invalid_request',
+  error: 'No paths found',
+  message: 'The destination_account does not accept USD, they only accept: XRP' })
+            done()
         })
-        
+    })
+
+    it('grant a trustline of 10 usd towards alice', function(done) {
+        console.log("granting a trustline towards alice from bob")
+        app.post('/v1/accounts/'+lib.accounts.bob.address+'/trustlines')
+        .send({
+          "secret": lib.accounts.bob.secret,
+          "trustline": {
+          "limit": "10",
+          "currency": "USD",
+          "counterparty": lib.accounts.alice.address,
+          "allows_rippling": false
+          }
+        })
+        .end(function(err, resp) {
+            inspect(resp.body);
+            done()
+        })
     })
     after(function(done) {
         console.log("Cleanup: closing down")

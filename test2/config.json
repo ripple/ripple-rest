@@ -3,13 +3,11 @@
   "debug": false,
   "port": 5990,
   "host": "localhost",
-
   "database_enabled": "sqlite",
   "database": {
     "sqlite": ":memory:",
     "postgres": "postgres://ripple_rest_user:password@localhost:5432/ripple_rest_db"
   },
-
   "ssl_enabled": false,
   "ssl": {
     "key_path": "./certs/server.key",
