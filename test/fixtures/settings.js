@@ -29,6 +29,25 @@ module.exports.accountInfoResponse = function(request) {
   });
 };
 
+module.exports.accountNotFoundResponse = function(request) {
+  return JSON.stringify({
+    id: request.id,
+    status: 'error',
+    type: 'response',
+    account: 'r3GgMwvgvP8h4yVWvjH1dPZNvC37TjzBBE',
+    error: 'actNotFound',
+    error_code: 15,
+    error_message: 'Account not found.',
+    ledger_current_index: 8941468,
+    request: {
+      account: 'r3GgMwvgvP8h4yVWvjH1dPZNvC37TjzBBE',
+      command: 'account_info',
+      id: request.id
+    },
+    validated: false
+  });
+};
+
 module.exports.submitSettingsResponse = function(request) {
   return JSON.stringify({
     id: request.id,
@@ -77,8 +96,46 @@ module.exports.RESTAccountSettingsResponse = JSON.stringify({
 module.exports.RESTAccountSettingsSubmitResponse = JSON.stringify({
   success: true,
   hash: 'AD922400CB1CE0876CA7203DBE0B1277D0D0EAC56A64F26CEC6C78D447EFEA5E',
-  ledger: '8819969',
+  ledger: '8819970',
   settings: {
-    require_destination_tag: true
+    require_destination_tag: true,
+    require_authorization: true,
+    disallow_xrp: true,
+    email_hash: '23463B99B62A72F26ED677CC556C44E8',
+    wallet_locator: 'DEADBEEF',
+    wallet_size: 1,
+    domain: 'example.com',
+    transfer_rate: 2
   }
 });
+
+module.exports.RESTMissingSettingsResponse = JSON.stringify({
+  success: false,
+  error_type: 'invalid_request',
+  error: 'Parameter missing: settings'
+});
+
+module.exports.RESTMissingSecretResponse = JSON.stringify({
+  success: false,
+  error_type: 'invalid_request',
+  error: 'Parameter missing: secret'
+});
+
+module.exports.RESTInvalidDestTagResponse = JSON.stringify({
+  success: false,
+  error_type: 'invalid_request',
+  error: 'Parameter is not boolean: require_destination_tag'
+});
+
+module.exports.RESTInvalidDomainResponse = JSON.stringify({
+  success: false,
+  error_type: 'invalid_request',
+  error: 'Parameter must be a string: domain'
+});
+
+module.exports.RESTInvalidTransferRateResponse = JSON.stringify({
+  success: false,
+  error_type: 'invalid_request',
+  error: 'Parameter must be a number: transfer_rate'
+});
+
