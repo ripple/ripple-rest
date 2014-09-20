@@ -1,5 +1,5 @@
 var supertest = require('supertest');
-var _app = require('./../../lib/express_app')
+var _app = require('./../lib/express_app')
 var app = supertest(_app)
 var ws = require('ws');
 var ee = require('events').EventEmitter;
