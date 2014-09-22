@@ -84,7 +84,7 @@ describe('post settings', function() {
 
       assert.strictEqual(so.TransactionType, 'AccountSet');
       assert.strictEqual(so.Flags, 2148859904);
-      assert.strictEqual(so.Sequence, 2938);
+      assert.strictEqual(typeof so.Sequence, 'number');
       assert.strictEqual(so.LastLedgerSequence, self.app.remote._ledger_current_index + LEDGER_OFFSET);
       assert.strictEqual(so.Fee, '12');
       assert.strictEqual(so.Account, 'r3GgMwvgvP8h4yVWvjH1dPZNvC37TjzBBE');
@@ -293,7 +293,7 @@ describe('post settings', function() {
 
       assert.strictEqual(so.TransactionType, 'AccountSet');
       assert.strictEqual(so.Flags, 2147614720);
-      assert.strictEqual(so.Sequence, 2939);
+      assert.strictEqual(typeof so.Sequence, 'number');
       assert.strictEqual(so.LastLedgerSequence, self.app.remote._ledger_current_index + LEDGER_OFFSET);
       assert.strictEqual(so.Fee, '12');
       assert.strictEqual(so.Account, 'r3GgMwvgvP8h4yVWvjH1dPZNvC37TjzBBE');
@@ -328,7 +328,7 @@ describe('post settings', function() {
 
       assert.strictEqual(so.TransactionType, 'AccountSet');
       assert.strictEqual(so.Flags, 2147483648);
-      assert.strictEqual(so.Sequence, 2940);
+      assert.strictEqual(typeof so.Sequence, 'number');
       assert.strictEqual(so.LastLedgerSequence, self.app.remote._ledger_current_index + LEDGER_OFFSET);
       assert.strictEqual(so.Domain, '');
       assert.strictEqual(so.Fee, '12');
@@ -364,7 +364,7 @@ describe('post settings', function() {
 
       assert.strictEqual(so.TransactionType, 'AccountSet');
       assert.strictEqual(so.Flags, 2147483648);
-      assert.strictEqual(so.Sequence, 2941);
+      assert.strictEqual(typeof so.Sequence, 'number');
       assert.strictEqual(so.EmailHash, new Array(32 + 1).join('0'));
       assert.strictEqual(so.LastLedgerSequence, self.app.remote._ledger_current_index + LEDGER_OFFSET);
       assert.strictEqual(so.Fee, '12');
@@ -400,7 +400,7 @@ describe('post settings', function() {
 
       assert.strictEqual(so.TransactionType, 'AccountSet');
       assert.strictEqual(so.Flags, 2147483648);
-      assert.strictEqual(so.Sequence, 2942);
+      assert.strictEqual(typeof so.Sequence, 'number');
       assert.strictEqual(so.WalletLocator, new Array(64 + 1).join('0'));
       assert.strictEqual(so.LastLedgerSequence, self.app.remote._ledger_current_index + LEDGER_OFFSET);
       assert.strictEqual(so.Fee, '12');
@@ -436,7 +436,7 @@ describe('post settings', function() {
 
       assert.strictEqual(so.TransactionType, 'AccountSet');
       assert.strictEqual(so.Flags, 2147483648);
-      assert.strictEqual(so.Sequence, 2943);
+      assert.strictEqual(typeof so.Sequence, 'number');
       assert.strictEqual(so.TransferRate, 0);
       assert.strictEqual(so.LastLedgerSequence, self.app.remote._ledger_current_index + LEDGER_OFFSET);
       assert.strictEqual(so.Fee, '12');
