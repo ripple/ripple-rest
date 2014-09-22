@@ -3,7 +3,7 @@ var _app = require('./../lib/express_app')
 var app = supertest(_app)
 var ws = require('ws');
 var ee = require('events').EventEmitter;
-var lib = require('./fixtures')
+var lib = require('./_fixtures.js')
 var utils = require('./utils')
 var assert = require('assert');
 
