@@ -18,6 +18,7 @@ var inspect = function(item) {
 
 
 describe('payments', function() {
+    this.timeout(10000)
 
   var rippled;
 
@@ -51,8 +52,8 @@ describe('payments', function() {
       });
     });
 
-    _app.remote._servers = [ ];
-    _app.remote.addServer('ws://localhost:5150');
+//    _app.remote._servers = [ ];
+//    _app.remote.addServer('ws://localhost:5006');
 
     console.log("Connecting remote")
     _app.remote.connect();
@@ -72,7 +73,6 @@ describe('payments', function() {
   })
 
     var store = {}
-
 
     it('Pathfinding:XRP',function(done) {
         // genesis initially gives Alice 429 XRP 
@@ -179,7 +179,7 @@ describe('payments', function() {
             done()
         })
     })
-    it.skip('send bob reserve_base_xrp XRP from Alice to bob', function(done) {
+    it('send bob reserve_base_xrp XRP from Alice to bob', function(done) {
         // sending bob reserve_base_xrp XRP from alice
         app.post('/v1/payments')
         .send(store.paymentAliceToBob)
@@ -194,7 +194,7 @@ describe('payments', function() {
         })
     })
     // confirm payment via client resource ID
-    it.skip('check status url of the reserve_base_xrp transfer from alice to bob', function(done) {
+    it('check status url of the reserve_base_xrp transfer from alice to bob', function(done) {
         app.get(store.status_url)
         .end(function(err, resp) {
             console.log(resp.status, resp.body)
@@ -234,7 +234,7 @@ describe('payments', function() {
         })
     })
     // confirm payment via transaction hash 
-    it.skip('confirm payment via transaction hash', function(done) {
+    it('confirm payment via transaction hash', function(done) {
         console.log("payment to confirm:", store.paymentAliceToBob)
         app.get('/v1/accounts/'+lib.accounts.alice.address+'/payments/'+store.hash)
         .end(function(err, resp) {
@@ -300,7 +300,6 @@ describe('payments', function() {
             done()
         })
     })
-/*
     // bob should try to send all money back to alice
     it.skip('try to send 95% of bobs money to alice below reserve', function(done) {
         console.log("Calling paths for bob 95% back to alice.")
@@ -317,7 +316,6 @@ describe('payments', function() {
             done()
         })
     })
-*/
     // have alice send bob 10 USD/alice
     it('alice sends bob 10USD/alice without trust', function(done) {
         console.log('alice sends bob 10usd/alice without trust')
