@@ -294,9 +294,9 @@ describe('payments', function() {
             inspect(resp.body)
             assert.equal(404, resp.status)
             assert.deepEqual(resp.body, { success: false,
-  error_type: 'invalid_request',
-  error: 'No paths found',
-  message: 'Please ensure that the source_account has sufficient funds to execute the payment. If it does there may be insufficient liquidity in the network to execute this payment right now' })
+              error_type: 'invalid_request',
+              error: 'No paths found',
+              message: 'Please ensure that the source_account has sufficient funds to execute the payment. If it does there may be insufficient liquidity in the network to execute this payment right now' })
             done()
         })
     })
@@ -349,14 +349,41 @@ describe('payments', function() {
             delete resp.body.ledger;
             delete resp.body.hash;
             assert.deepEqual(resp.body,{ success: true,
-  trustline: 
-   { account: 'rwmityd4Ss34DBUsRy7Pacv6UA5n7yjfe5',
-     limit: '10',
-     currency: 'USD',
-     counterparty: 'rJRLoJSErtNRFnbCyHEUYnRUKNwkVYDM7U',
-     account_allows_rippling: true }})
+              trustline: 
+               { account: 'rwmityd4Ss34DBUsRy7Pacv6UA5n7yjfe5',
+                 limit: '10',
+                 currency: 'USD',
+                 counterparty: 'rJRLoJSErtNRFnbCyHEUYnRUKNwkVYDM7U',
+                 account_allows_rippling: true }})
             done();
         })
     })
-
+    // have alice send bob 10 USD/alice
+    it('get path for alice to bob 10USD/alice with trust', function(done) {
+        console.log('get path for alice to bob 10usd/alice with trust')
+        app.get('/v1/accounts/'+lib.accounts.alice.address+'/payments/paths/'+lib.accounts.bob.address+'/10+USD+'+lib.accounts.alice.address)
+        .end(function(err, resp) {
+            inspect(resp.body)
+            assert.deepEqual(resp.body, 
+                { success: true,
+                  payments: 
+                   [ { source_account: 'rJRLoJSErtNRFnbCyHEUYnRUKNwkVYDM7U',
+                       source_tag: '',
+                       source_amount: { value: '10', currency: 'USD', issuer: '' },
+                       source_slippage: '0',
+                       destination_account: 'rwmityd4Ss34DBUsRy7Pacv6UA5n7yjfe5',
+                       destination_tag: '',
+                       destination_amount: 
+                        { value: '10',
+                          currency: 'USD',
+                          issuer: 'rJRLoJSErtNRFnbCyHEUYnRUKNwkVYDM7U' },
+                       invoice_id: '',
+                       paths: '[]',
+                       partial_payment: false,
+                       no_direct_ripple: false }
+                    ]
+                })
+            done()
+        })
+    })
 })
