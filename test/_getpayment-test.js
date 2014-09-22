@@ -1,3 +1,8 @@
+var path = require('path');
+
+// override config.json with test one
+//process.env['TEST_CONFIG'] = path.join(__dirname, '/config.json');
+
 var supertest = require('supertest');
 var _app = require('./../lib/express_app')
 var app = supertest(_app)
@@ -21,7 +26,7 @@ describe('payments', function() {
     var route = new ee;
 
     console.log("NEW RIPPLED!");
-    rippled = new ws.Server({port: 5153});
+    rippled = new ws.Server({port: 5150});
 
     route.on('ping', lib.ping)
     route.on('subscribe', lib.subscribe)
@@ -47,7 +52,7 @@ describe('payments', function() {
     });
 
     _app.remote._servers = [ ];
-    _app.remote.addServer('ws://localhost:5153');
+    _app.remote.addServer('ws://localhost:5150');
 
     console.log("Connecting remote")
     _app.remote.connect();

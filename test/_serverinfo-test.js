@@ -1,3 +1,8 @@
+var path = require('path');
+
+// override config.json with test one
+//process.env['TEST_CONFIG'] = path.join(__dirname, '/config.json');
+
 var supertest = require('supertest');
 var _app = require('./../lib/express_app')
 var app = supertest(_app)
