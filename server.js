@@ -4,6 +4,7 @@ var path    = require('path');
 var app = require(__dirname+'/lib/express_app.js');
 var config = require(__dirname+'/lib/config-loader');
 var remote = require(__dirname+'/lib/remote.js');
+var logger = require('./lib/logger.js').logger;
 
 var port = config.get('port') || 5990;
 var host = config.get('host');
@@ -16,12 +17,12 @@ function loadSSLConfig() {
   || path.join(__dirname, '/certs/server.crt');
 
   if (!fs.existsSync(keyPath)) {
-    console.error('Must specify key_path in order to use SSL');
+    logger.error('Must specify key_path in order to use SSL');
     process.exit(1);
   }
 
   if (!fs.existsSync(certPath)) {
-    console.error('Must specify cert_path in order to use SSL');
+    logger.error('Must specify cert_path in order to use SSL');
     process.exit(1);
   }
 
@@ -33,11 +34,11 @@ function loadSSLConfig() {
 
 if (config.get('ssl_enabled')) {
   require('https').createServer(loadSSLConfig(), app).listen(port, host, function() {
-    console.log('ripple-rest server listening over HTTPS at port:', port);
+    logger.info('ripple-rest server listening over HTTPS at port:' + port);
   });
 } else {
   app.listen(port, host, function() {
-    console.log('ripple-rest server listening over UNSECURED HTTP at port:', port);
+    logger.info('ripple-rest server listening over UNSECURED HTTP at port:' + port);
   });
 }
 
