@@ -1,23 +1,23 @@
-var path = require('path');
-
-// override config.json with test one
-//process.env['TEST_CONFIG'] = path.join(__dirname, '/config.json');
-
-var supertest = require('supertest');
-var _app = require('./../lib/express_app')
-var app = supertest(_app)
-var ws = require('ws');
-var ee = require('events').EventEmitter;
-var lib = require('./_fixtures.js')
-var utils = require('./utils')
-var assert = require('assert');
-
 describe('server status', function() {
 
+    this.timeout(10000)
+    var path = require('path');
+    // override config.json with test one
+    process.env['TEST_CONFIG'] = path.join(__dirname, '/config.json');
+
+    var supertest = require('supertest');
+    var _app = require('./../lib/express_app')
+    var app = supertest(_app)
+    var ws = require('ws');
+    var ee = require('events').EventEmitter;
+    var lib = require('./_fixtures.js')
+    var utils = require('./utils')
+    var assert = require('assert');
 
   var rippled;
 
   before(function(done) {
+    console.log("\n\n\n\n\n\nBEFORE!!!!!!!!!!!\n\n\n\n")
     var route = new ee;
     rippled = new ws.Server({port: 5150});
 
@@ -31,6 +31,7 @@ describe('server status', function() {
     })
 
     _app.remote.once('connect', function() {
+      console.log("Connected yay")
       _app.remote.getServer().once('ledger_closed', function() {
         console.log("got server's ledger_closed")
         // proceed to the tests, api is ready
@@ -38,8 +39,8 @@ describe('server status', function() {
       });
     });
 
-    _app.remote._servers = [ ];
-    _app.remote.addServer('ws://localhost:5150');
+//    _app.remote._servers = [ ];
+//    _app.remote.addServer('ws://localhost:5150');
     console.log("Connecting remote")
     _app.remote.connect();
 
@@ -50,7 +51,11 @@ describe('server status', function() {
 
     _app.remote.once('disconnect', function() {
       rippled.close();
+      done()
+    });
+    _app.remote.disconnect();
 
+/*
       app.get('/v1/server')
         .end(function(err, resp) {
           console.log("testing /v1/server after disconnected")
@@ -60,13 +65,11 @@ describe('server status', function() {
           assert.equal(keyresp.hasAllKeys, true)
           done()
         })
+*/
 
 
     });
 
-    _app.remote.disconnect();
-
-  });
 
     it('/v1/server/connected',function(done) {
         console.log("Testing server/connected")

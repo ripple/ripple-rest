@@ -1,23 +1,23 @@
-var path = require('path');
-
-// override config.json with test one
-//process.env['TEST_CONFIG'] = path.join(__dirname, '/config.json');
-
-var supertest = require('supertest');
-var _app = require('./../lib/express_app')
-var app = supertest(_app)
-var assert = require('assert')
-var ws = require('ws');
-var ee = require('events').EventEmitter;
-var lib = require('./_fixtures.js')
-var testutils = require('./utils')
-var util = require('util');
-var inspect = function(item) {
-    console.log(util.inspect(item, { showHidden: true, depth: null }))
-}
-
 
 describe('payments', function() {
+    var path = require('path');
+
+    // override config.json with test one
+    process.env['TEST_CONFIG'] = path.join(__dirname, '/config.json');
+
+    var supertest = require('supertest');
+    var _app = require('./../lib/express_app')
+    var app = supertest(_app)
+    var assert = require('assert')
+    var ws = require('ws');
+    var ee = require('events').EventEmitter;
+    var lib = require('./_fixtures.js')
+    var testutils = require('./utils')
+    var util = require('util');
+    var inspect = function(item) {
+        console.log(util.inspect(item, { showHidden: true, depth: null }))
+    }
+
     this.timeout(10000)
 
   var rippled;
@@ -26,7 +26,6 @@ describe('payments', function() {
 
     var route = new ee;
 
-    console.log("NEW RIPPLED!");
     rippled = new ws.Server({port: 5150});
 
     route.on('ping', lib.ping)
@@ -64,8 +63,9 @@ describe('payments', function() {
     console.log("Cleanup: closing down")
 
     _app.remote.once('disconnect', function() {
+      console.log("GOT DISCONNECT")
       rippled.close();
-      setImmediate(done);
+      done()
     });
 
     _app.remote.disconnect();
