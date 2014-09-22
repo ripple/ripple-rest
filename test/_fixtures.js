@@ -1,5 +1,6 @@
 var RL = require('ripple-lib')
 var accounts = {}
+var state = {};
 accounts.genesis = {
     address:  'rHb9CJAWyB4rj91VRWn96DkukG4bwdtyTh',
     secret: 'snoPBrXtMeMyMHUVTgbuqAfg1SUTb'
@@ -122,31 +123,53 @@ var server_info = function(data,ws) {
 exports.server_info = server_info;
 var ripple_path_find = function(data,ws) {
     console.log("ripple_path_find request", data)
-    if (data.source_account == accounts.alice.address) {
-        if (data.destination_account == accounts.bob.address) {
-            ws.send(JSON.stringify({
-                "id":data.id,"result":{"alternatives":[],"destination_account":"rwmityd4Ss34DBUsRy7Pacv6UA5n7yjfe5","destination_currencies":["XRP"],"ledger_current_index":3,"validated":false},"status":"success","type":"response"
-            }));
-        }
-    }
-    if (data.source_account == accounts.genesis.address) {
-        if (data.destination_account == accounts.alice.address) {
-            ws.send(JSON.stringify(
-                { id: 2,
-                result: 
-                { alternatives: [],
-                destination_account: 'rJRLoJSErtNRFnbCyHEUYnRUKNwkVYDM7U',
-                destination_currencies: [ 'XRP' ] },
-                status: 'success',
-                type: 'response' }
-            ))
-        }
-    }
-    if (data.source_account == accounts.bob.address) {
-        if (data.destination_account == accounts.alice.address) {
-            ws.send(JSON.stringify({"id":data.id,"result":{"alternatives":[],"destination_account":"rJRLoJSErtNRFnbCyHEUYnRUKNwkVYDM7U","destination_currencies":["XRP"],"ledger_current_index":4,"validated":false},"status":"success","type":"response"}               
-            ))
-        }
+    switch (data.source_account) {
+        case accounts.alice.address :
+            if (data.destination_account == accounts.bob.address) {
+                if (data.destination_amount == '1') {
+                    ws.send(JSON.stringify({
+                        "id":data.id,"result":{"alternatives":[],"destination_account":"rwmityd4Ss34DBUsRy7Pacv6UA5n7yjfe5","destination_currencies":["XRP"],"ledger_current_index":3,"validated":false},"status":"success","type":"response"
+                    }));
+                } else if (data.destination_amount == '20000000') {
+                    ws.send(JSON.stringify({
+                        "id":data.id,"result":{"alternatives":[],"destination_account":"rwmityd4Ss34DBUsRy7Pacv6UA5n7yjfe5","destination_currencies":["XRP"],"ledger_current_index":3,"validated":false},"status":"success","type":"response"
+                    }));
+                } else if (typeof data.destination_amount == 'object') {
+                    if (data.destination_amount.currency == 'USD') {
+                        if (state.usd === undefined) {
+                            // first time, return no path
+                            state.usd = 1;
+                            ws.send(JSON.stringify({"id":data.id,"result":{"alternatives":[],"destination_account":"rwmityd4Ss34DBUsRy7Pacv6UA5n7yjfe5","destination_currencies":["XRP"],"ledger_current_index":4,"validated":false},"status":"success","type":"response"}))
+                        } else {
+                            // second time, return path
+                            state.usd++;
+                            ws.send(JSON.stringify({"id":data.id,"result":{"alternatives":[{"paths_canonical":[],"paths_computed":[],"source_amount":{"currency":"USD","issuer":"rJRLoJSErtNRFnbCyHEUYnRUKNwkVYDM7U","value":"10"}}],"destination_account":"rwmityd4Ss34DBUsRy7Pacv6UA5n7yjfe5","destination_currencies":["USD","XRP"],"ledger_current_index":4,"validated":false},"status":"success","type":"response"}))
+                        }
+                    }
+                }
+            }
+        break;
+        case accounts.genesis.address : 
+            if (data.destination_account == accounts.alice.address) {
+                ws.send(JSON.stringify(
+                    { id: 2,
+                    result: 
+                    { alternatives: [],
+                    destination_account: 'rJRLoJSErtNRFnbCyHEUYnRUKNwkVYDM7U',
+                    destination_currencies: [ 'XRP' ] },
+                    status: 'success',
+                    type: 'response' }
+                ))
+            }
+        break;
+        case accounts.bob.address :
+            if (data.destination_account == accounts.alice.address) {
+                ws.send(JSON.stringify({"id":data.id,"result":{"alternatives":[],"destination_account":"rJRLoJSErtNRFnbCyHEUYnRUKNwkVYDM7U","destination_currencies":["XRP"],"ledger_current_index":4,"validated":false},"status":"success","type":"response"}               
+                ))
+            }
+        break;
+        default:
+        break;    
     }
 };
 exports.ripple_path_find = ripple_path_find
