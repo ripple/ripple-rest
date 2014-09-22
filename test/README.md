@@ -26,6 +26,6 @@ You can edit in config.json
       ]
 
 
-test-server_info can use either hosted, local, or mock
+_server_info-test.js can use either hosted, local, or mock
 
-test-get_payment can use local or mock
+_get_payment-test.js can use local or mock
