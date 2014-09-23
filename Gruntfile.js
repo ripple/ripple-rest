@@ -1,8 +1,6 @@
-var fs        = require('fs');
 var config    = require('./lib/config-loader');
 var dbconnect; 
 var spawn = require('child_process').spawn;
-
 
 module.exports = function(grunt) {
 
@@ -13,29 +11,7 @@ module.exports = function(grunt) {
     migration.on('close', callback);
   }
 
-  var watched_files = ['config/*', 'controllers/*', 'lib/*', '*.js', '*.json'];
-
   grunt.initConfig({
-
-    jshint: {
-      all: watched_files,
-      options: {
-        '-W032': true
-      }
-    },
-
-    simplemocha: {
-      options: {
-          timeout: 3000,
-          ignoreLeaks: false,
-          ui: 'bdd',
-          reporter: 'spec'
-        },
-      local: {
-        src: ['test/**/*-test.js']
-      }
-    },
-
     migrate: {
       options: {
         dir: 'db/migrations',
@@ -46,12 +22,7 @@ module.exports = function(grunt) {
     }
   });
 
-  grunt.loadNpmTasks('grunt-contrib-jshint');
-  grunt.loadNpmTasks('grunt-simple-mocha');
-
   grunt.registerTask('default', ['dbsetup']);
-  grunt.registerTask('dev', ['jshint', 'nodemon']);
-  grunt.registerTask('test', ['jshint', 'simplemocha:local']);
 
   grunt.registerTask('dbsetup', 'Check if the database is running / exists', function(){
     var done = this.async();
