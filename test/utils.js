@@ -12,3 +12,31 @@ var hasKeys = function(obj,keys) {
     return { hasAllKeys : hasAllKeys, missing : missing }
 }
 exports.hasKeys = hasKeys;
+
+// used to mark the orderings and count of incoming rippled
+exports.orderlist = function(list) {
+    // list = [{command:<command>}, ... ]
+    var _list = list;
+    var idx = 0;
+    this.create = function(list) {
+        console.log("CREATE:", list)
+        _list = list;
+        idx = 0
+    }
+    this.mark = function(command) {
+        console.log("MARK:", command, _list,idx,_list[idx])
+        if ((_list[idx]) && (_list[idx].command === command)) {
+            console.log("INcrementing idx:",idx)
+            idx++
+        } else {
+            throw new Error("out of order rippled command",command)
+        }
+    }
+    this.test = function() {
+        return (idx === _list.length)
+    }
+    this.reset = function() {
+        _list = []
+        idx = 0;
+    }
+};
