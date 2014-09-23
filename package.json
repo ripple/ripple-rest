@@ -38,7 +38,7 @@
     "nconf": "~0.6.9",
     "node-uuid": "~1.4.1",
     "pg.js": "~3.2.0",
-    "ripple-lib": "~0.8.2-rc1",
+    "ripple-lib": "~0.8.2-rc2",
     "sequelize": "~2.0.0-dev1",
     "sqlite3": "~2.2.0",
     "supertest": "^0.13.0",
