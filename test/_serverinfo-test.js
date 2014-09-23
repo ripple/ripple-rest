@@ -15,10 +15,10 @@ describe('server status', function() {
     var assert = require('assert');
 
   var rippled;
-
+  var route = new ee;
+  var orderlist = new utils.orderlist;
   before(function(done) {
     console.log("\n\n\n\n\n\nBEFORE!!!!!!!!!!!\n\n\n\n")
-    var route = new ee;
     rippled = new ws.Server({port: 5150});
 
     route.on('ping', lib.ping)
@@ -31,7 +31,6 @@ describe('server status', function() {
     })
 
     _app.remote.once('connect', function() {
-      console.log("Connected yay")
       _app.remote.getServer().once('ledger_closed', function() {
         console.log("got server's ledger_closed")
         // proceed to the tests, api is ready
@@ -39,8 +38,8 @@ describe('server status', function() {
       });
     });
 
-//    _app.remote._servers = [ ];
-//    _app.remote.addServer('ws://localhost:5150');
+    _app.remote._servers = [ ];
+    _app.remote.addServer('ws://localhost:5150');
     console.log("Connecting remote")
     _app.remote.connect();
 
@@ -54,7 +53,6 @@ describe('server status', function() {
       done()
     });
     _app.remote.disconnect();
-
 /*
       app.get('/v1/server')
         .end(function(err, resp) {
@@ -66,13 +64,9 @@ describe('server status', function() {
           done()
         })
 */
-
-
     });
 
-
     it('/v1/server/connected',function(done) {
-        console.log("Testing server/connected")
         app.get('/v1/server/connected')
         .end(function(err, resp) {
             // check that we have a success
@@ -84,16 +78,21 @@ describe('server status', function() {
         });
     })
     it('/v1/server while connected',function(done) {
-        console.log("Testing server")
+        var incoming = function(data,ws) {
+            delete data.id
+            assert.deepEqual(data,{"command":"server_info"})
+            orderlist.mark('server_info') 
+        }
+        orderlist.create([{command:'server_info'}])
+        route.once('server_info',incoming)
         app.get('/v1/server')
         .end(function(err, resp) {
             var keys = Object.keys(lib.nominal_server_status_response);
             var keyresp = utils.hasKeys(resp.body, keys)
             assert.equal(keyresp.hasAllKeys, true) 
+            assert.equal(orderlist.test(), true)
             done()
         })
     })
-
-
 })
 
