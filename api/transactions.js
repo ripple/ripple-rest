@@ -191,10 +191,16 @@ function getTransactionHelper(request, response, callback) {
       var transactionHash = options.hash || entry.transaction.hash;
 
       remote.requestTx(transactionHash, function(error, transaction) {
+        if (error) {
+          return async_callback(error);
+        }
+
+        // we found a transaction
         if (entry && transaction) {
           transaction.client_resource_id = entry.client_resource_id;
         }
-        async_callback(error, transaction);
+
+        return async_callback(null, transaction);
       });
     });
   };

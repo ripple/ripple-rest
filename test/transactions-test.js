@@ -37,7 +37,7 @@ describe('get transaction', function() {
 
     self.app
     .get(requestPath(fixtures.INVALID_TRANSACTION_HASH))
-    //.expect(testutils.checkStatus(400))
+    .expect(testutils.checkStatus(400))
     .expect(testutils.checkHeaders)
     .expect(testutils.checkBody(errors.RESTInvalidTransactionHash))
     .end(done);
@@ -52,7 +52,7 @@ describe('get transaction', function() {
 
     self.app
     .get(requestPath(fixtures.VALID_TRANSACTION_HASH))
-    //XXX .expect(testutils.checkStatus(404))
+    .expect(testutils.checkStatus(404))
     .expect(testutils.checkHeaders)
     .expect(testutils.checkBody(errors.RESTTransactionNotFound))
     .end(done);
