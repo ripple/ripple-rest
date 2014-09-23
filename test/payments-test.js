@@ -37,7 +37,7 @@ describe('get payments', function() {
 
     self.app
     .get(requestPath(addresses.VALID) + '/' + fixtures.INVALID_TRANSACTION_HASH)
-    .expect(testutils.checkStatus(404)) //XXX Should be 400
+    .expect(testutils.checkStatus(400))
     .expect(testutils.checkHeaders)
     .expect(testutils.checkBody(errors.RESTInvalidTransactionHash))
     .end(done);

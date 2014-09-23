@@ -176,15 +176,15 @@ function getTransactionHelper(request, response, callback) {
         return async_callback(error);
       }
 
-      if (!(entry || options.hash)) {
+      if (!entry && !options.hash) {
         // Need transaction hash
-        return async_callback(new errors.NotFoundError('Transaction not found. Missing hash'));
+        return async_callback(new errors.InvalidRequestError('Transaction not found. Missing hash'));
       }
 
       if (options.hash && entry) {
         // Verify that transaction hashes match
         if (options.hash !== entry.transaction.hash) {
-          return async_callback(new errors.NotFoundError('Transaction not found. Hashes do not match'));
+          return async_callback(new errors.InvalidRequestError('Transaction not found. Hashes do not match'));
         }
       }
 
