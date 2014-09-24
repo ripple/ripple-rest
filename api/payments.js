@@ -185,6 +185,30 @@ function paymentIsValid(payment, callback) {
   }
   if (payment.hasOwnProperty('no_direct_ripple') && typeof payment.no_direct_ripple !== 'boolean') {
     return callback(new TypeError('Invalid parameter: no_direct_ripple. Must be a boolean'));
+
+  // memos
+  if (payment.hasOwnProperty('memos')) {
+    if (!Array.isArray(payment.memos)) {
+      return callback(new InvalidRequestError('Invalid parameter: memos. Must be an array with memo objects'));
+    }
+
+    if (payment.memos.length === 0) {
+      return callback(new InvalidRequestError('Invalid parameter: memos. Must contain at least one Memo object, otherwise omit the memos property'));
+    }
+
+    for (var m = 0; m < payment.memos.length; m++) {
+      var memo = payment.memos[m];
+      if (memo.MemoType && !/(undefined|string)/.test(typeof memo.MemoType)) {
+        return callback(new InvalidRequestError('Invalid parameter: MemoType. MemoType must be a string'));
+      }
+      if (!memo.MemoData) {
+        return callback(new InvalidRequestError('Missing parameter: MemoData. A Memo object needs a MemoData field'));
+      }
+      if (!/(undefined|string)/.test(typeof memo.MemoData)) {
+        return callback(new InvalidRequestError('Invalid parameter: MemoData. MemoData must be a string'));
+      }
+    }
+
   }
   callback(null, true);
 };
@@ -234,7 +258,9 @@ function getPayment(request, response, next) {
 
   // If the transaction was not in the outgoing_transactions db, get it from rippled
   function getTransaction(async_callback) {
-    transactions.getTransactionHelper(request, response, async_callback);
+    transactions.getTransactionHelper(request, response, function(res, err) {
+      async_callback(res, err);
+    });
   };
 
   function checkIsPayment(transaction, async_callback) {
@@ -672,6 +698,12 @@ function parsePaymentFromTx(tx, options, callback) {
       payment.destination_balance_changes.push(amount);
     }
   });
+  if (Array.isArray(tx.Memos) && tx.Memos.length > 0) {
+    payment.memos = [];
+    for(var m=0; m<tx.Memos.length; m++) {
+      payment.memos.push(tx.Memos[m].Memo);
+    }
+  }
   return payment;
 };
 /**

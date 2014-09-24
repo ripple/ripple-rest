@@ -1,4 +1,5 @@
 module.exports.VALID_TRANSACTION_HASH = 'F4AB442A6D4CBB935D66E1DA7309A5FC71C7143ED4049053EC14E3875B0CF9BF';
+module.exports.VALID_TRANSACTION_HASH_MEMO = 'F9DE78E635A418529A5104A56439F305CE7C42B9F29180F05D77326B9ACD1D33';
 module.exports.INVALID_TRANSACTION_HASH = 'XF4AB442A6D4CBB935D66E1DA7309A5FC71C7143ED4049053EC14E3875B0CF9BF';
 
 module.exports.requestPath = function(address, params) {
@@ -194,6 +195,117 @@ module.exports.transactionResponse = function(request) {
   });
 };
 
+module.exports.transactionResponseWithMemo = function(request) {
+  return JSON.stringify(
+    {
+      "id": request.id,
+      "status": "success",
+      "type": "response",
+      "result": {
+        "Account": "rGUpotx8YYDiocqS577N4T1p1kHBNdEJ9s",
+        "Amount": "100",
+        "Destination": "radqi6ppXFxVhJdjzaATRBxdrPcVTf1Ung",
+        "Fee": "12",
+        "Flags": 0,
+        "LastLedgerSequence": 9038219,
+        "Memos": [
+          {
+            "Memo": {
+              "MemoData": "736F6D655F76616C7565",
+              "MemoType": "736F6D655F6B6579"
+            }
+          },
+          {
+            "Memo": {
+              "MemoData": "736F6D655F76616C7565"
+            }
+          }
+        ],
+        "Sequence": 26,
+        "SigningPubKey": "029A98439AF7459E256D64635598E8B21047807E6B5E6BEE3A3CCF35DEAD2C2C55",
+        "TransactionType": "Payment",
+        "TxnSignature": "3044022022C0ADFB098AF03183329F525184C539D5221104A7C5032C138BF10C19D37A000220443A58890F063AEB8FE1EFA5CC39A0744946B318C9AE9161F82351EB55C43AC1",
+        "hash": "F9DE78E635A418529A5104A56439F305CE7C42B9F29180F05D77326B9ACD1D33",
+        "inLedger": 9038214,
+        "ledger_index": 9038214,
+        "meta": {
+          "AffectedNodes": [
+            {
+              "ModifiedNode": {
+                "FinalFields": {
+                  "Account": "radqi6ppXFxVhJdjzaATRBxdrPcVTf1Ung",
+                  "Balance": "39000731",
+                  "Flags": 0,
+                  "OwnerCount": 2,
+                  "Sequence": 8
+                },
+                "LedgerEntryType": "AccountRoot",
+                "LedgerIndex": "232B144A8867993B74B65354DFBF94A7E91CDD2AB645E0CDD1C85C953E883D91",
+                "PreviousFields": {
+                  "Balance": "39000631"
+                },
+                "PreviousTxnID": "A4F84CBDA68051EAB64D34EBA71B7224FA82FD5A4E23220EA173975D52588DCE",
+                "PreviousTxnLgrSeq": 9038197
+              }
+            },
+            {
+              "ModifiedNode": {
+                "FinalFields": {
+                  "Account": "rGUpotx8YYDiocqS577N4T1p1kHBNdEJ9s",
+                  "Balance": "30998873",
+                  "Flags": 0,
+                  "OwnerCount": 2,
+                  "Sequence": 27
+                },
+                "LedgerEntryType": "AccountRoot",
+                "LedgerIndex": "819EBB8946A3FF55FBFFE32F3AD429F866B5E5AADC253796E3E068E51D22F569",
+                "PreviousFields": {
+                  "Balance": "30998985",
+                  "Sequence": 26
+                },
+                "PreviousTxnID": "A4F84CBDA68051EAB64D34EBA71B7224FA82FD5A4E23220EA173975D52588DCE",
+                "PreviousTxnLgrSeq": 9038197
+              }
+            }
+          ],
+          "TransactionIndex": 9,
+          "TransactionResult": "tesSUCCESS"
+        },
+        "validated": true
+      }
+    }
+  );
+};
+
+module.exports.ledgerResponse = function(request) {
+  return JSON.stringify(
+    {
+      "id": request.id,
+      "status": "success",
+      "type": "response",
+      "result": {
+        "ledger": {
+          "accepted": true,
+          "account_hash": "EC028EC32896D537ECCA18D18BEBE6AE99709FEFF9EF72DBD3A7819E918D8B96",
+          "close_time": 464908910,
+          "close_time_human": "2014-Sep-24 21:21:50",
+          "close_time_resolution": 10,
+          "closed": true,
+          "hash": "0F7ED9F40742D8A513AE86029462B7A6768325583DF8EE21B7EC663019DD6A0F",
+          "ledger_hash": "0F7ED9F40742D8A513AE86029462B7A6768325583DF8EE21B7EC663019DD6A0F",
+          "ledger_index": "9038214",
+          "parent_hash": "4BB9CBE44C39DC67A1BE849C7467FE1A6D1F73949EA163C38A0121A15E04FFDE",
+          "seqNum": "9038214",
+          "totalCoins": "99999973964317514",
+          "total_coins": "99999973964317514",
+          "transaction_hash": "ECB730839EB55B1B114D5D1AD2CD9A932C35BA9AB6D3A8C2F08935EAC2BAC239"
+        }
+      }
+    }
+  );
+}
+
+
 module.exports.RESTTransactionResponse = JSON.stringify({
   success: true,
   payment: {
@@ -236,6 +348,61 @@ module.exports.RESTTransactionResponse = JSON.stringify({
       currency: 'USD',
       issuer: 'rvYAfWj5gh67oV6fW32ZzP3Aw4Eubs59B'
     }
+    ]
+  }
+});
+
+module.exports.RESTTransactionResponseWithMemo = JSON.stringify({
+  success: true,
+  payment: {
+    source_account: "rGUpotx8YYDiocqS577N4T1p1kHBNdEJ9s",
+    source_tag: "",
+    source_amount: {
+      value: "0.0001",
+      currency: "XRP",
+      issuer: ""
+    },
+    source_slippage: "0",
+    destination_account: "radqi6ppXFxVhJdjzaATRBxdrPcVTf1Ung",
+    destination_tag: "",
+    destination_amount: {
+      value: "0.0001",
+      currency: "XRP",
+      issuer: ""
+    },
+    invoice_id: "",
+    paths: "[]",
+    no_direct_ripple: false,
+    partial_payment: false,
+    direction: "outgoing",
+    state: "validated",
+    result: "tesSUCCESS",
+    ledger: "9038214",
+    hash: "F9DE78E635A418529A5104A56439F305CE7C42B9F29180F05D77326B9ACD1D33",
+    timestamp: "2014-09-24T21:21:50.000Z",
+    fee: "0.000012",
+    source_balance_changes: [
+      {
+        value: "-0.000112",
+        currency: "XRP",
+        issuer: ""
+      }
+    ],
+    destination_balance_changes: [
+      {
+        value: "0.0001",
+        currency: "XRP",
+        issuer: ""
+      }
+    ],
+    memos: [
+      {
+        MemoData: "736F6D655F76616C7565",
+        MemoType: "736F6D655F6B6579"
+      },
+      {
+        MemoData: "736F6D655F76616C7565"
+      }
     ]
   }
 });

@@ -30,6 +30,26 @@ describe('get payments', function() {
     .end(done);
   });
 
+  it('/accounts/:account/payments/:identifier -- with memos', function(done) {
+    self.wss.once('request_tx', function(message, conn) {
+      assert.strictEqual(message.command, 'tx');
+      assert.strictEqual(message.transaction, fixtures.VALID_TRANSACTION_HASH_MEMO);
+      conn.send(fixtures.transactionResponseWithMemo(message));
+    });
+
+    self.wss.once('request_ledger', function(message, conn) {
+      assert.strictEqual(message.command, 'ledger');
+      conn.send(fixtures.ledgerResponse(message));
+    });
+
+    self.app
+      .get(requestPath('rGUpotx8YYDiocqS577N4T1p1kHBNdEJ9s') + '/' + fixtures.VALID_TRANSACTION_HASH_MEMO)
+      .expect(testutils.checkStatus(200))
+      .expect(testutils.checkHeaders)
+      .expect(testutils.checkBody(fixtures.RESTTransactionResponseWithMemo))
+      .end(done);
+  });
+
   it('/accounts/:account/payments/:identifier -- invalid identifier', function(done) {
     self.wss.once('request_tx', function(message, conn) {
       assert(false, 'Should not request transaction');
