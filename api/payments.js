@@ -50,6 +50,13 @@ function submitPayment(request, response, next) {
     submitTransaction
   ];
 
+  var params = {
+    payment: request.body.payment,
+    secret: request.body.secret,
+    client_resource_id: request.body.client_resource_id,
+    url_base: request.protocol + '://' + request.hostname + (config && config.get('port') ? ':' + config.get('port') : '')
+  };
+
   async.waterfall(steps, function(error, client_resource_id) {
     if (error) {
       next(error);
@@ -61,12 +68,7 @@ function submitPayment(request, response, next) {
     }
   });
 
-  var params = {
-    payment: request.body.payment,
-    secret: request.body.secret,
-    client_resource_id: request.body.client_resource_id,
-    url_base: request.protocol + '://' + request.hostname + (config && config.get('PORT') ? ':' + config.get('PORT') : '')
-  };
+
 
   function validateOptions(async_callback) {
     if (!params.payment) {
