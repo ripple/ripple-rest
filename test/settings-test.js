@@ -70,6 +70,9 @@ describe('post settings', function() {
   afterEach(testutils.teardown.bind(self));
 
   it('/accounts/:account/settings', function(done) {
+
+    var lastLedger = self.app.remote._ledger_current_index;
+
     self.wss.once('request_account_info', function(message, conn) {
       assert.strictEqual(message.command, 'account_info');
       assert.strictEqual(message.account, addresses.VALID);
@@ -85,11 +88,11 @@ describe('post settings', function() {
       assert.strictEqual(so.TransactionType, 'AccountSet');
       assert.strictEqual(so.Flags, 2148859904);
       assert.strictEqual(typeof so.Sequence, 'number');
-      assert.strictEqual(so.LastLedgerSequence, self.app.remote._ledger_current_index + LEDGER_OFFSET);
+      assert.strictEqual(so.LastLedgerSequence, lastLedger + LEDGER_OFFSET);
       assert.strictEqual(so.Fee, '12');
       assert.strictEqual(so.Account, 'r3GgMwvgvP8h4yVWvjH1dPZNvC37TjzBBE');
 
-      conn.send(fixtures.submitSettingsResponse(message));
+      conn.send(fixtures.submitSettingsResponse(message, lastLedger + LEDGER_OFFSET));
     });
 
     self.app
@@ -109,7 +112,7 @@ describe('post settings', function() {
       }})
       .expect(testutils.checkStatus(200))
       .expect(testutils.checkHeaders)
-      .expect(testutils.checkBody(fixtures.RESTAccountSettingsSubmitResponse))
+      .expect(testutils.checkBody(fixtures.RESTAccountSettingsSubmitResponse(lastLedger)))
       .end(done);
   });
 
