@@ -46,7 +46,6 @@
   },
   "devDependencies": {
     "chai": "*",
-    "clone": "~0.1.15",
     "coveralls": "~2.10.0",
     "grunt-cli": "~0.1.13",
     "istanbul": "^0.2.10",
