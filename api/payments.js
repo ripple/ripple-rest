@@ -126,65 +126,74 @@ function submitPayment(request, response, next) {
 function paymentIsValid(payment, callback) {
   // Ripple addresses
   if (!validator.isValid(payment.source_account, 'RippleAddress')) {
-    return callback(new TypeError('Invalid parameter: source_account. Must be a valid Ripple address'));
+    return callback(new InvalidRequestError('Invalid parameter: source_account. Must be a valid Ripple address'));
   }
   if (!validator.isValid(payment.destination_account, 'RippleAddress')) {
-    return callback(new TypeError('Invalid parameter: destination_account. Must be a valid Ripple address'));
+    return callback(new InvalidRequestError('Invalid parameter: destination_account. Must be a valid Ripple address'));
   }
   // Tags
   if (payment.source_tag && (!validator.isValid(payment.source_tag, 'UINT32'))) {
-    return callback(new TypeError('Invalid parameter: source_tag. Must be a string representation of an unsiged 32-bit integer'));
+    return callback(new InvalidRequestError('Invalid parameter: source_tag. Must be a string representation of an unsiged 32-bit integer'));
   }
   if (payment.destination_tag && (!validator.isValid(payment.destination_tag, 'UINT32'))) {
-    return callback(new TypeError('Invalid parameter: destination_tag. Must be a string representation of an unsiged 32-bit integer'));
+    return callback(new InvalidRequestError('Invalid parameter: destination_tag. Must be a string representation of an unsiged 32-bit integer'));
   }
 
   // Amounts
   // destination_amount is required, source_amount is optional
   if (!payment.destination_amount || (!validator.isValid(payment.destination_amount, 'Amount'))) {
-    return callback(new TypeError('Invalid parameter: destination_amount. Must be a valid Amount object'));
+    return callback(new InvalidRequestError('Invalid parameter: destination_amount. Must be a valid Amount object'));
   }
   if (payment.source_amount && (!validator.isValid(payment.source_amount, 'Amount'))) {
-    return callback(new TypeError('Invalid parameter: source_amount. Must be a valid Amount object'));
+    return callback(new InvalidRequestError('Invalid parameter: source_amount. Must be a valid Amount object'));
   }
 
   // No issuer for XRP
   if (payment.destination_amount && payment.destination_amount.currency.toUpperCase() === 'XRP' && payment.destination_amount.issuer) {
-    return callback(new TypeError('Invalid parameter: destination_amount. XRP cannot have issuer'));
+    return callback(new InvalidRequestError('Invalid parameter: destination_amount. XRP cannot have issuer'));
   }
   if (payment.source_amount && payment.source_amount.currency.toUpperCase() === 'XRP' && payment.source_amount.issuer) {
-    return callback(new TypeError('Invalid parameter: source_amount. XRP cannot have issuer'));
+    return callback(new InvalidRequestError('Invalid parameter: source_amount. XRP cannot have issuer'));
   }
 
   // Slippage
   if (payment.source_slippage && !validator.isValid(payment.source_slippage, 'FloatString')) {
-    return callback(new TypeError('Invalid parameter: source_slippage. Must be a valid FloatString'));
+    return callback(new InvalidRequestError('Invalid parameter: source_slippage. Must be a valid FloatString'));
   }
 
   // Advanced options
+
+  // Invoice id
   if (payment.invoice_id && !validator.isValid(payment.invoice_id, 'Hash256')) {
-    return callback(new TypeError('Invalid parameter: invoice_id. Must be a valid Hash256'));
+    return callback(new InvalidRequestError('Invalid parameter: invoice_id. Must be a valid Hash256'));
   }
+
+  // paths
   if (payment.paths) {
     if (typeof payment.paths === 'string') {
       try {
         JSON.parse(payment.paths);
       } catch (exception) {
-        return callback(new TypeError('Invalid parameter: paths. Must be a valid JSON string or object'));
+        return callback(new InvalidRequestError('Invalid parameter: paths. Must be a valid JSON string or object'));
       }
     } else if (typeof payment.paths === 'object') {
       try {
         JSON.parse(JSON.stringify(payment.paths));
       } catch (exception) {
-        return callback(new TypeError('Invalid parameter: paths. Must be a valid JSON string or object'));
+        return callback(new InvalidRequestError('Invalid parameter: paths. Must be a valid JSON string or object'));
       }
     }
   }
+
+  // partial payment
   if (payment.hasOwnProperty('partial_payment') && typeof payment.partial_payment !== 'boolean') {
-    return callback(new TypeError('Invalid parameter: partial_payment. Must be a boolean'));
+    return callback(new InvalidRequestError('Invalid parameter: partial_payment. Must be a boolean'));
   }
+
+  // direct ripple
   if (payment.hasOwnProperty('no_direct_ripple') && typeof payment.no_direct_ripple !== 'boolean') {
-    return callback(new TypeError('Invalid parameter: no_direct_ripple. Must be a boolean'));
+    return callback(new InvalidRequestError('Invalid parameter: no_direct_ripple. Must be a boolean'));
+  }
 
   // memos
   if (payment.hasOwnProperty('memos')) {
