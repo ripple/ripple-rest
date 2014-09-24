@@ -316,7 +316,7 @@ describe('payments', function() {
             assert.deepEqual(data,{ command: 'ripple_path_find',
               source_account: 'rJRLoJSErtNRFnbCyHEUYnRUKNwkVYDM7U',
               destination_account: 'rwmityd4Ss34DBUsRy7Pacv6UA5n7yjfe5',
-              destination_amount: '20000000' })
+              destination_amount: (store.reserve_base_xrp*1000000).toString() })
         }
         var _account_info = function(data,ws) {
             console.log("incoming data: account_info:", data)
@@ -359,7 +359,7 @@ describe('payments', function() {
               Flags: 0,
               Sequence: 2,
               LastLedgerSequence: 8804622,
-              Amount: '20000000',
+              Amount: (store.reserve_base_xrp*1000000).toString(),
               Fee: '12',
               SigningPubKey: '022E3308DCB75B17BEF734CE342AC40FF7FDF55E3FEA3593EE8301A70C532BB5BB',
               Account: 'rJRLoJSErtNRFnbCyHEUYnRUKNwkVYDM7U',
@@ -483,19 +483,66 @@ describe('payments', function() {
     })
     it('check amount bob has',function(done) {
         console.log("checking amount bob has") 
+        orderlist.create([
+            {command:'account_info'},
+            {command:'account_lines'}
+        ])
+        var _account_info = function(data,ws) {
+            console.log("incomin accont info :" , data)
+            delete data.id;
+            assert.deepEqual(data,{ command: 'account_info',
+              ident: 'rwmityd4Ss34DBUsRy7Pacv6UA5n7yjfe5',
+              account: 'rwmityd4Ss34DBUsRy7Pacv6UA5n7yjfe5' })
+            orderlist.mark('account_info') 
+        }
+        var _account_lines = function(data,ws) {
+            console.log('incoming account lines :', data)
+            delete data.id;
+            assert.deepEqual(data, { command: 'account_lines',
+              ident: 'rwmityd4Ss34DBUsRy7Pacv6UA5n7yjfe5',
+              account: 'rwmityd4Ss34DBUsRy7Pacv6UA5n7yjfe5' })
+            orderlist.mark('account_lines') 
+        }
+        route.once('account_info', _account_info)
+        route.once('account_lines',_account_lines) 
         app.get('/v1/accounts/'+lib.accounts.bob.address+'/balances')
         .end(function(err, resp) {
             console.log("Balances of bob", resp.body)
             var balance = resp.body.balances[0]
 // change all instances of 200 with reserve base xrp
-    //        assert.equal(balance.value,store.reserve_base_xrp)
+            assert.equal(balance.value,'200')
             store.bob_balance = balance.value
+            assert.equal(orderlist.test(),true)
+            orderlist.reset()
             done()
         })
     })
     // bob should try to send all money back to alice
     it('try to send all of bobs money to alice below reserve', function(done) {
         console.log("Calling paths for bob back to alice.")
+        orderlist.create([
+            {command:'ripple_path_find'},
+            {command:'account_info'}
+        ])
+        var _ripple_path_find = function(data,ws) { 
+            console.log("incoming ripple_path_find", data)
+            orderlist.mark('ripple_path_find')
+            delete data.id;
+            assert.deepEqual(data,{ command: 'ripple_path_find',
+              source_account: 'rwmityd4Ss34DBUsRy7Pacv6UA5n7yjfe5',
+              destination_account: 'rJRLoJSErtNRFnbCyHEUYnRUKNwkVYDM7U',
+              destination_amount: '200000000' } )
+        }
+        var _account_info = function(data,ws) { 
+            console.log("incoming account_info", data)
+            orderlist.mark('account_info')
+            delete data.id;
+            assert.deepEqual(data, { command: 'account_info',
+              ident: 'rwmityd4Ss34DBUsRy7Pacv6UA5n7yjfe5',
+              account: 'rwmityd4Ss34DBUsRy7Pacv6UA5n7yjfe5' })
+        }
+        route.once('ripple_path_find',_ripple_path_find);
+        route.once('account_info',_account_info)
         var sendamount = store.bob_balance;
         app.get('/v1/accounts/'+lib.accounts.bob.address+'/payments/paths/'+lib.accounts.alice.address+'/'+sendamount+'+XRP')
         .end(function(err, resp) {
@@ -505,6 +552,8 @@ describe('payments', function() {
               error_type: 'invalid_request',
               error: 'No paths found',
               message: 'Please ensure that the source_account has sufficient funds to execute the payment. If it does there may be insufficient liquidity in the network to execute this payment right now' })
+            assert.equal(orderlist.test(),true)
+            orderlist.reset()
             done()
         })
     })
@@ -527,6 +576,22 @@ describe('payments', function() {
     // have alice send bob 10 USD/alice
     it('alice sends bob 10USD/alice without trust', function(done) {
         console.log('alice sends bob 10usd/alice without trust')
+        orderlist.create([
+            {command:'ripple_path_find'}
+        ])
+        var _ripple_path_find = function(data,ws) {
+            orderlist.mark('ripple_path_find')
+            console.log("incoming ripple path find",data)
+            delete data.id;
+            assert.deepEqual(data,{ command: 'ripple_path_find',
+              source_account: 'rJRLoJSErtNRFnbCyHEUYnRUKNwkVYDM7U',
+              destination_account: 'rwmityd4Ss34DBUsRy7Pacv6UA5n7yjfe5',
+              destination_amount: 
+               { value: '10',
+                 currency: 'USD',
+                 issuer: 'rJRLoJSErtNRFnbCyHEUYnRUKNwkVYDM7U' } } )
+        }
+        route.once('ripple_path_find',_ripple_path_find);
         app.get('/v1/accounts/'+lib.accounts.alice.address+'/payments/paths/'+lib.accounts.bob.address+'/10+USD+'+lib.accounts.alice.address)
         .end(function(err, resp) {
             inspect(resp.body)
@@ -534,12 +599,52 @@ describe('payments', function() {
   error_type: 'invalid_request',
   error: 'No paths found',
   message: 'The destination_account does not accept USD, they only accept: XRP' })
+            assert.equal(orderlist.test(),true)
+            orderlist.reset()
             done()
         })
     })
-
     it('grant a trustline of 10 usd towards alice', function(done) {
         console.log("granting a trustline towards alice from bob")
+        orderlist.create([
+            {command:'subscribe'},
+            {command:'account_info'},
+            {command:'submit'}
+        ])
+        var _subscribe = function(data,ws) {
+            console.log("incoming subscribe", data)
+            orderlist.mark('subscribe')
+            delete data.id;
+            assert.deepEqual(data,{ command: 'subscribe',
+              accounts: [ 'rwmityd4Ss34DBUsRy7Pacv6UA5n7yjfe5' ] })
+        }
+        var _account_info = function(data,ws) {
+            console.log("incoming account_info", data)
+            delete data.id
+            orderlist.mark('account_info')
+            assert.deepEqual(data,{ command: 'account_info',
+              ident: 'rwmityd4Ss34DBUsRy7Pacv6UA5n7yjfe5',
+              account: 'rwmityd4Ss34DBUsRy7Pacv6UA5n7yjfe5' })
+        }
+        var _submit = function(data,ws) {
+            orderlist.mark('submit')
+            var so = new RL.SerializedObject(data.tx_blob).to_json();
+            delete so.TxnSignature; // sigs won't match ever
+            assert.deepEqual(so, { Flags: 2147483648,
+              TransactionType: 'TrustSet',
+              Account: 'rwmityd4Ss34DBUsRy7Pacv6UA5n7yjfe5',
+              LimitAmount: 
+               { value: '10',
+                 currency: 'USD',
+                 issuer: 'rJRLoJSErtNRFnbCyHEUYnRUKNwkVYDM7U' },
+              Sequence: 1,
+              SigningPubKey: '03BC02F6C0F2C50EF5DB02C2C17062B7449B34FBD669A75362E41348C9FAE3DDE1',
+              Fee: '12',
+              LastLedgerSequence: 8804624 })
+        }
+        route.once('subscribe',_subscribe);
+        route.once('account_info',_account_info);
+        route.once('submit',_submit);
         app.post('/v1/accounts/'+lib.accounts.bob.address+'/trustlines')
         .send({
           "secret": lib.accounts.bob.secret,
@@ -561,12 +666,30 @@ describe('payments', function() {
                  currency: 'USD',
                  counterparty: 'rJRLoJSErtNRFnbCyHEUYnRUKNwkVYDM7U',
                  account_allows_rippling: true }})
+            assert.equal(orderlist.test(),true)
+            orderlist.reset()
             done();
         })
     })
     // have alice send bob 10 USD/alice
     it('get path for alice to bob 10USD/alice with trust', function(done) {
         console.log('get path for alice to bob 10usd/alice with trust')
+        orderlist.create([
+            {command:'ripple_path_find'}
+        ]);
+        var _ripple_path_find = function (data,ws) {
+            console.log("incoming pathfind:", data);
+            delete data.id;
+            assert.deepEqual(data, { command: 'ripple_path_find',
+              source_account: 'rJRLoJSErtNRFnbCyHEUYnRUKNwkVYDM7U',
+              destination_account: 'rwmityd4Ss34DBUsRy7Pacv6UA5n7yjfe5',
+              destination_amount: 
+               { value: '10',
+                 currency: 'USD',
+                 issuer: 'rJRLoJSErtNRFnbCyHEUYnRUKNwkVYDM7U' } })
+            orderlist.mark('ripple_path_find')
+        }
+        route.once('ripple_path_find',_ripple_path_find);
         app.get('/v1/accounts/'+lib.accounts.alice.address+'/payments/paths/'+lib.accounts.bob.address+'/10+USD+'+lib.accounts.alice.address)
         .end(function(err, resp) {
             inspect(resp.body)
@@ -589,6 +712,8 @@ describe('payments', function() {
                        no_direct_ripple: false }
                     ]
                 })
+            assert.equal(orderlist.test(),true)
+            orderlist.reset()
             done()
         })
     })
