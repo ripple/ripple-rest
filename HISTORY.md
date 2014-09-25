@@ -1,5 +1,7 @@
 ## 1.3.0
 
++ Memo field support
+
 + New endpoint to generate an address/secret pair, `/account/new`
 
 + New configuration, you will have to change your config file
@@ -12,9 +14,13 @@
 
 + Centralize connection checking, improves consistency of connected responses
 
++ Centralize logging using winston, timestamps on all logs
+
 + New test-suite
 
 + Update ripple-lib which fixes several stability problems and crashes
+
++ Fix: database reset on startup
 
 + Fix: Check tx.meta exists before accessing
 
