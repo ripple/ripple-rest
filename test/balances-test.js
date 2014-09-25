@@ -61,7 +61,7 @@ describe('get balances', function() {
     });
 
     self.wss.once('request_account_lines', function(message, conn) {
-      //XXX assert(false, 'Should not request account lines');
+      assert(false, 'Should not request account lines');
       assert.strictEqual(message.command, 'account_lines');
       assert.strictEqual(message.account, addresses.VALID);
       conn.send(fixtures.accountNotFoundResponse(message));
@@ -132,10 +132,7 @@ describe('get balances', function() {
 
   it('/accounts/:account/balances?counterparty', function(done) {
     self.wss.once('request_account_info', function(message, conn) {
-      //XXX assert(false, 'Should not request account info');
-      assert.strictEqual(message.command, 'account_info');
-      assert.strictEqual(message.account, addresses.VALID);
-      conn.send(fixtures.accountInfoResponse(message));
+      assert(false, 'Should not request account info');
     });
 
     self.wss.once('request_account_lines', function(message, conn) {
@@ -172,10 +169,7 @@ describe('get balances', function() {
 
   it('/accounts/:account/balances?counterparty -- non-existent counterparty', function(done) {
     self.wss.once('request_account_info', function(message, conn) {
-      //XXX assert(false, 'Should not request account info');
-      assert.strictEqual(message.command, 'account_info');
-      assert.strictEqual(message.account, addresses.VALID);
-      conn.send(fixtures.accountInfoResponse(message));
+      assert(false, 'Should not request account info');
     });
 
     self.wss.once('request_account_lines', function(message, conn) {

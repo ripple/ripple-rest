@@ -9,15 +9,15 @@ module.exports = {
   get: getBalances
 };
 
-var InvalidRequestError   = errors.InvalidRequestError;
+var InvalidRequestError = errors.InvalidRequestError;
 
 function getBalances(request, response, next) {
-
   var options = {
-    account:       request.params.account,
-    currency:      request.query.currency,
-    counterparty:  request.query.counterparty
+    account: request.params.account,
+    currency: request.query.currency,
+    counterparty: request.query.counterparty
   };
+
   var currencyRE = new RegExp(options.currency ? ('^' + options.currency.toUpperCase() + '$') : /./);
   var balances = [];
 
@@ -36,6 +36,7 @@ function getBalances(request, response, next) {
 
   function getXRPBalance(callback) {
     var request = remote.requestAccountInfo(options.account);
+
     request.once('error', callback);
     request.once('success', function(info) {
       balances.push({
@@ -45,14 +46,17 @@ function getBalances(request, response, next) {
       });
       callback();
     });
+
     request.request();
   };
 
   function getLineBalances(callback) {
     var request = remote.requestAccountLines(options.account);
+
     if (options.counterparty) {
       request.message.peer = options.counterparty;
     }
+
     request.once('error', callback);
     request.once('success', function(result) {
       result.lines.forEach(function(line) {
@@ -66,6 +70,7 @@ function getBalances(request, response, next) {
       });
       callback();
     });
+
     request.request();
   };
 
@@ -74,11 +79,9 @@ function getBalances(request, response, next) {
   ];
 
   if (options.currency) {
-    if (options.currency === 'XRP') {
-      steps.push(getXRPBalance);
-    } else {
-      steps.push(getLineBalances);
-    }
+    steps.push(options.currency === 'XRP' ? getXRPBalance : getLineBalances);
+  } else if (options.counterparty) {
+    steps.push(getLineBalances);
   } else {
     steps.push(getXRPBalance, getLineBalances);
   }

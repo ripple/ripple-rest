@@ -419,7 +419,6 @@ module.exports.RESTAccountBalancesXRPResponse = JSON.stringify({
 module.exports.RESTAccountBalancesCounterpartyResponse = JSON.stringify({
   success: true,
   balances: [
-    { value: '922.913243', currency: 'XRP', counterparty: '' },
     { value: '0.3488146605801446', currency: 'CHF', counterparty: 'rvYAfWj5gh67oV6fW32ZzP3Aw4Eubs59B' },
     { value: '2.114103174931847', currency: 'BTC', counterparty: 'rvYAfWj5gh67oV6fW32ZzP3Aw4Eubs59B' },
     { value: '0', currency: 'USD', counterparty: 'rvYAfWj5gh67oV6fW32ZzP3Aw4Eubs59B' },
@@ -430,9 +429,7 @@ module.exports.RESTAccountBalancesCounterpartyResponse = JSON.stringify({
 
 module.exports.RESTAccountBalancesNoCounterpartyResponse = JSON.stringify({
   success: true,
-  balances: [
-    { value: '922.913243', currency: 'XRP', counterparty: '' }
-  ]
+  balances: [ ]
 });
 
 module.exports.RESTAccountBalancesCounterpartyCurrencyResponse = JSON.stringify({
