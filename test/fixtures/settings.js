@@ -48,7 +48,7 @@ module.exports.accountNotFoundResponse = function(request) {
   });
 };
 
-module.exports.submitSettingsResponse = function(request) {
+module.exports.submitSettingsResponse = function(request, lastLedger) {
   return JSON.stringify({
     id: request.id,
     status: 'success',
@@ -62,7 +62,7 @@ module.exports.submitSettingsResponse = function(request) {
         Account: 'r3GgMwvgvP8h4yVWvjH1dPZNvC37TjzBBE',
         Fee: '12',
         Flags: 2147549184,
-        LastLedgerSequence: 8819973,
+        LastLedgerSequence: lastLedger,
         Sequence: 2938,
         SigningPubKey: '02F89EAEC7667B30F33D0687BBA86C3FE2A08CCA40A9186C5BDE2DAA6FA97A37D8',
         TransactionType: 'AccountSet',
@@ -93,21 +93,23 @@ module.exports.RESTAccountSettingsResponse = JSON.stringify({
   }
 });
 
-module.exports.RESTAccountSettingsSubmitResponse = JSON.stringify({
-  success: true,
-  hash: 'AD922400CB1CE0876CA7203DBE0B1277D0D0EAC56A64F26CEC6C78D447EFEA5E',
-  ledger: '8819970',
-  settings: {
-    require_destination_tag: true,
-    require_authorization: true,
-    disallow_xrp: true,
-    email_hash: '23463B99B62A72F26ED677CC556C44E8',
-    wallet_locator: 'DEADBEEF',
-    wallet_size: 1,
-    domain: 'example.com',
-    transfer_rate: 2
-  }
-});
+module.exports.RESTAccountSettingsSubmitResponse = function(lastLedger) {
+  return JSON.stringify({
+    success: true,
+    hash: 'AD922400CB1CE0876CA7203DBE0B1277D0D0EAC56A64F26CEC6C78D447EFEA5E',
+    ledger: lastLedger.toString(),
+    settings: {
+      require_destination_tag: true,
+      require_authorization: true,
+      disallow_xrp: true,
+      email_hash: '23463B99B62A72F26ED677CC556C44E8',
+      wallet_locator: 'DEADBEEF',
+      wallet_size: 1,
+      domain: 'example.com',
+      transfer_rate: 2
+    }
+  });
+}
 
 module.exports.RESTMissingSettingsResponse = JSON.stringify({
   success: false,
