@@ -13,6 +13,15 @@ accounts.bob = {
     address : "rwmityd4Ss34DBUsRy7Pacv6UA5n7yjfe5",
     secret : "sh1TryzqJSfEyvKke6jtzhfcjbTDj"
 }
+accounts.carol = {
+    address : "r3YHFNkQRJDPc9aCkRojPLwKVwok3ihgBJ",
+    secret : "ssW6HG7i5Qzz3ienBDwujEW8fzSDq"
+}
+accounts.dan = {
+    address : "rsE6ZLDkXhSvfJHvSqFPhdazsoMgCEC52V",
+    secret : "snByi24KpxSZKE3ECm3NiGxfPuTgf"
+}
+
 exports.accounts = accounts
 var submit = function(data,ws) {
     console.log("submit request:", data)
