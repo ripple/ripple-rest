@@ -1,10 +1,15 @@
 var assert = require('assert');
 var ripple = require('ripple-lib');
+var _ = require('lodash');
 var testutils = require('./testutils');
 var fixtures = require('./fixtures').payments;
 var errors = require('./fixtures').errors;
 var addresses = require('./fixtures').addresses;
 var requestPath = fixtures.requestPath;
+
+//
+// GET payments
+//
 
 describe('get payments', function() {
   var self = this;
@@ -63,3 +68,167 @@ describe('get payments', function() {
     .end(done);
   });
 });
+
+
+//
+// POST payments
+//
+
+describe('post payments', function() {
+  var self = this;
+
+  //self.wss: rippled mock
+  //self.app: supertest-enabled REST handler
+
+  beforeEach(testutils.setup.bind(self));
+  afterEach(testutils.teardown.bind(self));
+
+  it('/payments -- with invalid memos', function(done) {
+
+    self.wss.once('request_account_info', function(message, conn) {
+      assert.strictEqual(message.command, 'account_info');
+      assert.strictEqual(message.account, addresses.VALID);
+      conn.send(fixtures.accountInfoResponse(message));
+    });
+
+    self.wss.once('request_submit', function(message, conn) {
+      assert.strictEqual(message.command, 'submit');
+      conn.send(fixtures.requestSubmitReponse(message));
+    })
+
+    var body = _.cloneDeep(fixtures.paymentWithMemo);
+    body.payment.memos = "some string";
+
+    self.app
+      .post('/v1/payments')
+      .send(body)
+      .expect(testutils.checkStatus(400))
+      .expect(testutils.checkHeaders)
+      .expect(testutils.checkBody(fixtures.RESTResponseNonArrayMemo))
+      .end(done);
+  });
+
+  it('/payments -- with empty memos array', function(done) {
+
+    self.wss.once('request_account_info', function(message, conn) {
+      assert.strictEqual(message.command, 'account_info');
+      assert.strictEqual(message.account, addresses.VALID);
+      conn.send(fixtures.accountInfoResponse(message));
+    });
+
+    self.wss.once('request_submit', function(message, conn) {
+      assert.strictEqual(message.command, 'submit');
+      conn.send(fixtures.requestSubmitReponse(message));
+    })
+
+    var body = _.cloneDeep(fixtures.paymentWithMemo);
+    body.payment.memos = [];
+
+    self.app
+      .post('/v1/payments')
+      .send(body)
+      .expect(testutils.checkStatus(400))
+      .expect(testutils.checkHeaders)
+      .expect(testutils.checkBody(fixtures.RESTResponseEmptyMemosArray))
+      .end(done);
+  });
+
+  it('/payments -- with memo containing a MemoType field with an int value', function(done) {
+
+    self.wss.once('request_account_info', function(message, conn) {
+      assert.strictEqual(message.command, 'account_info');
+      assert.strictEqual(message.account, addresses.VALID);
+      conn.send(fixtures.accountInfoResponse(message));
+    });
+
+    self.wss.once('request_submit', function(message, conn) {
+      assert.strictEqual(message.command, 'submit');
+      conn.send(fixtures.requestSubmitReponse(message));
+    })
+
+    var body = _.cloneDeep(fixtures.paymentWithMemo);
+    body.payment.memos[0].MemoType = 1;
+
+    self.app
+      .post('/v1/payments')
+      .send(body)
+      .expect(testutils.checkStatus(400))
+      .expect(testutils.checkHeaders)
+      .expect(testutils.checkBody(fixtures.RESTResponseMemoTypeInt))
+      .end(done);
+  });
+
+  it('/payments -- with memo containing a MemoData field with an int value', function(done) {
+
+    self.wss.once('request_account_info', function(message, conn) {
+      assert.strictEqual(message.command, 'account_info');
+      assert.strictEqual(message.account, addresses.VALID);
+      conn.send(fixtures.accountInfoResponse(message));
+    });
+
+    self.wss.once('request_submit', function(message, conn) {
+      assert.strictEqual(message.command, 'submit');
+      conn.send(fixtures.requestSubmitReponse(message));
+    })
+
+    var body = _.cloneDeep(fixtures.paymentWithMemo);
+    body.payment.memos[0].MemoData = 1;
+
+    self.app
+      .post('/v1/payments')
+      .send(body)
+      .expect(testutils.checkStatus(400))
+      .expect(testutils.checkHeaders)
+      .expect(testutils.checkBody(fixtures.RESTResponseMemoDataInt))
+      .end(done);
+  });
+
+  it('/payments -- with memo, omit MemoData', function(done) {
+
+    self.wss.once('request_account_info', function(message, conn) {
+      assert.strictEqual(message.command, 'account_info');
+      assert.strictEqual(message.account, addresses.VALID);
+      conn.send(fixtures.accountInfoResponse(message));
+    });
+
+    self.wss.once('request_submit', function(message, conn) {
+      assert.strictEqual(message.command, 'submit');
+      conn.send(fixtures.requestSubmitReponse(message));
+    })
+
+    var body = _.cloneDeep(fixtures.paymentWithMemo);
+    delete body.payment.memos[0].MemoData;
+
+    self.app
+      .post('/v1/payments')
+      .send(body)
+      .expect(testutils.checkStatus(200))
+      .expect(testutils.checkHeaders)
+      .expect(testutils.checkBody(fixtures.RESTResponseMissingMemoData))
+      .end(done);
+  });
+
+  it('/payments -- with memo', function(done) {
+
+    self.wss.once('request_account_info', function(message, conn) {
+      assert.strictEqual(message.command, 'account_info');
+      assert.strictEqual(message.account, addresses.VALID);
+      conn.send(fixtures.accountInfoResponse(message));
+    });
+
+    self.wss.once('request_submit', function(message, conn) {
+      assert.strictEqual(message.command, 'submit');
+      conn.send(fixtures.requestSubmitReponse(message));
+    })
+
+    self.app
+      .post('/v1/payments')
+      .send(fixtures.paymentWithMemo)
+      .expect(testutils.checkStatus(200))
+      .expect(testutils.checkHeaders)
+      .expect(testutils.checkBody(fixtures.RESTPaymentWithMemoResponse))
+      .end(done);
+  });
+
+});
+

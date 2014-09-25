@@ -210,12 +210,13 @@ function paymentIsValid(payment, callback) {
       if (memo.MemoType && !/(undefined|string)/.test(typeof memo.MemoType)) {
         return callback(new InvalidRequestError('Invalid parameter: MemoType. MemoType must be a string'));
       }
-      if (!memo.MemoData) {
-        return callback(new InvalidRequestError('Missing parameter: MemoData. A Memo object needs a MemoData field'));
-      }
       if (!/(undefined|string)/.test(typeof memo.MemoData)) {
         return callback(new InvalidRequestError('Invalid parameter: MemoData. MemoData must be a string'));
       }
+      if (!memo.MemoData && !memo.MemoType) {
+        return callback(new InvalidRequestError('Missing parameter: MemoData or MemoType. For a memo object MemoType or MemoData are both optional, as long as one of them is present'));
+      }
+
     }
 
   }
