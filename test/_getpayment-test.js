@@ -26,8 +26,9 @@ describe('payments', function() {
   var route = new ee;
 
   before(function(done) {
-
-
+    console.log("\n\n\n\n\n\n_getpayment-test.js BEFORE!!!!!!!!!!!\n\n\n\n")
+    if (_app.remote._servers[0]._url != 'ws://localhost:5150')
+        orderlist.isMock = false
     rippled = new ws.Server({port: 5150});
 
     route.on('ping', lib.ping)
@@ -63,8 +64,8 @@ describe('payments', function() {
 
   after(function(done) {
     console.log("Cleanup: closing down")
-
     _app.remote.once('disconnect', function() {
+      lib.clearInterval()
       console.log("GOT DISCONNECT")
       rippled.close();
       done()

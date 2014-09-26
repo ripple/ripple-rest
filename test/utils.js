@@ -18,6 +18,7 @@ exports.orderlist = function(list) {
     // list = [{command:<command>}, ... ]
     var _list = list;
     var idx = 0;
+    this.isMock = true;
     this.create = function(list) {
         console.log("CREATE:", list)
         _list = list;
@@ -33,7 +34,9 @@ exports.orderlist = function(list) {
         }
     }
     this.test = function() {
+        if (this.isMock)
         return (idx === _list.length)
+        else return true
     }
     this.reset = function() {
         _list = []
