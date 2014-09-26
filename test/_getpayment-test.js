@@ -33,6 +33,7 @@ describe('payments', function() {
 
     route.on('ping', lib.ping)
     route.on('subscribe', lib.subscribe)
+    route.on('response', lib.response)
     route.on('server_info',lib.server_info)
     route.on('account_info', lib.account_info)
     route.on('ripple_path_find',lib.ripple_path_find)
