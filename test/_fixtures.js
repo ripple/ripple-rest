@@ -107,60 +107,17 @@ var ping = function(data,ws) {
 }
 exports.ping = ping;
 var subscribe = function(data,ws) {
-    console.log("Sending out subscribe response")
-    if (state.subscribecount == undefined)
-        state.subscribecount = 0;
-    state.subscribecount++
-    if (state.subscribecount == 1) {
-        ws.send(JSON.stringify({ fee_base: 10,
-          fee_ref: 10,
-          ledger_hash: '7D6B65656ED1AE27950444CFC42C773B7C53E1727E8DEE949C49241360B8B797',
-          ledger_index: 2,
-          ledger_time: 465038520,
-          load_base: 256,
-          load_factor: 256,
-          random: 'E100A572751193D5D6B60ADACC7E98B16BBD25C77EF0E5FC33A1A4ECCF757A9D',
-          reserve_base: 200000000,
-          reserve_inc: 50000000,
-          server_status: 'full',
-          stand_alone: true,
-          validated_ledgers: '1-2' }))
-    } else if (state.subscribecount == 2) {
-        ws.send(JSON.stringify( { fee_base: 10,
-          fee_ref: 10,
-          ledger_hash: 'EA022EE4D60E47B0618795C22D415FDFBF226809C69A8533DC2C43F06E523149',
-          ledger_index: 3,
-          ledger_time: 465038550,
-          load_base: 256,
-          load_factor: 256,
-          random: '382887E145885174D033A23338333493DAE6705F96CDBAD3C8863CC06CA23069',
-          reserve_base: 200000000,
-          reserve_inc: 50000000,
-          server_status: 'full',
-          stand_alone: true,
-          validated_ledgers: '1-3' }))
-    } else if (state.subscribecount >= 3) {
-        ws.send(JSON.stringify({ fee_base: 10,
-          fee_ref: 10,
-          ledger_hash: '3EC937C2C747C4590DC04399E9A854FB72753FA8E219AC3599A365FFD0312785',
-          ledger_index: 4,
-          ledger_time: 465038550,
-          load_base: 256,
-          load_factor: 256,
-          random: '6BF246AE436C0DB16EBFE277FC5B3A12D6E989C8FFDD9547E1617CA268251BA3',
-          reserve_base: 200000000,
-          reserve_inc: 50000000,
-          server_status: 'full',
-          stand_alone: true,
-          validated_ledgers: '1-4' }))
-    }
+    ws.send(JSON.stringify({"id":data.id,"result":{"fee_base":10,"fee_ref":10,"ledger_hash":"58DF7D83991774A9A833FEB6C0B20FD948EA78C192FBC75CD85CBDE270ECEBAF","ledger_index":2,"ledger_time":465072540,"load_base":256,"load_factor":256,"random":"3E87F583CAFBFCF9C418D2EB7FA5A94EE82840D2C6CE99BF4EEE411C877EC0A1","reserve_base":200000000,"reserve_inc":50000000,"server_status":"full","stand_alone":true,"validated_ledgers":"1-2"},"status":"success","type":"response"}))
+}
+exports.subscribe = subscribe;
+var response = function(data,ws) {
     if (data.accounts) {
         ws.send(JSON.stringify({ 
         id: data.id, result: {}, status: 'success', type: 'response' 
         }))
     }
 }
-exports.subscribe = subscribe;
+exports.response = response;
 var server_info = function(data,ws) {
     console.log("Sending out server_info", data)
     ws.send(JSON.stringify({
