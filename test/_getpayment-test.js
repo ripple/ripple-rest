@@ -375,7 +375,7 @@ describe('payments', function() {
             assert.deepEqual(resp.body, { 
             success: true,
             client_resource_id: 'foobar26',
-            status_url: 'http://127.0.0.1/v1/accounts/'+lib.accounts.alice.address+'/payments/foobar26' })
+            status_url: 'http://127.0.0.1:5990/v1/accounts/'+lib.accounts.alice.address+'/payments/foobar26' })
             store.status_url = '/v1/accounts/'+lib.accounts.alice.address+'/payments/foobar26';
             assert.equal(orderlist.test(),true)
             orderlist.reset()

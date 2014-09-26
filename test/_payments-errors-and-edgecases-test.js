@@ -167,7 +167,7 @@ describe('payments errors and edgecases', function() {
             console.log(resp.body)
             assert.deepEqual(resp.body, { success: true,
               client_resource_id: 'qwerty',
-              status_url: 'http://127.0.0.1/v1/accounts/rHb9CJAWyB4rj91VRWn96DkukG4bwdtyTh/payments/qwerty' })
+              status_url: 'http://127.0.0.1:5990/v1/accounts/rHb9CJAWyB4rj91VRWn96DkukG4bwdtyTh/payments/qwerty' })
             done()
         })
     })
@@ -347,9 +347,9 @@ describe('payments errors and edgecases', function() {
         app.post('/v1/payments')
         .send(store.paymentCarolToDan)
         .end(function(err,resp) {
-            assert.equal(resp.status,402)
+            assert.equal(resp.status,400)
             assert.deepEqual(resp.body, { success: false,
-              error_type: 'transaction',
+              error_type: 'invalid_request',
               error: 'Invalid parameter: destination_amount',
               message: 'Must be a valid Amount object' })
             done()
@@ -378,7 +378,7 @@ describe('payments errors and edgecases', function() {
             assert.equal(resp.status, 200)
             assert.deepEqual(resp.body,{ success: true,
               client_resource_id: 'abc',
-              status_url: 'http://127.0.0.1/v1/accounts/r3YHFNkQRJDPc9aCkRojPLwKVwok3ihgBJ/payments/abc' })
+              status_url: 'http://127.0.0.1:5990/v1/accounts/r3YHFNkQRJDPc9aCkRojPLwKVwok3ihgBJ/payments/abc' })
             done()
         })
     })
