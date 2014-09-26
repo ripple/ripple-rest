@@ -322,6 +322,7 @@ describe('payments', function() {
                 client_resource_id : 'abc',
                 payment: resp.body.payments[0]
             } 
+            inspect(store.paymentCarolToDan)
             done()
         })
     })
@@ -334,12 +335,45 @@ describe('payments', function() {
             done()
         })
     })
-    it('Posting 10USD from carol to dan with valid client resource id and correct secret',function(done) {
-        store.paymentCarolToDan.secret = lib.account.carol.secret;
+    it('Posting 10USD from carol to dan with valid client resource id and correct secret but missing fields on payment object',function(done) {
+        store.paymentCarolToDan.secret = lib.accounts.carol.secret;
+        store.value = store.paymentCarolToDan.payment.destination_amount.value
+        delete store.paymentCarolToDan.payment.destination_amount.value
         app.post('/v1/payments')
         .send(store.paymentCarolToDan)
         .end(function(err,resp) {
-            console.log(resp.body)
+            assert.equal(resp.status,402)
+            assert.deepEqual(resp.body, { success: false,
+              error_type: 'transaction',
+              error: 'Invalid parameter: destination_amount',
+              message: 'Must be a valid Amount object' })
+            done()
+        })
+    })
+    // problem? you can reuse a client-resource-id
+    it.skip('Posting 10USD from carol to dan with valid client resource id and correct secret but client resource id already used',function(done) {
+        store.paymentCarolToDan.payment.destination_amount.value = store.value
+        store.paymentCarolToDan.secret = lib.accounts.carol.secret;
+        store.client_resource_id = store.paymentCarolToDan.client_resource_id;
+        store.paymentCarolToDan.client_resource_id = 'asdfg';
+        app.post('/v1/payments')
+        .send(store.paymentCarolToDan)
+        .end(function(err,resp) {
+            console.log("resource id already used resp:", resp.body)
+            done()
+        })
+    })
+    it('Posting 10USD from carol to dan with valid client resource id and correct secret',function(done) {
+        store.paymentCarolToDan.payment.destination_amount.value = store.value
+        store.paymentCarolToDan.secret = lib.accounts.carol.secret;
+        store.paymentCarolToDan.client_resource_id = 'abc'
+        app.post('/v1/payments')
+        .send(store.paymentCarolToDan)
+        .end(function(err,resp) {
+            assert.equal(resp.status, 200)
+            assert.deepEqual(resp.body,{ success: true,
+              client_resource_id: 'abc',
+              status_url: 'http://127.0.0.1/v1/accounts/r3YHFNkQRJDPc9aCkRojPLwKVwok3ihgBJ/payments/abc' })
             done()
         })
     })
