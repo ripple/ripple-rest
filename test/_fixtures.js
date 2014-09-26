@@ -320,7 +320,7 @@ var timerid;
 var connection = function(ws) {
     timerid = setInterval(function() {
         ws.send(sample_ledger)
-    }, 8000)
+    }, 200)
     // subscribe response
     ws.send(JSON.stringify({
       id: 0,
