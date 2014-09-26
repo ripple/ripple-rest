@@ -18,7 +18,9 @@ describe('server status', function() {
   var route = new ee;
   var orderlist = new utils.orderlist;
   before(function(done) {
-    console.log("\n\n\n\n\n\nBEFORE!!!!!!!!!!!\n\n\n\n")
+    console.log("\n\n\n\n\n\n_serverinfo-test.js BEFORE!!!!!!!!!!!\n\n\n\n")
+    if (_app.remote._servers[0]._url != 'ws://localhost:5150')
+        orderlist.isMock = false
     rippled = new ws.Server({port: 5150});
 
     route.on('ping', lib.ping)
@@ -38,8 +40,8 @@ describe('server status', function() {
       });
     });
 
-    _app.remote._servers = [ ];
-    _app.remote.addServer('ws://localhost:5150');
+//    _app.remote._servers = [ ];
+//    _app.remote.addServer('ws://localhost:5150');
     console.log("Connecting remote")
     _app.remote.connect();
 
@@ -47,8 +49,8 @@ describe('server status', function() {
 
   after(function(done) {
     console.log("Cleanup: closing down")
-
     _app.remote.once('disconnect', function() {
+      lib.clearInterval()
       rippled.close();
       done()
     });

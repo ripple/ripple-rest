@@ -1,4 +1,4 @@
-describe('payments', function() {
+describe('payments errors and edgecases', function() {
     var path = require('path');
 
     // override config.json with test one
@@ -25,7 +25,9 @@ describe('payments', function() {
   var route = new ee;
 
   before(function(done) {
-
+    console.log("\n\n\n\n\n\n_payments-errors-and-edgecases-test.js BEFORE!!!!!!!!!!!\n\n\n\n")
+    if (_app.remote._servers[0]._url != 'ws://localhost:5150')
+        orderlist.isMock = false
 
     rippled = new ws.Server({port: 5150});
 
@@ -62,8 +64,8 @@ describe('payments', function() {
 
   after(function(done) {
     console.log("Cleanup: closing down")
-
     _app.remote.once('disconnect', function() {
+      lib.clearInterval();
       console.log("GOT DISCONNECT")
       rippled.close();
       done()
@@ -276,15 +278,17 @@ describe('payments', function() {
         })
         .end(function(err, resp) {
             assert.equal(resp.status,201)
+            inspect(resp.body)
             delete resp.body.hash
+            delete resp.body.ledger
             assert.deepEqual(resp.body,{ success: true,
               trustline: 
                { account: 'rsE6ZLDkXhSvfJHvSqFPhdazsoMgCEC52V',
                  limit: '10',
                  currency: 'USD',
                  counterparty: 'r3YHFNkQRJDPc9aCkRojPLwKVwok3ihgBJ',
-                 account_allows_rippling: true },
-              ledger: '4'})
+                 account_allows_rippling: true }
+            })
             done();
         })
     })
@@ -302,6 +306,7 @@ describe('payments', function() {
         .end(function(err, resp) {
             assert.equal(resp.status,201)
             delete resp.body.hash
+            delete resp.body.ledger
             assert.deepEqual(resp.body,{ success: true,
               trustline: 
                { account: 'rsE6ZLDkXhSvfJHvSqFPhdazsoMgCEC52V',
@@ -309,7 +314,7 @@ describe('payments', function() {
                  currency: 'USD',
                  counterparty: 'r3YHFNkQRJDPc9aCkRojPLwKVwok3ihgBJ',
                  account_allows_rippling: true },
-              ledger: '4'})
+            })
             done();
         })
     })
