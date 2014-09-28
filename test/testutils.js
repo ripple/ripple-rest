@@ -33,7 +33,7 @@ function setup(done) {
 
   app.get('remote').once('connect', function() {
     app.get('remote').getServer().once('ledger_closed', function() {
-      setImmediate(done);
+      dbinterface.init(done);
     });
     app.get('remote').getServer().emit('message', fixtures.ledgerClose());
   });
