@@ -181,14 +181,14 @@ function getTransactionHelper(request, response, callback) {
         return async_callback(new errors.InvalidRequestError('Transaction not found. Missing hash'));
       }
 
-      if (options.hash && entry) {
+      var transactionHash = entry.hash || (entry.transaction || {}).hash;
+
+      if (options.hash) {
         // Verify that transaction hashes match
-        if (options.hash !== entry.transaction.hash) {
+        if (options.hash !== transactionHash) {
           return async_callback(new errors.InvalidRequestError('Transaction not found. Hashes do not match'));
         }
       }
-
-      var transactionHash = options.hash || entry.transaction.hash;
 
       remote.requestTx(transactionHash, function(error, transaction) {
         if (error) {
