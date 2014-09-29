@@ -351,49 +351,6 @@ exports.clearInterval = function() {
     clearInterval(timerid)
 }
 
-var nominal_server_status_response = {
-  "rippled_server_url": "wss://s_west.ripple.com:443",
-  "rippled_server_status": {
-    "info": {
-      "build_version": "0.21.0-rc2",
-      "complete_ledgers": "32570-4805506",
-      "hostid": "BUSH",
-      "last_close": {
-        "converge_time_s": 2.011,
-        "proposers": 5
-      },
-      "load_factor": 1,
-      "peers": 51,
-      "pubkey_node": "n9KNUUntNaDqvMVMKZLPHhGaWZDnx7soeUiHjeQE8ejR45DmHyfx",
-      "server_state": "full",
-      "validated_ledger": {
-        "age": 2,
-        "base_fee_xrp": 0.00001,
-        "hash": "2B79CECB06A500A2FB92F4FB610D33A20CF8D7FB39F2C2C7C3A6BD0D75A1884A",
-        "reserve_base_xrp": 20,
-        "reserve_inc_xrp": 5,
-        "seq": 4805506
-      },
-      "validation_quorum": 3
-    }
-  },
-  "api_documentation_url": "https://github.com/ripple/ripple-rest"
-};
-exports.nominal_server_status_response = nominal_server_status_response
-
-var nominal_server_state_response = {
-  "success": true,
-  "connected": true
-}
-exports.nominal_server_state_response = nominal_server_state_response
-
-exports.nominal_server_status_response_disconnect = {
-  "success": false,
-  "error": "Cannot connect to rippled",
-  "error_type": "connection"
-}
-
-
 exports.nominal_xrp_post_response = {
   "success": true,
   "client_resource_id": "f2f811b7-dc3b-4078-a2c2-e4ca9e453981",
