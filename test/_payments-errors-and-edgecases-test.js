@@ -15,7 +15,6 @@ describe('payments errors and edgecases', function() {
     var RL = require('ripple-lib')
     var util = require('util');
     var inspect = function(item) {
-        console.log(util.inspect(item, { showHidden: true, depth: null }))
     }
     var orderlist = new testutils.orderlist;
 
@@ -25,7 +24,6 @@ describe('payments errors and edgecases', function() {
   var route = new ee;
 
   before(function(done) {
-    console.log("\n\n\n\n\n\n_payments-errors-and-edgecases-test.js BEFORE!!!!!!!!!!!\n\n\n\n")
     if (_app.remote._servers[0]._url != 'ws://localhost:5150')
         orderlist.isMock = false
 
@@ -42,13 +40,10 @@ describe('payments errors and edgecases', function() {
 
     rippled.on('connection', lib.connection.bind({route:route}));
     rippled.on('close',function(){
-      console.log("WS closed")
     })
 
     _app.remote.once('connect', function() {
-      console.log("Setting on ledger_closed from server")
       _app.remote.getServer().once('ledger_closed', function() {
-        console.log("got server's ledger_closed")
         // proceed to the tests, api is ready
         done()
       });
@@ -57,16 +52,13 @@ describe('payments errors and edgecases', function() {
 //    _app.remote._servers = [ ];
 //    _app.remote.addServer('ws://localhost:5006');
 
-    console.log("Connecting remote")
     _app.remote.connect();
 
   })
 
   after(function(done) {
-    console.log("Cleanup: closing down")
     _app.remote.once('disconnect', function() {
       lib.clearInterval();
-      console.log("GOT DISCONNECT")
       rippled.close();
       done()
     });
@@ -139,7 +131,6 @@ describe('payments errors and edgecases', function() {
         app.post('/v1/payments')
         .send(store.paymentGenesisToDan)
         .end(function(err,resp) {
-            console.log(resp.body)
             assert.deepEqual(resp.body,{ success: false,
                   error_type: 'invalid_request',
                   error: 'Missing parameter: client_resource_id',
@@ -164,7 +155,6 @@ describe('payments errors and edgecases', function() {
         app.post('/v1/payments')
         .send(store.paymentGenesisToDan)
         .end(function(err,resp) {
-            console.log(resp.body)
             assert.deepEqual(resp.body, { success: true,
               client_resource_id: 'qwerty',
               status_url: 'http://127.0.0.1:5990/v1/accounts/rHb9CJAWyB4rj91VRWn96DkukG4bwdtyTh/payments/qwerty' })
@@ -336,7 +326,6 @@ describe('payments errors and edgecases', function() {
         app.post('/v1/payments')
         .send(store.paymentCarolToDan)
         .end(function(err,resp) {
-            console.log(resp.body)
             done()
         })
     })
@@ -364,7 +353,6 @@ describe('payments errors and edgecases', function() {
         app.post('/v1/payments')
         .send(store.paymentCarolToDan)
         .end(function(err,resp) {
-            console.log("resource id already used resp:", resp.body)
             done()
         })
     })

@@ -18,7 +18,6 @@ describe('server status', function() {
   var route = new ee;
   var orderlist = new utils.orderlist;
   before(function(done) {
-    console.log("\n\n\n\n\n\n_serverinfo-test.js BEFORE!!!!!!!!!!!\n\n\n\n")
     if (_app.remote._servers[0]._url != 'ws://localhost:5150')
         orderlist.isMock = false
     rippled = new ws.Server({port: 5150});
@@ -29,12 +28,10 @@ describe('server status', function() {
 
     rippled.on('connection', lib.connection.bind({route:route}));
     rippled.on('close',function(){
-      console.log("WS closed")
     })
 
     _app.remote.once('connect', function() {
       _app.remote.getServer().once('ledger_closed', function() {
-        console.log("got server's ledger_closed")
         // proceed to the tests, api is ready
         done();
       });
@@ -42,13 +39,11 @@ describe('server status', function() {
 
 //    _app.remote._servers = [ ];
 //    _app.remote.addServer('ws://localhost:5150');
-    console.log("Connecting remote")
     _app.remote.connect();
 
   });
 
   after(function(done) {
-    console.log("Cleanup: closing down")
     _app.remote.once('disconnect', function() {
       lib.clearInterval()
       rippled.close();
@@ -58,8 +53,6 @@ describe('server status', function() {
 /*
       app.get('/v1/server')
         .end(function(err, resp) {
-          console.log("testing /v1/server after disconnected")
-          console.log(resp.body)
           var keys = Object.keys(lib.nominal_server_status_response_disconnect);
           var keyresp = utils.hasKeys(resp.body, keys)
           assert.equal(keyresp.hasAllKeys, true)

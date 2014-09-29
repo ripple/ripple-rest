@@ -25,7 +25,6 @@ accounts.dan = {
 exports.accounts = accounts
 var submit = function(data,ws) {
     var so = new RL.SerializedObject(data.tx_blob).to_json();
-    console.log("submit request deserialized",so)
     switch (so.Account) {
         case accounts.genesis.address :
         if (so.Destination == accounts.alice.address) {
@@ -119,7 +118,6 @@ var response = function(data,ws) {
 }
 exports.response = response;
 var server_info = function(data,ws) {
-    console.log("Sending out server_info", data)
     ws.send(JSON.stringify({
     "id": data.id,
     "status": "success",
@@ -151,7 +149,6 @@ var server_info = function(data,ws) {
 }
 exports.server_info = server_info;
 var ripple_path_find = function(data,ws) {
-    console.log("ripple_path_find request", data)
     switch (data.source_account) {
         case accounts.alice.address :
             if (data.destination_account == accounts.bob.address) {
@@ -342,10 +339,8 @@ var connection = function(ws) {
       }
     }));
     var onmessage = function(message) {
-        console.log('\n\n\nreceived: %s', message);
         var data = JSON.parse(message)
         if (data.command) {
-            console.log("EMITTING ", data.command)
             this.route.emit(data.command, data,ws)
         }
     }
