@@ -1,5 +1,3 @@
-var path = require('path');
-
 var supertest = require('supertest');
 var _app = require('./../lib/express_app');
 var app = supertest(_app);
@@ -9,8 +7,6 @@ var ee = require('events').EventEmitter;
 var fixtures = require('./fixtures')._payments;
 var testutils = require('./utils');
 var RL = require('ripple-lib');
-var inspect = function(item) {
-  };
 
 var orderlist = new testutils.orderlist;
 
@@ -35,10 +31,9 @@ describe('payments', function() {
     rippled.on('connection', fixtures.connection.bind({route:route}));
 
     _app.remote.once('connect', function() {
-
       _app.remote.getServer().once('ledger_closed', function() {
         // proceed to the tests, api is ready
-        done()
+        done();
       });
 
       _app.remote.getServer().emit('message', fixtures.sample_ledger);
@@ -76,7 +71,7 @@ describe('payments', function() {
         destination_amount: '429000000'
       });
 
-      orderlist.mark('ripple_path_find')
+      orderlist.mark('ripple_path_find');
     };
 
     route.once('ripple_path_find',incoming);
@@ -118,7 +113,7 @@ describe('payments', function() {
         account: 'rHb9CJAWyB4rj91VRWn96DkukG4bwdtyTh'
       });
 
-      orderlist.mark('account_info')
+      orderlist.mark('account_info');
     };
 
     var _submit = function(data,ws) {
@@ -148,9 +143,9 @@ describe('payments', function() {
       {command:'submit'}
     ]);
 
-    route.once('subscribe',_subscribe)
-    route.once('account_info',_accountinfo)
-    route.once('submit',_submit)
+    route.once('subscribe',_subscribe);
+    route.once('account_info',_accountinfo);
+    route.once('submit',_submit);
 
     // actually post a XRP payment of 429 from genesis to alice
     app.post('/v1/payments')
@@ -241,7 +236,6 @@ describe('payments', function() {
 
     app.get('/v1/accounts/'+fixtures.accounts.alice.address+'/payments/paths/'+fixtures.accounts.bob.address+'/0.000001+XRP')
       .end(function(err, resp) {
-        inspect(resp.body);
         assert.strictEqual(resp.body.success, true);
         var keyresp = testutils.hasKeys(resp.body, ['payments','success']);
         assert.equal(keyresp.hasAllKeys,true);
@@ -380,7 +374,6 @@ describe('payments', function() {
 
     app.get('/v1/accounts/'+fixtures.accounts.alice.address+'/payments/paths/'+fixtures.accounts.bob.address+'/'+store.reserve_base_xrp+'+XRP')
       .end(function(err, resp) {
-        inspect(resp.body);
         assert.strictEqual(resp.body.success, true);
 
         var keyresp = testutils.hasKeys(resp.body, ['payments','success']);
@@ -614,7 +607,6 @@ describe('payments', function() {
     var sendamount = store.bob_balance;
     app.get('/v1/accounts/'+fixtures.accounts.bob.address+'/payments/paths/'+fixtures.accounts.alice.address+'/'+sendamount+'+XRP')
       .end(function(err, resp) {
-        inspect(resp.body);
         assert.equal(404, resp.status);
         assert.deepEqual(resp.body, {
           success: false,
@@ -634,7 +626,6 @@ describe('payments', function() {
     var sendamount = store.bob_balance * 0.95;
     app.get('/v1/accounts/'+fixtures.accounts.bob.address+'/payments/paths/'+fixtures.accounts.alice.address+'/'+sendamount+'+XRP')
       .end(function(err, resp) {
-        inspect(resp.body);
         assert.equal(404, resp.status);
         assert.deepEqual(resp.body, {
           success: false,
@@ -670,7 +661,6 @@ describe('payments', function() {
     route.once('ripple_path_find',_ripple_path_find);
     app.get('/v1/accounts/'+fixtures.accounts.alice.address+'/payments/paths/'+fixtures.accounts.bob.address+'/10+USD+'+fixtures.accounts.alice.address)
       .end(function(err, resp) {
-        inspect(resp.body);
         assert.deepEqual(resp.body, {
           success: false,
           error_type: 'invalid_request',
@@ -745,7 +735,6 @@ describe('payments', function() {
         }
       })
     .end(function(err, resp) {
-      inspect(resp.body);
       delete resp.body.ledger;
       delete resp.body.hash;
       assert.deepEqual(resp.body,{ success: true,
@@ -788,7 +777,6 @@ describe('payments', function() {
 
     app.get('/v1/accounts/'+fixtures.accounts.alice.address+'/payments/paths/'+fixtures.accounts.bob.address+'/10+USD+'+fixtures.accounts.alice.address)
       .end(function(err, resp) {
-        inspect(resp.body);
         assert.deepEqual(resp.body,{
           success: true,
           payments: [
@@ -974,7 +962,6 @@ describe('payments', function() {
         }
       })
       .end(function(err, resp) {
-        inspect(resp.body);
         done();
       })
   });
@@ -991,7 +978,6 @@ describe('payments', function() {
         }
       })
       .end(function(err, resp) {
-        inspect(resp.body);
         assert.equal(resp.status, 400)
         assert.deepEqual(resp.body,{ success: false,
           error_type: 'invalid_request',
@@ -1013,7 +999,6 @@ describe('payments', function() {
         }
       })
       .end(function(err, resp) {
-        inspect(resp.body);
         done();
       })
   });
@@ -1031,7 +1016,6 @@ describe('payments', function() {
       })
       .end(function(err, resp) {
         assert.equal(resp.status,201)
-        inspect(resp.body)
         delete resp.body.hash
         delete resp.body.ledger
         assert.deepEqual(resp.body,{ success: true,
@@ -1076,13 +1060,11 @@ describe('payments', function() {
   it('get path for carol to dan 10USD/carol with trust', function(done) {
     app.get('/v1/accounts/'+fixtures.accounts.carol.address+'/payments/paths/'+fixtures.accounts.dan.address+'/10+USD+'+fixtures.accounts.carol.address)
       .end(function(err, resp) {
-        inspect(resp.body)
         store.paymentCarolToDan = {
           secret: 'asdfkje',
           client_resource_id : 'abc',
           payment: resp.body.payments[0]
         }
-        inspect(store.paymentCarolToDan)
         done()
       })
   });
