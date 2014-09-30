@@ -54,7 +54,7 @@ describe('get settings', function() {
 
     self.app
     .get(fixtures.requestPath(addresses.VALID))
-    .expect(testutils.checkStatus(402)) // should be 404
+    .expect(testutils.checkStatus(404))
     .expect(testutils.checkHeaders)
     .end(done);
   });
