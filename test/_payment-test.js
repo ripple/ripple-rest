@@ -6,10 +6,9 @@ var app = supertest(_app);
 var assert = require('assert');
 var ws = require('ws');
 var ee = require('events').EventEmitter;
-var lib = require('./_fixtures.js');
+var fixtures = require('./fixtures')._payments;
 var testutils = require('./utils');
 var RL = require('ripple-lib');
-var util = require('util');
 var inspect = function(item) {
   };
 
@@ -23,17 +22,17 @@ describe('payments', function() {
   before(function(done) {
     rippled = new ws.Server({port: 5150});
 
-    route.on('ping', lib.ping);
-    route.on('subscribe', lib.subscribe);
-    route.on('response', lib.response);
-    route.on('server_info',lib.server_info);
-    route.on('account_info', lib.account_info);
-    route.on('ripple_path_find',lib.ripple_path_find);
-    route.on('account_lines', lib.account_lines);
-    route.on('submit',lib.submit);
-    route.on('tx', lib.tx);
+    route.on('ping', fixtures.ping);
+    route.on('subscribe', fixtures.subscribe);
+    route.on('response', fixtures.response);
+    route.on('server_info',fixtures.server_info);
+    route.on('account_info', fixtures.account_info);
+    route.on('ripple_path_find',fixtures.ripple_path_find);
+    route.on('account_lines', fixtures.account_lines);
+    route.on('submit',fixtures.submit);
+    route.on('tx', fixtures.tx);
 
-    rippled.on('connection', lib.connection.bind({route:route}));
+    rippled.on('connection', fixtures.connection.bind({route:route}));
 
     _app.remote.once('connect', function() {
       _app.remote.getServer().once('ledger_closed', function() {
@@ -50,7 +49,7 @@ describe('payments', function() {
 
   after(function(done) {
     _app.remote.once('disconnect', function() {
-      lib.clearInterval();
+      fixtures.clearInterval();
       rippled.close();
       done()
     });
@@ -80,14 +79,14 @@ describe('payments', function() {
 
     route.once('ripple_path_find',incoming);
 
-    app.get('/v1/accounts/'+lib.accounts.genesis.address+'/payments/paths/'+lib.accounts.alice.address+'/429+XRP')
+    app.get('/v1/accounts/'+fixtures.accounts.genesis.address+'/payments/paths/'+fixtures.accounts.alice.address+'/429+XRP')
       .end(function(err, resp) {
         assert.strictEqual(resp.body.success, true);
         var keyresp = testutils.hasKeys(resp.body, ['payments','success']);
         assert.equal(keyresp.hasAllKeys,true);
         store.paymentGenesisToAlice =
         {
-          "secret": lib.accounts.genesis.secret,
+          "secret": fixtures.accounts.genesis.secret,
           "client_resource_id": "foobar24",
           "payment": resp.body.payments[0]
         };
@@ -156,7 +155,7 @@ describe('payments', function() {
       .send(store.paymentGenesisToAlice)
       .end(function(err,resp) {
         assert.strictEqual(resp.body.success, true);
-        var keys = Object.keys(lib.nominal_xrp_post_response);
+        var keys = Object.keys(fixtures.nominal_xrp_post_response);
         assert.equal(testutils.hasKeys(resp.body, keys).hasAllKeys,true);
         assert.equal(orderlist.test(),true);
         orderlist.reset();
@@ -196,7 +195,7 @@ describe('payments', function() {
     route.once('account_info',_account_info);
     route.once('account_lines',_account_lines);
 
-    app.get('/v1/accounts/'+lib.accounts.alice.address+'/balances')
+    app.get('/v1/accounts/'+fixtures.accounts.alice.address+'/balances')
       .end(function(err, resp) {
         assert.equal(resp.body.balances[0].value,429);
         assert.equal(orderlist.test(),true);
@@ -238,14 +237,14 @@ describe('payments', function() {
     route.once('ripple_path_find', _ripple_path_find);
     route.once('account_info', _account_info);
 
-    app.get('/v1/accounts/'+lib.accounts.alice.address+'/payments/paths/'+lib.accounts.bob.address+'/0.000001+XRP')
+    app.get('/v1/accounts/'+fixtures.accounts.alice.address+'/payments/paths/'+fixtures.accounts.bob.address+'/0.000001+XRP')
       .end(function(err, resp) {
         inspect(resp.body);
         assert.strictEqual(resp.body.success, true);
         var keyresp = testutils.hasKeys(resp.body, ['payments','success']);
         assert.equal(keyresp.hasAllKeys,true);
         store.paymentAliceToBob = {
-          "secret": lib.accounts.alice.secret,
+          "secret": fixtures.accounts.alice.secret,
           "client_resource_id": "foobar25",
           "payment": resp.body.payments[0]
         };
@@ -310,7 +309,7 @@ describe('payments', function() {
     app.post('/v1/payments')
     .send(store.paymentAliceToBob)
     .end(function(err,resp) {
-      assert.equal(resp.status, 402)
+      assert.equal(resp.status, 402);
       assert.strictEqual(resp.body.success, false);
       assert.deepEqual(resp.body, {
         success: false,
@@ -377,16 +376,16 @@ describe('payments', function() {
     route.once('ripple_path_find',_ripple_path_find);
     route.once('account_info',_account_info);
 
-    app.get('/v1/accounts/'+lib.accounts.alice.address+'/payments/paths/'+lib.accounts.bob.address+'/'+store.reserve_base_xrp+'+XRP')
+    app.get('/v1/accounts/'+fixtures.accounts.alice.address+'/payments/paths/'+fixtures.accounts.bob.address+'/'+store.reserve_base_xrp+'+XRP')
       .end(function(err, resp) {
         inspect(resp.body);
         assert.strictEqual(resp.body.success, true);
 
         var keyresp = testutils.hasKeys(resp.body, ['payments','success']);
-        assert.equal(keyresp.hasAllKeys,true)
+        assert.equal(keyresp.hasAllKeys,true);
 
         store.paymentAliceToBob = {
-          "secret": lib.accounts.alice.secret,
+          "secret": fixtures.accounts.alice.secret,
           "client_resource_id": "foobar26",
           "payment": resp.body.payments[0]
         };
@@ -425,9 +424,9 @@ describe('payments', function() {
         assert.deepEqual(resp.body, {
           success: true,
           client_resource_id: 'foobar26',
-          status_url: 'http://127.0.0.1:5990/v1/accounts/'+lib.accounts.alice.address+'/payments/foobar26'
+          status_url: 'http://127.0.0.1:5990/v1/accounts/'+fixtures.accounts.alice.address+'/payments/foobar26'
         });
-        store.status_url = '/v1/accounts/'+lib.accounts.alice.address+'/payments/foobar26';
+        store.status_url = '/v1/accounts/'+fixtures.accounts.alice.address+'/payments/foobar26';
         assert.equal(orderlist.test(),true);
         orderlist.reset();
         done();
@@ -498,7 +497,7 @@ describe('payments', function() {
 
     route.once('tx',_tx)
 
-    app.get('/v1/accounts/'+lib.accounts.alice.address+'/payments/'+store.hash)
+    app.get('/v1/accounts/'+fixtures.accounts.alice.address+'/payments/'+store.hash)
       .end(function(err, resp) {
         assert.equal(resp.status,200);
         assert.equal(resp.body.success,true);
@@ -567,7 +566,7 @@ describe('payments', function() {
     route.once('account_info', _account_info);
     route.once('account_lines',_account_lines);
 
-    app.get('/v1/accounts/'+lib.accounts.bob.address+'/balances')
+    app.get('/v1/accounts/'+fixtures.accounts.bob.address+'/balances')
       .end(function(err, resp) {
         var balance = resp.body.balances[0];
         // change all instances of 200 with reserve base xrp
@@ -611,7 +610,7 @@ describe('payments', function() {
     route.once('account_info',_account_info);
 
     var sendamount = store.bob_balance;
-    app.get('/v1/accounts/'+lib.accounts.bob.address+'/payments/paths/'+lib.accounts.alice.address+'/'+sendamount+'+XRP')
+    app.get('/v1/accounts/'+fixtures.accounts.bob.address+'/payments/paths/'+fixtures.accounts.alice.address+'/'+sendamount+'+XRP')
       .end(function(err, resp) {
         inspect(resp.body);
         assert.equal(404, resp.status);
@@ -631,7 +630,7 @@ describe('payments', function() {
   // bob should try to send all money back to alice
   it.skip('try to send 95% of bobs money to alice below reserve', function(done) {
     var sendamount = store.bob_balance * 0.95;
-    app.get('/v1/accounts/'+lib.accounts.bob.address+'/payments/paths/'+lib.accounts.alice.address+'/'+sendamount+'+XRP')
+    app.get('/v1/accounts/'+fixtures.accounts.bob.address+'/payments/paths/'+fixtures.accounts.alice.address+'/'+sendamount+'+XRP')
       .end(function(err, resp) {
         inspect(resp.body);
         assert.equal(404, resp.status);
@@ -667,7 +666,7 @@ describe('payments', function() {
     };
 
     route.once('ripple_path_find',_ripple_path_find);
-    app.get('/v1/accounts/'+lib.accounts.alice.address+'/payments/paths/'+lib.accounts.bob.address+'/10+USD+'+lib.accounts.alice.address)
+    app.get('/v1/accounts/'+fixtures.accounts.alice.address+'/payments/paths/'+fixtures.accounts.bob.address+'/10+USD+'+fixtures.accounts.alice.address)
       .end(function(err, resp) {
         inspect(resp.body);
         assert.deepEqual(resp.body, {
@@ -733,13 +732,13 @@ describe('payments', function() {
     route.once('account_info',_account_info);
     route.once('submit',_submit);
 
-    app.post('/v1/accounts/'+lib.accounts.bob.address+'/trustlines')
+    app.post('/v1/accounts/'+fixtures.accounts.bob.address+'/trustlines')
       .send({
-        "secret": lib.accounts.bob.secret,
+        "secret": fixtures.accounts.bob.secret,
         "trustline": {
           "limit": "10",
           "currency": "USD",
-          "counterparty": lib.accounts.alice.address,
+          "counterparty": fixtures.accounts.alice.address,
           "allows_rippling": false
         }
       })
@@ -785,7 +784,7 @@ describe('payments', function() {
 
     route.once('ripple_path_find',_ripple_path_find);
 
-    app.get('/v1/accounts/'+lib.accounts.alice.address+'/payments/paths/'+lib.accounts.bob.address+'/10+USD+'+lib.accounts.alice.address)
+    app.get('/v1/accounts/'+fixtures.accounts.alice.address+'/payments/paths/'+fixtures.accounts.bob.address+'/10+USD+'+fixtures.accounts.alice.address)
       .end(function(err, resp) {
         inspect(resp.body);
         assert.deepEqual(resp.body,{
@@ -818,7 +817,7 @@ describe('payments', function() {
 
 
   it('path find populate carol with missing sum',function(done) {
-    app.get('/v1/accounts/'+lib.accounts.genesis.address+'/payments/paths/'+lib.accounts.carol.address+'/+XRP')
+    app.get('/v1/accounts/'+fixtures.accounts.genesis.address+'/payments/paths/'+fixtures.accounts.carol.address+'/+XRP')
       .end(function(err, resp) {
         assert.equal(resp.status,400);
         assert.deepEqual(resp.body,{ success: false,
@@ -830,7 +829,7 @@ describe('payments', function() {
   });
 
   it('path find populate carol with missing currency',function(done) {
-    app.get('/v1/accounts/'+lib.accounts.genesis.address+'/payments/paths/'+lib.accounts.carol.address+'/400')
+    app.get('/v1/accounts/'+fixtures.accounts.genesis.address+'/payments/paths/'+fixtures.accounts.carol.address+'/400')
       .end(function(err, resp) {
         assert.equal(resp.status,400);
         assert.deepEqual(resp.body,{ success: false,
@@ -842,7 +841,7 @@ describe('payments', function() {
   });
 
   it('path find populate carol with all missing endpoint value',function(done) {
-    app.get('/v1/accounts/'+lib.accounts.genesis.address+'/payments/paths/'+lib.accounts.carol.address+'/')
+    app.get('/v1/accounts/'+fixtures.accounts.genesis.address+'/payments/paths/'+fixtures.accounts.carol.address+'/')
       .end(function(err, resp) {
         assert.equal(resp.status,404);
         done()
@@ -850,10 +849,10 @@ describe('payments', function() {
   });
 
   it('path find populate carol with 400',function(done) {
-    app.get('/v1/accounts/'+lib.accounts.genesis.address+'/payments/paths/'+lib.accounts.carol.address+'/400+XRP')
+    app.get('/v1/accounts/'+fixtures.accounts.genesis.address+'/payments/paths/'+fixtures.accounts.carol.address+'/400+XRP')
       .end(function(err, resp) {
         store.paymentGenesisToCarol = {
-          "secret": lib.accounts.genesis.secret,
+          "secret": fixtures.accounts.genesis.secret,
           "client_resource_id": "asdfg",
           "payment": resp.body.payments[0]
         };
@@ -871,10 +870,10 @@ describe('payments', function() {
 
   // miss the client resource id
   it('path find populate dan with 600',function(done) {
-    app.get('/v1/accounts/'+lib.accounts.genesis.address+'/payments/paths/'+lib.accounts.dan.address+'/600+XRP')
+    app.get('/v1/accounts/'+fixtures.accounts.genesis.address+'/payments/paths/'+fixtures.accounts.dan.address+'/600+XRP')
       .end(function(err, resp) {
         store.paymentGenesisToDan = {
-          "secret": lib.accounts.genesis.secret,
+          "secret": fixtures.accounts.genesis.secret,
           "payment": resp.body.payments[0]
         };
         done();
@@ -962,13 +961,13 @@ describe('payments', function() {
   it.skip('dan grants a trustline of 10 usd towards carol but uses carols address in the accounts setting', function(done) {
     // mocha is NOT overriding the timeout contrary to documentation
     this.timeout(1000);
-    app.post('/v1/accounts/'+lib.accounts.carol.address+'/trustlines')
+    app.post('/v1/accounts/'+fixtures.accounts.carol.address+'/trustlines')
       .send({
-        "secret": lib.accounts.dan.secret,
+        "secret": fixtures.accounts.dan.secret,
         "trustline": {
           "limit": "10",
           "currency": "USD",
-          "counterparty": lib.accounts.carol.address,
+          "counterparty": fixtures.accounts.carol.address,
           "allows_rippling": false
         }
       })
@@ -979,13 +978,13 @@ describe('payments', function() {
   });
 
   it('dan grants a trustline of 10 usd towards carol and uses correct address in the accounts setting but no secret', function(done) {
-    app.post('/v1/accounts/'+lib.accounts.dan.address+'/trustlines')
+    app.post('/v1/accounts/'+fixtures.accounts.dan.address+'/trustlines')
       .send({
         "secret": '',
         "trustline": {
           "limit": "10",
           "currency": "USD",
-          "counterparty": lib.accounts.carol.address,
+          "counterparty": fixtures.accounts.carol.address,
           "allows_rippling": false
         }
       })
@@ -1001,13 +1000,13 @@ describe('payments', function() {
 
   // PROBLEM no response, secret approximation takes very long, no response for over 10 seconds
   it.skip('dan grants a trustline of 10 usd towards carol and uses correct address in the accounts setting but incorrect secret', function(done) {
-    app.post('/v1/accounts/'+lib.accounts.dan.address+'/trustlines')
+    app.post('/v1/accounts/'+fixtures.accounts.dan.address+'/trustlines')
       .send({
         "secret": 'asdf',
         "trustline": {
           "limit": "10",
           "currency": "USD",
-          "counterparty": lib.accounts.carol.address,
+          "counterparty": fixtures.accounts.carol.address,
           "allows_rippling": false
         }
       })
@@ -1018,13 +1017,13 @@ describe('payments', function() {
   });
 
   it('dan grants a trustline of 10 usd towards carol and uses correct address in the accounts setting', function(done) {
-    app.post('/v1/accounts/'+lib.accounts.dan.address+'/trustlines')
+    app.post('/v1/accounts/'+fixtures.accounts.dan.address+'/trustlines')
       .send({
-        "secret": lib.accounts.dan.secret,
+        "secret": fixtures.accounts.dan.secret,
         "trustline": {
           "limit": "10",
           "currency": "USD",
-          "counterparty": lib.accounts.carol.address,
+          "counterparty": fixtures.accounts.carol.address,
           "allows_rippling": false
         }
       })
@@ -1046,13 +1045,13 @@ describe('payments', function() {
   });
 
   it('dan grants an additional trustline of 10 usd towards carol and uses correct address in the accounts setting', function(done) {
-    app.post('/v1/accounts/'+lib.accounts.dan.address+'/trustlines')
+    app.post('/v1/accounts/'+fixtures.accounts.dan.address+'/trustlines')
       .send({
-        "secret": lib.accounts.dan.secret,
+        "secret": fixtures.accounts.dan.secret,
         "trustline": {
           "limit": "10",
           "currency": "USD",
-          "counterparty": lib.accounts.carol.address,
+          "counterparty": fixtures.accounts.carol.address,
           "allows_rippling": false
         }
       })
@@ -1073,7 +1072,7 @@ describe('payments', function() {
   });
 
   it('get path for carol to dan 10USD/carol with trust', function(done) {
-    app.get('/v1/accounts/'+lib.accounts.carol.address+'/payments/paths/'+lib.accounts.dan.address+'/10+USD+'+lib.accounts.carol.address)
+    app.get('/v1/accounts/'+fixtures.accounts.carol.address+'/payments/paths/'+fixtures.accounts.dan.address+'/10+USD+'+fixtures.accounts.carol.address)
       .end(function(err, resp) {
         inspect(resp.body)
         store.paymentCarolToDan = {
@@ -1096,7 +1095,7 @@ describe('payments', function() {
   });
 
   it('Posting 10USD from carol to dan with valid client resource id and correct secret but missing fields on payment object',function(done) {
-    store.paymentCarolToDan.secret = lib.accounts.carol.secret;
+    store.paymentCarolToDan.secret = fixtures.accounts.carol.secret;
     store.value = store.paymentCarolToDan.payment.destination_amount.value
     delete store.paymentCarolToDan.payment.destination_amount.value
     app.post('/v1/payments')
@@ -1113,7 +1112,7 @@ describe('payments', function() {
 
   it('Posting 10USD from carol to dan with valid client resource id and correct secret but client resource id already used',function(done) {
     store.paymentCarolToDan.payment.destination_amount.value = store.value
-    store.paymentCarolToDan.secret = lib.accounts.carol.secret;
+    store.paymentCarolToDan.secret = fixtures.accounts.carol.secret;
     store.client_resource_id = store.paymentCarolToDan.client_resource_id;
     store.paymentCarolToDan.client_resource_id = 'asdfg';
     app.post('/v1/payments')
@@ -1124,17 +1123,19 @@ describe('payments', function() {
   });
 
   it('Posting 10USD from carol to dan with valid client resource id and correct secret',function(done) {
-    store.paymentCarolToDan.payment.destination_amount.value = store.value
-    store.paymentCarolToDan.secret = lib.accounts.carol.secret;
-    store.paymentCarolToDan.client_resource_id = 'abc'
+    store.paymentCarolToDan.payment.destination_amount.value = store.value;
+    store.paymentCarolToDan.secret = fixtures.accounts.carol.secret;
+    store.paymentCarolToDan.client_resource_id = 'abc';
     app.post('/v1/payments')
       .send(store.paymentCarolToDan)
       .end(function(err,resp) {
-        assert.equal(resp.status, 200)
-        assert.deepEqual(resp.body,{ success: true,
+        assert.equal(resp.status, 200);
+        assert.deepEqual(resp.body,{
+          success: true,
           client_resource_id: 'abc',
-          status_url: 'http://127.0.0.1:5990/v1/accounts/r3YHFNkQRJDPc9aCkRojPLwKVwok3ihgBJ/payments/abc' })
-        done()
+          status_url: 'http://127.0.0.1:5990/v1/accounts/r3YHFNkQRJDPc9aCkRojPLwKVwok3ihgBJ/payments/abc'
+        });
+        done();
       })
   })
 
