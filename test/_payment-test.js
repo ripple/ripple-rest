@@ -35,10 +35,13 @@ describe('payments', function() {
     rippled.on('connection', fixtures.connection.bind({route:route}));
 
     _app.remote.once('connect', function() {
+
       _app.remote.getServer().once('ledger_closed', function() {
         // proceed to the tests, api is ready
         done()
       });
+
+      _app.remote.getServer().emit('message', fixtures.sample_ledger);
     });
 
     _app.remote._servers = [ ];
@@ -49,7 +52,6 @@ describe('payments', function() {
 
   after(function(done) {
     _app.remote.once('disconnect', function() {
-      fixtures.clearInterval();
       rippled.close();
       done()
     });

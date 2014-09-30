@@ -299,7 +299,7 @@ var account_lines = function(data,ws) {
     }
 };
 exports.account_lines = account_lines;
-var sample_ledger = JSON.stringify({
+exports.sample_ledger = JSON.stringify({
   "type": "ledgerClosed",
   "fee_base": 10,
   "fee_ref": 10,
@@ -310,15 +310,9 @@ var sample_ledger = JSON.stringify({
   "reserve_inc": 5000000,
   "txn_count": 17,
   "validated_ledgers": "32570-8804615"
-})
-exports.sample_ledger = sample_ledger
+});
 
-var timerid;
 var connection = function(ws) {
-    timerid = setInterval(function() {
-        ws.send(sample_ledger)
-    }, 200)
-    // subscribe response
     ws.send(JSON.stringify({
       id: 0,
       status: 'success',
@@ -348,7 +342,7 @@ var connection = function(ws) {
 }
 exports.connection = connection;
 exports.clearInterval = function() {
-    clearInterval(timerid)
+//    clearInterval(timerid)
 }
 
 exports.nominal_xrp_post_response = {
