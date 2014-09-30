@@ -230,5 +230,46 @@ describe('post payments', function() {
       .end(done);
   });
 
+  it('/payments -- successful payment with issuer', function(done){
+
+    self.wss.once('request_account_info', function(message, conn) {
+      assert.strictEqual(message.command, 'account_info');
+      assert.strictEqual(message.account, addresses.VALID);
+      conn.send(fixtures.accountInfoResponse(message));
+    });
+
+    self.wss.once('request_submit', function(message, conn) {
+      assert.strictEqual(message.command, 'submit');
+      conn.send(fixtures.requestSubmitReponse(message));
+    });
+
+    self.app
+      .post('/v1/payments')
+      .send(fixtures.nonXrpPaymentWithIssuer)
+      .expect(testutils.checkStatus(200))
+      .expect(testutils.checkHeaders)
+      .expect(testutils.checkBody(fixtures.RESTNonXrpPaymentWithIssuer))
+      .end(done);
+  });
+
+  it('/payments -- without issuer', function(done){
+
+    self.wss.once('request_account_info', function(message, conn) {
+      assert.strictEqual(true, false);
+    });
+
+    self.wss.once('request_submit', function(message, conn) {
+      assert.strictEqual(true, false);
+    });
+
+    self.app
+      .post('/v1/payments')
+      .send(fixtures.nonXrpPaymentWithoutIssuer)
+      .expect(testutils.checkStatus(400))
+      .expect(testutils.checkHeaders)
+      .expect(testutils.checkBody(fixtures.RESTNonXrpPaymentWithoutIssuer))
+      .end(done);
+  });
+
 });
 

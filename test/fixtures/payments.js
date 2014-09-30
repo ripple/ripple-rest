@@ -450,6 +450,32 @@ module.exports.paymentWithMemo = {
   }
 };
 
+module.exports.nonXrpPaymentWithoutIssuer = {
+  secret: addresses.SECRET,
+  client_resource_id: "1",
+  payment: {
+    source_account: addresses.VALID,
+    destination_account: addresses.COUNTERPARTY,
+    destination_amount: {
+      value: "0.001",
+      currency: "USD"
+    }
+  }
+};
+
+module.exports.nonXrpPaymentWithIssuer = {
+  secret: addresses.SECRET,
+  client_resource_id: "1",
+  payment: {
+    source_account: addresses.VALID,
+    destination_account: addresses.COUNTERPARTY,
+    destination_amount: {
+      value: "0.001",
+      currency: "USD",
+      issuer: addresses.ISSUER
+    }
+  }
+};
 
 module.exports.accountInfoResponse = function(request) {
   return JSON.stringify(
@@ -555,5 +581,22 @@ module.exports.RESTResponseNonArrayMemo = JSON.stringify(
     "error_type":"invalid_request",
     "error":"Invalid parameter: memos",
     "message":"Must be an array with memo objects"
+  }
+);
+
+module.exports.RESTNonXrpPaymentWithoutIssuer = JSON.stringify(
+  {
+    "success": false,
+    "error_type": "invalid_request",
+    "error": "Invalid parameter: destination_amount",
+    "message": "Non-XRP payment must have an issuer"
+  }
+);
+
+module.exports.RESTNonXrpPaymentWithIssuer = JSON.stringify(
+  {
+    "success": true,
+    "client_resource_id": "1",
+    "status_url": "http://127.0.0.1:5990/v1/accounts/r3GgMwvgvP8h4yVWvjH1dPZNvC37TjzBBE/payments/1"
   }
 );

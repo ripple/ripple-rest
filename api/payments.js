@@ -156,6 +156,11 @@ function paymentIsValid(payment, callback) {
     return callback(new InvalidRequestError('Invalid parameter: source_amount. XRP cannot have issuer'));
   }
 
+  // Must have issuer for non-XRP payments
+  if (payment.destination_amount && payment.destination_amount.currency.toUpperCase() !== 'XRP' && !payment.destination_amount.issuer) {
+    return callback(new InvalidRequestError('Invalid parameter: destination_amount. Non-XRP payment must have an issuer'));
+  }
+
   // Slippage
   if (payment.source_slippage && !validator.isValid(payment.source_slippage, 'FloatString')) {
     return callback(new InvalidRequestError('Invalid parameter: source_slippage. Must be a valid FloatString'));
