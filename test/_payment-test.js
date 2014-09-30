@@ -1110,18 +1110,6 @@ describe('payments', function() {
       })
   });
 
-  it('Posting 10USD from carol to dan with valid client resource id and correct secret but client resource id already used',function(done) {
-    store.paymentCarolToDan.payment.destination_amount.value = store.value
-    store.paymentCarolToDan.secret = fixtures.accounts.carol.secret;
-    store.client_resource_id = store.paymentCarolToDan.client_resource_id;
-    store.paymentCarolToDan.client_resource_id = 'asdfg';
-    app.post('/v1/payments')
-      .send(store.paymentCarolToDan)
-      .end(function(err,resp) {
-        done()
-      })
-  });
-
   it('Posting 10USD from carol to dan with valid client resource id and correct secret',function(done) {
     store.paymentCarolToDan.payment.destination_amount.value = store.value;
     store.paymentCarolToDan.secret = fixtures.accounts.carol.secret;
@@ -1137,6 +1125,26 @@ describe('payments', function() {
         });
         done();
       })
-  })
+  });
+
+  it('Posting 10USD from carol to dan with valid client resource id and correct secret but client resource id already used',function(done) {
+    store.paymentCarolToDan.payment.destination_amount.value = store.value
+    store.paymentCarolToDan.secret = fixtures.accounts.carol.secret;
+    store.client_resource_id = store.paymentCarolToDan.client_resource_id;
+    store.paymentCarolToDan.client_resource_id = 'abc';
+    app.post('/v1/payments')
+      .send(store.paymentCarolToDan)
+      .end(function(err,resp) {
+        assert.strictEqual(resp.status, 402);
+        assert.deepEqual(resp.body, {
+          "success": false,
+          "error_type": "transaction",
+          "error": "Duplicate Transaction",
+          "message": "A record already exists in the database for a transaction of this type with the same client_resource_id. If this was not an accidental resubmission please submit the transaction again with a unique client_resource_id"
+        });
+        done();
+      })
+  });
+
 
 });
