@@ -160,14 +160,14 @@ describe('payments', function() {
     // actually post a XRP payment of 429 from genesis to alice
     app.post('/v1/payments')
       .send(store.paymentGenesisToAlice)
-      .end(function(err,resp) {
+      .expect(function(resp) {
         assert.strictEqual(resp.body.success, true);
         var keys = Object.keys(fixtures.nominal_xrp_post_response);
         assert.equal(testutils.hasKeys(resp.body, keys).hasAllKeys,true);
         assert.equal(orderlist.test(),true);
         orderlist.reset();
-        done();
       })
+      .end(done);
 
   });
 
@@ -314,8 +314,8 @@ describe('payments', function() {
 
     app.post('/v1/payments')
     .send(store.paymentAliceToBob)
-    .end(function(err,resp) {
-      assert.equal(resp.status, 402);
+    .expect(function(resp,err) {
+      assert.strictEqual(resp.status, 500);
       assert.strictEqual(resp.body.success, false);
       assert.deepEqual(resp.body, {
         success: false,
@@ -325,8 +325,8 @@ describe('payments', function() {
       });
       assert.equal(orderlist.test(),true);
       orderlist.reset();
-      done();
-    });
+    })
+    .end(done);
   });
 
 
@@ -921,14 +921,16 @@ describe('payments', function() {
     store.paymentGenesisToDan["client_resource_id"] = "qwerty";
     app.post('/v1/payments')
       .send(store.paymentGenesisToDan)
-      .end(function(err,resp) {
-        assert.equal(resp.status, 402)
-        assert.deepEqual(resp.body,{ success: false,
-          error_type: 'transaction',
-          error: 'Duplicate Transaction',
-          message: 'A record already exists in the database for a transaction of this type with the same client_resource_id. If this was not an accidental resubmission please submit the transaction again with a unique client_resource_id' })
-        done()
+      .expect(function(resp,err) {
+        assert.equal(resp.status, 500);
+        assert.deepEqual(resp.body, {
+          "success": false,
+          "error_type":"server",
+          "error": "Duplicate Transaction",
+          "message":"A record already exists in the database for a transaction of this type with the same client_resource_id. If this was not an accidental resubmission please submit the transaction again with a unique client_resource_id"
+        })
       })
+      .end(done);
   });
 
   it('post a non-xrp payment without issuer',function(done) {
@@ -947,14 +949,16 @@ describe('payments', function() {
           paths: '[]',
           partial_payment: false,
           no_direct_ripple: false } })
-      .end(function(err,resp) {
-        assert.equal(resp.status,402)
-        assert.deepEqual(resp.body,{ success: false,
-          error_type: 'transaction',
-          error: 'tecPATH_DRY',
-          message: 'Path could not send partial amount. Please ensure that the source_address has sufficient funds (in the source_amount currency, if specified) to execute this transaction.' })
-        done()
+      .expect(function(resp) {
+        assert.equal(resp.status, 400);
+        assert.deepEqual(resp.body, {
+          "success": false,
+          "error_type": "invalid_request",
+          "error": "Invalid parameter: destination_amount",
+          "message": "Non-XRP payment must have an issuer"
+        });
       })
+      .end(done);
   });
 
   // PROBLEM no response, secret approximation takes very long, no response for over 10 seconds
@@ -1051,7 +1055,7 @@ describe('payments', function() {
           "allows_rippling": false
         }
       })
-      .end(function(err, resp) {
+      .expect(function(resp, err) {
         assert.equal(resp.status,201)
         delete resp.body.hash
         delete resp.body.ledger
@@ -1063,8 +1067,8 @@ describe('payments', function() {
             counterparty: 'r3YHFNkQRJDPc9aCkRojPLwKVwok3ihgBJ',
             account_allows_rippling: true },
         });
-        done();
       })
+      .end(done);
   });
 
   it('get path for carol to dan 10USD/carol with trust', function(done) {
@@ -1094,14 +1098,16 @@ describe('payments', function() {
     delete store.paymentCarolToDan.payment.destination_amount.value
     app.post('/v1/payments')
       .send(store.paymentCarolToDan)
-      .end(function(err,resp) {
-        assert.equal(resp.status,400)
-        assert.deepEqual(resp.body, { success: false,
+      .expect(function(resp,err) {
+        assert.equal(resp.status,400);
+        assert.deepEqual(resp.body, {
+          success: false,
           error_type: 'invalid_request',
           error: 'Invalid parameter: destination_amount',
-          message: 'Must be a valid Amount object' })
-        done()
+          message: 'Must be a valid Amount object'
+        });
       })
+      .end(done);
   });
 
   it('Posting 10USD from carol to dan with valid client resource id and correct secret',function(done) {
@@ -1110,15 +1116,16 @@ describe('payments', function() {
     store.paymentCarolToDan.client_resource_id = 'abc';
     app.post('/v1/payments')
       .send(store.paymentCarolToDan)
-      .end(function(err,resp) {
+      .expect(function(resp,err) {
         assert.equal(resp.status, 200);
         assert.deepEqual(resp.body,{
           success: true,
           client_resource_id: 'abc',
           status_url: 'http://127.0.0.1:5990/v1/accounts/r3YHFNkQRJDPc9aCkRojPLwKVwok3ihgBJ/payments/abc'
         });
-        done();
+
       })
+      .end(done);
   });
 
   it('Posting 10USD from carol to dan with valid client resource id and correct secret but client resource id already used',function(done) {
@@ -1128,16 +1135,16 @@ describe('payments', function() {
     store.paymentCarolToDan.client_resource_id = 'abc';
     app.post('/v1/payments')
       .send(store.paymentCarolToDan)
-      .end(function(err,resp) {
-        assert.strictEqual(resp.status, 402);
+      .expect(function(resp,err) {
+        assert.strictEqual(resp.status, 500);
         assert.deepEqual(resp.body, {
           "success": false,
-          "error_type": "transaction",
+          "error_type": "server",
           "error": "Duplicate Transaction",
           "message": "A record already exists in the database for a transaction of this type with the same client_resource_id. If this was not an accidental resubmission please submit the transaction again with a unique client_resource_id"
         });
-        done();
       })
+      .end(done);
   });
 
 
