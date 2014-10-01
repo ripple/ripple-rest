@@ -1,19 +1,29 @@
-var supertest = require('supertest');
-var _app = require('./../lib/express_app');
-var app = supertest(_app);
-var assert = require('assert');
-var ws = require('ws');
-var ee = require('events').EventEmitter;
-var fixtures = require('./fixtures')._payments;
-var testutils = require('./utils');
-var RL = require('ripple-lib');
+var supertest     = require('supertest');
+var _app          = require('./../lib/express_app');
+var app           = supertest(_app);
+var assert        = require('assert');
+var ws            = require('ws');
+var route         = new (require('events').EventEmitter);
+var fixtures      = require('./fixtures')._payments;
+var testutils     = require('./utils');
+var RL            = require('ripple-lib');
+var orderlist     = new testutils.orderlist;
 
-var orderlist = new testutils.orderlist;
+/**
+ * Payment tests
+ * This file, _payment-test.js describes tests in a different format from other other tests
+ *
+ * If you consider making changes to a test in this file, consider moving the tests over
+ * to payment-test.js and adopting the structure we have for the other tests
+ *
+ * New tests should not be added in the structure laid out here, but in the structure we
+ * use in the other test files.
+ */
+
 
 describe('payments', function() {
 
   var rippled;
-  var route = new ee;
 
   before(function(done) {
     rippled = new ws.Server({port: 5150});
