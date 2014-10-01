@@ -631,7 +631,7 @@ describe('payments', function() {
   });
 
 
-  // bob should try to send all money back to alice
+  // TODO: bob should try to send all money back to alice
   it.skip('try to send 95% of bobs money to alice below reserve', function(done) {
     var sendamount = store.bob_balance * 0.95;
     app.get('/v1/accounts/'+fixtures.accounts.bob.address+'/payments/paths/'+fixtures.accounts.alice.address+'/'+sendamount+'+XRP')
@@ -816,6 +816,11 @@ describe('payments', function() {
   });
 
 
+  /**
+   *  The tests below don't test the input for rippled
+   *  These should be rewritten in the payments.js class
+   */
+
   it('path find populate carol with missing sum',function(done) {
     app.get('/v1/accounts/'+fixtures.accounts.genesis.address+'/payments/paths/'+fixtures.accounts.carol.address+'/+XRP')
       .end(function(err, resp) {
@@ -961,7 +966,7 @@ describe('payments', function() {
       .end(done);
   });
 
-  // PROBLEM no response, secret approximation takes very long, no response for over 10 seconds
+  // TODO: PROBLEM no response, secret approximation takes very long, no response for over 10 seconds
   it.skip('dan grants a trustline of 10 usd towards carol but uses carols address in the accounts setting', function(done) {
     // mocha is NOT overriding the timeout contrary to documentation
     this.timeout(1000);
@@ -1000,11 +1005,11 @@ describe('payments', function() {
       })
   });
 
-  // PROBLEM no response, secret approximation takes very long, no response for over 10 seconds
+  // TODO: PROBLEM no response, secret approximation takes very long, no response for over 10 seconds
   it.skip('dan grants a trustline of 10 usd towards carol and uses correct address in the accounts setting but incorrect secret', function(done) {
     app.post('/v1/accounts/'+fixtures.accounts.dan.address+'/trustlines')
       .send({
-        "secret": 'asdf',
+        "secret": fixtures.accounts.carol.secret,
         "trustline": {
           "limit": "10",
           "currency": "USD",
@@ -1029,9 +1034,9 @@ describe('payments', function() {
         }
       })
       .end(function(err, resp) {
-        assert.equal(resp.status,201)
-        delete resp.body.hash
-        delete resp.body.ledger
+        assert.equal(resp.status,201);
+        delete resp.body.hash;
+        delete resp.body.ledger;
         assert.deepEqual(resp.body,{ success: true,
           trustline:
           { account: 'rsE6ZLDkXhSvfJHvSqFPhdazsoMgCEC52V',
@@ -1039,7 +1044,7 @@ describe('payments', function() {
             currency: 'USD',
             counterparty: 'r3YHFNkQRJDPc9aCkRojPLwKVwok3ihgBJ',
             account_allows_rippling: true }
-        })
+        });
         done();
       })
   });
@@ -1065,7 +1070,7 @@ describe('payments', function() {
             limit: '10',
             currency: 'USD',
             counterparty: 'r3YHFNkQRJDPc9aCkRojPLwKVwok3ihgBJ',
-            account_allows_rippling: true },
+            account_allows_rippling: true }
         });
       })
       .end(done);
@@ -1083,7 +1088,7 @@ describe('payments', function() {
       })
   });
 
-  // PROBLEM, no response for over 10 seconds
+  // TODO: PROBLEM, no response for over 10 seconds
   it.skip('Posting 10USD from carol to dan with valid client resource id but incorrect secret',function(done) {
     app.post('/v1/payments')
       .send(store.paymentCarolToDan)
@@ -1129,7 +1134,7 @@ describe('payments', function() {
   });
 
   it('Posting 10USD from carol to dan with valid client resource id and correct secret but client resource id already used',function(done) {
-    store.paymentCarolToDan.payment.destination_amount.value = store.value
+    store.paymentCarolToDan.payment.destination_amount.value = store.value;
     store.paymentCarolToDan.secret = fixtures.accounts.carol.secret;
     store.client_resource_id = store.paymentCarolToDan.client_resource_id;
     store.paymentCarolToDan.client_resource_id = 'abc';
