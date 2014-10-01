@@ -6,6 +6,10 @@
 
 + New configuration, you will have to change your config file
 
++ New database interface, support for sqlite in memory or persistent through config path
+
++ Deprecated Postgres support
+
 + Transitioned to Express4
 
 + Refactored response and error handling, improves consistency of response messages
@@ -19,6 +23,8 @@
 + New test-suite
 
 + Update ripple-lib which fixes several stability problems and crashes
+
++ Fix: check and validate issuer upon payment
 
 + Fix: database reset on startup
 
