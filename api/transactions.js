@@ -176,21 +176,30 @@ function getTransactionHelper(request, response, callback) {
         return async_callback(error);
       }
 
-      if (!entry && !options.hash) {
-        // Need transaction hash
+      var requestHash = options.hash;
+      var dbEntryHash = '';
+
+      if (!entry && !requestHash) {
+        // Transaction hash was not supplied in the request and a matching
+        // database entry was not found. There are no transaction hashes to
+        // look up
         return async_callback(new errors.InvalidRequestError('Transaction not found. Missing hash'));
       }
 
-      if (options.hash && entry) {
-        // Verify that transaction hashes match
-        if (options.hash !== entry.transaction.hash) {
+      if (entry) {
+        // Check that the hash present in the database entry matches the one
+        // supplied in the request
+        dbEntryHash = entry.hash || (entry.transaction || {}).hash;
+
+        if (requestHash && requestHash !== dbEntryHash) {
+          // Requested hash and retrieved hash do not match
           return async_callback(new errors.InvalidRequestError('Transaction not found. Hashes do not match'));
         }
       }
 
-      var transactionHash = options.hash || entry.transaction.hash;
-
-      remote.requestTx(transactionHash, function(error, transaction) {
+      // Request transaction based on either the hash supplied in the request
+      // or the hash found in the database
+      remote.requestTx(requestHash || dbEntryHash, function(error, transaction) {
         if (error) {
           return async_callback(error);
         }
