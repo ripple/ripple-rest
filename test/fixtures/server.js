@@ -1,3 +1,5 @@
+var utils   = require('./../../lib/utils.js');
+
 module.exports.serverInfoResponse = function(request) {
   return JSON.stringify({
     id: request.id,
@@ -59,7 +61,8 @@ module.exports.RESTServerConnectedResponse = JSON.stringify({
 module.exports.RESTServerIndexResponse = JSON.stringify({
   success: true,
   name: "ripple-rest",
-  version: "1",
+  package_version: utils.getPackageVersion(),
+  version: utils.getApiVersion(),
   documentation: "https://github.com/ripple/ripple-rest",
   endpoints: {
     submit_payment: "/v1/payments",

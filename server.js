@@ -4,12 +4,12 @@ var app     = require('./lib/express_app.js');
 var config  = require('./lib/config-loader');
 var remote  = require('./lib/remote.js');
 var logger  = require('./lib/logger.js').logger;
-var pJson   = require('./package.json');
+var utils   = require('./lib/utils.js');
 
 var port = config.get('port') || 5990;
 var host = config.get('host');
 
-logger.info('ripple-rest (v' + pJson.version + ')');
+logger.info('ripple-rest (v' + utils.getPackageVersion() + ')');
 
 function loadSSLConfig() {
   var keyPath  = config.get('ssl').key_path || './certs/server.key';
