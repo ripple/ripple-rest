@@ -121,7 +121,8 @@ module.exports.accountLinesResponse = function(request) {
         limit: '0',
         limit_peer: '10',
         quality_in: 0,
-        quality_out: 0
+        quality_out: 0,
+        freeze_peer: true
       },
       {
         account: 'rLEsXccBGNR3UPuPu2hUXPjziKC3qKSBun',
@@ -150,7 +151,8 @@ module.exports.accountLinesResponse = function(request) {
         limit_peer: '0',
         no_ripple: true,
         quality_in: 0,
-        quality_out: 0
+        quality_out: 0,
+        freeze: true
       },
       {
         account: 'r3vi7mWxru9rJCxETCyA1CHvzL96eZWx5z',
@@ -256,7 +258,9 @@ module.exports.RESTAccountTrustlinesResponse = JSON.stringify({
       limit: '0',
       reciprocated_limit: '10',
       account_allows_rippling: true,
-      counterparty_allows_rippling: true
+      counterparty_allows_rippling: true,
+      account_froze_line: false,
+      counterparty_froze_line: false
   },
   { account: 'r3GgMwvgvP8h4yVWvjH1dPZNvC37TjzBBE',
     counterparty: 'r3vi7mWxru9rJCxETCyA1CHvzL96eZWx5z',
@@ -264,7 +268,9 @@ module.exports.RESTAccountTrustlinesResponse = JSON.stringify({
     limit: '0',
     reciprocated_limit: '0',
     account_allows_rippling: false,
-    counterparty_allows_rippling: false
+    counterparty_allows_rippling: false,
+    account_froze_line: false,
+    counterparty_froze_line: false
   },
   { account: 'r3GgMwvgvP8h4yVWvjH1dPZNvC37TjzBBE',
     counterparty: 'rMwjYedjc7qqtKYVLiAccJSmCwih4LnE2q',
@@ -272,7 +278,9 @@ module.exports.RESTAccountTrustlinesResponse = JSON.stringify({
     limit: '5',
     reciprocated_limit: '0',
     account_allows_rippling: false,
-    counterparty_allows_rippling: true
+    counterparty_allows_rippling: true,
+    account_froze_line: false,
+    counterparty_froze_line: false
   },
   { account: 'r3GgMwvgvP8h4yVWvjH1dPZNvC37TjzBBE',
     counterparty: 'rHpXfibHgSb64n8kK9QWDpdbfqSpYbM9a4',
@@ -280,7 +288,9 @@ module.exports.RESTAccountTrustlinesResponse = JSON.stringify({
     limit: '1000',
     reciprocated_limit: '0',
     account_allows_rippling: true,
-    counterparty_allows_rippling: true 
+    counterparty_allows_rippling: true ,
+    account_froze_line: false,
+    counterparty_froze_line: false
   },
   { account: 'r3GgMwvgvP8h4yVWvjH1dPZNvC37TjzBBE',
     counterparty: 'rLEsXccBGNR3UPuPu2hUXPjziKC3qKSBun',
@@ -288,7 +298,9 @@ module.exports.RESTAccountTrustlinesResponse = JSON.stringify({
     limit: '1',
     reciprocated_limit: '0',
     account_allows_rippling: false,
-    counterparty_allows_rippling: true 
+    counterparty_allows_rippling: true,
+    account_froze_line: false,
+    counterparty_froze_line: false
   },
   { account: 'r3GgMwvgvP8h4yVWvjH1dPZNvC37TjzBBE',
     counterparty: 'rnuF96W4SZoCJmbHYBFoJZpR8eCaxNvekK',
@@ -296,7 +308,9 @@ module.exports.RESTAccountTrustlinesResponse = JSON.stringify({
     limit: '3',
     reciprocated_limit: '0',
     account_allows_rippling: false,
-    counterparty_allows_rippling: true 
+    counterparty_allows_rippling: true,
+    account_froze_line: false,
+    counterparty_froze_line: false
   },
   { account: 'r3GgMwvgvP8h4yVWvjH1dPZNvC37TjzBBE',
     counterparty: 'rGwUWgN5BEg3QGNY3RX2HfYowjUTZdid3E',
@@ -304,7 +318,9 @@ module.exports.RESTAccountTrustlinesResponse = JSON.stringify({
     limit: '3',
     reciprocated_limit: '0',
     account_allows_rippling: true,
-    counterparty_allows_rippling: true 
+    counterparty_allows_rippling: true,
+    account_froze_line: false,
+    counterparty_froze_line: false
   },
   { account: 'r3GgMwvgvP8h4yVWvjH1dPZNvC37TjzBBE',
     counterparty: 'rvYAfWj5gh67oV6fW32ZzP3Aw4Eubs59B',
@@ -312,7 +328,9 @@ module.exports.RESTAccountTrustlinesResponse = JSON.stringify({
     limit: '0',
     reciprocated_limit: '0',
     account_allows_rippling: true,
-    counterparty_allows_rippling: true 
+    counterparty_allows_rippling: true,
+    account_froze_line: false,
+    counterparty_froze_line: false
   },
   { account: 'r3GgMwvgvP8h4yVWvjH1dPZNvC37TjzBBE',
     counterparty: 'rvYAfWj5gh67oV6fW32ZzP3Aw4Eubs59B',
@@ -320,7 +338,9 @@ module.exports.RESTAccountTrustlinesResponse = JSON.stringify({
     limit: '3',
     reciprocated_limit: '0',
     account_allows_rippling: true,
-    counterparty_allows_rippling: true 
+    counterparty_allows_rippling: true,
+    account_froze_line: false,
+    counterparty_froze_line: false
   },
   { account: 'r3GgMwvgvP8h4yVWvjH1dPZNvC37TjzBBE',
     counterparty: 'rvYAfWj5gh67oV6fW32ZzP3Aw4Eubs59B',
@@ -328,7 +348,9 @@ module.exports.RESTAccountTrustlinesResponse = JSON.stringify({
     limit: '5000',
     reciprocated_limit: '0',
     account_allows_rippling: true,
-    counterparty_allows_rippling: true 
+    counterparty_allows_rippling: true,
+    account_froze_line: false,
+    counterparty_froze_line: false
   },
   { account: 'r3GgMwvgvP8h4yVWvjH1dPZNvC37TjzBBE',
     counterparty: 'rpgKWEmNqSDAGFhy5WDnsyPqfQxbWxKeVd',
@@ -336,7 +358,9 @@ module.exports.RESTAccountTrustlinesResponse = JSON.stringify({
     limit: '0',
     reciprocated_limit: '10',
     account_allows_rippling: true,
-    counterparty_allows_rippling: true 
+    counterparty_allows_rippling: true,
+    account_froze_line: false,
+    counterparty_froze_line: false
   },
   { account: 'r3GgMwvgvP8h4yVWvjH1dPZNvC37TjzBBE',
     counterparty: 'rBJ3YjwXi2MGbg7GVLuTXUWQ8DjL7tDXh4',
@@ -344,7 +368,9 @@ module.exports.RESTAccountTrustlinesResponse = JSON.stringify({
     limit: '0',
     reciprocated_limit: '10',
     account_allows_rippling: true,
-    counterparty_allows_rippling: true 
+    counterparty_allows_rippling: true,
+    account_froze_line: false,
+    counterparty_froze_line: true
   },
   { account: 'r3GgMwvgvP8h4yVWvjH1dPZNvC37TjzBBE',
     counterparty: 'rLEsXccBGNR3UPuPu2hUXPjziKC3qKSBun',
@@ -352,7 +378,9 @@ module.exports.RESTAccountTrustlinesResponse = JSON.stringify({
     limit: '1',
     reciprocated_limit: '0',
     account_allows_rippling: true,
-    counterparty_allows_rippling: true 
+    counterparty_allows_rippling: true,
+    account_froze_line: false,
+    counterparty_froze_line: false
   },
   { account: 'r3GgMwvgvP8h4yVWvjH1dPZNvC37TjzBBE',
     counterparty: 'razqQKzJRdB4UxFPWf5NEpEG3WMkmwgcXA',
@@ -360,7 +388,9 @@ module.exports.RESTAccountTrustlinesResponse = JSON.stringify({
     limit: '100',
     reciprocated_limit: '0',
     account_allows_rippling: false,
-    counterparty_allows_rippling: true 
+    counterparty_allows_rippling: true,
+    account_froze_line: false,
+    counterparty_froze_line: false
   },
   { account: 'r3GgMwvgvP8h4yVWvjH1dPZNvC37TjzBBE',
     counterparty: 'rvYAfWj5gh67oV6fW32ZzP3Aw4Eubs59B',
@@ -368,7 +398,9 @@ module.exports.RESTAccountTrustlinesResponse = JSON.stringify({
     limit: '0',
     reciprocated_limit: '0',
     account_allows_rippling: false,
-    counterparty_allows_rippling: true 
+    counterparty_allows_rippling: true,
+    account_froze_line: true,
+    counterparty_froze_line: false
   },
   { account: 'r3GgMwvgvP8h4yVWvjH1dPZNvC37TjzBBE',
     counterparty: 'r3vi7mWxru9rJCxETCyA1CHvzL96eZWx5z',
@@ -376,7 +408,9 @@ module.exports.RESTAccountTrustlinesResponse = JSON.stringify({
     limit: '0',
     reciprocated_limit: '0',
     account_allows_rippling: false,
-    counterparty_allows_rippling: false 
+    counterparty_allows_rippling: false,
+    account_froze_line: false,
+    counterparty_froze_line: false
   },
   { account: 'r3GgMwvgvP8h4yVWvjH1dPZNvC37TjzBBE',
     counterparty: 'r9vbV3EHvXWjSkeQ6CAcYVPGeq7TuiXY2X',
@@ -384,7 +418,9 @@ module.exports.RESTAccountTrustlinesResponse = JSON.stringify({
     limit: '1',
     reciprocated_limit: '0',
     account_allows_rippling: false,
-    counterparty_allows_rippling: true 
+    counterparty_allows_rippling: true,
+    account_froze_line: false,
+    counterparty_froze_line: false
   },
   { account: 'r3GgMwvgvP8h4yVWvjH1dPZNvC37TjzBBE',
     counterparty: 'rvYAfWj5gh67oV6fW32ZzP3Aw4Eubs59B',
@@ -392,7 +428,9 @@ module.exports.RESTAccountTrustlinesResponse = JSON.stringify({
     limit: '100',
     reciprocated_limit: '0',
     account_allows_rippling: false,
-    counterparty_allows_rippling: true 
+    counterparty_allows_rippling: true,
+    account_froze_line: false,
+    counterparty_froze_line: false
   },
   { account: 'r3GgMwvgvP8h4yVWvjH1dPZNvC37TjzBBE',
     counterparty: 'rfF3PNkwkq1DygW2wum2HK3RGfgkJjdPVD',
@@ -400,7 +438,9 @@ module.exports.RESTAccountTrustlinesResponse = JSON.stringify({
     limit: '500',
     reciprocated_limit: '0',
     account_allows_rippling: false,
-    counterparty_allows_rippling: true 
+    counterparty_allows_rippling: true,
+    account_froze_line: false,
+    counterparty_froze_line: false
   },
   { account: 'r3GgMwvgvP8h4yVWvjH1dPZNvC37TjzBBE',
     counterparty: 'rwUVoVMSURqNyvocPCcvLu3ygJzZyw8qwp',
@@ -408,7 +448,9 @@ module.exports.RESTAccountTrustlinesResponse = JSON.stringify({
     limit: '0',
     reciprocated_limit: '50',
     account_allows_rippling: true,
-    counterparty_allows_rippling: false 
+    counterparty_allows_rippling: false,
+    account_froze_line: false,
+    counterparty_froze_line: false
   },
   { account: 'r3GgMwvgvP8h4yVWvjH1dPZNvC37TjzBBE',
     counterparty: 'rE6R3DWF9fBD7CyiQciePF9SqK58Ubp8o2',
@@ -416,7 +458,9 @@ module.exports.RESTAccountTrustlinesResponse = JSON.stringify({
     limit: '0',
     reciprocated_limit: '100',
     account_allows_rippling: true,
-    counterparty_allows_rippling: false 
+    counterparty_allows_rippling: false,
+    account_froze_line: false,
+    counterparty_froze_line: false
   },
   { account: 'r3GgMwvgvP8h4yVWvjH1dPZNvC37TjzBBE',
     counterparty: 'rE6R3DWF9fBD7CyiQciePF9SqK58Ubp8o2',
@@ -424,7 +468,9 @@ module.exports.RESTAccountTrustlinesResponse = JSON.stringify({
     limit: '0',
     reciprocated_limit: '100',
     account_allows_rippling: true,
-    counterparty_allows_rippling: false 
+    counterparty_allows_rippling: false,
+    account_froze_line: false,
+    counterparty_froze_line: false
   },
   { account: 'r3GgMwvgvP8h4yVWvjH1dPZNvC37TjzBBE',
     counterparty: 'rs9M85karFkCRjvc6KMWn8Coigm9cbcgcx',
@@ -432,7 +478,9 @@ module.exports.RESTAccountTrustlinesResponse = JSON.stringify({
     limit: '10.01037626125837',
     reciprocated_limit: '0',
     account_allows_rippling: false,
-    counterparty_allows_rippling: true 
+    counterparty_allows_rippling: true,
+    account_froze_line: false,
+    counterparty_froze_line: false
   },
   { account: 'r3GgMwvgvP8h4yVWvjH1dPZNvC37TjzBBE',
     counterparty: 'rEhDDUUNxpXgEHVJtC2cjXAgyx5VCFxdMF',
@@ -440,7 +488,9 @@ module.exports.RESTAccountTrustlinesResponse = JSON.stringify({
     limit: '0',
     reciprocated_limit: '1',
     account_allows_rippling: true,
-    counterparty_allows_rippling: true 
+    counterparty_allows_rippling: true,
+    account_froze_line: false,
+    counterparty_froze_line: false
   }
   ]
 });
@@ -529,6 +579,19 @@ module.exports.RESTTrustlineSubmitResponse = JSON.stringify({
     currency: 'USD',
     counterparty: 'rvYAfWj5gh67oV6fW32ZzP3Aw4Eubs59B',
     account_allows_rippling: true
+  },
+  ledger: '8819955',
+  hash: '0F480D344CFC610DFA5CAC62CC1621C92953A05FE8C319281CA49C5C162AF40E'
+});
+
+module.exports.RESTTrustlineSubmitFrozenResponse = JSON.stringify({
+  success: true,
+  trustline: {
+    account: 'r3GgMwvgvP8h4yVWvjH1dPZNvC37TjzBBE',
+    limit: '1',
+    currency: 'USD',
+    counterparty: 'rvYAfWj5gh67oV6fW32ZzP3Aw4Eubs59B',
+    account_froze_trustline: true
   },
   ledger: '8819955',
   hash: '0F480D344CFC610DFA5CAC62CC1621C92953A05FE8C319281CA49C5C162AF40E'
