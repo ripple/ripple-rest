@@ -670,7 +670,7 @@ describe('payments', function() {
 
     route.once('ripple_path_find',_ripple_path_find);
     app.get('/v1/accounts/'+fixtures.accounts.alice.address+'/payments/paths/'+fixtures.accounts.bob.address+'/10+USD+'+fixtures.accounts.alice.address)
-      .end(function(err, resp) {
+      .expect(function(resp) {
         assert.deepEqual(resp.body, {
           success: false,
           error_type: 'invalid_request',
@@ -679,8 +679,8 @@ describe('payments', function() {
         });
         assert.equal(orderlist.test(),true);
         orderlist.reset();
-        done();
-      });
+      })
+      .end(done);
   });
 
 
@@ -744,22 +744,24 @@ describe('payments', function() {
           "allows_rippling": false
         }
       })
-    .end(function(err, resp) {
+    .expect(function(resp) {
       delete resp.body.ledger;
       delete resp.body.hash;
-      assert.deepEqual(resp.body,{ success: true,
-        trustline: {
-          account: 'rwmityd4Ss34DBUsRy7Pacv6UA5n7yjfe5',
-          limit: '10',
-          currency: 'USD',
-          counterparty: 'rJRLoJSErtNRFnbCyHEUYnRUKNwkVYDM7U',
-          account_allows_rippling: true
+      assert.deepEqual(resp.body,{
+        "success": true,
+        "trustline": {
+          "account": "rwmityd4Ss34DBUsRy7Pacv6UA5n7yjfe5",
+          "limit": "10",
+          "currency": "USD",
+          "counterparty": "rJRLoJSErtNRFnbCyHEUYnRUKNwkVYDM7U",
+          "account_allows_rippling": true,
+          "account_froze_trustline": false
         }
       });
       assert.equal(orderlist.test(),true);
       orderlist.reset();
-      done();
-    });
+    })
+    .end(done);
   });
 
 
@@ -996,13 +998,13 @@ describe('payments', function() {
           "allows_rippling": false
         }
       })
-      .end(function(err, resp) {
+      .expect(function(resp) {
         assert.equal(resp.status, 400)
         assert.deepEqual(resp.body,{ success: false,
           error_type: 'invalid_request',
           error: 'Parameter missing: secret' })
-        done();
       })
+      .end(done);
   });
 
   // TODO: PROBLEM no response, secret approximation takes very long, no response for over 10 seconds
@@ -1033,20 +1035,23 @@ describe('payments', function() {
           "allows_rippling": false
         }
       })
-      .end(function(err, resp) {
+      .expect(function(resp) {
         assert.equal(resp.status,201);
         delete resp.body.hash;
         delete resp.body.ledger;
-        assert.deepEqual(resp.body,{ success: true,
-          trustline:
-          { account: 'rsE6ZLDkXhSvfJHvSqFPhdazsoMgCEC52V',
-            limit: '10',
-            currency: 'USD',
-            counterparty: 'r3YHFNkQRJDPc9aCkRojPLwKVwok3ihgBJ',
-            account_allows_rippling: true }
+        assert.deepEqual(resp.body,{
+          "success": true,
+          "trustline": {
+            "account": "rsE6ZLDkXhSvfJHvSqFPhdazsoMgCEC52V",
+            "limit": "10",
+            "currency": "USD",
+            "counterparty": "r3YHFNkQRJDPc9aCkRojPLwKVwok3ihgBJ",
+            "account_allows_rippling": true,
+            "account_froze_trustline": false
+          }
         });
-        done();
       })
+      .end(done);
   });
 
   it('dan grants an additional trustline of 10 usd towards carol and uses correct address in the accounts setting', function(done) {
@@ -1060,17 +1065,20 @@ describe('payments', function() {
           "allows_rippling": false
         }
       })
-      .expect(function(resp, err) {
-        assert.equal(resp.status,201)
-        delete resp.body.hash
-        delete resp.body.ledger
-        assert.deepEqual(resp.body,{ success: true,
-          trustline:
-          { account: 'rsE6ZLDkXhSvfJHvSqFPhdazsoMgCEC52V',
-            limit: '10',
-            currency: 'USD',
-            counterparty: 'r3YHFNkQRJDPc9aCkRojPLwKVwok3ihgBJ',
-            account_allows_rippling: true }
+      .expect(function(resp) {
+        assert.equal(resp.status,201);
+        delete resp.body.hash;
+        delete resp.body.ledger;
+        assert.deepEqual(resp.body, {
+          "success": true,
+          "trustline": {
+            "account": "rsE6ZLDkXhSvfJHvSqFPhdazsoMgCEC52V",
+            "limit": "10",
+            "currency": "USD",
+            "counterparty": "r3YHFNkQRJDPc9aCkRojPLwKVwok3ihgBJ",
+            "account_allows_rippling": true,
+            "account_froze_trustline": false
+          }
         });
       })
       .end(done);
