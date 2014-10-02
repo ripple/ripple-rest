@@ -43,9 +43,8 @@ module.exports.RESTAccountNotFound = JSON.stringify({
   message: 'Account not found.'
 });
 
-module.exports.RESTNoLedgerClose = JSON.stringify({
+module.exports.RESTCannotConnectToRippleD = JSON.stringify({
   success: false,
   error_type: 'connection',
-  error: 'Cannot connect to rippled',
-  message: 'No "ledger_closed" events were heard within 20 seconds, most likely indicating that the connection to rippled has been interrupted or the rippled is unresponsive. Please check your internet connection and server settings and try again.'
+  error: 'Cannot connect to rippled'
 });

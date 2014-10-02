@@ -80,7 +80,7 @@ describe('get server info', function() {
     .get('/v1/server/connected')
     .expect(testutils.checkStatus(502))
     .expect(testutils.checkHeaders)
-    .expect(testutils.checkBody(errors.RESTNoLedgerClose))
+    .expect(testutils.checkBody(errors.RESTCannotConnectToRippleD))
     .end(done);
   });
 });
