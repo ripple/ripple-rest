@@ -6,3 +6,4 @@ config.json
 .DS_Store
 coverage/
 .idea/
+*.db
