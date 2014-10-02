@@ -69,7 +69,7 @@ describe('get balances', function() {
 
     self.app
     .get(requestPath(addresses.VALID))
-    //XXX .expect(testutils.checkStatus(404))
+    .expect(testutils.checkStatus(404))
     .expect(testutils.checkHeaders)
     .expect(testutils.checkBody(errors.RESTAccountNotFound))
     .end(done);

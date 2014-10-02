@@ -54,7 +54,7 @@ describe('get trustlines', function() {
 
     self.app
     .get(fixtures.requestPath(addresses.VALID))
-    //XXX .expect(testutils.checkStatus(404))
+    .expect(testutils.checkStatus(404))
     .expect(testutils.checkHeaders)
     .expect(testutils.checkBody(errors.RESTAccountNotFound))
     .end(done);
