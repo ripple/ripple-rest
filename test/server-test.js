@@ -14,6 +14,32 @@ describe('get server info', function() {
   beforeEach(testutils.setup.bind(self));
   afterEach(testutils.teardown.bind(self));
 
+  it('/', function(done) {
+    self.wss.once('request_server_info', function(message, conn) {
+      assert(false, 'should not request server info');
+    });
+
+    self.app
+      .get('/v1')
+      .expect(testutils.checkStatus(200))
+      .expect(testutils.checkHeaders)
+      .expect(testutils.checkBody(fixtures.RESTServerIndexResponse))
+      .end(done);
+  });
+
+  it('/v1', function(done) {
+    self.wss.once('request_server_info', function(message, conn) {
+      assert(false, 'should not request server info');
+    });
+
+    self.app
+      .get('/v1')
+      .expect(testutils.checkStatus(200))
+      .expect(testutils.checkHeaders)
+      .expect(testutils.checkBody(fixtures.RESTServerIndexResponse))
+      .end(done);
+  });
+
   it('/server', function(done) {
     self.wss.once('request_server_info', function(message, conn) {
       assert.strictEqual(message.command, 'server_info');

@@ -55,3 +55,24 @@ module.exports.RESTServerConnectedResponse = JSON.stringify({
   success: true,
   connected: true
 });
+
+module.exports.RESTServerIndexResponse = JSON.stringify({
+  success: true,
+  name: "ripple-rest",
+  version: "1",
+  documentation: "https://github.com/ripple/ripple-rest",
+  endpoints: {
+    submit_payment: "/v1/payments",
+    account_new: "/v1/accounts/new",
+    payment_paths: "/v1/accounts/{address}/payments/paths/{destination_account}/{destination_amount as value+currency or value+currency+issuer}",
+    account_payments: "/v1/accounts/{address}/payments/{hash,client_resource_id}{?direction,exclude_failed}",
+    account_notifications: "/v1/accounts/{address}/notifications/{hash,client_resource_id}",
+    account_balances: "/v1/accounts/{address}/balances",
+    account_settings: "/v1/accounts/{address}/settings",
+    account_trustlines: "/v1/accounts/{address}/trustlines",
+    ripple_transactions: "/v1/transactions/{hash}",
+    server_status: "/v1/server",
+    server_connected: "/v1/server/connected",
+    uuid_generator: "/v1/uuid"
+  }
+});

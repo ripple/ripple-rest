@@ -847,10 +847,10 @@ describe('payments', function() {
 
   it('path find populate carol with all missing endpoint value',function(done) {
     app.get('/v1/accounts/'+fixtures.accounts.genesis.address+'/payments/paths/'+fixtures.accounts.carol.address+'/')
-      .end(function(err, resp) {
+      .expect(function(resp) {
         assert.equal(resp.status,404);
-        done()
       })
+      .end(done);
   });
 
   it('path find populate carol with 400',function(done) {
