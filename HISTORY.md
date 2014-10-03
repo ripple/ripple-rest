@@ -2,6 +2,8 @@
 
 + Memo field support
 
++ Freeze support
+
 + New endpoint to generate an address/secret pair, `/account/new`
 
 + New configuration, you will have to change your config file
@@ -22,7 +24,17 @@
 
 + New test-suite
 
++ Log all connected servers, add reconnect to servers on SIGHUP
+
++ Tied api version to major package version and added package version to index page `/` or `/v1`
+
 + Update ripple-lib which fixes several stability problems and crashes
+
++ Fix: issue where forcible server connectivity check would cause permanent server disconnect
+
++ Fix: show index page while hitting root `/`
+
++ Fix: issue with notification parsing
 
 + Fix: check and validate issuer upon payment
 
