@@ -392,7 +392,7 @@ function getAccountPayments(request, response, next) {
 
       dbinterface.getTransaction({ hash: payment.hash }, function(error, db_entry) {
         if (error) {
-          return callback(error);
+          return async_map_callback(error);
         }
         var client_resource_id = '';
         if (db_entry && db_entry.client_resource_id) {
