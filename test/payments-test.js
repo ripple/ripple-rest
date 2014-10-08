@@ -65,7 +65,7 @@ describe('get payments', function() {
   });
 });
 
-describe.skip('post payments', function() {
+describe('post payments', function() {
   var self = this;
 
   //self.wss: rippled mock
