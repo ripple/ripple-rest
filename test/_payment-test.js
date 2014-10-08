@@ -21,7 +21,7 @@ var orderlist     = new testutils.orderlist;
  */
 
 
-describe('payments', function() {
+describe.skip('payments', function() {
 
   var rippled;
 
