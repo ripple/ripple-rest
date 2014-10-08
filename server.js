@@ -40,8 +40,3 @@ if (config.get('ssl_enabled')) {
     logger.info('server listening over UNSECURED HTTP at port ' + port);
   });
 }
-
-// Connect to Ripple
-if (!process.env.TRAVIS) {
-  app.remote.connect();
-}
