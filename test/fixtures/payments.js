@@ -477,6 +477,32 @@ module.exports.nonXrpPaymentWithIssuer = {
   }
 };
 
+module.exports.nonXrpPaymentWithInvalidSecret = {
+  "secret": "sssssssssssssssssssssssssssss",
+  "client_resource_id": "614013f0-034f-4e22-ada9-4d131d71781f",
+  "payment": {
+    "source_account": fromAccount,
+    "source_tag": "",
+    "source_amount": {
+      "value": "1",
+      "currency": "USD",
+      "issuer": ""
+    },
+    "source_slippage": "0",
+    "destination_account": toAccount,
+    "destination_tag": "",
+    "destination_amount": {
+      "value": "1",
+      "currency": "USD",
+      "issuer": "rf1BiGeXwwQoi8Z2ueFYTEXSwuJYfV2Jpn"
+    },
+    "invoice_id": "",
+    "paths": "[]",
+    "partial_payment": false,
+    "no_direct_ripple": false
+  }
+};
+
 module.exports.accountInfoResponse = function(request) {
   return JSON.stringify(
     {
@@ -598,5 +624,13 @@ module.exports.RESTNonXrpPaymentWithIssuer = JSON.stringify(
     "success": true,
     "client_resource_id": "1",
     "status_url": "http://127.0.0.1:5990/v1/accounts/r3GgMwvgvP8h4yVWvjH1dPZNvC37TjzBBE/payments/1"
+  }
+);
+
+module.exports.RESTNonXrpPaymentWithInvalidsecret = JSON.stringify(
+  {
+    "success":false,
+    "error_type":"transaction",
+    "error":"Invalid secret"
   }
 );

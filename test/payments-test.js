@@ -253,5 +253,24 @@ describe('post payments', function() {
       .expect(testutils.checkBody(fixtures.RESTNonXrpPaymentWithoutIssuer))
       .end(done);
   });
+
+  it('/payments -- with invalid secret', function(done) {
+    self.wss.once('request_account_info', function(message, conn) {
+      assert.strictEqual(true, false);
+    });
+
+    self.wss.once('request_submit', function(message, conn) {
+      assert.strictEqual(true, false);
+    });
+
+    self.app
+      .post('/v1/payments')
+      .send(fixtures.nonXrpPaymentWithInvalidSecret)
+      .expect(testutils.checkStatus(500))
+      .expect(testutils.checkHeaders)
+      .expect(testutils.checkBody(fixtures.RESTNonXrpPaymentWithInvalidsecret))
+      .end(done);
+  });
+
 });
 
