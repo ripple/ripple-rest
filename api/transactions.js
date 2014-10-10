@@ -34,18 +34,19 @@ module.exports = {
  *  @param {submission response} response The response received from the 'proposed' event
  */
 function submitTransaction(data, response, callback) {
-
   function prepareTransaction(async_callback) {
     data.transaction.secret(data.secret);
     data.transaction.clientID(data.client_resource_id);
     async_callback(null, data.transaction);
   };
 
-  function blockDuplicates(transaction, async_callback) {    
+  function blockDuplicates(transaction, async_callback) {
     var type = transaction.tx_json.TransactionType;
+
     if (type !== 'Payment' && type !== 'OfferCreate' && type !== 'OfferCancel') {
       return async_callback(null, transaction);
     }
+
     dbinterface.getTransaction({
       source_account: transaction.tx_json.Account,
       client_resource_id: data.client_resource_id,
@@ -54,6 +55,7 @@ function submitTransaction(data, response, callback) {
         if (error) {
           return async_callback(error);
         }
+
         if (db_record && db_record.state !== 'failed') {
           async_callback(new errors.ApiError('Duplicate Transaction. ' +
             'A record already exists in the database for a transaction of this type ' +
@@ -70,16 +72,27 @@ function submitTransaction(data, response, callback) {
     transaction.remote = remote;
 
     var ledgerIndex = remote._ledger_current_index;
-
-    if (!isNaN(ledgerIndex)) {
-      transaction.lastLedger(Number(ledgerIndex) + module.exports.DEFAULT_LEDGER_BUFFER);
-    }
+    transaction.lastLedger(Number(ledgerIndex) + module.exports.DEFAULT_LEDGER_BUFFER);
 
     transaction.once('error', async_callback);
 
     transaction.once('proposed', function() {
       transaction.removeListener('error', async_callback);
       async_callback(null, transaction._clientID);
+    });
+
+    function saveTransaction() {
+      dbinterface.saveTransaction(transaction.summary());
+    };
+
+    transaction.once('proposed', function() {
+      saveTransaction();
+
+      // Save transaction after every subsequent submission
+      transaction.on('submitted', saveTransaction);
+
+      // Save on state change
+      transaction.on('state', saveTransaction);
     });
 
     transaction.submit();
@@ -250,7 +263,6 @@ function getTransactionHelper(request, response, callback) {
       async_callback(null, transaction);
     });
   };
-
 };
 
 /**
@@ -280,7 +292,6 @@ function getTransactionHelper(request, response, callback) {
  *  @param {Array of transactions in JSON format} transactions
  */
 function getAccountTransactions(options, response, callback) {
-
   var steps = [
     validateOptions,
     queryTransactions,
