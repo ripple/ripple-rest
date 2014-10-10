@@ -6,6 +6,7 @@ var fixtures = require('./fixtures').payments;
 var errors = require('./fixtures').errors;
 var addresses = require('./fixtures').addresses;
 var requestPath = fixtures.requestPath;
+var Payments = require('./../api/payments');
 
 describe('get payments', function() {
   var self = this;
@@ -270,6 +271,30 @@ describe('post payments', function() {
       .expect(testutils.checkHeaders)
       .expect(testutils.checkBody(fixtures.RESTNonXrpPaymentWithInvalidsecret))
       .end(done);
+  });
+
+});
+
+//
+// Unit test payments
+//
+
+describe('unit test payments', function() {
+
+  it('should parse payment tx', function(done) {
+    var transaction = Payments._parsePaymentFromTx(fixtures.txPayment, { account: 'rGUpotx8YYDiocqS577N4T1p1kHBNdEJ9s' }, function(err){
+      assert(false, 'callback should not have been called');
+    });
+    assert.deepEqual(transaction, fixtures.RESTResponsePayment);
+    done();
+  });
+
+  it('should parse partial payment tx', function(done) {
+    var transaction = Payments._parsePaymentFromTx(fixtures.txPartialPayment, { account: 'rDuV4ndTFUn5NjLJSTNfEFMTxqQVeafvxC' }, function(err){
+      assert(false, 'callback should not have been called');
+    });
+    assert.deepEqual(transaction, fixtures.RESTResponsePartialPayment);
+    done();
   });
 
 });

@@ -24,7 +24,8 @@ module.exports = {
   submit: submitPayment,
   get: getPayment,
   getAccountPayments: getAccountPayments,
-  getPathFind: getPathFind
+  getPathFind: getPathFind,
+  _parsePaymentFromTx: parsePaymentFromTx
 };
 
 var paymentToTransactionConverter = new RestToLibTxConverter();
@@ -650,6 +651,18 @@ function parsePaymentFromTx(tx, options, callback) {
     }
   }
 
+  var Amount;
+  var isPartialPayment = tx.Flags & 0x00020000 ? true : false;
+
+  // if there is a DeliveredAmount we should use it over Amount
+  // there should always be a DeliveredAmount if the partial payment flag is set
+  // also there shouldn't be a DeliveredAmount if there's no partial payment flag
+  if(isPartialPayment && tx.meta && tx.meta.DeliveredAmount) {
+    Amount = tx.meta.DeliveredAmount;
+  } else {
+    Amount = tx.Amount;
+  }
+
   var payment = {
     // User supplied
     source_account: tx.Account,
@@ -662,20 +675,20 @@ function parsePaymentFromTx(tx, options, callback) {
           currency: 'XRP',
           issuer: ''
         }) :
-      (typeof tx.Amount === 'string' ?
+      (typeof Amount === 'string' ?
         {
           value: utils.dropsToXrp(tx.Amount),
           currency: 'XRP',
           issuer: ''
         } :
-        tx.Amount)),
+        Amount)),
     source_slippage: '0',
     destination_account: tx.Destination,
     destination_tag: (tx.DestinationTag ? '' + tx.DestinationTag : ''),
-    destination_amount: (typeof tx.Amount === 'object' ?
-      tx.Amount :
+    destination_amount: (typeof Amount === 'object' ?
+      Amount :
       {
-        value: utils.dropsToXrp(tx.Amount),
+        value: utils.dropsToXrp(Amount),
         currency: 'XRP',
         issuer: ''
       }),
@@ -683,7 +696,7 @@ function parsePaymentFromTx(tx, options, callback) {
     invoice_id: tx.InvoiceID || '',
     paths: JSON.stringify(tx.Paths || []),
     no_direct_ripple: (tx.Flags & 0x00010000 ? true : false),
-    partial_payment: (tx.Flags & 0x00020000 ? true : false),
+    partial_payment: isPartialPayment,
     // Generated after validation
     direction: (options.account ?
       (options.account === tx.Account ?
@@ -718,6 +731,30 @@ function parsePaymentFromTx(tx, options, callback) {
     for(var m=0; m<tx.Memos.length; m++) {
       payment.memos.push(tx.Memos[m].Memo);
     }
+  }
+  if (isPartialPayment && tx.meta && tx.meta.DeliveredAmount) {
+    payment.destination_amount_submitted = (typeof tx.Amount === 'object' ?
+      tx.Amount :
+    {
+      value: utils.dropsToXrp(tx.Amount),
+      currency: 'XRP',
+      issuer: ''
+    });
+    payment.source_amount_submitted = (tx.SendMax ?
+      (typeof tx.SendMax === 'object' ?
+        tx.SendMax :
+      {
+        value: utils.dropsToXrp(tx.SendMax),
+        currency: 'XRP',
+        issuer: ''
+      }) :
+      (typeof tx.Amount === 'string' ?
+      {
+        value: utils.dropsToXrp(tx.Amount),
+        currency: 'XRP',
+        issuer: ''
+      } :
+        tx.Amount));
   }
   return payment;
 };
