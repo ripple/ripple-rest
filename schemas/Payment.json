@@ -95,7 +95,7 @@
       }
     },
     "destination_balance_changes": {
-      "description": "Parsed from the validated transaction metadata, this array represents the changes to balances held by the destination_account. For those receiving payments this is important to check because if the partial_payment flag is set this value may be less than the destination_amount",
+      "description": "Parsed from the validated transaction metadata, this array represents the changes to balances held by the destination_account. The summation of the balance changes should equal the destination_amount. Use the balance changes to validate the destination_amount.",
       "type": "array",
       "items": {
         "$ref": "Amount"
