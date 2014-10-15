@@ -41,10 +41,14 @@ function submitTransaction(data, response, callback) {
   };
 
   function blockDuplicates(transaction, async_callback) {
-    var type = transaction.tx_json.TransactionType;
-
-    if (type !== 'Payment' && type !== 'OfferCreate' && type !== 'OfferCancel') {
-      return async_callback(null, transaction);
+    switch (transaction.tx_json.TransactionType) {
+      case 'Payment':
+      case 'OfferCreate':
+      case 'OfferCancel':
+        // Only check duplicates for these transaction types... for some reason
+        break;
+      default:
+        return async_callback(null, transaction);
     }
 
     dbinterface.getTransaction({
@@ -71,8 +75,8 @@ function submitTransaction(data, response, callback) {
   function submitTransaction(transaction, async_callback) {
     transaction.remote = remote;
 
-    var ledgerIndex = remote._ledger_current_index;
-    transaction.lastLedger(Number(ledgerIndex) + module.exports.DEFAULT_LEDGER_BUFFER);
+    var ledgerIndex = Number(remote._ledger_current_index);
+    transaction.lastLedger(ledgerIndex + module.exports.DEFAULT_LEDGER_BUFFER);
 
     function saveTransaction() {
       dbinterface.saveTransaction(transaction.summary());
@@ -80,6 +84,43 @@ function submitTransaction(data, response, callback) {
 
     function isInLedger(message) {
       return /^te(c|s)/.test(message.engine_result || '');
+    };
+
+    function handleSubmission(message) {
+      // Handle submission of transaction that should make it into ledger.
+      transaction.removeListener('error', async_callback);
+
+      // Save on state change
+      setImmediate(function() {
+        transaction.on('state', saveTransaction);
+      });
+
+      async_callback(null, transaction._clientID);
+    };
+
+    function handleSubmissionError(message) {
+      // Handle erred transactions that should not make it into ledger (all
+      // errors that aren't tec-class). This function is called before the
+      // transaction `error` listener.
+
+      switch (message.engine_result) {
+        case 'terNO_ACCOUNT':
+        case 'terNO_AUTH':
+        case 'terNO_LINE':
+        case 'terINSUF_FEE_B':
+          // The transaction needs to be aborted. Preserve the original ter-
+          // class error for presentation to the client
+          transaction.removeListener('error', handleError);
+          transaction.once('error', function(err) {
+            async_callback(message);
+          });
+          transaction.abort();
+          break;
+      }
+    };
+
+    function handleError(message) {
+      async_callback(message);
     };
 
     transaction.on('submitted', function(message) {
@@ -91,25 +132,15 @@ function submitTransaction(data, response, callback) {
 
     transaction.once('submitted', function(message) {
       if (isInLedger(message)) {
-        transaction.removeListener('error', async_callback);
-        // Save on state change
-        setImmediate(function() {
-          transaction.on('state', saveTransaction);
-        });
-        async_callback(null, transaction._clientID);
+        // Handle submission of transactions that should make it into ledger.
+        handleSubmission(message);
       } else {
-        switch (message.engine_result) {
-          case 'terNO_ACCOUNT':
-          case 'terNO_AUTH':
-          case 'terNO_LINE':
-          case 'terINSUF_FEE_B':
-            transaction.abort();
-            break;
-        }
+        // Handle post-submission error
+        handleSubmissionError(message);
       }
     });
 
-    transaction.once('error', async_callback);
+    transaction.once('error', handleError);
     transaction.submit();
   };
 
