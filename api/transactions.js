@@ -10,7 +10,7 @@ var errors      = require('./../lib/errors.js');
 module.exports = {
   DEFAULT_RESULTS_PER_PAGE: 10,
   NUM_TRANSACTION_TYPES: 5,
-  DEFAULT_LEDGER_BUFFER: 6,
+  DEFAULT_LEDGER_BUFFER: 3,
   submit: submitTransaction,
   get: getTransaction,
   getTransactionHelper: getTransactionHelper,
@@ -74,27 +74,42 @@ function submitTransaction(data, response, callback) {
     var ledgerIndex = remote._ledger_current_index;
     transaction.lastLedger(Number(ledgerIndex) + module.exports.DEFAULT_LEDGER_BUFFER);
 
-    transaction.once('error', async_callback);
-
-    transaction.once('proposed', function() {
-      transaction.removeListener('error', async_callback);
-      async_callback(null, transaction._clientID);
-    });
-
     function saveTransaction() {
       dbinterface.saveTransaction(transaction.summary());
     };
 
-    transaction.once('proposed', function() {
-      saveTransaction();
+    function isInLedger(message) {
+      return /^te(c|s)/.test(message.engine_result || '');
+    };
 
-      // Save transaction after every subsequent submission
-      transaction.on('submitted', saveTransaction);
-
-      // Save on state change
-      transaction.on('state', saveTransaction);
+    transaction.on('submitted', function(message) {
+      if (isInLedger(message)) {
+        // Save when submitted and will be included in the ledger
+        setImmediate(saveTransaction);
+      }
     });
 
+    transaction.once('submitted', function(message) {
+      if (isInLedger(message)) {
+        transaction.removeListener('error', async_callback);
+        // Save on state change
+        setImmediate(function() {
+          transaction.on('state', saveTransaction);
+        });
+        async_callback(null, transaction._clientID);
+      } else {
+        switch (message.engine_result) {
+          case 'terNO_ACCOUNT':
+          case 'terNO_AUTH':
+          case 'terNO_LINE':
+          case 'terINSUF_FEE_B':
+            transaction.abort();
+            break;
+        }
+      }
+    });
+
+    transaction.once('error', async_callback);
     transaction.submit();
   };
 
