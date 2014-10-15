@@ -95,7 +95,9 @@ function submitTransaction(data, response, callback) {
         transaction.on('state', saveTransaction);
       });
 
-      async_callback(null, transaction._clientID);
+      if (/^tes/.test(message.engine_result)) {
+        async_callback(null, transaction._clientID);
+      }
     };
 
     function handleSubmissionError(message) {
