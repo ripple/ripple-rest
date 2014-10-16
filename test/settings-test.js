@@ -70,7 +70,6 @@ describe('post settings', function() {
   afterEach(testutils.teardown.bind(self));
 
   it('/accounts/:account/settings', function(done) {
-
     var lastLedger = self.app.remote._ledger_current_index;
 
     self.wss.once('request_account_info', function(message, conn) {
@@ -87,6 +86,8 @@ describe('post settings', function() {
 
       assert.strictEqual(so.TransactionType, 'AccountSet');
       assert.strictEqual(so.Flags, 2148859904);
+      assert.strictEqual(so.ClearFlag, 6);
+      assert.strictEqual(so.SetFlag, 7);
       assert.strictEqual(typeof so.Sequence, 'number');
       assert.strictEqual(so.LastLedgerSequence, lastLedger + LEDGER_OFFSET);
       assert.strictEqual(so.Fee, '12');
@@ -108,7 +109,9 @@ describe('post settings', function() {
         email_hash: '23463B99B62A72F26ED677CC556C44E8',
         wallet_locator: 'DEADBEEF',
         wallet_size: 1,
-        transfer_rate: 2
+        transfer_rate: 2,
+        no_freeze: false,
+        global_freeze: true
       }})
       .expect(testutils.checkStatus(200))
       .expect(testutils.checkHeaders)

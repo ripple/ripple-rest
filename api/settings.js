@@ -1,15 +1,17 @@
-var async     = require('async');
-var ripple    = require('ripple-lib');
-var remote    = require('./../lib/remote.js');
-var respond   = require('./../lib/response-handler.js');
-var errors    = require('./../lib/errors.js');
+var async       = require('async');
+var ripple      = require('ripple-lib');
+var remote      = require('./../lib/remote.js');
+var respond     = require('./../lib/response-handler.js');
+var errors      = require('./../lib/errors.js');
 
 const AccountRootFlags = {
-  PasswordSpent:   { name: 'password_spent', value: 0x00010000 },
-  RequireDestTag:  { name: 'require_destination_tag', value: 0x00020000 },
-  RequireAuth:     { name: 'require_authorization', value: 0x00040000 },
-  DisallowXRP:     { name: 'disallow_xrp', value: 0x00080000 },
-  DisableMaster:   { name: 'disable_master', value: 0x00100000 }
+  PasswordSpent:   { name:  'password_spent', value: 0x00010000 },
+  RequireDestTag:  { name:  'require_destination_tag', value: 0x00020000 },
+  RequireAuth:     { name:  'require_authorization', value: 0x00040000 },
+  DisallowXRP:     { name:  'disallow_xrp', value: 0x00080000 },
+  DisableMaster:   { name:  'disable_master', value: 0x00100000 },
+  NoFreeze:        { name:  'no_freeze', value: 0x00200000 },
+  GlobalFreeze:    { name:  'global_freeze', value: 0x00400000 }
 };
 
 const AccountRootFields = {
@@ -31,9 +33,7 @@ module.exports = {
 };
 
 function getSettings(request, response, next) {
-
   remote.requestAccountInfo(request.params.account, function(error, info) {
-
     if (error) {
       return next(error);
     }
@@ -64,11 +64,9 @@ function getSettings(request, response, next) {
 
     respond.success(response, { settings: settings });
   });
-}
-
+};
 
 function changeSettings(request, response, next) {
-
   var options = request.params;
 
   Object.keys(request.body).forEach(function(param) {
@@ -97,7 +95,6 @@ function changeSettings(request, response, next) {
     }
     if (!options.secret) {
       return callback(new InvalidRequestError('Parameter missing: secret'));
-
     }
     if (!/(undefined|string)/.test(typeof options.settings.domain)) {
       return callback(new InvalidRequestError('Parameter must be a string: domain'));
@@ -121,18 +118,24 @@ function changeSettings(request, response, next) {
         return callback(new InvalidRequestError('Parameter must be a number: wallet_size'));
       }
     }
+    if (!/(undefined|boolean)/.test(typeof options.settings.no_freeze)) {
+      return callback(new InvalidRequestError('Parameter must be a boolean: no_freeze'));
+    }
+    if (!/(undefined|boolean)/.test(typeof options.settings.global_freeze)) {
+      return callback(new InvalidRequestError('Parameter must be a boolean: global_freeze'));
+    }
 
     callback();
-  }
-
+  };
 
   function changeAccountSettings(callback) {
-
     const FlagSet = {
       require_destination_tag: { unset: 'OptionalDestTag', set: 'RequireDestTag', },
       require_authorization: { unset: 'OptionalAuth', set: 'RequireAuth' },
       disallow_xrp: { unset: 'AllowXRP', set: 'DisallowXRP' }
     }
+
+    const SetClearFlags = ripple.Transaction.set_clear_flags.AccountSet;
 
     var settings = { };
     var transaction = remote.transaction();
@@ -140,39 +143,72 @@ function changeSettings(request, response, next) {
     transaction.once('error', callback);
     transaction.once('proposed', function() {
       var summary = transaction.summary();
-      var result = { success: true }
+      var result = { success: true };
+
       if (summary.result) {
         result.hash = summary.result.transaction_hash;
         result.ledger = String(summary.submitIndex)
       }
+
       result.settings = settings;
       callback(null, result);
     });
 
     try {
-
       transaction.accountSet(options.account);
       transaction.secret(options.secret);
+
       // Set transaction flags
       for (var flagName in FlagSet) {
-        if (!(flagName in options.settings)) continue;
+        if (!(flagName in options.settings)) {
+          continue;
+        }
+
         var flag = FlagSet[flagName];
         var value = options.settings[flagName];
+
         if (value === '') {
           value = Boolean(value);
         }
+
         if (typeof value !== 'boolean') {
-          return callback(new InvalidRequestError('Parameter is not boolean: ' + flagName));
+          return callback(new InvalidRequestError(
+            'Parameter must be a boolean: ' + flagName));
         }
+
         settings[flagName] = value;
         transaction.setFlags(value ? flag.set : flag.unset);
+      }
+
+      // Set/clear NoFreeze
+      if (options.settings.hasOwnProperty('no_freeze')) {
+        settings.no_freeze = options.settings.no_freeze;
+        if (options.settings.no_freeze) {
+          transaction.tx_json.SetFlag = SetClearFlags.asfNoFreeze;
+        } else {
+          transaction.tx_json.ClearFlag = SetClearFlags.asfNoFreeze;
+        }
+      }
+
+      // Set/clear GlobalFreeze
+      if (options.settings.hasOwnProperty('global_freeze')) {
+        settings.global_freeze = options.settings.global_freeze;
+        if (options.settings.global_freeze) {
+          transaction.tx_json.SetFlag = SetClearFlags.asfGlobalFreeze;
+        } else {
+          transaction.tx_json.ClearFlag = SetClearFlags.asfGlobalFreeze;
+        }
       }
 
       // Set transaction fields
       for (var fieldName in AccountRootFields) {
         var field = AccountRootFields[fieldName];
         var value = options.settings[field.name];
-        if (typeof value === 'undefined') continue;
+
+        if (typeof value === 'undefined') {
+          continue;
+        }
+
         if (value === '') {
           switch (fieldName) {
             case 'Emailhash':
@@ -212,4 +248,4 @@ function changeSettings(request, response, next) {
 
     transaction.submit();
   };
-}
+};
