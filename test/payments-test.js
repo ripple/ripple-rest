@@ -91,7 +91,7 @@ describe('post payments', function() {
     body.payment.memos = "some string";
 
     self.app
-      .post('/v1/payments')
+      .post('/v1/accounts/' + addresses.VALID + '/payments')
       .send(body)
       .expect(testutils.checkStatus(400))
       .expect(testutils.checkHeaders)
@@ -115,7 +115,7 @@ describe('post payments', function() {
     body.payment.memos = [];
 
     self.app
-      .post('/v1/payments')
+      .post('/v1/accounts/' + addresses.VALID + '/payments')
       .send(body)
       .expect(testutils.checkStatus(400))
       .expect(testutils.checkHeaders)
@@ -139,7 +139,7 @@ describe('post payments', function() {
     body.payment.memos[0].MemoType = 1;
 
     self.app
-      .post('/v1/payments')
+      .post('/v1/accounts/' + addresses.VALID + '/payments')
       .send(body)
       .expect(testutils.checkStatus(400))
       .expect(testutils.checkHeaders)
@@ -163,7 +163,7 @@ describe('post payments', function() {
     body.payment.memos[0].MemoData = 1;
 
     self.app
-      .post('/v1/payments')
+      .post('/v1/accounts/' + addresses.VALID + '/payments')
       .send(body)
       .expect(testutils.checkStatus(400))
       .expect(testutils.checkHeaders)
@@ -187,7 +187,7 @@ describe('post payments', function() {
     delete body.payment.memos[0].MemoData;
 
     self.app
-      .post('/v1/payments')
+      .post('/v1/accounts/' + addresses.VALID + '/payments')
       .send(body)
       .expect(testutils.checkStatus(200))
       .expect(testutils.checkHeaders)
@@ -208,7 +208,7 @@ describe('post payments', function() {
     })
 
     self.app
-      .post('/v1/payments')
+      .post('/v1/accounts/' + addresses.VALID + '/payments')
       .send(fixtures.paymentWithMemo)
       .expect(testutils.checkStatus(200))
       .expect(testutils.checkHeaders)
@@ -229,7 +229,7 @@ describe('post payments', function() {
     });
 
     self.app
-      .post('/v1/payments')
+      .post('/v1/accounts/' + addresses.VALID + '/payments')
       .send(fixtures.nonXrpPaymentWithIssuer)
       .expect(testutils.checkStatus(200))
       .expect(testutils.checkHeaders)
@@ -247,7 +247,7 @@ describe('post payments', function() {
     });
 
     self.app
-      .post('/v1/payments')
+      .post('/v1/accounts/' + addresses.VALID + '/payments')
       .send(fixtures.nonXrpPaymentWithoutIssuer)
       .expect(testutils.checkStatus(400))
       .expect(testutils.checkHeaders)
@@ -265,7 +265,7 @@ describe('post payments', function() {
     });
 
     self.app
-      .post('/v1/payments')
+      .post('/v1/accounts/' + addresses.VALID + '/payments')
       .send(fixtures.nonXrpPaymentWithInvalidSecret)
       .expect(testutils.checkStatus(500))
       .expect(testutils.checkHeaders)

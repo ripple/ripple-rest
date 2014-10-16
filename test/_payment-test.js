@@ -157,7 +157,7 @@ describe('payments', function() {
     route.once('submit',_submit);
 
     // actually post a XRP payment of 429 from genesis to alice
-    app.post('/v1/payments')
+    app.post('/v1/accounts/' + fixtures.accounts.genesis.address + '/payments')
       .send(store.paymentGenesisToAlice)
       .expect(function(resp) {
         assert.strictEqual(resp.body.success, true);
@@ -311,7 +311,7 @@ describe('payments', function() {
     route.once('account_info',_account_info);
     route.once('submit',_submit);
 
-    app.post('/v1/payments')
+    app.post('/v1/accounts/' + fixtures.accounts.alice.address+ '/payments')
     .send(store.paymentAliceToBob)
     .expect(function(resp,err) {
       assert.strictEqual(resp.status, 500);
@@ -422,9 +422,9 @@ describe('payments', function() {
     };
 
     route.once('submit',_submit);
-    app.post('/v1/payments')
+    app.post('/v1/accounts/' + fixtures.accounts.alice.address + '/payments')
       .send(store.paymentAliceToBob)
-      .end(function(err,resp) {
+      .expect(function(resp) {
         assert.deepEqual(resp.body, {
           success: true,
           client_resource_id: 'foobar26',
@@ -433,8 +433,8 @@ describe('payments', function() {
         store.status_url = '/v1/accounts/'+fixtures.accounts.alice.address+'/payments/foobar26';
         assert.equal(orderlist.test(),true);
         orderlist.reset();
-        done();
-      });
+      })
+      .end(done);
   });
 
 
@@ -452,7 +452,7 @@ describe('payments', function() {
     route.once('tx',_tx);
 
     app.get(store.status_url)
-      .end(function(err, resp) {
+      .expect(function(resp) {
       assert.equal(resp.status,200);
       assert.equal(resp.body.success,true);
       var payment = resp.body.payment;
@@ -487,8 +487,8 @@ describe('payments', function() {
       }
       assert.equal(orderlist.test(),true);
       orderlist.reset();
-      done();
     })
+    .end(done);
   });
 
 
@@ -502,7 +502,7 @@ describe('payments', function() {
     route.once('tx',_tx)
 
     app.get('/v1/accounts/'+fixtures.accounts.alice.address+'/payments/'+store.hash)
-      .end(function(err, resp) {
+      .expect(function(resp) {
         assert.equal(resp.status,200);
         assert.equal(resp.body.success,true);
         var payment = resp.body.payment;
@@ -536,8 +536,8 @@ describe('payments', function() {
         };
         assert.equal(orderlist.test(),true);
         orderlist.reset();
-        done();
-      });
+      })
+      .end(done);
   });
 
 
@@ -787,14 +787,18 @@ describe('payments', function() {
     route.once('ripple_path_find',_ripple_path_find);
 
     app.get('/v1/accounts/'+fixtures.accounts.alice.address+'/payments/paths/'+fixtures.accounts.bob.address+'/10+USD+'+fixtures.accounts.alice.address)
-      .end(function(err, resp) {
+      .expect(function(resp) {
         assert.deepEqual(resp.body,{
           success: true,
           payments: [
             {
               source_account: 'rJRLoJSErtNRFnbCyHEUYnRUKNwkVYDM7U',
               source_tag: '',
-              source_amount: { value: '10', currency: 'USD', issuer: '' },
+              source_amount: {
+                value: '10',
+                currency: 'USD',
+                issuer: ''
+              },
               source_slippage: '0',
               destination_account: 'rwmityd4Ss34DBUsRy7Pacv6UA5n7yjfe5',
               destination_tag: '',
@@ -812,8 +816,8 @@ describe('payments', function() {
         });
         assert.equal(orderlist.test(),true);
         orderlist.reset();
-        done();
-      });
+      })
+      .end(done);
   });
 
 
@@ -867,7 +871,7 @@ describe('payments', function() {
   });
 
   it('Posting XRP from genesis to carol',function(done) {
-    app.post('/v1/payments')
+    app.post('/v1/accounts/' + fixtures.accounts.alice.address + '/payments')
       .send(store.paymentGenesisToCarol)
       .end(function(err,resp) {
         done();
@@ -887,7 +891,7 @@ describe('payments', function() {
   });
 
   it('Posting XRP from genesis to dan with missing client resource id',function(done) {
-    app.post('/v1/payments')
+    app.post('/v1/accounts/' + fixtures.accounts.alice.address + '/payments')
       .send(store.paymentGenesisToDan)
       .end(function(err,resp) {
         assert.deepEqual(resp.body,{ success: false,
@@ -900,7 +904,7 @@ describe('payments', function() {
 
   it('Posting XRP from genesis to dan with empty client resource id',function(done) {
     store.paymentGenesisToDan["client_resource_id"] = "";
-    app.post('/v1/payments')
+    app.post('/v1/accounts/' + fixtures.accounts.alice.address + '/payments')
       .send(store.paymentGenesisToDan)
       .end(function(err,resp) {
         assert.deepEqual(resp.body, { success: false,
@@ -913,7 +917,7 @@ describe('payments', function() {
 
   it('Posting XRP from genesis to dan with valid client resource id',function(done) {
     store.paymentGenesisToDan["client_resource_id"] = "qwerty";
-    app.post('/v1/payments')
+    app.post('/v1/accounts/' + fixtures.accounts.alice.address + '/payments')
       .send(store.paymentGenesisToDan)
       .end(function(err,resp) {
         assert.deepEqual(resp.body, { success: true,
@@ -925,7 +929,7 @@ describe('payments', function() {
 
   it('Double posting XRP from genesis to dan with valid client resource id',function(done) {
     store.paymentGenesisToDan["client_resource_id"] = "qwerty";
-    app.post('/v1/payments')
+    app.post('/v1/accounts/' + fixtures.accounts.alice.address + '/payments')
       .send(store.paymentGenesisToDan)
       .expect(function(resp,err) {
         assert.equal(resp.status, 500);
@@ -940,7 +944,7 @@ describe('payments', function() {
   });
 
   it('post a non-xrp payment without issuer',function(done) {
-    app.post('/v1/payments')
+    app.post('/v1/accounts/' + fixtures.accounts.alice.address + '/payments')
       .send({ secret: 'snoPBrXtMeMyMHUVTgbuqAfg1SUTb',
         client_resource_id : '123456',
         payment:
@@ -1097,7 +1101,7 @@ describe('payments', function() {
 
   // TODO: PROBLEM, no response for over 10 seconds
   it.skip('Posting 10USD from carol to dan with valid client resource id but incorrect secret',function(done) {
-    app.post('/v1/payments')
+    app.post('/v1/accounts/' + fixtures.accounts.alice.address + '/payments')
       .send(store.paymentCarolToDan)
       .end(function(err,resp) {
         done()
@@ -1108,7 +1112,7 @@ describe('payments', function() {
     store.paymentCarolToDan.secret = fixtures.accounts.carol.secret;
     store.value = store.paymentCarolToDan.payment.destination_amount.value
     delete store.paymentCarolToDan.payment.destination_amount.value
-    app.post('/v1/payments')
+    app.post('/v1/accounts/' + fixtures.accounts.alice.address + '/payments')
       .send(store.paymentCarolToDan)
       .expect(function(resp,err) {
         assert.equal(resp.status,400);
@@ -1126,7 +1130,7 @@ describe('payments', function() {
     store.paymentCarolToDan.payment.destination_amount.value = store.value;
     store.paymentCarolToDan.secret = fixtures.accounts.carol.secret;
     store.paymentCarolToDan.client_resource_id = 'abc';
-    app.post('/v1/payments')
+    app.post('/v1/accounts/' + fixtures.accounts.alice.address + '/payments')
       .send(store.paymentCarolToDan)
       .expect(function(resp,err) {
         assert.equal(resp.status, 200);
@@ -1145,7 +1149,7 @@ describe('payments', function() {
     store.paymentCarolToDan.secret = fixtures.accounts.carol.secret;
     store.client_resource_id = store.paymentCarolToDan.client_resource_id;
     store.paymentCarolToDan.client_resource_id = 'abc';
-    app.post('/v1/payments')
+    app.post('/v1/accounts/' + fixtures.accounts.alice.address + '/payments')
       .send(store.paymentCarolToDan)
       .expect(function(resp,err) {
         assert.strictEqual(resp.status, 500);

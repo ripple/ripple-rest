@@ -2,7 +2,7 @@ module.exports.VALID_TRANSACTION_HASH = 'F4AB442A6D4CBB935D66E1DA7309A5FC71C7143
 module.exports.INVALID_TRANSACTION_HASH = 'XF4AB442A6D4CBB935D66E1DA7309A5FC71C7143ED4049053EC14E3875B0CF9BF';
 
 module.exports.requestPath = function(identifier) {
-  return '/v1/transaction/' + ( identifier || '' );
+  return '/v1/transactions/' + ( identifier || '' );
 };
 
 module.exports.transactionResponse = function(request) {
