@@ -462,4 +462,39 @@ describe('post settings', function() {
       .expect(testutils.checkHeaders)
       .end(done);
   });
+
+  it('/accounts/:account/settings -- clear setting -- no_freeze', function(done) {
+    self.wss.once('request_account_info', function(message, conn) {
+      assert.strictEqual(message.command, 'account_info');
+      assert.strictEqual(message.account, addresses.VALID);
+      conn.send(fixtures.accountInfoResponse(message));
+    });
+
+    self.wss.once('request_submit', function(message, conn) {
+      assert.strictEqual(message.command, 'submit');
+      assert(message.hasOwnProperty('tx_blob'));
+
+      var so = new ripple.SerializedObject(message.tx_blob).to_json();
+
+      assert.strictEqual(so.TransactionType, 'AccountSet');
+      assert.strictEqual(typeof so.Sequence, 'number');
+      assert.strictEqual(so.ClearFlag, 6);
+      assert.strictEqual(so.LastLedgerSequence, self.app.remote._ledger_current_index + LEDGER_OFFSET);
+      assert.strictEqual(so.Fee, '12');
+      assert.strictEqual(so.Account, 'r3GgMwvgvP8h4yVWvjH1dPZNvC37TjzBBE');
+
+      conn.send(fixtures.submitSettingsResponse(message));
+    });
+
+    self.app
+    .post(fixtures.requestPath(addresses.VALID))
+    .send({
+      secret: addresses.SECRET,
+      settings: {
+        no_freeze: false
+      }})
+      .expect(testutils.checkStatus(200))
+      .expect(testutils.checkHeaders)
+      .end(done);
+  });
 });
