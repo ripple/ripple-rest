@@ -9,7 +9,7 @@ module.exports = {
 function generate(request, response, next) {
   var wallet = Wallet.generate();
   if (wallet) {
-    respond.success(response, { account: wallet });
+    respond.success(response, { wallet: wallet });
   } else {
     next(new errors.ApiError('Could not generate wallet'));
   }
