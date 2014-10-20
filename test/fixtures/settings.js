@@ -147,3 +147,9 @@ module.exports.RESTInvalidTransferRateResponse = JSON.stringify({
   error: 'Parameter must be a number: transfer_rate'
 });
 
+module.exports.RESTInvalidFreezeResponse = JSON.stringify({
+  success: false,
+  error_type: 'invalid_request',
+  error: 'Unable to set/clear no_freeze and global_freeze: disallow_xrp'
+});
+
