@@ -4,6 +4,8 @@
 [![Coverage Status](https://coveralls.io/repos/ripple/ripple-rest/badge.png?branch=develop)](https://coveralls.io/r/ripple/ripple-rest?branch=develop)
 [![Code Climate](https://codeclimate.com/github/ripple/ripple-rest.png)](https://codeclimate.com/github/ripple/ripple-rest)
 
+[![NPM](https://nodei.co/npm/ripple-rest.png)](https://www.npmjs.org/package/ripple-rest)
+
 A RESTful API for submitting payments and monitoring accounts on the Ripple Network.
 
 See the [__API Reference__](docs/api-reference.md) for details on the available endpoints and supported data formats.
