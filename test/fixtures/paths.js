@@ -1,7 +1,7 @@
 module.exports = {
-  generateIOUPaymentPaths: function(sendingAccount, destinationAccount, destinationAmount){
+  generateIOUPaymentPaths: function(request_id, sendingAccount, destinationAccount, destinationAmount){
     return JSON.stringify({
-      "id": 1,
+      "id": request_id,
       "status": "success",
       "type": "response",
       "result": {
@@ -298,9 +298,9 @@ module.exports = {
       }
     });
   },
-  generateXRPPaymentPaths: function(sendingAccount, destinationAccount, destinationAmount){
+  generateXRPPaymentPaths: function(request_id, sendingAccount, destinationAccount, destinationAmount){
     return JSON.stringify({
-      "id": 1,
+      "id": request_id,
       "status": "success",
       "type": "response",
       "result": {

@@ -805,7 +805,7 @@ function parsePaymentsFromPathfind(pathfind_results, options) {
         {
           value: utils.dropsToXrp(pathfind_results.destination_amount),
           currency: 'XRP',
-          issuer: pathfind_results.destination_account
+          issuer: ''
         } :
         {
           value: pathfind_results.destination_amount.value,

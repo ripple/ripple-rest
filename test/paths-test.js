@@ -71,9 +71,9 @@ describe('get payment paths', function() {
 
   describe ('sending account, destination account, destination amount are all valid', function () {
     describe ('getting paths for XRP destination amount', function () {
-      it ('should find that destination amount issuer equals destination account', function (done) {
+      it ('should find that destination amount issuer is empty', function (done) {
         self.wss.once('request_ripple_path_find', function (message, conn) {
-          conn.send(pathFixtures.generateXRPPaymentPaths(message.source_account, message.destination_account, message.destination_amount));
+          conn.send(pathFixtures.generateXRPPaymentPaths(message.id, message.source_account, message.destination_account, message.destination_amount));
         });
 
         self.wss.once('request_account_info', function(message, conn) {
@@ -90,7 +90,7 @@ describe('get payment paths', function() {
             if (err) return done(err);
 
             _.each(res.body.payments, function (paymentObj) {
-              assert.strictEqual(paymentObj.destination_amount.issuer, addresses.VALID);
+              assert.strictEqual(paymentObj.destination_amount.issuer, '');
             });
 
             done();
@@ -101,7 +101,7 @@ describe('get payment paths', function() {
     describe ('getting paths for IOU destination amount', function () {
       it ('should find that destination amount issuer equals provided destination issuer', function (done) {
         self.wss.once('request_ripple_path_find', function (message, conn) {
-          conn.send(pathFixtures.generateIOUPaymentPaths(message.source_account, message.destination_account, message.destination_amount));
+          conn.send(pathFixtures.generateIOUPaymentPaths(message.id, message.source_account, message.destination_account, message.destination_amount));
         });
 
         self.app
@@ -121,7 +121,7 @@ describe('get payment paths', function() {
 
       it ('should find that destination amount issuer equals provided destination issuer when issuer is same as destination account', function (done) {
         self.wss.once('request_ripple_path_find', function (message, conn) {
-          conn.send(pathFixtures.generateIOUPaymentPaths(message.source_account, message.destination_account, message.destination_amount));
+          conn.send(pathFixtures.generateIOUPaymentPaths(message.id, message.source_account, message.destination_account, message.destination_amount));
         });
 
         self.app
