@@ -1,4 +1,5 @@
 var addresses = require('./../fixtures').addresses;
+var paths = require('./paths');
 
 var fromAccount = addresses.VALID;
 var fromSecret = addresses.SECRET;

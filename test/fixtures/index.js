@@ -4,6 +4,7 @@ module.exports.errors = require('./errors');
 module.exports.server = require('./server');
 module.exports.transactions = require('./transactions');
 module.exports.payments = require('./payments');
+module.exports.paths = require('./paths');
 module.exports._payments = require('./_payments');
 module.exports.settings = require('./settings');
 module.exports.balances = require('./balances');

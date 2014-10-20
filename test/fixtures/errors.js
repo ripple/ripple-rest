@@ -10,6 +10,13 @@ module.exports.RESTInvalidDestinationAccount = JSON.stringify({
   error: 'Parameter is not a valid Ripple address: destination_account'
 });
 
+module.exports.RESTInvalidDestinationAmount = JSON.stringify({
+  success: false,
+  error_type: 'invalid_request',
+  error: 'Invalid parameter: destination_amount',
+  message: 'Must be an amount string in the form value+currency+issuer'
+});
+
 module.exports.RESTInvalidCounterparty = JSON.stringify({
   success: false,
   error_type: 'invalid_request',
