@@ -457,7 +457,8 @@ module.exports.nonXrpPaymentWithoutIssuer = {
     destination_account: addresses.COUNTERPARTY,
     destination_amount: {
       value: "0.001",
-      currency: "USD"
+      currency: "USD",
+      issuer: ""
     }
   }
 };
