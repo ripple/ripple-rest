@@ -810,9 +810,7 @@ function parsePaymentsFromPathfind(pathfind_results, options) {
         {
           value: pathfind_results.destination_amount.value,
           currency: pathfind_results.destination_amount.currency,
-          issuer: (pathfind_results.destination_amount.issuer === pathfind_results.destination_account ?
-            '' :
-            pathfind_results.destination_amount.issuer)
+          issuer: pathfind_results.destination_amount.issuer
         }),
       invoice_id: '',
       paths: JSON.stringify(alternative.paths_computed),
