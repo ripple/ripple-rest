@@ -73,6 +73,9 @@ describe('get payment paths', function() {
     describe ('getting paths for XRP destination amount', function () {
       it ('should find that destination amount issuer is empty', function (done) {
         self.wss.once('request_ripple_path_find', function (message, conn) {
+          assert.strictEqual(message.command, 'ripple_path_find');
+          assert.strictEqual(message.source_account, addresses.VALID);
+          assert.strictEqual(message.destination_account, addresses.VALID);
           conn.send(pathFixtures.generateXRPPaymentPaths(message.id, message.source_account, message.destination_account, message.destination_amount));
         });
 
@@ -101,6 +104,9 @@ describe('get payment paths', function() {
     describe ('getting paths for IOU destination amount', function () {
       it ('should find that destination amount issuer equals provided destination issuer', function (done) {
         self.wss.once('request_ripple_path_find', function (message, conn) {
+          assert.strictEqual(message.command, 'ripple_path_find');
+          assert.strictEqual(message.source_account, addresses.VALID);
+          assert.strictEqual(message.destination_account, addresses.VALID);
           conn.send(pathFixtures.generateIOUPaymentPaths(message.id, message.source_account, message.destination_account, message.destination_amount));
         });
 
@@ -121,6 +127,9 @@ describe('get payment paths', function() {
 
       it ('should find that destination amount issuer equals provided destination issuer when issuer is same as destination account', function (done) {
         self.wss.once('request_ripple_path_find', function (message, conn) {
+          assert.strictEqual(message.command, 'ripple_path_find');
+          assert.strictEqual(message.source_account, addresses.VALID);
+          assert.strictEqual(message.destination_account, addresses.VALID);
           conn.send(pathFixtures.generateIOUPaymentPaths(message.id, message.source_account, message.destination_account, message.destination_amount));
         });
 
