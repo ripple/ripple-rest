@@ -237,7 +237,7 @@ describe('post payments', function() {
       .end(done);
   });
 
-  it.only('/payments -- without issuer', function(done){
+  it('/payments -- without issuer', function(done){
     self.wss.once('request_account_info', function(message, conn) {
       assert.strictEqual(message.command, 'account_info');
       assert.strictEqual(message.account, addresses.VALID);
