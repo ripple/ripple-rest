@@ -62,6 +62,8 @@ module.exports.submitSettingsResponse = function(request, lastLedger) {
         Account: 'r3GgMwvgvP8h4yVWvjH1dPZNvC37TjzBBE',
         Fee: '12',
         Flags: 2147549184,
+        clearFlag: 6,
+        SetFlag: 7,
         LastLedgerSequence: lastLedger,
         Sequence: 2938,
         SigningPubKey: '02F89EAEC7667B30F33D0687BBA86C3FE2A08CCA40A9186C5BDE2DAA6FA97A37D8',
@@ -83,6 +85,8 @@ module.exports.RESTAccountSettingsResponse = JSON.stringify({
     require_authorization: false,
     disallow_xrp: true,
     disable_master: false,
+    no_freeze: false,
+    global_freeze: false,
     transaction_sequence: '2938',
     email_hash: '23463B99B62A72F26ED677CC556C44E8',
     wallet_locator: '00000000000000000000000000000000000000000000000000000000DEADBEEF',
@@ -102,6 +106,8 @@ module.exports.RESTAccountSettingsSubmitResponse = function(lastLedger) {
       require_destination_tag: true,
       require_authorization: true,
       disallow_xrp: true,
+      no_freeze: false,
+      global_freeze: true,
       email_hash: '23463B99B62A72F26ED677CC556C44E8',
       wallet_locator: 'DEADBEEF',
       wallet_size: 1,
@@ -109,7 +115,7 @@ module.exports.RESTAccountSettingsSubmitResponse = function(lastLedger) {
       transfer_rate: 2
     }
   });
-}
+};
 
 module.exports.RESTMissingSettingsResponse = JSON.stringify({
   success: false,
@@ -126,7 +132,7 @@ module.exports.RESTMissingSecretResponse = JSON.stringify({
 module.exports.RESTInvalidDestTagResponse = JSON.stringify({
   success: false,
   error_type: 'invalid_request',
-  error: 'Parameter is not boolean: require_destination_tag'
+  error: 'Parameter must be a boolean: require_destination_tag'
 });
 
 module.exports.RESTInvalidDomainResponse = JSON.stringify({
@@ -139,5 +145,11 @@ module.exports.RESTInvalidTransferRateResponse = JSON.stringify({
   success: false,
   error_type: 'invalid_request',
   error: 'Parameter must be a number: transfer_rate'
+});
+
+module.exports.RESTInvalidFreezeResponse = JSON.stringify({
+  success: false,
+  error_type: 'invalid_request',
+  error: 'Unable to set/clear no_freeze and global_freeze: disallow_xrp'
 });
 

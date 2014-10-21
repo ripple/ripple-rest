@@ -70,7 +70,6 @@ describe('post settings', function() {
   afterEach(testutils.teardown.bind(self));
 
   it('/accounts/:account/settings', function(done) {
-
     var lastLedger = self.app.remote._ledger_current_index;
 
     self.wss.once('request_account_info', function(message, conn) {
@@ -87,6 +86,8 @@ describe('post settings', function() {
 
       assert.strictEqual(so.TransactionType, 'AccountSet');
       assert.strictEqual(so.Flags, 2148859904);
+      assert.strictEqual(so.ClearFlag, 6);
+      assert.strictEqual(so.SetFlag, 7);
       assert.strictEqual(typeof so.Sequence, 'number');
       assert.strictEqual(so.LastLedgerSequence, lastLedger + LEDGER_OFFSET);
       assert.strictEqual(so.Fee, '12');
@@ -108,7 +109,9 @@ describe('post settings', function() {
         email_hash: '23463B99B62A72F26ED677CC556C44E8',
         wallet_locator: 'DEADBEEF',
         wallet_size: 1,
-        transfer_rate: 2
+        transfer_rate: 2,
+        no_freeze: false,
+        global_freeze: true
       }})
       .expect(testutils.checkStatus(200))
       .expect(testutils.checkHeaders)
@@ -281,6 +284,52 @@ describe('post settings', function() {
       .end(done);
   });
 
+  it('/accounts/:account/settings -- invalid setting -- no_freeze and global_freeze', function(done) {
+    self.wss.once('request_account_info', function(message, conn) {
+      assert(false, 'Should not request account info');
+    });
+
+    self.wss.once('request_submit', function(message, conn) {
+      assert(false, 'Should not request submit');
+    });
+
+    self.app
+    .post(fixtures.requestPath(addresses.VALID))
+    .send({
+      secret: addresses.SECRET,
+      settings: {
+        no_freeze: true,
+        global_freeze: true
+      }})
+      .expect(testutils.checkBody(fixtures.RESTInvalidFreezeResponse))
+      .expect(testutils.checkStatus(400))
+      .expect(testutils.checkHeaders)
+      .end(done);
+  });
+
+  it('/accounts/:account/settings -- invalid setting -- clear no_freeze and global_freeze', function(done) {
+    self.wss.once('request_account_info', function(message, conn) {
+      assert(false, 'Should not request account info');
+    });
+
+    self.wss.once('request_submit', function(message, conn) {
+      assert(false, 'Should not request submit');
+    });
+
+    self.app
+    .post(fixtures.requestPath(addresses.VALID))
+    .send({
+      secret: addresses.SECRET,
+      settings: {
+        no_freeze: false,
+        global_freeze: false
+      }})
+      .expect(testutils.checkBody(fixtures.RESTInvalidFreezeResponse))
+      .expect(testutils.checkStatus(400))
+      .expect(testutils.checkHeaders)
+      .end(done);
+  });
+
   it('/accounts/:account/settings -- clear setting -- require_destination_tag', function(done) {
     self.wss.once('request_account_info', function(message, conn) {
       assert.strictEqual(message.command, 'account_info');
@@ -419,12 +468,12 @@ describe('post settings', function() {
       settings: {
         wallet_locator: ''
       }})
-      .expect(testutils.checkStatus(200))
       .expect(testutils.checkHeaders)
+      .expect(testutils.checkStatus(200))
       .end(done);
   });
 
-  it('/accounts/:account/settings -- clear setting -- email_hash', function(done) {
+  it('/accounts/:account/settings -- clear setting -- transfer_rate', function(done) {
     self.wss.once('request_account_info', function(message, conn) {
       assert.strictEqual(message.command, 'account_info');
       assert.strictEqual(message.account, addresses.VALID);
@@ -455,7 +504,65 @@ describe('post settings', function() {
       settings: {
         transfer_rate: ''
       }})
+      .expect(testutils.checkHeaders)
       .expect(testutils.checkStatus(200))
+      .end(done);
+  });
+
+  it('/accounts/:account/settings -- clear setting -- no_freeze', function(done) {
+    self.wss.once('request_account_info', function(message, conn) {
+      assert.strictEqual(message.command, 'account_info');
+      assert.strictEqual(message.account, addresses.VALID);
+      conn.send(fixtures.accountInfoResponse(message));
+    });
+
+    self.wss.once('request_submit', function(message, conn) {
+      assert.strictEqual(message.command, 'submit');
+      assert(message.hasOwnProperty('tx_blob'));
+
+      var so = new ripple.SerializedObject(message.tx_blob).to_json();
+
+      assert.strictEqual(so.TransactionType, 'AccountSet');
+      assert.strictEqual(typeof so.Sequence, 'number');
+      assert.strictEqual(so.ClearFlag, 6);
+      assert.strictEqual(so.LastLedgerSequence, self.app.remote._ledger_current_index + LEDGER_OFFSET);
+      assert.strictEqual(so.Fee, '12');
+      assert.strictEqual(so.Account, 'r3GgMwvgvP8h4yVWvjH1dPZNvC37TjzBBE');
+
+      conn.send(fixtures.submitSettingsResponse(message));
+    });
+
+    self.app
+    .post(fixtures.requestPath(addresses.VALID))
+    .send({
+      secret: addresses.SECRET,
+      settings: {
+        no_freeze: false
+      }})
+      .expect(testutils.checkStatus(200))
+      .expect(testutils.checkHeaders)
+      .end(done);
+  });
+
+  it('/accounts/:account/settings -- clear settings -- no_freeze and global_freeze', function(done) {
+    self.wss.once('request_account_info', function(message, conn) {
+      assert(false, 'Should not request account info');
+    });
+
+    self.wss.once('request_submit', function(message, conn) {
+      assert(false, 'Should not request submit');
+    });
+
+    self.app
+    .post(fixtures.requestPath(addresses.VALID))
+    .send({
+      secret: addresses.SECRET,
+      settings: {
+        no_freeze: false,
+        global_freeze: false
+      }})
+      .expect(testutils.checkBody(fixtures.RESTInvalidFreezeResponse))
+      .expect(testutils.checkStatus(400))
       .expect(testutils.checkHeaders)
       .end(done);
   });
