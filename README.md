@@ -86,9 +86,8 @@ The Ripple protocol supports multiple types of transactions other than just paym
  * Trustline: A Trustline transaction is an authorized grant of trust between two addresses. (This maps to rippled's [TrustSet transaction type](transactions.html#payment))
  * Setting: A Setting transaction is an authorized update of account flags under a Ripple Account. (This maps to rippled's [AccountSet transaction type](transactions.html#payment))
 
-## Getting Started ##
 
-### Setup ###
+## Getting Started ##
 
 You don't need to do any setup to retrieve information from a public Ripple-REST server. Ripple Labs hosts a public Ripple-REST server here:
 
@@ -101,16 +100,42 @@ Make sure you know both the account address and the account secret for your acco
  * The *address* can be found by clicking the *Show Address* button in the __Fund__ tab of Ripple Trade
  * The *secret* is provided when you first create your account. **WARNING: If you submit your secret to a server you do not control, your account can be stolen, along with all the money in it.** We recommend using a test account with very limited funds on the public Ripple-REST server.
 
-If you want to run your own Ripple-REST server, see the [installation instructions](https://github.com/ripple/ripple-rest/#installing-and-running).
-
-
 As a programmer, you will also need to have a suitable HTTP client that allows you to make secure HTTP (`HTTPS`) GET and POST requests. For testing, there are lots of options, including:
 
- * The [`curl`](http://curl.haxx.se/) commandline utility
- * The [Poster Firefox extension](https://addons.mozilla.org/en-US/firefox/addon/poster/)
- * The [Postman Chrome extension](https://chrome.google.com/webstore/detail/postman-rest-client/fdmmgilgnpjigdojojpjoooidkmcomcm?hl=en)
- 
-You can also use the [REST API Tool](rest-api-tool.html) here on the Dev Portal to try out the API.
+  * The [`curl`](http://curl.haxx.se/) commandline utility
+  * The [Poster Firefox extension](https://addons.mozilla.org/en-US/firefox/addon/poster/)
+  * The [Postman Chrome extension](https://chrome.google.com/webstore/detail/postman-rest-client/fdmmgilgnpjigdojojpjoooidkmcomcm?hl=en)
+
+ You can also use the [REST API Tool](rest-api-tool.html) here on the Dev Portal to try out the API.
+
+### Quick Start ###
+
+`ripple-rest` requires Node.js and uses sqlite3 as it's database.
+
+Follow these instructions to get your `ripple-rest` server installed and running
+
+1. Run `git clone https://github.com/ripple/ripple-rest.git` in a terminal and switch into the `ripple-rest` directory
+2. Install dependencies needed: `npm install`
+3. Copy the config example to config.json: `cp config-example.json config.json`
+5. Run `node server.js` to start the server
+6. Visit [`http://localhost:5990`](http://localhost:5990) to view available endpoints and to get started
+
+
+## Configuring `ripple-rest` ###
+
+The `ripple-rest` server loads configuration options from the following sources, according to the following hierarchy (where options from 1. override those below it):
+
+1. Command line arguments
+2. Environment variables
+3. The `config.json` file
+
+The path to the `config.json` file can be specified as a command line argument (`node server.js --config /path/to/config.json`). If no path is specified, the default location for that file is in `ripple-rest`'s root directory.
+
+Available configuration options are outlined in the [__Server Configuration__](docs/server-configuration.md) document and an example configuration file is provided [here](config-example.json).
+
+`ripple-rest` uses the [nconf](https://github.com/flatiron/nconf) configuration loader so that any options that can be specified in the `config.json` file can also be specified as command line arguments or environment variables.
+
+Note that the server can be run in Debug Mode by running `node server.js --debug`.
 
 
 ### Exploring the API ###
