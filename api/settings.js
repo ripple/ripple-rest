@@ -262,7 +262,7 @@ function changeSettings(request, response, next) {
 
     if (setCollision) {
       return callback(new InvalidRequestError(
-        'Unable to set/clear no_freeze and global_freeze: ' + flagName));
+        'Unable to set/clear no_freeze and global_freeze'));
     }
 
     for (var fieldName in AccountRootFields) {
