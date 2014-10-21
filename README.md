@@ -135,8 +135,32 @@ Available configuration options are outlined in the [__Server Configuration__](d
 
 `ripple-rest` uses the [nconf](https://github.com/flatiron/nconf) configuration loader so that any options that can be specified in the `config.json` file can also be specified as command line arguments or environment variables.
 
-Note that the server can be run in Debug Mode by running `node server.js --debug`.
 
+## Debug mode ##
+The server can be run in Debug Mode by running `node server.js --debug`.
+
+
+## Running ripple-rest securely over SSL ##
+1. Create SSL certificate to encrypt traffic to and from the `ripple-rest` server.
+
+```bash
+openssl genrsa -out /etc/ssl/private/server.key 2048
+openssl req -utf8 -new -key /etc/ssl/private/server.key -out /etc/ssl/server.csr -sha512
+-batch
+openssl x509 -req -days 730 -in /etc/ssl/server.csr -signkey /etc/ssl/private/server.key
+-out /etc/ssl/certs/server.crt -sha512
+```
+
+2. Modify the `config.json` to enable SSL and specify the paths to the `certificate` and `key` files
+
+```
+  "ssl_enabled": true,
+  "ssl": {
+    "key_path": "./certs/server.key",
+    "cert_path": "./certs/server.crt"
+  },
+
+```
 
 ### Exploring the API ###
 
