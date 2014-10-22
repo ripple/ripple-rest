@@ -971,8 +971,7 @@ describe('payments', function() {
       .end(done);
   });
 
-  // TODO: PROBLEM no response, secret approximation takes very long, no response for over 10 seconds
-  it.skip('dan grants a trustline of 10 usd towards carol but uses carols address in the accounts setting', function(done) {
+  it('dan grants a trustline of 10 usd towards carol but uses carols address in the accounts setting', function(done) {
     // mocha is NOT overriding the timeout contrary to documentation
     this.timeout(1000);
     app.post('/v1/accounts/'+fixtures.accounts.carol.address+'/trustlines')
@@ -985,9 +984,15 @@ describe('payments', function() {
           "allows_rippling": false
         }
       })
-      .end(function(err, resp) {
-        done();
+      .expect(function(resp) {
+        assert.deepEqual(resp.body,
+          {
+            success: false,
+            error_type: 'transaction',
+            error: 'Invalid secret'
+          });
       })
+      .end(done);
   });
 
   it('dan grants a trustline of 10 usd towards carol and uses correct address in the accounts setting but no secret', function(done) {
@@ -1010,8 +1015,7 @@ describe('payments', function() {
       .end(done);
   });
 
-  // TODO: PROBLEM no response, secret approximation takes very long, no response for over 10 seconds
-  it.skip('dan grants a trustline of 10 usd towards carol and uses correct address in the accounts setting but incorrect secret', function(done) {
+  it('dan grants a trustline of 10 usd towards carol and uses correct address in the accounts setting but incorrect secret', function(done) {
     app.post('/v1/accounts/'+fixtures.accounts.dan.address+'/trustlines')
       .send({
         "secret": fixtures.accounts.carol.secret,
@@ -1022,9 +1026,15 @@ describe('payments', function() {
           "allows_rippling": false
         }
       })
-      .end(function(err, resp) {
-        done();
+      .expect(function(resp) {
+        assert.deepEqual(resp.body,
+          {
+            success: false,
+            error_type: 'transaction',
+            error: 'Invalid secret'
+          });
       })
+      .end(done);
   });
 
   it('dan grants a trustline of 10 usd towards carol and uses correct address in the accounts setting', function(done) {
@@ -1099,13 +1109,18 @@ describe('payments', function() {
       })
   });
 
-  // TODO: PROBLEM, no response for over 10 seconds
-  it.skip('Posting 10USD from carol to dan with valid client resource id but incorrect secret',function(done) {
+  it('Posting 10USD from carol to dan with valid client resource id but incorrect secret',function(done) {
     app.post('/v1/accounts/' + fixtures.accounts.alice.address + '/payments')
       .send(store.paymentCarolToDan)
-      .end(function(err,resp) {
-        done()
+      .expect(function(resp) {
+        assert.deepEqual(resp.body,
+          {
+            success: false,
+            error_type: 'transaction',
+            error: 'Invalid secret'
+          });
       })
+      .end(done);
   });
 
   it('Posting 10USD from carol to dan with valid client resource id and correct secret but missing fields on payment object',function(done) {
