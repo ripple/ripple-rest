@@ -943,34 +943,6 @@ describe('payments', function() {
       .end(done);
   });
 
-  it.skip('post a non-xrp payment without issuer',function(done) {
-    app.post('/v1/accounts/' + fixtures.accounts.alice.address + '/payments')
-      .send({ secret: 'snoPBrXtMeMyMHUVTgbuqAfg1SUTb',
-        client_resource_id : '123456',
-        payment:
-        { source_account: 'rHb9CJAWyB4rj91VRWn96DkukG4bwdtyTh',
-          source_tag: '',
-          source_amount: { value: '600', currency: 'USD', issuer: '' },
-          source_slippage: '0',
-          destination_account: 'rsE6ZLDkXhSvfJHvSqFPhdazsoMgCEC52V',
-          destination_tag: '',
-          destination_amount: { value: '600', currency: 'USD', issuer: '' },
-          invoice_id: '',
-          paths: '[]',
-          partial_payment: false,
-          no_direct_ripple: false } })
-      .expect(function(resp) {
-        assert.strictEqual(resp.status, 200);
-        assert.deepEqual(resp.body, {
-          "success": false,
-          "error_type": "invalid_request",
-          "error": "Invalid parameter: destination_amount",
-          "message": "Non-XRP payment must have an issuer"
-        });
-      })
-      .end(done);
-  });
-
   it('dan grants a trustline of 10 usd towards carol but uses carols address in the accounts setting', function(done) {
     // mocha is NOT overriding the timeout contrary to documentation
     this.timeout(1000);
