@@ -943,7 +943,7 @@ describe('payments', function() {
       .end(done);
   });
 
-  xit('post a non-xrp payment without issuer',function(done) {
+  it.skip('post a non-xrp payment without issuer',function(done) {
     app.post('/v1/accounts/' + fixtures.accounts.alice.address + '/payments')
       .send({ secret: 'snoPBrXtMeMyMHUVTgbuqAfg1SUTb',
         client_resource_id : '123456',
