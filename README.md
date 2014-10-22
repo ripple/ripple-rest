@@ -17,7 +17,7 @@ We recommend Ripple-REST for users just getting started with Ripple, since it pr
 
 #### Accounts ####
 
-* [Generate Account - `GET /v1/accounts/new`](#generate-account)
+* [Generate Wallet - `GET /v1/wallet/new`](#generate-wallet)
 * [Get Account Balances - `GET /v1/accounts/{:address}/balances`](#get-account-balances)
 * [Get Account Settings - `GET /v1/accounts/{:address}/settings`](#get-account-settings)
 * [Update Account Settings - `POST /v1/accounts/{:address}/settings`](#update-account-settings)
@@ -25,7 +25,7 @@ We recommend Ripple-REST for users just getting started with Ripple, since it pr
 #### Payments ####
 
 * [Prepare Payment - `GET /v1/accounts/{:address}/payments/paths`](#prepare-payment)
-* [Submit Payment - `POST /v1/payments`](#submit-payment)
+* [Submit Payment - `POST /v1/accounts/{:address}/payments`](#submit-payment)
 * [Confirm Payment - `GET /v1/accounts/{:address}/payments/{:payment}`](#confirm-payment)
 * [Get Payment History - `GET /v1/accounts/{:address}/payments`](#get-payment-history)
 
@@ -45,7 +45,7 @@ We recommend Ripple-REST for users just getting started with Ripple, since it pr
 
 #### Utilities ####
 
-* [Retrieve Ripple Transaction - `GET /v1/tx`](#retrieve-ripple-transaction)
+* [Retrieve Ripple Transaction - `GET /v1/transactions/{:transaction-hash}`](#retrieve-ripple-transaction)
 * [Generate UUID - `GET /v1/uuid`](#create-client-resource-id)
 
 
@@ -441,7 +441,7 @@ Accounts are the core unit of authentication in the Ripple Network. Each account
 
 
 
-## Generate Account ##
+## Generate Wallet ##
 
 (New in [Ripple-REST v1.3.0](https://github.com/ripple/ripple-rest/releases/tag/v1.3.0-rc4))
 
@@ -450,7 +450,7 @@ Randomly generate keys for a potential new Ripple account.
 *REST*
 
 ```
-GET /v1/accounts/new
+GET /v1/wallet/new
 ```
 
 There are two steps to making a new account on the Ripple network: randomly creating the keys for that account, and sending it enough XRP to meet the account reserve.
@@ -716,7 +716,7 @@ You can then choose one of the returned payment objects, modify it as desired (f
 }
 ```
 
-You can then select the desired payment, modify it if necessary, and submit the payment object to the [`POST /v1/payments`](#submit-payment) endpoint for processing.
+You can then select the desired payment, modify it if necessary, and submit the payment object to the [`POST /v1/accounts/{:address}/payments`](#submit-payment) endpoint for processing.
 
 __NOTE:__ This command may be quite slow. If the command times out, please try it again.
 
@@ -730,7 +730,7 @@ Submit a payment object to be processed and executed.
 *REST*
 
 ```
-POST /v1/payments
+POST /v1/accounts/{:address}/payments
 
 {
   "secret": "s...",
@@ -1588,7 +1588,7 @@ Returns a Ripple transaction, in its complete, original format.
 *REST*
 
 ```
-GET /v1/tx/{:transaction_hash}
+GET /v1/transactions/{:transaction-hash}
 ```
 
 The following URL parameters are required by this API endpoint:
