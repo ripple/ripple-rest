@@ -46,6 +46,7 @@ function submitPayment(request, response, next) {
 
   var steps = [
     validateOptions,
+    normalizeOptions,
     validatePayment,
     formatPayment,
     submitTransaction
@@ -69,8 +70,6 @@ function submitPayment(request, response, next) {
     }
   });
 
-
-
   function validateOptions(async_callback) {
     if (!params.payment) {
       async_callback(new InvalidRequestError('Missing parameter: payment. Submission must have payment object in JSON form'));
@@ -87,6 +86,14 @@ function submitPayment(request, response, next) {
     else {
       async_callback();
     }
+  }
+
+  function normalizeOptions(async_callback) {
+    if (params.payment.destination_amount.currency !== 'XRP' && _.isEmpty(params.payment.destination_amount.issuer)) {
+      params.payment.destination_amount.issuer = params.payment.destination_account;
+    }
+
+    async_callback();
   }
 
   function validatePayment(async_callback) {
@@ -129,6 +136,7 @@ function paymentIsValid(payment, callback) {
   if (!validator.isValid(payment.source_account, 'RippleAddress')) {
     return callback(new InvalidRequestError('Invalid parameter: source_account. Must be a valid Ripple address'));
   }
+
   if (!validator.isValid(payment.destination_account, 'RippleAddress')) {
     return callback(new InvalidRequestError('Invalid parameter: destination_account. Must be a valid Ripple address'));
   }
