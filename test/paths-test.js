@@ -70,6 +70,35 @@ describe('get payment paths', function() {
   });
 
   describe('sending account, destination account, destination amount are all valid', function() {
+    it('should set source amount issuer to sending account with non-XRP source amounts', function(done) {
+      self.wss.once('request_ripple_path_find', function(message, conn) {
+        assert.strictEqual(message.command, 'ripple_path_find');
+        assert.strictEqual(message.source_account, addresses.VALID);
+        assert.strictEqual(message.destination_account, addresses.VALID);
+        conn.send(pathFixtures.generateIOUPaymentPaths(message.id, message.source_account, message.destination_account, message.destination_amount));
+      });
+
+      self.wss.once('request_account_info', function(message, conn) {
+        assert.strictEqual(message.command, 'account_info');
+        assert.strictEqual(message.account, addresses.VALID);
+        conn.send(fixtures.accountInfoResponse(message));
+      });
+
+      self.app
+          .get('/v1/accounts/' + addresses.VALID + '/payments/paths/' + addresses.VALID + '/100+XRP')
+          .expect(testutils.checkStatus(200))
+          .expect(testutils.checkHeaders)
+          .end(function(err, res) {
+            if (err) return done(err);
+
+            assert.strictEqual(res.body.payments[0].source_amount.issuer, addresses.VALID);
+            assert.strictEqual(res.body.payments[1].source_amount.issuer, addresses.VALID);
+            assert.strictEqual(res.body.payments[2].source_amount.issuer, '');
+
+            done();
+          });
+    });
+
     describe('getting paths for XRP destination amount', function() {
       it('should set sending account and destination account', function(done) {
         self.wss.once('request_ripple_path_find', function(message, conn) {

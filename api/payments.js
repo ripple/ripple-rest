@@ -794,9 +794,7 @@ function parsePaymentsFromPathfind(pathfind_results, options) {
       {
         value: alternative.source_amount.value,
         currency: alternative.source_amount.currency,
-        issuer: (alternative.source_amount.issuer === pathfind_results.source_account ?
-          '' :
-          alternative.source_amount.issuer)
+        issuer: pathfind_results.source_account
       }),
       source_slippage: '0',
       destination_account: pathfind_results.destination_account,
