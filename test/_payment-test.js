@@ -960,7 +960,7 @@ describe('payments', function() {
           partial_payment: false,
           no_direct_ripple: false } })
       .expect(function(resp) {
-        assert.equal(resp.status, 200);
+        assert.strictEqual(resp.status, 200);
         assert.deepEqual(resp.body, {
           "success": false,
           "error_type": "invalid_request",
