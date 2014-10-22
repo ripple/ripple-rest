@@ -960,8 +960,6 @@ describe('payments', function() {
           partial_payment: false,
           no_direct_ripple: false } })
       .expect(function(resp) {
-        console.log(resp.body);
-
         assert.equal(resp.status, 200);
         assert.deepEqual(resp.body, {
           "success": false,
