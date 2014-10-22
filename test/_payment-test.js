@@ -797,7 +797,7 @@ describe('payments', function() {
               source_amount: {
                 value: '10',
                 currency: 'USD',
-                issuer: ''
+                issuer: 'rJRLoJSErtNRFnbCyHEUYnRUKNwkVYDM7U'
               },
               source_slippage: '0',
               destination_account: 'rwmityd4Ss34DBUsRy7Pacv6UA5n7yjfe5',
