@@ -92,7 +92,7 @@ function getNotificationHelper(request, response, callback) {
       if (remote_has_ledger) {
         async_callback(null, base_transaction);
       } else {
-        next(new errors.NotFoundError('Cannot Get Notification. ' +
+        async_callback(new errors.NotFoundError('Cannot Get Notification. ' +
           'This transaction is not in the ripple\'s complete ledger set. ' +
           'Because there is a gap in the rippled\'s historical database it is ' +
           'not possible to determine the transactions that precede this one')
