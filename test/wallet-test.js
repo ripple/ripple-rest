@@ -4,16 +4,16 @@ var testutils = require('./testutils');
 var fixtures = require('./fixtures');
 var errors = require('./fixtures').errors;
 
-describe('wallet', function() {
+suite('wallet', function() {
   var self = this;
 
   //self.wss: rippled mock
   //self.app: supertest-enabled REST handler
 
-  beforeEach(testutils.setup.bind(self));
-  afterEach(testutils.teardown.bind(self));
+  setup(testutils.setup.bind(self));
+  teardown(testutils.teardown.bind(self));
 
-  it('/wallet/new', function(done) {
+  test('/wallet/new', function(done) {
     self.app
     .get('/v1/wallet/new')
     .expect(200)

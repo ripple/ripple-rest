@@ -8,16 +8,16 @@ var addresses = require('./fixtures').addresses;
 // Transaction LastLedgerSequence offset from current ledger sequence
 const LEDGER_OFFSET = 8;
 
-describe('get trustlines', function() {
+suite('get trustlines', function() {
   var self = this;
 
   //self.wss: rippled mock
   //self.app: supertest-enabled REST handler
 
-  beforeEach(testutils.setup.bind(self));
-  afterEach(testutils.teardown.bind(self));
+  setup(testutils.setup.bind(self));
+  teardown(testutils.teardown.bind(self));
 
-  it('/accounts/:account/trustlines', function(done) {
+  test('/accounts/:account/trustlines', function(done) {
     self.wss.once('request_account_lines', function(message, conn) {
       assert.strictEqual(message.command, 'account_lines');
       assert.strictEqual(message.account, addresses.VALID);
@@ -32,7 +32,7 @@ describe('get trustlines', function() {
     .end(done);
   });
 
-  it('/accounts/:account/trustlines -- invalid account', function(done) {
+  test('/accounts/:account/trustlines -- invalid account', function(done) {
     self.wss.once('request_account_lines', function(message, conn) {
       assert(false, 'Should not request account lines');
     });
@@ -45,7 +45,7 @@ describe('get trustlines', function() {
     .end(done);
   });
 
-  it('/accounts/:account/trustlines -- non-existent account', function(done) {
+  test('/accounts/:account/trustlines -- non-existent account', function(done) {
     self.wss.once('request_account_lines', function(message, conn) {
       assert.strictEqual(message.command, 'account_lines');
       assert.strictEqual(message.account, addresses.VALID);
@@ -61,16 +61,16 @@ describe('get trustlines', function() {
   });
 });
 
-describe('post trustlines', function() {
+suite('post trustlines', function() {
   var self = this;
 
   //self.wss: rippled mock
   //self.app: supertest-enabled REST handler
 
-  beforeEach(testutils.setup.bind(self));
-  afterEach(testutils.teardown.bind(self));
+  setup(testutils.setup.bind(self));
+  teardown(testutils.teardown.bind(self));
 
-  it('/accounts/:account/trustlines', function(done) {
+  test('/accounts/:account/trustlines', function(done) {
     self.wss.once('request_account_info', function(message, conn) {
       assert.strictEqual(message.command, 'account_info');
       assert.strictEqual(message.account, addresses.VALID);
@@ -124,7 +124,7 @@ describe('post trustlines', function() {
     .end(done);
   });
 
-  it('/accounts/:account/trustlines -- no-rippling', function(done) {
+  test('/accounts/:account/trustlines -- no-rippling', function(done) {
     self.wss.once('request_account_info', function(message, conn) {
       assert.strictEqual(message.command, 'account_info');
       assert.strictEqual(message.account, addresses.VALID);
@@ -179,7 +179,7 @@ describe('post trustlines', function() {
     .end(done);
   });
 
-  it('/accounts/:account/trustlines -- frozen trustline', function(done) {
+  test('/accounts/:account/trustlines -- frozen trustline', function(done) {
     self.wss.once('request_account_info', function(message, conn) {
       assert.strictEqual(message.command, 'account_info');
       assert.strictEqual(message.account, addresses.VALID);
@@ -234,7 +234,7 @@ describe('post trustlines', function() {
     .end(done);
   });
 
-  it('/accounts/:account/trustlines -- invalid account', function(done) {
+  test('/accounts/:account/trustlines -- invalid account', function(done) {
     self.wss.once('request_account_info', function(message, conn) {
       assert(false, 'Should not request account info');
     });
@@ -259,7 +259,7 @@ describe('post trustlines', function() {
     .end(done);
   });
 
-  it('/accounts/:account/trustlines -- missing secret', function(done) {
+  test('/accounts/:account/trustlines -- missing secret', function(done) {
     self.wss.once('request_account_info', function(message, conn) {
       assert(false, 'Should not request account info');
     });
@@ -282,7 +282,7 @@ describe('post trustlines', function() {
     .end(done);
   });
 
-  it('/accounts/:account/trustlines -- missing trustline', function(done) {
+  test('/accounts/:account/trustlines -- missing trustline', function(done) {
     self.wss.once('request_account_info', function(message, conn) {
       assert(false, 'Should not request account info');
     });
@@ -301,31 +301,7 @@ describe('post trustlines', function() {
     .end(done);
   });
 
-  it('/accounts/:account/trustlines -- missing limit amount', function(done) {
-    self.wss.once('request_account_info', function(message, conn) {
-      assert(false, 'Should not request account info');
-    });
-
-    self.wss.once('request_submit', function(message, conn) {
-      assert(false, 'Should not request submit');
-    });
-
-    self.app
-    .post(fixtures.requestPath(addresses.VALID))
-    .send({
-      secret: addresses.SECRET,
-      trustline: {
-        //limit: '1',
-        currency: 'USD',
-        counterparty: addresses.COUNTERPARTY
-      }
-    })
-    .expect(testutils.checkStatus(400))
-    .expect(testutils.checkHeaders)
-    .end(done);
-  });
-
-  it('/accounts/:account/trustlines -- missing limit currency', function(done) {
+  test('/accounts/:account/trustlines -- missing limit amount', function(done) {
     self.wss.once('request_account_info', function(message, conn) {
       assert(false, 'Should not request account info');
     });
@@ -349,7 +325,31 @@ describe('post trustlines', function() {
     .end(done);
   });
 
-  it('/accounts/:account/trustlines -- missing limit currency', function(done) {
+  test('/accounts/:account/trustlines -- missing limit currency', function(done) {
+    self.wss.once('request_account_info', function(message, conn) {
+      assert(false, 'Should not request account info');
+    });
+
+    self.wss.once('request_submit', function(message, conn) {
+      assert(false, 'Should not request submit');
+    });
+
+    self.app
+    .post(fixtures.requestPath(addresses.VALID))
+    .send({
+      secret: addresses.SECRET,
+      trustline: {
+        //limit: '1',
+        currency: 'USD',
+        counterparty: addresses.COUNTERPARTY
+      }
+    })
+    .expect(testutils.checkStatus(400))
+    .expect(testutils.checkHeaders)
+    .end(done);
+  });
+
+  test('/accounts/:account/trustlines -- missing limit currency', function(done) {
     self.wss.once('request_account_info', function(message, conn) {
       assert(false, 'Should not request account info');
     });
@@ -373,7 +373,7 @@ describe('post trustlines', function() {
     .end(done);
   });
 
-  it('/accounts/:account/trustlines -- missing limit counterparty', function(done) {
+  test('/accounts/:account/trustlines -- missing limit counterparty', function(done) {
     self.wss.once('request_account_info', function(message, conn) {
       assert(false, 'Should not request account info');
     });
@@ -397,7 +397,7 @@ describe('post trustlines', function() {
     .end(done);
   });
 
-  it('/accounts/:account/trustlines -- invalid limit amount', function(done) {
+  test('/accounts/:account/trustlines -- invalid limit amount', function(done) {
     self.wss.once('request_account_info', function(message, conn) {
       assert(false, 'Should not request account info');
     });
@@ -421,7 +421,7 @@ describe('post trustlines', function() {
     .end(done);
   });
 
-  it('/accounts/:account/trustlines -- invalid limit currency', function(done) {
+  test('/accounts/:account/trustlines -- invalid limit currency', function(done) {
     self.wss.once('request_account_info', function(message, conn) {
       assert(false, 'Should not request account info');
     });
@@ -445,7 +445,7 @@ describe('post trustlines', function() {
     .end(done);
   });
 
-  it('/accounts/:account/trustlines -- invalid limit counterparty', function(done) {
+  test('/accounts/:account/trustlines -- invalid limit counterparty', function(done) {
     self.wss.once('request_account_info', function(message, conn) {
       assert(false, 'Should not request account info');
     });
