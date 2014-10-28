@@ -1,3 +1,5 @@
+var addresses = require('./addresses');
+
 module.exports.generateIOUPaymentPaths = function(request_id, sendingAccount, destinationAccount, destinationAmount){
   return JSON.stringify({
     "id": request_id,
@@ -108,7 +110,6 @@ module.exports.generateIOUPaymentPaths = function(request_id, sendingAccount, de
           ],
           "source_amount": {
             "currency": "JPY",
-            "issuer": sendingAccount,
             "value": "0.1117218827811721"
           }
         },
@@ -194,7 +195,7 @@ module.exports.generateIOUPaymentPaths = function(request_id, sendingAccount, de
           ],
           "source_amount": {
             "currency": "USD",
-            "issuer": sendingAccount,
+            "issuer": addresses.VALID,
             "value": "0.001002"
           }
         },
