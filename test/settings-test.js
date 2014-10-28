@@ -330,6 +330,65 @@ suite('post settings', function() {
       .end(done);
   });
 
+
+  test('/accounts/:account/settings -- invalid setting -- password_spent', function(done) {
+    self.wss.once('request_account_info', function(message, conn) {
+      assert(false, 'Should not request account info');
+    });
+
+    self.wss.once('request_submit', function(message, conn) {
+      assert(false, 'Should not request submit');
+    });
+
+    self.app
+      .post(fixtures.requestPath(addresses.VALID))
+      .send({
+        secret: addresses.SECRET,
+        settings: {
+          require_destination_tag: true,
+          require_authorization: true,
+          disallow_xrp: true,
+          domain: 'example.com',
+          email_hash: '23463B99B62A72F26ED677CC556C44E8',
+          wallet_locator: 'DEADBEEF',
+          wallet_size: 1,
+          password_spent: 'not a boolean'
+        }})
+      .expect(testutils.checkStatus(400))
+      .expect(testutils.checkHeaders)
+      .expect(testutils.checkBody(fixtures.RESTInvalidPasswordSpentResponse))
+      .end(done);
+  });
+
+  test('/accounts/:account/settings -- invalid setting -- disable_master', function(done) {
+    self.wss.once('request_account_info', function(message, conn) {
+      assert(false, 'Should not request account info');
+    });
+
+    self.wss.once('request_submit', function(message, conn) {
+      assert(false, 'Should not request submit');
+    });
+
+    self.app
+      .post(fixtures.requestPath(addresses.VALID))
+      .send({
+        secret: addresses.SECRET,
+        settings: {
+          require_destination_tag: true,
+          require_authorization: true,
+          disallow_xrp: true,
+          domain: 'example.com',
+          email_hash: '23463B99B62A72F26ED677CC556C44E8',
+          wallet_locator: 'DEADBEEF',
+          wallet_size: 1,
+          disable_master: 'not a boolean'
+        }})
+      .expect(testutils.checkStatus(400))
+      .expect(testutils.checkHeaders)
+      .expect(testutils.checkBody(fixtures.RESTInvalidDisableMasterResponse))
+      .end(done);
+  });
+
   test('/accounts/:account/settings -- clear setting -- require_destination_tag', function(done) {
     self.wss.once('request_account_info', function(message, conn) {
       assert.strictEqual(message.command, 'account_info');

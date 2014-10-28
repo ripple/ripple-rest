@@ -29,6 +29,10 @@
       "description": "A number representation of the rate charged each time a holder of currency issued by this account transfers it. By default the rate is 100. A rate of 101 is a 1% charge on top of the amount being transferred. Up to nine decimal places are supported",
       "type": "UINT32"
     },
+    "password_spent": {
+      "description": "If false, then this account can submit a special SetRegularKey transaction without a transaction fee.",
+      "type": "boolean"
+    },
     "require_destination_tag": {
       "description": "If set to true incoming payments will only be validated if they include a destination_tag. This may be used primarily by gateways that operate exclusively with hosted wallets",
       "type": "boolean"
@@ -39,6 +43,10 @@
     },
     "disallow_xrp": {
       "description": "If set to true incoming XRP payments will be allowed",
+      "type": "boolean"
+    },
+    "disable_master": {
+      "description": "If true, the master secret key cannot be used to sign transactions for this account. Can only be set to true if a Regular Key is defined for the account.",
       "type": "boolean"
     },
     "transaction_sequence": {

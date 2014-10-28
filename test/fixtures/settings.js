@@ -153,3 +153,17 @@ module.exports.RESTInvalidFreezeResponse = JSON.stringify({
   error: 'Unable to set/clear no_freeze and global_freeze'
 });
 
+
+module.exports.RESTInvalidPasswordSpentResponse = JSON.stringify({
+  success: false,
+  error_type: 'invalid_request',
+  error: 'Parameter must be a boolean: password_spent'
+});
+
+
+module.exports.RESTInvalidDisableMasterResponse = JSON.stringify({
+  success: false,
+  error_type: 'invalid_request',
+  error: 'Parameter must be a boolean: disable_master'
+});
+

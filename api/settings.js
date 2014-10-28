@@ -164,6 +164,14 @@ function changeSettings(request, response, next) {
       return callback(new InvalidRequestError(
         'Parameter must be a boolean: global_freeze'));
     }
+    if (!/(undefined|boolean)/.test(typeof options.settings.password_spent)) {
+      return callback(new InvalidRequestError(
+        'Parameter must be a boolean: password_spent'));
+    }
+    if (!/(undefined|boolean)/.test(typeof options.settings.disable_master)) {
+      return callback(new InvalidRequestError(
+        'Parameter must be a boolean: disable_master'));
+    }
 
     callback();
   };
