@@ -244,7 +244,7 @@ function getTransactionHelper(request, response, callback) {
         // Transaction hash was not supplied in the request and a matching
         // database entry was not found. There are no transaction hashes to
         // look up
-        return async_callback(new errors.InvalidRequestError('Transaction not found. Missing hash'));
+        return async_callback(new errors.InvalidRequestError('Transaction not found. A transaction hash was not supplied and there were no entries matching the client_resource_id.'));
       }
 
       if (entry) {

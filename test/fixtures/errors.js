@@ -27,7 +27,7 @@ module.exports.RESTInvalidTransactionHash = JSON.stringify({
   success: false,
   error_type: 'invalid_request',
   error: 'Transaction not found',
-  message: 'Missing hash'
+  message: 'A transaction hash was not supplied and there were no entries matching the client_resource_id.'
 });
 
 module.exports.RESTTransactionNotFound = JSON.stringify({
