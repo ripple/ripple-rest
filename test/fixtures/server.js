@@ -1,4 +1,5 @@
 var utils   = require('./../../lib/utils.js');
+var pJson  = require('./../../package.json');
 
 module.exports.serverInfoResponse = function(request) {
   return JSON.stringify({
@@ -61,7 +62,7 @@ module.exports.RESTServerConnectedResponse = JSON.stringify({
 module.exports.RESTServerIndexResponse = JSON.stringify({
   "success": true,
   "name": "ripple-rest",
-  "package_version": "1.3.0-rc4",
+  "package_version": pJson.version,
   "version": "1",
   "documentation": "https://github.com/ripple/ripple-rest",
   "endpoints": {
