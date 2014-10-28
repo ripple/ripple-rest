@@ -5,9 +5,53 @@ var assert        = require('assert');
 var ws            = require('ws');
 var route         = new (require('events').EventEmitter);
 var fixtures      = require('./fixtures')._payments;
-var testutils     = require('./utils');
 var RL            = require('ripple-lib');
-var orderlist     = new testutils.orderlist;
+
+var testutils = { };
+
+// check if obj has keys
+testutils.hasKeys = function(obj,keys) {
+    var list = Object.keys(obj);
+    var hasAllKeys = true;
+    var missing = {};
+    keys.forEach(function(key) {
+        if (list.indexOf(key) == -1) {
+            hasAllKeys = false
+            missing[key] = true;
+        }
+    })
+    return { hasAllKeys : hasAllKeys, missing : missing }
+}
+
+// used to mark the orderings and count of incoming rippled
+testutils.orderlist = function(list) {
+    // list = [{command:<command>}, ... ]
+    var _list = list;
+    var idx = 0;
+    this.isMock = true;
+    this.create = function(list) {
+        _list = list;
+        idx = 0
+    }
+    this.mark = function(command) {
+        if ((_list[idx]) && (_list[idx].command === command)) {
+            idx++
+        } else {
+            throw new Error("out of order rippled command",command)
+        }
+    }
+    this.test = function() {
+        if (this.isMock)
+        return (idx === _list.length)
+        else return true
+    }
+    this.reset = function() {
+        _list = []
+        idx = 0;
+    }
+};
+
+var orderlist = new testutils.orderlist;
 
 /**
  * Payment tests
@@ -21,10 +65,10 @@ var orderlist     = new testutils.orderlist;
  */
 
 
-describe('payments', function() {
+suite('payments', function() {
   var rippled;
 
-  before(function(done) {
+  suiteSetup(function(done) {
     rippled = new ws.Server({port: 5150});
 
     route.on('ping', fixtures.ping);
@@ -54,7 +98,7 @@ describe('payments', function() {
 
   });
 
-  after(function(done) {
+  suiteTeardown(function(done) {
     _app.remote.once('disconnect', function() {
       rippled.close();
       done()
@@ -66,7 +110,7 @@ describe('payments', function() {
 
   var store = {};
 
-  it('Pathfinding:XRP', function(done) {
+  test('Pathfinding:XRP', function(done) {
 
     // genesis initially gives Alice 429 XRP
     orderlist.create([{command:'ripple_path_find'}]);
@@ -103,7 +147,7 @@ describe('payments', function() {
       })
   });
 
-  it('Posting XRP from genesis to alice',function(done) {
+  test('Posting XRP from genesis to alice',function(done) {
     var _subscribe = function(data,ws) {
       delete data.id;
       assert.deepEqual(data,{
@@ -170,7 +214,7 @@ describe('payments', function() {
 
   });
 
-  it('check amount alice has',function(done) {
+  test('check amount alice has',function(done) {
     // we check that alice has 429 XRP
 
     orderlist.create([
@@ -211,7 +255,7 @@ describe('payments', function() {
   });
 
 
-  it('Pathfinding: from alice to bob XRP',function(done) {
+  test('Pathfinding: from alice to bob XRP',function(done) {
 
     // Now alice gives bob 1 drop XRP
     orderlist.create([
@@ -261,7 +305,7 @@ describe('payments', function() {
   });
 
 
-  it('send bob 1 drop from Alice', function(done) {
+  test('send bob 1 drop from Alice', function(done) {
     // sending bob 1 drop from alice
     // however this should fail since bob, who does not exist on the ledger,
     // is recieving a payment that is too small to be created on the ledger
@@ -329,7 +373,7 @@ describe('payments', function() {
   });
 
 
-  it('discover the reserve_base_xrp', function(done) {
+  test('discover the reserve_base_xrp', function(done) {
     var _server_info = function(data,ws) {
       orderlist.mark('server_info');
       delete data.id;
@@ -350,7 +394,7 @@ describe('payments', function() {
       });
   });
 
-  it('Pathfinding: from alice to bob XRP',function(done) {
+  test('Pathfinding: from alice to bob XRP',function(done) {
     // Now alice gives bob exactly the reserve_base_xrp XRP
     orderlist.create([
       {command:'ripple_path_find'},
@@ -400,7 +444,7 @@ describe('payments', function() {
       });
   });
 
-  it('send bob reserve_base_xrp XRP from Alice to bob', function(done) {
+  test('send bob reserve_base_xrp XRP from Alice to bob', function(done) {
     // sending bob reserve_base_xrp XRP from alice
     orderlist.create([{command:'submit'}])
 
@@ -439,7 +483,7 @@ describe('payments', function() {
 
 
   // confirm payment via client resource ID
-  it('check status url of the reserve_base_xrp transfer from alice to bob', function(done) {
+  test('check status url of the reserve_base_xrp transfer from alice to bob', function(done) {
 
     orderlist.create([{command:'tx'}])
     var _tx = function(data,ws) {
@@ -493,7 +537,7 @@ describe('payments', function() {
 
 
   // confirm payment via transaction hash
-  it('confirm payment via transaction hash', function(done) {
+  test('confirm payment via transaction hash', function(done) {
     orderlist.create([{command:'tx'}]);
     var _tx = function(data,ws) {
       orderlist.mark('tx');
@@ -541,7 +585,7 @@ describe('payments', function() {
   });
 
 
-  it('check amount bob has',function(done) {
+  test('check amount bob has',function(done) {
     orderlist.create([
       {command:'account_info'},
       {command:'account_lines'}
@@ -584,7 +628,7 @@ describe('payments', function() {
 
 
   // bob should try to send all money back to alice
-  it('try to send all of bobs money to alice below reserve', function(done) {
+  test('try to send all of bobs money to alice below reserve', function(done) {
     orderlist.create([
       {command:'ripple_path_find'},
       {command:'account_info'}
@@ -647,7 +691,7 @@ describe('payments', function() {
   });
 
   // have alice send bob 10 USD/alice
-  it('alice sends bob 10USD/alice without trust', function(done) {
+  test('alice sends bob 10USD/alice without trust', function(done) {
     orderlist.create([
       {command:'ripple_path_find'}
     ]);
@@ -683,7 +727,7 @@ describe('payments', function() {
   });
 
 
-  it('grant a trustline of 10 usd towards alice', function(done) {
+  test('grant a trustline of 10 usd towards alice', function(done) {
     orderlist.create([
       {command:'subscribe'},
       {command:'account_info'},
@@ -765,7 +809,7 @@ describe('payments', function() {
 
 
   // have alice send bob 10 USD/alice
-  it('get path for alice to bob 10USD/alice with trust', function(done) {
+  test.skip('get path for alice to bob 10USD/alice with trust', function(done) {
     orderlist.create([
       {command:'ripple_path_find'}
     ]);
@@ -826,7 +870,7 @@ describe('payments', function() {
    *  These should be rewritten in the payments.js class
    */
 
-  it('path find populate carol with missing sum',function(done) {
+  test('path find populate carol with missing sum',function(done) {
     app.get('/v1/accounts/'+fixtures.accounts.genesis.address+'/payments/paths/'+fixtures.accounts.carol.address+'/+XRP')
       .end(function(err, resp) {
         assert.equal(resp.status,400);
@@ -838,7 +882,7 @@ describe('payments', function() {
       })
   });
 
-  it('path find populate carol with missing currency',function(done) {
+  test('path find populate carol with missing currency',function(done) {
     app.get('/v1/accounts/'+fixtures.accounts.genesis.address+'/payments/paths/'+fixtures.accounts.carol.address+'/400')
       .end(function(err, resp) {
         assert.equal(resp.status,400);
@@ -850,7 +894,7 @@ describe('payments', function() {
       })
   });
 
-  it('path find populate carol with all missing endpoint value',function(done) {
+  test('path find populate carol with all missing endpoint value',function(done) {
     app.get('/v1/accounts/'+fixtures.accounts.genesis.address+'/payments/paths/'+fixtures.accounts.carol.address+'/')
       .expect(function(resp) {
         assert.equal(resp.status,404);
@@ -858,7 +902,7 @@ describe('payments', function() {
       .end(done);
   });
 
-  it('path find populate carol with 400',function(done) {
+  test('path find populate carol with 400',function(done) {
     app.get('/v1/accounts/'+fixtures.accounts.genesis.address+'/payments/paths/'+fixtures.accounts.carol.address+'/400+XRP')
       .end(function(err, resp) {
         store.paymentGenesisToCarol = {
@@ -870,7 +914,7 @@ describe('payments', function() {
       })
   });
 
-  it('Posting XRP from genesis to carol',function(done) {
+  test('Posting XRP from genesis to carol',function(done) {
     app.post('/v1/accounts/' + fixtures.accounts.alice.address + '/payments')
       .send(store.paymentGenesisToCarol)
       .end(function(err,resp) {
@@ -879,7 +923,7 @@ describe('payments', function() {
   });
 
   // miss the client resource id
-  it('path find populate dan with 600',function(done) {
+  test('path find populate dan with 600',function(done) {
     app.get('/v1/accounts/'+fixtures.accounts.genesis.address+'/payments/paths/'+fixtures.accounts.dan.address+'/600+XRP')
       .end(function(err, resp) {
         store.paymentGenesisToDan = {
@@ -890,7 +934,7 @@ describe('payments', function() {
       })
   });
 
-  it('Posting XRP from genesis to dan with missing client resource id',function(done) {
+  test('Posting XRP from genesis to dan with missing client resource id',function(done) {
     app.post('/v1/accounts/' + fixtures.accounts.alice.address + '/payments')
       .send(store.paymentGenesisToDan)
       .end(function(err,resp) {
@@ -902,7 +946,7 @@ describe('payments', function() {
       })
   });
 
-  it('Posting XRP from genesis to dan with empty client resource id',function(done) {
+  test('Posting XRP from genesis to dan with empty client resource id',function(done) {
     store.paymentGenesisToDan["client_resource_id"] = "";
     app.post('/v1/accounts/' + fixtures.accounts.alice.address + '/payments')
       .send(store.paymentGenesisToDan)
@@ -915,7 +959,7 @@ describe('payments', function() {
       })
   });
 
-  it('Posting XRP from genesis to dan with valid client resource id',function(done) {
+  test('Posting XRP from genesis to dan with valid client resource id',function(done) {
     store.paymentGenesisToDan["client_resource_id"] = "qwerty";
     app.post('/v1/accounts/' + fixtures.accounts.alice.address + '/payments')
       .send(store.paymentGenesisToDan)
@@ -927,7 +971,7 @@ describe('payments', function() {
       })
   });
 
-  it('Double posting XRP from genesis to dan with valid client resource id',function(done) {
+  test('Double posting XRP from genesis to dan with valid client resource id',function(done) {
     store.paymentGenesisToDan["client_resource_id"] = "qwerty";
     app.post('/v1/accounts/' + fixtures.accounts.alice.address + '/payments')
       .send(store.paymentGenesisToDan)
@@ -943,7 +987,7 @@ describe('payments', function() {
       .end(done);
   });
 
-  it('dan grants a trustline of 10 usd towards carol but uses carols address in the accounts setting', function(done) {
+  it.skip('dan grants a trustline of 10 usd towards carol but uses carols address in the accounts setting', function(done) {
     // mocha is NOT overriding the timeout contrary to documentation
     this.timeout(1000);
     app.post('/v1/accounts/'+fixtures.accounts.carol.address+'/trustlines')
@@ -967,7 +1011,7 @@ describe('payments', function() {
       .end(done);
   });
 
-  it('dan grants a trustline of 10 usd towards carol and uses correct address in the accounts setting but no secret', function(done) {
+  test('dan grants a trustline of 10 usd towards carol and uses correct address in the accounts setting but no secret', function(done) {
     app.post('/v1/accounts/'+fixtures.accounts.dan.address+'/trustlines')
       .send({
         "secret": '',
@@ -987,7 +1031,7 @@ describe('payments', function() {
       .end(done);
   });
 
-  it('dan grants a trustline of 10 usd towards carol and uses correct address in the accounts setting but incorrect secret', function(done) {
+  it.skip('dan grants a trustline of 10 usd towards carol and uses correct address in the accounts setting but incorrect secret', function(done) {
     app.post('/v1/accounts/'+fixtures.accounts.dan.address+'/trustlines')
       .send({
         "secret": fixtures.accounts.carol.secret,
@@ -1009,7 +1053,7 @@ describe('payments', function() {
       .end(done);
   });
 
-  it('dan grants a trustline of 10 usd towards carol and uses correct address in the accounts setting', function(done) {
+  test('dan grants a trustline of 10 usd towards carol and uses correct address in the accounts setting', function(done) {
     app.post('/v1/accounts/'+fixtures.accounts.dan.address+'/trustlines')
       .send({
         "secret": fixtures.accounts.dan.secret,
@@ -1039,7 +1083,7 @@ describe('payments', function() {
       .end(done);
   });
 
-  it('dan grants an additional trustline of 10 usd towards carol and uses correct address in the accounts setting', function(done) {
+  test('dan grants an additional trustline of 10 usd towards carol and uses correct address in the accounts setting', function(done) {
     app.post('/v1/accounts/'+fixtures.accounts.dan.address+'/trustlines')
       .send({
         "secret": fixtures.accounts.dan.secret,
@@ -1069,7 +1113,7 @@ describe('payments', function() {
       .end(done);
   });
 
-  it('get path for carol to dan 10USD/carol with trust', function(done) {
+  test('get path for carol to dan 10USD/carol with trust', function(done) {
     app.get('/v1/accounts/'+fixtures.accounts.carol.address+'/payments/paths/'+fixtures.accounts.dan.address+'/10+USD+'+fixtures.accounts.carol.address)
       .end(function(err, resp) {
         store.paymentCarolToDan = {
@@ -1081,7 +1125,7 @@ describe('payments', function() {
       })
   });
 
-  it('Posting 10USD from carol to dan with valid client resource id but incorrect secret',function(done) {
+  it.skip('Posting 10USD from carol to dan with valid client resource id but incorrect secret',function(done) {
     app.post('/v1/accounts/' + fixtures.accounts.alice.address + '/payments')
       .send(store.paymentCarolToDan)
       .expect(function(resp) {
@@ -1095,7 +1139,7 @@ describe('payments', function() {
       .end(done);
   });
 
-  it('Posting 10USD from carol to dan with valid client resource id and correct secret but missing fields on payment object',function(done) {
+  test('Posting 10USD from carol to dan with valid client resource id and correct secret but missing fields on payment object',function(done) {
     store.paymentCarolToDan.secret = fixtures.accounts.carol.secret;
     store.value = store.paymentCarolToDan.payment.destination_amount.value
     delete store.paymentCarolToDan.payment.destination_amount.value
@@ -1113,7 +1157,7 @@ describe('payments', function() {
       .end(done);
   });
 
-  it('Posting 10USD from carol to dan with valid client resource id and correct secret',function(done) {
+  test('Posting 10USD from carol to dan with valid client resource id and correct secret',function(done) {
     store.paymentCarolToDan.payment.destination_amount.value = store.value;
     store.paymentCarolToDan.secret = fixtures.accounts.carol.secret;
     store.paymentCarolToDan.client_resource_id = 'abc';
@@ -1131,7 +1175,7 @@ describe('payments', function() {
       .end(done);
   });
 
-  it('Posting 10USD from carol to dan with valid client resource id and correct secret but client resource id already used',function(done) {
+  test('Posting 10USD from carol to dan with valid client resource id and correct secret but client resource id already used',function(done) {
     store.paymentCarolToDan.payment.destination_amount.value = store.value;
     store.paymentCarolToDan.secret = fixtures.accounts.carol.secret;
     store.client_resource_id = store.paymentCarolToDan.client_resource_id;

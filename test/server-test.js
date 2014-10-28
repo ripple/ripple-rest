@@ -5,42 +5,42 @@ var testutils = require('./testutils');
 var fixtures = require('./fixtures').server;
 var errors = require('./fixtures').errors;
 
-describe('get server info', function() {
+suite('get server info', function() {
   var self = this;
 
   //self.wss: rippled mock
   //self.app: supertest-enabled REST handler
 
-  beforeEach(testutils.setup.bind(self));
-  afterEach(testutils.teardown.bind(self));
+  setup(testutils.setup.bind(self));
+  teardown(testutils.teardown.bind(self));
 
-  it('/', function(done) {
+  test('/', function(done) {
     self.wss.once('request_server_info', function(message, conn) {
       assert(false, 'should not request server info');
     });
 
     self.app
-      .get('/v1')
-      .expect(testutils.checkStatus(200))
-      .expect(testutils.checkHeaders)
-      .expect(testutils.checkBody(fixtures.RESTServerIndexResponse))
-      .end(done);
+    .get('/v1')
+    .expect(testutils.checkBody(fixtures.RESTServerIndexResponse))
+    .expect(testutils.checkStatus(200))
+    .expect(testutils.checkHeaders)
+    .end(done);
   });
 
-  it('/v1', function(done) {
+  test('/v1', function(done) {
     self.wss.once('request_server_info', function(message, conn) {
       assert(false, 'should not request server info');
     });
 
     self.app
-      .get('/v1')
-      .expect(testutils.checkStatus(200))
-      .expect(testutils.checkHeaders)
-      .expect(testutils.checkBody(fixtures.RESTServerIndexResponse))
-      .end(done);
+    .get('/v1')
+    .expect(testutils.checkBody(fixtures.RESTServerIndexResponse))
+    .expect(testutils.checkStatus(200))
+    .expect(testutils.checkHeaders)
+    .end(done);
   });
 
-  it('/server', function(done) {
+  test('/server', function(done) {
     self.wss.once('request_server_info', function(message, conn) {
       assert.strictEqual(message.command, 'server_info');
       conn.send(fixtures.serverInfoResponse(message));
@@ -48,26 +48,26 @@ describe('get server info', function() {
 
     self.app
     .get('/v1/server')
+    .expect(testutils.checkBody(fixtures.RESTServerInfoResponse))
     .expect(testutils.checkStatus(200))
     .expect(testutils.checkHeaders)
-    .expect(testutils.checkBody(fixtures.RESTServerInfoResponse))
     .end(done);
   });
 
-  it('/server/connected', function(done) {
+  test('/server/connected', function(done) {
     self.wss.once('request_server_info', function(message, conn) {
       assert(false, 'Should not request server info');
     });
 
     self.app
     .get('/v1/server/connected')
+    .expect(testutils.checkBody(fixtures.RESTServerConnectedResponse))
     .expect(testutils.checkStatus(200))
     .expect(testutils.checkHeaders)
-    .expect(testutils.checkBody(fixtures.RESTServerConnectedResponse))
     .end(done);
   });
 
-  it('/server/connected -- no ledger close', function(done) {
+  test('/server/connected -- no ledger close', function(done) {
     self.wss.once('request_server_info', function(message, conn) {
       assert(false, 'Should not request server info');
     });
@@ -78,9 +78,9 @@ describe('get server info', function() {
 
     self.app
     .get('/v1/server/connected')
+    .expect(testutils.checkBody(errors.RESTCannotConnectToRippleD))
     .expect(testutils.checkStatus(502))
     .expect(testutils.checkHeaders)
-    .expect(testutils.checkBody(errors.RESTCannotConnectToRippleD))
     .end(done);
   });
 });

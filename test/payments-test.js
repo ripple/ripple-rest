@@ -8,16 +8,16 @@ var addresses = require('./fixtures').addresses;
 var requestPath = fixtures.requestPath;
 var Payments = require('./../api/payments');
 
-describe('get payments', function() {
+suite('get payments', function() {
   var self = this;
 
   //self.wss: rippled mock
   //self.app: supertest-enabled REST handler
 
-  beforeEach(testutils.setup.bind(self));
-  afterEach(testutils.teardown.bind(self));
+  setup(testutils.setup.bind(self));
+  teardown(testutils.teardown.bind(self));
 
-  it('/accounts/:account/payments/:identifier', function(done) {
+  test('/accounts/:account/payments/:identifier', function(done) {
     self.wss.once('request_tx', function(message, conn) {
       assert.strictEqual(message.command, 'tx');
       assert.strictEqual(message.transaction, fixtures.VALID_TRANSACTION_HASH);
@@ -32,7 +32,7 @@ describe('get payments', function() {
     .end(done);
   });
 
-  it('/accounts/:account/payments/:identifier -- with memos', function(done) {
+  test('/accounts/:account/payments/:identifier -- with memos', function(done) {
     self.wss.once('request_tx', function(message, conn) {
       assert.strictEqual(message.command, 'tx');
       assert.strictEqual(message.transaction, fixtures.VALID_TRANSACTION_HASH_MEMO);
@@ -45,14 +45,14 @@ describe('get payments', function() {
     });
 
     self.app
-      .get(requestPath('rGUpotx8YYDiocqS577N4T1p1kHBNdEJ9s') + '/' + fixtures.VALID_TRANSACTION_HASH_MEMO)
-      .expect(testutils.checkStatus(200))
-      .expect(testutils.checkHeaders)
-      .expect(testutils.checkBody(fixtures.RESTTransactionResponseWithMemo))
-      .end(done);
+    .get(requestPath('rGUpotx8YYDiocqS577N4T1p1kHBNdEJ9s') + '/' + fixtures.VALID_TRANSACTION_HASH_MEMO)
+    .expect(testutils.checkStatus(200))
+    .expect(testutils.checkHeaders)
+    .expect(testutils.checkBody(fixtures.RESTTransactionResponseWithMemo))
+    .end(done);
   });
 
-  it('/accounts/:account/payments/:identifier -- invalid identifier', function(done) {
+  test('/accounts/:account/payments/:identifier -- invalid identifier', function(done) {
     self.wss.once('request_tx', function(message, conn) {
       assert(false, 'Should not request transaction');
     });
@@ -66,16 +66,16 @@ describe('get payments', function() {
   });
 });
 
-describe('post payments', function() {
+suite('post payments', function() {
   var self = this;
 
   //self.wss: rippled mock
   //self.app: supertest-enabled REST handler
 
-  beforeEach(testutils.setup.bind(self));
-  afterEach(testutils.teardown.bind(self));
+  setup(testutils.setup.bind(self));
+  teardown(testutils.teardown.bind(self));
 
-  it('/payments -- with invalid memos', function(done) {
+  test('/payments -- with invalid memos', function(done) {
     self.wss.once('request_account_info', function(message, conn) {
       assert.strictEqual(message.command, 'account_info');
       assert.strictEqual(message.account, addresses.VALID);
@@ -91,15 +91,15 @@ describe('post payments', function() {
     body.payment.memos = "some string";
 
     self.app
-      .post('/v1/accounts/' + addresses.VALID + '/payments')
-      .send(body)
-      .expect(testutils.checkStatus(400))
-      .expect(testutils.checkHeaders)
-      .expect(testutils.checkBody(fixtures.RESTResponseNonArrayMemo))
-      .end(done);
+    .post('/v1/accounts/' + addresses.VALID + '/payments')
+    .send(body)
+    .expect(testutils.checkStatus(400))
+    .expect(testutils.checkHeaders)
+    .expect(testutils.checkBody(fixtures.RESTResponseNonArrayMemo))
+    .end(done);
   });
 
-  it('/payments -- with empty memos array', function(done) {
+  test('/payments -- with empty memos array', function(done) {
     self.wss.once('request_account_info', function(message, conn) {
       assert.strictEqual(message.command, 'account_info');
       assert.strictEqual(message.account, addresses.VALID);
@@ -115,15 +115,15 @@ describe('post payments', function() {
     body.payment.memos = [];
 
     self.app
-      .post('/v1/accounts/' + addresses.VALID + '/payments')
-      .send(body)
-      .expect(testutils.checkStatus(400))
-      .expect(testutils.checkHeaders)
-      .expect(testutils.checkBody(fixtures.RESTResponseEmptyMemosArray))
-      .end(done);
+    .post('/v1/accounts/' + addresses.VALID + '/payments')
+    .send(body)
+    .expect(testutils.checkStatus(400))
+    .expect(testutils.checkHeaders)
+    .expect(testutils.checkBody(fixtures.RESTResponseEmptyMemosArray))
+    .end(done);
   });
 
-  it('/payments -- with memo containing a MemoType field with an int value', function(done) {
+  test('/payments -- with memo containing a MemoType field with an int value', function(done) {
     self.wss.once('request_account_info', function(message, conn) {
       assert.strictEqual(message.command, 'account_info');
       assert.strictEqual(message.account, addresses.VALID);
@@ -139,15 +139,15 @@ describe('post payments', function() {
     body.payment.memos[0].MemoType = 1;
 
     self.app
-      .post('/v1/accounts/' + addresses.VALID + '/payments')
-      .send(body)
-      .expect(testutils.checkStatus(400))
-      .expect(testutils.checkHeaders)
-      .expect(testutils.checkBody(fixtures.RESTResponseMemoTypeInt))
-      .end(done);
+    .post('/v1/accounts/' + addresses.VALID + '/payments')
+    .send(body)
+    .expect(testutils.checkStatus(400))
+    .expect(testutils.checkHeaders)
+    .expect(testutils.checkBody(fixtures.RESTResponseMemoTypeInt))
+    .end(done);
   });
 
-  it('/payments -- with memo containing a MemoData field with an int value', function(done) {
+  test('/payments -- with memo containing a MemoData field with an int value', function(done) {
     self.wss.once('request_account_info', function(message, conn) {
       assert.strictEqual(message.command, 'account_info');
       assert.strictEqual(message.account, addresses.VALID);
@@ -163,15 +163,15 @@ describe('post payments', function() {
     body.payment.memos[0].MemoData = 1;
 
     self.app
-      .post('/v1/accounts/' + addresses.VALID + '/payments')
-      .send(body)
-      .expect(testutils.checkStatus(400))
-      .expect(testutils.checkHeaders)
-      .expect(testutils.checkBody(fixtures.RESTResponseMemoDataInt))
-      .end(done);
+    .post('/v1/accounts/' + addresses.VALID + '/payments')
+    .send(body)
+    .expect(testutils.checkStatus(400))
+    .expect(testutils.checkHeaders)
+    .expect(testutils.checkBody(fixtures.RESTResponseMemoDataInt))
+    .end(done);
   });
 
-  it('/payments -- with memo, omit MemoData', function(done) {
+  test('/payments -- with memo, omit MemoData', function(done) {
     self.wss.once('request_account_info', function(message, conn) {
       assert.strictEqual(message.command, 'account_info');
       assert.strictEqual(message.account, addresses.VALID);
@@ -187,15 +187,15 @@ describe('post payments', function() {
     delete body.payment.memos[0].MemoData;
 
     self.app
-      .post('/v1/accounts/' + addresses.VALID + '/payments')
-      .send(body)
-      .expect(testutils.checkStatus(200))
-      .expect(testutils.checkHeaders)
-      .expect(testutils.checkBody(fixtures.RESTResponseMissingMemoData))
-      .end(done);
+    .post('/v1/accounts/' + addresses.VALID + '/payments')
+    .send(body)
+    .expect(testutils.checkStatus(200))
+    .expect(testutils.checkHeaders)
+    .expect(testutils.checkBody(fixtures.RESTResponseMissingMemoData))
+    .end(done);
   });
 
-  it('/payments -- with memo', function(done) {
+  test('/payments -- with memo', function(done) {
     self.wss.once('request_account_info', function(message, conn) {
       assert.strictEqual(message.command, 'account_info');
       assert.strictEqual(message.account, addresses.VALID);
@@ -208,15 +208,15 @@ describe('post payments', function() {
     })
 
     self.app
-      .post('/v1/accounts/' + addresses.VALID + '/payments')
-      .send(fixtures.paymentWithMemo)
-      .expect(testutils.checkStatus(200))
-      .expect(testutils.checkHeaders)
-      .expect(testutils.checkBody(fixtures.RESTPaymentWithMemoResponse))
-      .end(done);
+    .post('/v1/accounts/' + addresses.VALID + '/payments')
+    .send(fixtures.paymentWithMemo)
+    .expect(testutils.checkStatus(200))
+    .expect(testutils.checkHeaders)
+    .expect(testutils.checkBody(fixtures.RESTPaymentWithMemoResponse))
+    .end(done);
   });
 
-  it('/payments -- successful payment with issuer', function(done){
+  test('/payments -- successful payment with issuer', function(done){
     self.wss.once('request_account_info', function(message, conn) {
       assert.strictEqual(message.command, 'account_info');
       assert.strictEqual(message.account, addresses.VALID);
@@ -229,15 +229,15 @@ describe('post payments', function() {
     });
 
     self.app
-      .post('/v1/accounts/' + addresses.VALID + '/payments')
-      .send(fixtures.nonXrpPaymentWithIssuer)
-      .expect(testutils.checkStatus(200))
-      .expect(testutils.checkHeaders)
-      .expect(testutils.checkBody(fixtures.RESTNonXrpPaymentWithIssuer))
-      .end(done);
+    .post('/v1/accounts/' + addresses.VALID + '/payments')
+    .send(fixtures.nonXrpPaymentWithIssuer)
+    .expect(testutils.checkStatus(200))
+    .expect(testutils.checkHeaders)
+    .expect(testutils.checkBody(fixtures.RESTNonXrpPaymentWithIssuer))
+    .end(done);
   });
 
-  it('/payments -- without issuer', function(done){
+  test('/payments -- without issuer', function(done){
     self.wss.once('request_account_info', function(message, conn) {
       assert.strictEqual(message.command, 'account_info');
       assert.strictEqual(message.account, addresses.VALID);
@@ -250,15 +250,15 @@ describe('post payments', function() {
     });
 
     self.app
-      .post('/v1/accounts/' + addresses.VALID + '/payments')
-      .send(fixtures.nonXrpPaymentWithoutIssuer)
-      .expect(testutils.checkStatus(200))
-      .expect(testutils.checkHeaders)
-      .expect(testutils.checkBody(fixtures.RESTNonXrpPaymentWithIssuer))
-      .end(done);
+    .post('/v1/accounts/' + addresses.VALID + '/payments')
+    .send(fixtures.nonXrpPaymentWithoutIssuer)
+    .expect(testutils.checkStatus(200))
+    .expect(testutils.checkHeaders)
+    .expect(testutils.checkBody(fixtures.RESTNonXrpPaymentWithIssuer))
+    .end(done);
   });
 
-  it('/payments -- with invalid secret', function(done) {
+  test('/payments -- with invalid secret', function(done) {
     self.wss.once('request_account_info', function(message, conn) {
       assert.strictEqual(true, false);
     });
@@ -268,37 +268,36 @@ describe('post payments', function() {
     });
 
     self.app
-      .post('/v1/accounts/' + addresses.VALID + '/payments')
-      .send(fixtures.nonXrpPaymentWithInvalidSecret)
-      .expect(testutils.checkStatus(500))
-      .expect(testutils.checkHeaders)
-      .expect(testutils.checkBody(fixtures.RESTNonXrpPaymentWithInvalidsecret))
-      .end(done);
+    .post('/v1/accounts/' + addresses.VALID + '/payments')
+    .send(fixtures.nonXrpPaymentWithInvalidSecret)
+    .expect(testutils.checkStatus(500))
+    .expect(testutils.checkHeaders)
+    .expect(testutils.checkBody(fixtures.RESTNonXrpPaymentWithInvalidsecret))
+    .end(done);
   });
-
 });
 
+/*
 //
 // Unit test payments
 //
+suite('unit test payments', function() {
 
-describe('unit test payments', function() {
-
-  it('should parse payment tx', function(done) {
-    var transaction = Payments._parsePaymentFromTx(fixtures.txPayment, { account: 'rGUpotx8YYDiocqS577N4T1p1kHBNdEJ9s' }, function(err){
-      assert(false, 'callback should not have been called');
-    });
-    assert.deepEqual(transaction, fixtures.RESTResponsePayment);
-    done();
-  });
-
-  it('should parse partial payment tx', function(done) {
-    var transaction = Payments._parsePaymentFromTx(fixtures.txPartialPayment, { account: 'rDuV4ndTFUn5NjLJSTNfEFMTxqQVeafvxC' }, function(err){
-      assert(false, 'callback should not have been called');
-    });
-    assert.deepEqual(transaction, fixtures.RESTResponsePartialPayment);
-    done();
-  });
-
+test('should parse payment tx', function(done) {
+var transaction = Payments._parsePaymentFromTx(fixtures.txPayment, { account: 'rGUpotx8YYDiocqS577N4T1p1kHBNdEJ9s' }, function(err){
+assert(false, 'callback should not have been called');
+});
+assert.deepEqual(transaction, fixtures.RESTResponsePayment);
+done();
 });
 
+test('should parse partial payment tx', function(done) {
+var transaction = Payments._parsePaymentFromTx(fixtures.txPartialPayment, { account: 'rDuV4ndTFUn5NjLJSTNfEFMTxqQVeafvxC' }, function(err){
+assert(false, 'callback should not have been called');
+});
+assert.deepEqual(transaction, fixtures.RESTResponsePartialPayment);
+done();
+});
+
+});
+*/

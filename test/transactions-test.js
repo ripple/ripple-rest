@@ -5,16 +5,16 @@ var fixtures = require('./fixtures').transactions;
 var errors = require('./fixtures').errors;
 var requestPath = fixtures.requestPath;
 
-describe('get transaction', function() {
+suite('get transaction', function() {
   var self = this;
 
   //self.wss: rippled mock
   //self.app: supertest-enabled REST handler
 
-  beforeEach(testutils.setup.bind(self));
-  afterEach(testutils.teardown.bind(self));
+  setup(testutils.setup.bind(self));
+  teardown(testutils.teardown.bind(self));
 
-  it('/transactions/:identifier', function(done) {
+  test('/transactions/:identifier', function(done) {
     self.wss.once('request_tx', function(message, conn) {
       assert.strictEqual(message.command, 'tx');
       assert.strictEqual(message.transaction, fixtures.VALID_TRANSACTION_HASH);
@@ -29,7 +29,7 @@ describe('get transaction', function() {
     .end(done);
   });
 
-  it('/transactions/:identifier -- invalid transaction hash', function(done) {
+  test('/transactions/:identifier -- invalid transaction hash', function(done) {
     self.wss.once('request_tx', function(message, conn) {
       assert(false, 'Should not request transaction');
     });
@@ -42,7 +42,7 @@ describe('get transaction', function() {
     .end(done);
   });
 
-  it('/transactions/:identifier -- non-existent transaction hash', function(done) {
+  test('/transactions/:identifier -- non-existent transaction hash', function(done) {
     self.wss.once('request_tx', function(message, conn) {
       assert.strictEqual(message.command, 'tx');
       assert.strictEqual(message.transaction, fixtures.VALID_TRANSACTION_HASH);

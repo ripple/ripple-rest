@@ -6,16 +6,16 @@ var errors = require('./fixtures').errors;
 var addresses = require('./fixtures').addresses;
 var requestPath = fixtures.requestPath;
 
-describe('get balances', function() {
+suite('get balances', function() {
   var self = this;
 
   //self.wss: rippled mock
   //self.app: supertest-enabled REST handler
 
-  beforeEach(testutils.setup.bind(self));
-  afterEach(testutils.teardown.bind(self));
+  setup(testutils.setup.bind(self));
+  teardown(testutils.teardown.bind(self));
 
-  it('/accounts/:account/balances', function(done) {
+  test('/accounts/:account/balances', function(done) {
     self.wss.once('request_account_info', function(message, conn) {
       assert.strictEqual(message.command, 'account_info');
       assert.strictEqual(message.account, addresses.VALID);
@@ -36,7 +36,7 @@ describe('get balances', function() {
     .end(done);
   });
 
-  it('/accounts/:account/balances -- invalid account', function(done) {
+  test('/accounts/:account/balances -- invalid account', function(done) {
     self.wss.once('request_account_info', function(message, conn) {
       assert(false, 'Should not request account info');
     });
@@ -53,7 +53,7 @@ describe('get balances', function() {
     .end(done);
   });
 
-  it('/accounts/:account/balances -- non-existent account', function(done) {
+  test('/accounts/:account/balances -- non-existent account', function(done) {
     self.wss.once('request_account_info', function(message, conn) {
       assert.strictEqual(message.command, 'account_info');
       assert.strictEqual(message.account, addresses.VALID);
@@ -75,7 +75,7 @@ describe('get balances', function() {
     .end(done);
   });
 
-  it('/accounts/:account/balances?currency', function(done) {
+  test('/accounts/:account/balances?currency', function(done) {
     self.wss.once('request_account_info', function(message, conn) {
       assert(false, 'Should not request account info');
     });
@@ -94,7 +94,7 @@ describe('get balances', function() {
     .end(done);
   });
 
-  it('/accounts/:account/balances?currency -- native currency', function(done) {
+  test('/accounts/:account/balances?currency -- native currency', function(done) {
     self.wss.once('request_account_info', function(message, conn) {
       assert.strictEqual(message.command, 'account_info');
       assert.strictEqual(message.account, addresses.VALID);
@@ -113,7 +113,7 @@ describe('get balances', function() {
     .end(done);
   });
 
-  it('/accounts/:account/balances?currency -- invalid currency', function(done) {
+  test('/accounts/:account/balances?currency -- invalid currency', function(done) {
     self.wss.once('request_account_info', function(message, conn) {
       assert(false, 'Should not request account info');
     });
@@ -130,7 +130,7 @@ describe('get balances', function() {
     .end(done);
   });
 
-  it('/accounts/:account/balances?counterparty', function(done) {
+  test('/accounts/:account/balances?counterparty', function(done) {
     self.wss.once('request_account_info', function(message, conn) {
       assert(false, 'Should not request account info');
     });
@@ -150,7 +150,7 @@ describe('get balances', function() {
     .end(done);
   });
 
-  it('/accounts/:account/balances?counterparty -- invalid counterparty', function(done) {
+  test('/accounts/:account/balances?counterparty -- invalid counterparty', function(done) {
     self.wss.once('request_account_info', function(message, conn) {
       assert(false, 'Should not request account info');
     });
@@ -167,7 +167,7 @@ describe('get balances', function() {
     .end(done);
   });
 
-  it('/accounts/:account/balances?counterparty -- non-existent counterparty', function(done) {
+  test('/accounts/:account/balances?counterparty -- non-existent counterparty', function(done) {
     self.wss.once('request_account_info', function(message, conn) {
       assert(false, 'Should not request account info');
     });
@@ -187,7 +187,7 @@ describe('get balances', function() {
     .end(done);
   });
 
-  it('/accounts/:account/balances?counterparty&currency', function(done) {
+  test('/accounts/:account/balances?counterparty&currency', function(done) {
     self.wss.once('request_account_info', function(message, conn) {
       assert(false, 'Should not request account info');
     });

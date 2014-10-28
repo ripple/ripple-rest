@@ -8,16 +8,16 @@ var addresses = require('./fixtures').addresses;
 // Transaction LastLedgerSequence offset from current ledger sequence
 const LEDGER_OFFSET = 8;
 
-describe('get settings', function() {
+suite('get settings', function() {
   var self = this;
 
   //self.wss: rippled mock
   //self.app: supertest-enabled REST handler
 
-  beforeEach(testutils.setup.bind(self));
-  afterEach(testutils.teardown.bind(self));
+  setup(testutils.setup.bind(self));
+  teardown(testutils.teardown.bind(self));
 
-  it('/accounts/:account/settings', function(done) {
+  test('/accounts/:account/settings', function(done) {
     self.wss.once('request_account_info', function(message, conn) {
       assert.strictEqual(message.command, 'account_info');
       assert.strictEqual(message.account, addresses.VALID);
@@ -32,7 +32,7 @@ describe('get settings', function() {
     .end(done);
   });
 
-  it('/accounts/:account/settings -- invalid account', function(done) {
+  test('/accounts/:account/settings -- invalid account', function(done) {
     self.wss.once('request_account_info', function(message, conn) {
       assert(false, 'Should not request account info');
     });
@@ -45,7 +45,7 @@ describe('get settings', function() {
     .end(done);
   });
 
-  it('/accounts/:account/settings -- non-existent account', function(done) {
+  test('/accounts/:account/settings -- non-existent account', function(done) {
     self.wss.once('request_account_info', function(message, conn) {
       assert.strictEqual(message.command, 'account_info');
       assert.strictEqual(message.account, addresses.VALID);
@@ -60,16 +60,16 @@ describe('get settings', function() {
   });
 });
 
-describe('post settings', function() {
+suite('post settings', function() {
   var self = this;
 
   //self.wss: rippled mock
   //self.app: supertest-enabled REST handler
 
-  beforeEach(testutils.setup.bind(self));
-  afterEach(testutils.teardown.bind(self));
+  setup(testutils.setup.bind(self));
+  teardown(testutils.teardown.bind(self));
 
-  it('/accounts/:account/settings', function(done) {
+  test('/accounts/:account/settings', function(done) {
     var lastLedger = self.app.remote._ledger_current_index;
 
     self.wss.once('request_account_info', function(message, conn) {
@@ -119,7 +119,7 @@ describe('post settings', function() {
       .end(done);
   });
 
-  it('/accounts/:account/settings -- invalid account', function(done) {
+  test('/accounts/:account/settings -- invalid account', function(done) {
     self.wss.once('request_account_info', function(message, conn) {
       assert(false, 'Should not request account info');
     });
@@ -148,7 +148,7 @@ describe('post settings', function() {
       .end(done);
   });
 
-  it('/accounts/:account/settings -- missing settings', function(done) {
+  test('/accounts/:account/settings -- missing settings', function(done) {
     self.wss.once('request_account_info', function(message, conn) {
       assert(false, 'Should not request account info');
     });
@@ -168,7 +168,7 @@ describe('post settings', function() {
     .end(done);
   });
 
-  it('/accounts/:account/settings -- missing secret', function(done) {
+  test('/accounts/:account/settings -- missing secret', function(done) {
     self.wss.once('request_account_info', function(message, conn) {
       assert(false, 'Should not request account info');
     });
@@ -197,7 +197,7 @@ describe('post settings', function() {
       .end(done);
   });
 
-  it('/accounts/:account/settings -- invalid setting -- require_destination_tag', function(done) {
+  test('/accounts/:account/settings -- invalid setting -- require_destination_tag', function(done) {
     self.wss.once('request_account_info', function(message, conn) {
       assert(false, 'Should not request account info');
     });
@@ -226,7 +226,7 @@ describe('post settings', function() {
       .end(done);
   });
 
-  it('/accounts/:account/settings -- invalid setting -- domain', function(done) {
+  test('/accounts/:account/settings -- invalid setting -- domain', function(done) {
     self.wss.once('request_account_info', function(message, conn) {
       assert(false, 'Should not request account info');
     });
@@ -255,7 +255,7 @@ describe('post settings', function() {
       .end(done);
   });
 
-  it('/accounts/:account/settings -- invalid setting -- transfer_rate', function(done) {
+  test('/accounts/:account/settings -- invalid setting -- transfer_rate', function(done) {
     self.wss.once('request_account_info', function(message, conn) {
       assert(false, 'Should not request account info');
     });
@@ -284,7 +284,7 @@ describe('post settings', function() {
       .end(done);
   });
 
-  it('/accounts/:account/settings -- invalid setting -- no_freeze and global_freeze', function(done) {
+  test('/accounts/:account/settings -- invalid setting -- no_freeze and global_freeze', function(done) {
     self.wss.once('request_account_info', function(message, conn) {
       assert(false, 'Should not request account info');
     });
@@ -307,7 +307,7 @@ describe('post settings', function() {
       .end(done);
   });
 
-  it('/accounts/:account/settings -- invalid setting -- clear no_freeze and global_freeze', function(done) {
+  test('/accounts/:account/settings -- invalid setting -- clear no_freeze and global_freeze', function(done) {
     self.wss.once('request_account_info', function(message, conn) {
       assert(false, 'Should not request account info');
     });
@@ -330,7 +330,7 @@ describe('post settings', function() {
       .end(done);
   });
 
-  it('/accounts/:account/settings -- clear setting -- require_destination_tag', function(done) {
+  test('/accounts/:account/settings -- clear setting -- require_destination_tag', function(done) {
     self.wss.once('request_account_info', function(message, conn) {
       assert.strictEqual(message.command, 'account_info');
       assert.strictEqual(message.account, addresses.VALID);
@@ -365,7 +365,7 @@ describe('post settings', function() {
       .end(done);
   });
 
-  it('/accounts/:account/settings -- clear setting -- domain', function(done) {
+  test('/accounts/:account/settings -- clear setting -- domain', function(done) {
     self.wss.once('request_account_info', function(message, conn) {
       assert.strictEqual(message.command, 'account_info');
       assert.strictEqual(message.account, addresses.VALID);
@@ -401,7 +401,7 @@ describe('post settings', function() {
       .end(done);
   });
 
-  it('/accounts/:account/settings -- clear setting -- email_hash', function(done) {
+  test('/accounts/:account/settings -- clear setting -- email_hash', function(done) {
     self.wss.once('request_account_info', function(message, conn) {
       assert.strictEqual(message.command, 'account_info');
       assert.strictEqual(message.account, addresses.VALID);
@@ -437,7 +437,7 @@ describe('post settings', function() {
       .end(done);
   });
 
-  it('/accounts/:account/settings -- clear setting -- wallet_locator', function(done) {
+  test('/accounts/:account/settings -- clear setting -- wallet_locator', function(done) {
     self.wss.once('request_account_info', function(message, conn) {
       assert.strictEqual(message.command, 'account_info');
       assert.strictEqual(message.account, addresses.VALID);
@@ -473,7 +473,7 @@ describe('post settings', function() {
       .end(done);
   });
 
-  it('/accounts/:account/settings -- clear setting -- transfer_rate', function(done) {
+  test('/accounts/:account/settings -- clear setting -- transfer_rate', function(done) {
     self.wss.once('request_account_info', function(message, conn) {
       assert.strictEqual(message.command, 'account_info');
       assert.strictEqual(message.account, addresses.VALID);
@@ -509,7 +509,7 @@ describe('post settings', function() {
       .end(done);
   });
 
-  it('/accounts/:account/settings -- clear setting -- no_freeze', function(done) {
+  test('/accounts/:account/settings -- clear setting -- no_freeze', function(done) {
     self.wss.once('request_account_info', function(message, conn) {
       assert.strictEqual(message.command, 'account_info');
       assert.strictEqual(message.account, addresses.VALID);
@@ -544,7 +544,7 @@ describe('post settings', function() {
       .end(done);
   });
 
-  it('/accounts/:account/settings -- clear settings -- no_freeze and global_freeze', function(done) {
+  test('/accounts/:account/settings -- clear settings -- no_freeze and global_freeze', function(done) {
     self.wss.once('request_account_info', function(message, conn) {
       assert(false, 'Should not request account info');
     });

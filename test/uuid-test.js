@@ -4,16 +4,16 @@ var testutils = require('./testutils');
 var fixtures = require('./fixtures');
 var errors = require('./fixtures').errors;
 
-describe('get uuid', function() {
+suite('get uuid', function() {
   var self = this;
 
   //self.wss: rippled mock
   //self.app: supertest-enabled REST handler
 
-  beforeEach(testutils.setup.bind(self));
-  afterEach(testutils.teardown.bind(self));
+  setup(testutils.setup.bind(self));
+  teardown(testutils.teardown.bind(self));
 
-  it('/uuid', function(done) {
+  test('/uuid', function(done) {
     self.app
     .get('/v1/uuid')
     .expect(testutils.checkStatus(200))
