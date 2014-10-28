@@ -36,7 +36,7 @@ suite('get payment paths', function() {
     .end(done);
   });
 
-  test('/accounts/:account/payments/paths/:destination/:amount -- missing destination currnecy', function(done) {
+  test('/accounts/:account/payments/paths/:destination/:amount -- missing destination currency', function(done) {
     self.app
     .get('/v1/accounts/' + addresses.VALID + '/payments/paths/' + addresses.VALID + '/100')
     .expect(testutils.checkBody(errors.RESTInvalidDestinationAmount))
@@ -45,7 +45,7 @@ suite('get payment paths', function() {
     .end(done);
   });
 
-  test('/accounts/:account/payments/paths/:destination/:amount -- invalid amount currency', function(done) {
+  test('/accounts/:account/payments/paths/:destination/:amount -- invalid destination currency format', function(done) {
     self.app
     .get('/v1/accounts/' + addresses.VALID + '/payments/paths/' + addresses.VALID + '/100-USD')
     .expect(testutils.checkStatus(400))
@@ -54,7 +54,7 @@ suite('get payment paths', function() {
     .end(done);
   });
 
-  test('/accounts/:account/payments/paths/:destination/:amount -- invalid amount issuer', function(done) {
+  test('/accounts/:account/payments/paths/:destination/:amount -- invalid destination currency issuer', function(done) {
     self.app
     .get('/v1/accounts/' + addresses.VALID + '/payments/paths/' + addresses.VALID + '/100+USD+' + addresses.INVALID)
     .expect(testutils.checkStatus(400))
@@ -63,7 +63,7 @@ suite('get payment paths', function() {
     .end(done);
   });
 
-  test('/accounts/:account/payments/paths/:destination/:amount -- XRP amount', function(done) {
+  test('/accounts/:account/payments/paths/:destination/:amount -- XRP source amount response has source account, destination account, and destination amount issuer correctly set', function(done) {
     self.wss.once('request_ripple_path_find', function(message, conn) {
       assert.strictEqual(message.command, 'ripple_path_find');
       assert.strictEqual(message.source_account, addresses.VALID);
@@ -94,7 +94,7 @@ suite('get payment paths', function() {
     });
   });
 
-  test('/accounts/:account/payments/paths/:destination/:amount -- with non-XRP source amount', function(done) {
+  test('/accounts/:account/payments/paths/:destination/:amount -- IOU destination amount response has source amount issuer set for all non-XRP source amounts', function(done) {
     self.wss.once('request_ripple_path_find', function(message, conn) {
       assert.strictEqual(message.command, 'ripple_path_find');
       assert.strictEqual(message.source_account, addresses.VALID);
@@ -109,7 +109,7 @@ suite('get payment paths', function() {
     });
 
     self.app
-    .get('/v1/accounts/' + addresses.VALID + '/payments/paths/' + addresses.VALID + '/100+XRP')
+    .get('/v1/accounts/' + addresses.VALID + '/payments/paths/' + addresses.VALID + '/100+USD+' + addresses.ISSUER)
     .expect(testutils.checkStatus(200))
     .expect(testutils.checkHeaders)
     .end(function(err, res) {
@@ -128,7 +128,7 @@ suite('get payment paths', function() {
     });
   });
 
-  test('/accounts/:account/payments/paths/:destination/:amount -- IOU amount', function(done) {
+  test('/accounts/:account/payments/paths/:destination/:amount -- IOU destination amount has source account, destination account, and destination amount issuer correctly set', function(done) {
     self.wss.once('request_ripple_path_find', function(message, conn) {
       assert.strictEqual(message.command, 'ripple_path_find');
       assert.strictEqual(message.source_account, addresses.VALID);
@@ -153,7 +153,7 @@ suite('get payment paths', function() {
     });
   });
 
-  test('/accounts/:account/payments/paths/:destination/:amount -- destination as issuer', function(done) {
+  test('/accounts/:account/payments/paths/:destination/:amount -- IOU destination amount sets destination amount issuer to destination account when they are the same', function(done) {
     self.wss.once('request_ripple_path_find', function(message, conn) {
       assert.strictEqual(message.command, 'ripple_path_find');
       assert.strictEqual(message.source_account, addresses.VALID);
