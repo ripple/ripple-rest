@@ -160,9 +160,9 @@ suite('payments', function() {
 
     var _accountinfo = function(data,ws) {
       delete data.id;
+
       assert.deepEqual(data, {
         command: 'account_info',
-        ident: 'rHb9CJAWyB4rj91VRWn96DkukG4bwdtyTh',
         account: 'rHb9CJAWyB4rj91VRWn96DkukG4bwdtyTh'
       });
 
@@ -176,7 +176,7 @@ suite('payments', function() {
       delete so.TxnSignature; // sigs won't match ever
       assert.deepEqual(so, {
         TransactionType: 'Payment',
-        Flags: 0,
+        Flags: 2147483648,
         Sequence: 1,
         LastLedgerSequence: 8804619,
         Amount: '429000000',
@@ -226,7 +226,6 @@ suite('payments', function() {
         delete data.id;
         assert.deepEqual(data, {
           command: 'account_info',
-          ident: 'rJRLoJSErtNRFnbCyHEUYnRUKNwkVYDM7U',
           account: 'rJRLoJSErtNRFnbCyHEUYnRUKNwkVYDM7U'
         });
         orderlist.mark('account_info');
@@ -236,7 +235,6 @@ suite('payments', function() {
         delete data.id;
         assert.deepEqual(data, {
           command: 'account_lines',
-          ident: 'rJRLoJSErtNRFnbCyHEUYnRUKNwkVYDM7U',
           account: 'rJRLoJSErtNRFnbCyHEUYnRUKNwkVYDM7U'
         });
         orderlist.mark('account_lines');
@@ -279,7 +277,6 @@ suite('payments', function() {
         delete data.id
         assert.deepEqual(data, {
           command: 'account_info',
-          ident: 'rJRLoJSErtNRFnbCyHEUYnRUKNwkVYDM7U',
           account: 'rJRLoJSErtNRFnbCyHEUYnRUKNwkVYDM7U'
         });
     };
@@ -329,7 +326,6 @@ suite('payments', function() {
       delete data.id;
       assert.deepEqual(data, {
         command: 'account_info',
-        ident: 'rJRLoJSErtNRFnbCyHEUYnRUKNwkVYDM7U',
         account: 'rJRLoJSErtNRFnbCyHEUYnRUKNwkVYDM7U'
       });
     };
@@ -339,7 +335,7 @@ suite('payments', function() {
       delete so.TxnSignature; // sigs won't match ever
       orderlist.mark('submit');
       assert.deepEqual(so, {
-        Flags: 0,
+        Flags: 2147483648,
         TransactionType: 'Payment',
         Account: 'rJRLoJSErtNRFnbCyHEUYnRUKNwkVYDM7U',
         Amount: '1',
@@ -417,7 +413,6 @@ suite('payments', function() {
       delete data.id;
       assert.deepEqual(data, {
         command: 'account_info',
-        ident: 'rJRLoJSErtNRFnbCyHEUYnRUKNwkVYDM7U',
         account: 'rJRLoJSErtNRFnbCyHEUYnRUKNwkVYDM7U'
       })
     };
@@ -454,7 +449,7 @@ suite('payments', function() {
       delete so.TxnSignature;
       assert.deepEqual(so,{
         TransactionType: 'Payment',
-        Flags: 0,
+        Flags: 2147483648,
         Sequence: 2,
         LastLedgerSequence: 8804619,
         Amount: (store.reserve_base_xrp*1000000).toString(),
@@ -595,7 +590,6 @@ suite('payments', function() {
       delete data.id;
       assert.deepEqual(data, {
         command: 'account_info',
-        ident: 'rwmityd4Ss34DBUsRy7Pacv6UA5n7yjfe5',
         account: 'rwmityd4Ss34DBUsRy7Pacv6UA5n7yjfe5'
       });
       orderlist.mark('account_info');
@@ -605,7 +599,6 @@ suite('payments', function() {
       delete data.id;
       assert.deepEqual(data, {
         command: 'account_lines',
-        ident: 'rwmityd4Ss34DBUsRy7Pacv6UA5n7yjfe5',
         account: 'rwmityd4Ss34DBUsRy7Pacv6UA5n7yjfe5'
       });
       orderlist.mark('account_lines');
@@ -649,7 +642,6 @@ suite('payments', function() {
       delete data.id;
       assert.deepEqual(data, {
         command: 'account_info',
-        ident: 'rwmityd4Ss34DBUsRy7Pacv6UA5n7yjfe5',
         account: 'rwmityd4Ss34DBUsRy7Pacv6UA5n7yjfe5'
       });
     };
@@ -748,7 +740,6 @@ suite('payments', function() {
       orderlist.mark('account_info');
       assert.deepEqual(data, {
         command: 'account_info',
-        ident: 'rwmityd4Ss34DBUsRy7Pacv6UA5n7yjfe5',
         account: 'rwmityd4Ss34DBUsRy7Pacv6UA5n7yjfe5'
       });
     };
@@ -1141,8 +1132,8 @@ suite('payments', function() {
 
   test('Posting 10USD from carol to dan with valid client resource id and correct secret but missing fields on payment object',function(done) {
     store.paymentCarolToDan.secret = fixtures.accounts.carol.secret;
-    store.value = store.paymentCarolToDan.payment.destination_amount.value
-    delete store.paymentCarolToDan.payment.destination_amount.value
+    store.value = store.paymentCarolToDan.payment.destination_amount.value;
+    delete store.paymentCarolToDan.payment.destination_amount.value;
     app.post('/v1/accounts/' + fixtures.accounts.alice.address + '/payments')
       .send(store.paymentCarolToDan)
       .expect(function(resp,err) {
