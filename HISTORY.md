@@ -17,7 +17,13 @@
 
 #### Breaking changes
 
-+ Endpoints renamed and deprecated ([6802423](https://github.com/ripple/ripple-rest/commit/6802423245d8eff7a8b35248c8c261db62422dfb))
++ Endpoints renamed and deprecated ([6802423](https://github.com/ripple/ripple-rest/commit/6802423245d8eff7a8b35248c8c261db62422dfb)):
+    - **new** `/v1/accounts/new` -> `v1/wallet/new`
+    - **deprecated** `/v1/tx/{:hash}`
+    - **deprecated** `/v1/transaction/{:hash}`
+    - use `/v1/transactions/{:hash}` to get a transaction by hash
+    - **deprecated** `/v1/payments`
+    - use `/v1/accounts/{address}/payments` to submit a payment    
 
 + New configuration, you will have to change your config file. [Documented changes](https://github.com/ripple/ripple-rest/blob/develop/docs/server-configuration.md)
 
