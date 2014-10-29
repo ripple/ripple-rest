@@ -162,6 +162,37 @@ openssl x509 -req -days 730 -in /etc/ssl/server.csr -signkey /etc/ssl/private/se
 
 ```
 
+## Deployment tips
+Run `ripple-rest` using [`forever`](https://www.npmjs.org/package/forever). `node` and `npm` are required. Install `forever` using `sudo npm install -g forever`.
+
+Example of running `ripple-rest` using `forever`:
+```
+forever start \
+    --pidFile /var/run/ripple-rest/ripple-rest.pid \
+    --sourceDir /opt/ripple-rest \
+    -a -o /var/log/ripple-rest/ripple-rest.log \
+    -e /var/log/ripple-rest/ripple-rest.err \
+    -l /var/log/ripple-rest/ripple-rest.for \
+    server.js
+```
+
+Monitor `ripple-rest` using [`monit`](http://mmonit.com/monit/). On Ubuntu you can install `monit` using `sudo apt-get install monit`.
+
+Example of a monit script that will restart the server if:
+- memory goes up over 25%
+- the server fails responding to server status
+```
+set httpd port 2812 and allow localhost
+
+check process ripple-rest with pidfile /var/run/ripple-rest/ripple-rest.pid
+    start program = "/etc/init.d/ripple-rest start"
+    stop program = "/etc/init.d/ripple-rest stop"
+    if memory > 25% then restart
+    if failed port 5990 protocol HTTP
+        and request "/v1/server"
+    then restart
+```
+
 ### Exploring the API ###
 
 A REST API makes resources available via HTTP, the same protocol used by your browser to access the web. This means you can even use your browser to get a response from the API. Try visiting the following URL:
