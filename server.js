@@ -1,47 +1,62 @@
-require('rconsole');
+var fs        = require('fs');
+var https     = require('https');
+var constants = require('constants')
+var app       = require('./lib/express_app.js');
+var config    = require('./lib/config-loader');
+var remote    = require('./lib/remote.js');
+var logger    = require('./lib/logger.js').logger;
+var utils     = require('./lib/utils.js');
 
-console.set({
-  facility:        'local7',
-  title:           'ripple-rest-server',
-  stdout:          true,
-  stderr:          false,
-  syslog:          true,
-  syslogHashtags:  false,
-  showTime:        true,
-  showLine:        false,
-  showFile:        false,
-  showTags:        true
-});
+var port = config.get('port') || 5990;
+var host = config.get('host');
 
-var fs     = require('fs');
-var https  = require('https');
-var path   = require('path');
-var config = require(__dirname+'/lib/config-loader');
-var app = require(__dirname+'/lib/express_app.js');
+logger.info('ripple-rest (v' + utils.getPackageVersion() + ')');
 
-/* Configure SSL, if desired */
-if (typeof config.get('ssl') === 'object') {
-  var key_path  = config.get('ssl').key_path || path.join(__dirname, '/certs/server.key');
-  var cert_path = config.get('ssl').cert_path || path.join(__dirname, '/certs/server.crt');
+function loadSSLConfig() {
+  var keyPath  = config.get('ssl').key_path || './certs/server.key';
+  var certPath = config.get('ssl').cert_path || './certs/server.crt';
 
-  if (!fs.existsSync(key_path)) {
-    throw new Error('Must provide key file and a key_path in the config.json in order to use SSL');
+  if (!fs.existsSync(keyPath)) {
+    logger.error('Must specify key_path in order to use SSL');
+    process.exit(1);
   }
 
-  if (!fs.existsSync(cert_path)) {
-    throw new Error('Must provide certificate file and a cert_path in the config.json in order to use SSL');
+  if (!fs.existsSync(certPath)) {
+    logger.error('Must specify cert_path in order to use SSL');
+    process.exit(1);
   }
 
-  var sslOptions = {
-    key:   fs.readFileSync(key_path),
-    cert:  fs.readFileSync(cert_path)
+  return {
+    key: fs.readFileSync(keyPath),
+    cert: fs.readFileSync(certPath),
+
+    //
+    // Protecting against POODLE in node.js
+    // source: https://gist.github.com/3rd-Eden/715522f6950044da45d8
+    //
+
+    //
+    // This is the default secureProtocol used by Node.js, but it might be
+    // sane to specify this by default as it's required if you want to
+    // remove supported protocols from the list. This protocol supports:
+    //
+    // - SSLv2, SSLv3, TLSv1, TLSv1.1 and TLSv1.2
+    //
+    secureProtocol: 'SSLv23_method',
+
+    //
+    // Supply `SSL_OP_NO_SSLv3` constant as secureOption to disable SSLv3
+    // from the list of supported protocols that SSLv23_method supports.
+    secureOptions: constants.SSL_OP_NO_SSLv3
   };
+};
 
-  https.createServer(sslOptions, app).listen(config.get('PORT'), config.get('HOST'), function() {
-    console.log('ripple-rest server listening over HTTPS at port:', config.get('PORT'));
+if (config.get('ssl_enabled')) {
+  require('https').createServer(loadSSLConfig(), app).listen(port, host, function() {
+    logger.info('server listening over HTTPS at port ' + port);
   });
 } else {
-  app.listen(config.get('PORT'), config.get('HOST'), function() {
-    console.log('ripple-rest server listening over UNSECURED HTTP at port:', config.get('PORT'));
+  app.listen(port, host, function() {
+    logger.info('server listening over UNSECURED HTTP at port ' + port);
   });
 }

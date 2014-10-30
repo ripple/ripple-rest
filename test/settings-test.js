@@ -1,127 +1,349 @@
-var _        = require('lodash');
-var ripple   = require('ripple-lib');
-var expect   = require('chai').expect;
-var settings = require('../api/settings');
-var createInterface = require(__dirname+'/helpers/create_interface');
+var assert = require('assert');
+var ripple = require('ripple-lib');
+var testutils = require('./testutils');
+var fixtures = require('./fixtures').settings;
+var errors = require('./fixtures').errors;
+var addresses = require('./fixtures').addresses;
 
-describe('settings', function() {
-  var $;
+// Transaction LastLedgerSequence offset from current ledger sequence
+const LEDGER_OFFSET = 8;
 
-  beforeEach(function() {
-    $ = createInterface();
-  });
+suite('get settings', function() {
+  var self = this;
 
-  it.skip('getSettings', function(done) {
-    var accountInfo = {
-      "account_data": {
-        "Account": "r45r1T2utToqmputeEe2ErKqE1rEFDoccH",
-        "Balance": "922913243",
-        "Domain": "6578616D706C652E636F6D",
-        "EmailHash": "23463B99B62A72F26ED677CC556C44E8",
-        "Flags": 655360,
-        "LedgerEntryType": "AccountRoot",
-        "OwnerCount": 1,
-        "PreviousTxnID": "19899273706A9E040FDB5885EE991A1DC2BAD878A0D6E7DBCFB714E63BF737F7",
-        "PreviousTxnLgrSeq": 6614625,
-        "Sequence": 2938,
-        "WalletLocator": "00000000000000000000000000000000000000000000000000000000DEADBEEF",
-        "index": "396400950EA27EB5710C0D5BE1D2B4689139F168AC5D07C13B8140EC3F82AE71",
-        "urlgravatar": "http://www.gravatar.com/avatar/23463b99b62a72f26ed677cc556c44e8"
-      },
-      "ledger_current_index": 6614628
-    };
+  //self.wss: rippled mock
+  //self.app: supertest-enabled REST handler
 
-    $.remote.request = function(request) {
-      request.emit('success', accountInfo);
-    };
+  setup(testutils.setup.bind(self));
+  teardown(testutils.teardown.bind(self));
 
-    var req = {
-      params: {
-        account: 'r45r1T2utToqmputeEe2ErKqE1rEFDoccH'
-      },
-      body: { },
-      param: { }
-    };
-
-    var res = {
-      json: function(statusCode, obj) {
-        expect(statusCode).to.equal(200);
-        expect(obj).to.be.an('object');
-        expect(obj.success).to.equal(true);
-        expect(obj.settings).to.be.an('object');
-        expect(obj.settings).to.have.property('account', accountInfo.account_data.Account);
-        expect(obj.settings).to.have.property('transfer_rate', '');
-        expect(obj.settings).to.have.property('password_spent', false);
-        expect(obj.settings).to.have.property('require_destination_tag', true);
-        expect(obj.settings).to.have.property('require_authorization', false);
-        expect(obj.settings).to.have.property('disallow_xrp', true);
-        expect(obj.settings).to.have.property('transaction_sequence', String(accountInfo.account_data.Sequence));
-        expect(obj.settings).to.have.property('email_hash', accountInfo.account_data.EmailHash);
-        expect(obj.settings).to.have.property('wallet_locator', accountInfo.account_data.WalletLocator);
-        expect(obj.settings).to.have.property('wallet_size', '');
-        expect(obj.settings).to.have.property('message_key', '');
-        expect(obj.settings).to.have.property('domain', 'example.com');
-        expect(obj.settings).to.have.property('signers', '');
-        done();
-      }
-    };
-
-    settings.get($, req, res, function(err) {
-      expect(err).to.equal(null, err);
+  test('/accounts/:account/settings', function(done) {
+    self.wss.once('request_account_info', function(message, conn) {
+      assert.strictEqual(message.command, 'account_info');
+      assert.strictEqual(message.account, addresses.VALID);
+      conn.send(fixtures.accountInfoResponse(message));
     });
+
+    self.app
+    .get(fixtures.requestPath(addresses.VALID))
+    .expect(testutils.checkStatus(200))
+    .expect(testutils.checkHeaders)
+    .expect(testutils.checkBody(fixtures.RESTAccountSettingsResponse))
+    .end(done);
   });
 
-  it.skip('getSettings -- missing account', function(done) {
-    var req = {
-      params: { account: void(0) },
-      body: { },
-      param: { }
-    };
-
-    var res = {
-      json: function(statusCode, obj) {
-        expect(statusCode).to.equal(400);
-        expect(obj).to.be.an('object');
-        expect(obj.success).to.equal(false);
-        expect(obj.message).to.equal('Parameter is not a valid Ripple address: account');
-        done();
-      }
-    }
-
-    settings.get($, req, res, function(err) {
-      expect(err).to.equal(null, err);
+  test('/accounts/:account/settings -- invalid account', function(done) {
+    self.wss.once('request_account_info', function(message, conn) {
+      assert(false, 'Should not request account info');
     });
+
+    self.app
+    .get(fixtures.requestPath(addresses.INVALID))
+    .expect(testutils.checkStatus(400))
+    .expect(testutils.checkHeaders)
+    .expect(testutils.checkBody(errors.RESTInvalidAccount))
+    .end(done);
   });
 
-  it.skip('getSettings -- invalid account', function(done) {
-    var req = {
-      params: { account: 'asdf' },
-      body: { },
-      param: { }
-    };
-
-    var res = {
-      json: function(statusCode, obj) {
-        expect(statusCode).to.equal(400);
-        expect(obj).to.be.an('object');
-        expect(obj.success).to.equal(false);
-        expect(obj.message).to.equal('Parameter is not a valid Ripple address: account');
-        done();
-      }
-    }
-
-    settings.get($, req, res, function(err) {
-      expect(err).to.equal(null, err);
+  test('/accounts/:account/settings -- non-existent account', function(done) {
+    self.wss.once('request_account_info', function(message, conn) {
+      assert.strictEqual(message.command, 'account_info');
+      assert.strictEqual(message.account, addresses.VALID);
+      conn.send(fixtures.accountNotFoundResponse(message));
     });
+
+    self.app
+    .get(fixtures.requestPath(addresses.VALID))
+    .expect(testutils.checkStatus(404))
+    .expect(testutils.checkHeaders)
+    .end(done);
+  });
+});
+
+suite('post settings', function() {
+  var self = this;
+
+  //self.wss: rippled mock
+  //self.app: supertest-enabled REST handler
+
+  setup(testutils.setup.bind(self));
+  teardown(testutils.teardown.bind(self));
+
+  test('/accounts/:account/settings', function(done) {
+    var lastLedger = self.app.remote._ledger_current_index;
+
+    self.wss.once('request_account_info', function(message, conn) {
+      assert.strictEqual(message.command, 'account_info');
+      assert.strictEqual(message.account, addresses.VALID);
+      conn.send(fixtures.accountInfoResponse(message));
+    });
+
+    self.wss.once('request_submit', function(message, conn) {
+      assert.strictEqual(message.command, 'submit');
+      assert(message.hasOwnProperty('tx_blob'));
+
+      var so = new ripple.SerializedObject(message.tx_blob).to_json();
+
+      assert.strictEqual(so.TransactionType, 'AccountSet');
+      assert.strictEqual(so.Flags, 2148859904);
+      assert.strictEqual(so.ClearFlag, 6);
+      assert.strictEqual(so.SetFlag, 7);
+      assert.strictEqual(typeof so.Sequence, 'number');
+      assert.strictEqual(so.LastLedgerSequence, lastLedger + LEDGER_OFFSET);
+      assert.strictEqual(so.Fee, '12');
+      assert.strictEqual(so.Account, 'r3GgMwvgvP8h4yVWvjH1dPZNvC37TjzBBE');
+
+      conn.send(fixtures.submitSettingsResponse(message, lastLedger + LEDGER_OFFSET));
+    });
+
+    self.app
+    .post(fixtures.requestPath(addresses.VALID))
+    .send({
+      //XXX Should set client_resource_id
+      secret: addresses.SECRET,
+      settings: {
+        require_destination_tag: true,
+        require_authorization: true,
+        disallow_xrp: true,
+        domain: 'example.com',
+        email_hash: '23463B99B62A72F26ED677CC556C44E8',
+        wallet_locator: 'DEADBEEF',
+        wallet_size: 1,
+        transfer_rate: 2,
+        no_freeze: false,
+        global_freeze: true
+      }})
+      .expect(testutils.checkStatus(200))
+      .expect(testutils.checkHeaders)
+      .expect(testutils.checkBody(fixtures.RESTAccountSettingsSubmitResponse(lastLedger)))
+      .end(done);
   });
 
-  it.skip('changeSettings', function(done) {
-    var req = {
-      params: {
-        account: 'r45r1T2utToqmputeEe2ErKqE1rEFDoccH',
-      },
-      body: {
-        secret: 'snkisrZ4QvDvUv8Xk6nf8br8wecEd',
+  test('/accounts/:account/settings -- invalid account', function(done) {
+    self.wss.once('request_account_info', function(message, conn) {
+      assert(false, 'Should not request account info');
+    });
+
+    self.wss.once('request_submit', function(message, conn) {
+      assert(false, 'Should not request submit');
+    });
+
+    self.app
+    .post(fixtures.requestPath(addresses.INVALID))
+    .send({
+      secret: addresses.SECRET,
+      settings: {
+        require_destination_tag: true,
+        require_authorization: true,
+        disallow_xrp: true,
+        domain: 'example.com',
+        email_hash: '23463B99B62A72F26ED677CC556C44E8',
+        wallet_locator: 'DEADBEEF',
+        wallet_size: 1,
+        transfer_rate: 2
+      }})
+      .expect(testutils.checkStatus(400))
+      .expect(testutils.checkHeaders)
+      .expect(testutils.checkBody(errors.RESTInvalidAccount))
+      .end(done);
+  });
+
+  test('/accounts/:account/settings -- missing settings', function(done) {
+    self.wss.once('request_account_info', function(message, conn) {
+      assert(false, 'Should not request account info');
+    });
+
+    self.wss.once('request_submit', function(message, conn) {
+      assert(false, 'Should not request submit');
+    });
+
+    self.app
+    .post(fixtures.requestPath(addresses.VALID))
+    .send({
+      secret: addresses.SECRET
+    })
+    .expect(testutils.checkStatus(400))
+    .expect(testutils.checkHeaders)
+    .expect(testutils.checkBody(fixtures.RESTMissingSettingsResponse))
+    .end(done);
+  });
+
+  test('/accounts/:account/settings -- missing secret', function(done) {
+    self.wss.once('request_account_info', function(message, conn) {
+      assert(false, 'Should not request account info');
+    });
+
+    self.wss.once('request_submit', function(message, conn) {
+      assert(false, 'Should not request submit');
+    });
+
+    self.app
+    .post(fixtures.requestPath(addresses.VALID))
+    .send({
+      //secret: addresses.SECRET,
+      settings: {
+        require_destination_tag: true,
+        require_authorization: true,
+        disallow_xrp: true,
+        domain: 'example.com',
+        email_hash: '23463B99B62A72F26ED677CC556C44E8',
+        wallet_locator: 'DEADBEEF',
+        wallet_size: 1,
+        transfer_rate: 2
+      }})
+      .expect(testutils.checkStatus(400))
+      .expect(testutils.checkHeaders)
+      .expect(testutils.checkBody(fixtures.RESTMissingSecretResponse))
+      .end(done);
+  });
+
+  test('/accounts/:account/settings -- invalid setting -- require_destination_tag', function(done) {
+    self.wss.once('request_account_info', function(message, conn) {
+      assert(false, 'Should not request account info');
+    });
+
+    self.wss.once('request_submit', function(message, conn) {
+      assert(false, 'Should not request submit');
+    });
+
+    self.app
+    .post(fixtures.requestPath(addresses.VALID))
+    .send({
+      secret: addresses.SECRET,
+      settings: {
+        require_destination_tag: 1,
+        require_authorization: true,
+        disallow_xrp: true,
+        domain: 'example.com',
+        email_hash: '23463B99B62A72F26ED677CC556C44E8',
+        wallet_locator: 'DEADBEEF',
+        wallet_size: 1,
+        transfer_rate: 2
+      }})
+      .expect(testutils.checkStatus(400))
+      .expect(testutils.checkHeaders)
+      .expect(testutils.checkBody(fixtures.RESTInvalidDestTagResponse))
+      .end(done);
+  });
+
+  test('/accounts/:account/settings -- invalid setting -- domain', function(done) {
+    self.wss.once('request_account_info', function(message, conn) {
+      assert(false, 'Should not request account info');
+    });
+
+    self.wss.once('request_submit', function(message, conn) {
+      assert(false, 'Should not request submit');
+    });
+
+    self.app
+    .post(fixtures.requestPath(addresses.VALID))
+    .send({
+      secret: addresses.SECRET,
+      settings: {
+        require_destination_tag: true,
+        require_authorization: true,
+        disallow_xrp: true,
+        domain: 1,
+        email_hash: '23463B99B62A72F26ED677CC556C44E8',
+        wallet_locator: 'DEADBEEF',
+        wallet_size: 1,
+        transfer_rate: 2
+      }})
+      .expect(testutils.checkStatus(400))
+      .expect(testutils.checkHeaders)
+      .expect(testutils.checkBody(fixtures.RESTInvalidDomainResponse))
+      .end(done);
+  });
+
+  test('/accounts/:account/settings -- invalid setting -- transfer_rate', function(done) {
+    self.wss.once('request_account_info', function(message, conn) {
+      assert(false, 'Should not request account info');
+    });
+
+    self.wss.once('request_submit', function(message, conn) {
+      assert(false, 'Should not request submit');
+    });
+
+    self.app
+    .post(fixtures.requestPath(addresses.VALID))
+    .send({
+      secret: addresses.SECRET,
+      settings: {
+        require_destination_tag: true,
+        require_authorization: true,
+        disallow_xrp: true,
+        domain: 'example.com',
+        email_hash: '23463B99B62A72F26ED677CC556C44E8',
+        wallet_locator: 'DEADBEEF',
+        wallet_size: 1,
+        transfer_rate: 'asdf'
+      }})
+      .expect(testutils.checkStatus(400))
+      .expect(testutils.checkHeaders)
+      .expect(testutils.checkBody(fixtures.RESTInvalidTransferRateResponse))
+      .end(done);
+  });
+
+  test('/accounts/:account/settings -- invalid setting -- no_freeze and global_freeze', function(done) {
+    self.wss.once('request_account_info', function(message, conn) {
+      assert(false, 'Should not request account info');
+    });
+
+    self.wss.once('request_submit', function(message, conn) {
+      assert(false, 'Should not request submit');
+    });
+
+    self.app
+    .post(fixtures.requestPath(addresses.VALID))
+    .send({
+      secret: addresses.SECRET,
+      settings: {
+        no_freeze: true,
+        global_freeze: true
+      }})
+      .expect(testutils.checkBody(fixtures.RESTInvalidFreezeResponse))
+      .expect(testutils.checkStatus(400))
+      .expect(testutils.checkHeaders)
+      .end(done);
+  });
+
+  test('/accounts/:account/settings -- invalid setting -- clear no_freeze and global_freeze', function(done) {
+    self.wss.once('request_account_info', function(message, conn) {
+      assert(false, 'Should not request account info');
+    });
+
+    self.wss.once('request_submit', function(message, conn) {
+      assert(false, 'Should not request submit');
+    });
+
+    self.app
+    .post(fixtures.requestPath(addresses.VALID))
+    .send({
+      secret: addresses.SECRET,
+      settings: {
+        no_freeze: false,
+        global_freeze: false
+      }})
+      .expect(testutils.checkBody(fixtures.RESTInvalidFreezeResponse))
+      .expect(testutils.checkStatus(400))
+      .expect(testutils.checkHeaders)
+      .end(done);
+  });
+
+
+  test('/accounts/:account/settings -- invalid setting -- password_spent', function(done) {
+    self.wss.once('request_account_info', function(message, conn) {
+      assert(false, 'Should not request account info');
+    });
+
+    self.wss.once('request_submit', function(message, conn) {
+      assert(false, 'Should not request submit');
+    });
+
+    self.app
+      .post(fixtures.requestPath(addresses.VALID))
+      .send({
+        secret: addresses.SECRET,
         settings: {
           require_destination_tag: true,
           require_authorization: true,
@@ -130,59 +352,27 @@ describe('settings', function() {
           email_hash: '23463B99B62A72F26ED677CC556C44E8',
           wallet_locator: 'DEADBEEF',
           wallet_size: 1,
-          transfer_rate: 1010000000
-        }
-      }
-    };
-
-    var transactionManager = $.remote.account(req.params.account)._transactionManager;
-
-    transactionManager._nextSequence = 1;
-
-    transactionManager._request = function(tx) {
-      expect(tx).to.be.an('object');
-      expect(tx.tx_json).to.be.an('object');
-      expect(tx.tx_json).to.have.property('TransactionType', 'AccountSet');
-      expect(tx.tx_json).to.have.property('Sequence', 1);
-      expect(tx.tx_json).to.have.property('Flags', 2148859904);
-      expect(tx.tx_json).to.have.property('Domain', '6578616D706C652E636F6D');
-      expect(tx.tx_json).to.have.property('EmailHash', '23463B99B62A72F26ED677CC556C44E8');
-      expect(tx.tx_json).to.have.property('WalletLocator', '00000000000000000000000000000000000000000000000000000000DEADBEEF');
-      expect(tx.tx_json).to.have.property('WalletSize', 1);
-      expect(tx.tx_json).to.have.property('TransferRate', 1010000000);
-      tx.emit('proposed');
-    };
-
-    var res = {
-      json: function(statusCode, obj) {
-        expect(statusCode).to.equal(200);
-        expect(obj).to.be.an('object');
-        expect(obj.success).to.equal(true);
-        expect(obj.settings).to.be.an('object');
-        expect(obj.settings).to.have.property('require_destination_tag', true);
-        expect(obj.settings).to.have.property('require_authorization', true);
-        expect(obj.settings).to.have.property('disallow_xrp', true);
-        expect(obj.settings).to.have.property('email_hash', '23463B99B62A72F26ED677CC556C44E8');
-        expect(obj.settings).to.have.property('wallet_locator', 'DEADBEEF');
-        expect(obj.settings).to.have.property('wallet_size', 1);
-        expect(obj.settings).to.have.property('domain', 'example.com');
-        expect(obj.settings).to.have.property('transfer_rate', 1010000000);
-        done();
-      }
-    };
-
-    settings.change($, req, res, function(err) {
-      expect(err).to.equal(null, err);
-    });
+          password_spent: 'not a boolean'
+        }})
+      .expect(testutils.checkStatus(400))
+      .expect(testutils.checkHeaders)
+      .expect(testutils.checkBody(fixtures.RESTInvalidPasswordSpentResponse))
+      .end(done);
   });
 
-  it.skip('changeSettings -- missing account', function(done) {
-    var req = {
-      params: {
-        account: void(0)
-      },
-      body: {
-        secret: 'snkisrZ4QvDvUv8Xk6nf8br8wecEd',
+  test('/accounts/:account/settings -- invalid setting -- disable_master', function(done) {
+    self.wss.once('request_account_info', function(message, conn) {
+      assert(false, 'Should not request account info');
+    });
+
+    self.wss.once('request_submit', function(message, conn) {
+      assert(false, 'Should not request submit');
+    });
+
+    self.app
+      .post(fixtures.requestPath(addresses.VALID))
+      .send({
+        secret: addresses.SECRET,
         settings: {
           require_destination_tag: true,
           require_authorization: true,
@@ -191,476 +381,248 @@ describe('settings', function() {
           email_hash: '23463B99B62A72F26ED677CC556C44E8',
           wallet_locator: 'DEADBEEF',
           wallet_size: 1,
-          transfer_rate: 2
-        }
-      }
-    };
-
-    var transactionManager = $.remote.account(req.params.account)._transactionManager;
-
-    transactionManager._nextSequence = 1;
-
-    transactionManager._request = function(tx) {
-      tx.emit('proposed');
-    };
-
-    var res = {
-      json: function(statusCode, obj) {
-        expect(statusCode).to.equal(400);
-        expect(obj).to.be.an('object');
-        expect(obj.success).to.equal(false);
-        expect(obj.message).to.equal('Parameter is not a valid Ripple address: account');
-        done();
-      }
-    };
-
-    settings.change($, req, res, function(err) {
-      expect(err).to.equal(null, err);
-    });
+          disable_master: 'not a boolean'
+        }})
+      .expect(testutils.checkStatus(400))
+      .expect(testutils.checkHeaders)
+      .expect(testutils.checkBody(fixtures.RESTInvalidDisableMasterResponse))
+      .end(done);
   });
 
-  it.skip('changeSettings -- invalid account', function(done) {
-    var req = {
-      params: {
-        account: 'asfd'
-      },
-      body: {
-        secret: 'snkisrZ4QvDvUv8Xk6nf8br8wecEd',
-        settings: {
-          require_destination_tag: true,
-          require_authorization: true,
-          disallow_xrp: true,
-          domain: 'example.com',
-          email_hash: '23463B99B62A72F26ED677CC556C44E8',
-          wallet_locator: 'DEADBEEF',
-          wallet_size: 1,
-          transfer_rate: 2
-        }
-      }
-    };
-
-    var transactionManager = $.remote.account(req.params.account)._transactionManager;
-
-    transactionManager._nextSequence = 1;
-
-    transactionManager._request = function(tx) {
-      tx.emit('proposed');
-    };
-
-    var res = {
-      json: function(statusCode, obj) {
-        expect(statusCode).to.equal(400);
-        expect(obj).to.be.an('object');
-        expect(obj.success).to.equal(false);
-        expect(obj.message).to.equal('Parameter is not a valid Ripple address: account');
-        done();
-      }
-    };
-
-    settings.change($, req, res, function(err) {
-      expect(err).to.equal(null, err);
+  test('/accounts/:account/settings -- clear setting -- require_destination_tag', function(done) {
+    self.wss.once('request_account_info', function(message, conn) {
+      assert.strictEqual(message.command, 'account_info');
+      assert.strictEqual(message.account, addresses.VALID);
+      conn.send(fixtures.accountInfoResponse(message));
     });
+
+    self.wss.once('request_submit', function(message, conn) {
+      assert.strictEqual(message.command, 'submit');
+      assert(message.hasOwnProperty('tx_blob'));
+
+      var so = new ripple.SerializedObject(message.tx_blob).to_json();
+
+      assert.strictEqual(so.TransactionType, 'AccountSet');
+      assert.strictEqual(so.Flags, 2147614720);
+      assert.strictEqual(typeof so.Sequence, 'number');
+      assert.strictEqual(so.LastLedgerSequence, self.app.remote._ledger_current_index + LEDGER_OFFSET);
+      assert.strictEqual(so.Fee, '12');
+      assert.strictEqual(so.Account, 'r3GgMwvgvP8h4yVWvjH1dPZNvC37TjzBBE');
+
+      conn.send(fixtures.submitSettingsResponse(message));
+    });
+
+    self.app
+    .post(fixtures.requestPath(addresses.VALID))
+    .send({
+      secret: addresses.SECRET,
+      settings: {
+        require_destination_tag: false,
+      }})
+      .expect(testutils.checkStatus(200))
+      .expect(testutils.checkHeaders)
+      .end(done);
   });
 
-  it.skip('changeSettings -- missing settings', function(done) {
-    var req = {
-      params: {
-        account: 'r45r1T2utToqmputeEe2ErKqE1rEFDoccH'
-      },
-      body: {
-        secret: 'snkisrZ4QvDvUv8Xk6nf8br8wecEdX',
-        settings: void(0)
-      }
-    };
-
-    var res = {
-      json: function(statusCode, obj) {
-        expect(statusCode).to.equal(400);
-        expect(obj).to.be.an('object');
-        expect(obj.success).to.equal(false);
-        expect(obj.message).to.equal('Parameter missing: settings');
-        done();
-      }
-    };
-
-    settings.change($, req, res, function(err) {
-      expect(err).to.equal(null, err);
+  test('/accounts/:account/settings -- clear setting -- domain', function(done) {
+    self.wss.once('request_account_info', function(message, conn) {
+      assert.strictEqual(message.command, 'account_info');
+      assert.strictEqual(message.account, addresses.VALID);
+      conn.send(fixtures.accountInfoResponse(message));
     });
+
+    self.wss.once('request_submit', function(message, conn) {
+      assert.strictEqual(message.command, 'submit');
+      assert(message.hasOwnProperty('tx_blob'));
+
+      var so = new ripple.SerializedObject(message.tx_blob).to_json();
+
+      assert.strictEqual(so.TransactionType, 'AccountSet');
+      assert.strictEqual(so.Flags, 2147483648);
+      assert.strictEqual(typeof so.Sequence, 'number');
+      assert.strictEqual(so.LastLedgerSequence, self.app.remote._ledger_current_index + LEDGER_OFFSET);
+      assert.strictEqual(so.Domain, '');
+      assert.strictEqual(so.Fee, '12');
+      assert.strictEqual(so.Account, 'r3GgMwvgvP8h4yVWvjH1dPZNvC37TjzBBE');
+
+      conn.send(fixtures.submitSettingsResponse(message));
+    });
+
+    self.app
+    .post(fixtures.requestPath(addresses.VALID))
+    .send({
+      secret: addresses.SECRET,
+      settings: {
+        domain: ''
+      }})
+      .expect(testutils.checkStatus(200))
+      .expect(testutils.checkHeaders)
+      .end(done);
   });
 
-  it.skip('changeSettings -- invalid secret', function(done) {
-    var req = {
-      params: {
-        account: 'r45r1T2utToqmputeEe2ErKqE1rEFDoccH'
-      },
-      body: {
-        secret: 'snkisrZ4QvDvUv8Xk6nf8br8wecEdX',
-        settings: {
-          require_destination_tag: true,
-          require_authorization: true,
-          disallow_xrp: true,
-          domain: 'example.com',
-          email_hash: '23463B99B62A72F26ED677CC556C44E8',
-          wallet_locator: 'DEADBEEF',
-          wallet_size: 1,
-          transfer_rate: 2
-        }
-      }
-    };
-
-    var transactionManager = $.remote.account(req.params.account)._transactionManager;
-
-    transactionManager._nextSequence = 1;
-
-    transactionManager._request = function(tx) {
-      tx.emit('proposed');
-    };
-
-    var res = {
-      json: function(statusCode, obj) { }
-    };
-
-    settings.change($, req, res, function(err) {
-      expect(err).to.exist;
-      expect(err).to.have.property('result', 'tejSecretInvalid');
-      expect(err).to.have.property('message', 'Invalid secret');
-      done();
+  test('/accounts/:account/settings -- clear setting -- email_hash', function(done) {
+    self.wss.once('request_account_info', function(message, conn) {
+      assert.strictEqual(message.command, 'account_info');
+      assert.strictEqual(message.account, addresses.VALID);
+      conn.send(fixtures.accountInfoResponse(message));
     });
+
+    self.wss.once('request_submit', function(message, conn) {
+      assert.strictEqual(message.command, 'submit');
+      assert(message.hasOwnProperty('tx_blob'));
+
+      var so = new ripple.SerializedObject(message.tx_blob).to_json();
+
+      assert.strictEqual(so.TransactionType, 'AccountSet');
+      assert.strictEqual(so.Flags, 2147483648);
+      assert.strictEqual(typeof so.Sequence, 'number');
+      assert.strictEqual(so.EmailHash, new Array(32 + 1).join('0'));
+      assert.strictEqual(so.LastLedgerSequence, self.app.remote._ledger_current_index + LEDGER_OFFSET);
+      assert.strictEqual(so.Fee, '12');
+      assert.strictEqual(so.Account, 'r3GgMwvgvP8h4yVWvjH1dPZNvC37TjzBBE');
+
+      conn.send(fixtures.submitSettingsResponse(message));
+    });
+
+    self.app
+    .post(fixtures.requestPath(addresses.VALID))
+    .send({
+      secret: addresses.SECRET,
+      settings: {
+        email_hash: ''
+      }})
+      .expect(testutils.checkStatus(200))
+      .expect(testutils.checkHeaders)
+      .end(done);
   });
 
-  it.skip('changeSettings -- invalid flag', function(done) {
-    var req = {
-      params: {
-        account: 'r45r1T2utToqmputeEe2ErKqE1rEFDoccH'
-      },
-      body: {
-        secret: 'snkisrZ4QvDvUv8Xk6nf8br8wecEd',
-        settings: {
-          require_destination_tag: '1',
-        }
-      }
-    };
-
-    var res = {
-      json: function(statusCode, obj) {
-        expect(statusCode).to.equal(400);
-        expect(obj).to.be.an('object');
-        expect(obj).to.have.property('success', false);
-        expect(obj).to.have.property('message', 'Parameter is not boolean: require_destination_tag');
-        done();
-      }
-    };
-
-    settings.change($, req, res, function(err) {
-      expect(err).to.equal(null, err);
+  test('/accounts/:account/settings -- clear setting -- wallet_locator', function(done) {
+    self.wss.once('request_account_info', function(message, conn) {
+      assert.strictEqual(message.command, 'account_info');
+      assert.strictEqual(message.account, addresses.VALID);
+      conn.send(fixtures.accountInfoResponse(message));
     });
+
+    self.wss.once('request_submit', function(message, conn) {
+      assert.strictEqual(message.command, 'submit');
+      assert(message.hasOwnProperty('tx_blob'));
+
+      var so = new ripple.SerializedObject(message.tx_blob).to_json();
+
+      assert.strictEqual(so.TransactionType, 'AccountSet');
+      assert.strictEqual(so.Flags, 2147483648);
+      assert.strictEqual(typeof so.Sequence, 'number');
+      assert.strictEqual(so.WalletLocator, new Array(64 + 1).join('0'));
+      assert.strictEqual(so.LastLedgerSequence, self.app.remote._ledger_current_index + LEDGER_OFFSET);
+      assert.strictEqual(so.Fee, '12');
+      assert.strictEqual(so.Account, 'r3GgMwvgvP8h4yVWvjH1dPZNvC37TjzBBE');
+
+      conn.send(fixtures.submitSettingsResponse(message));
+    });
+
+    self.app
+    .post(fixtures.requestPath(addresses.VALID))
+    .send({
+      secret: addresses.SECRET,
+      settings: {
+        wallet_locator: ''
+      }})
+      .expect(testutils.checkHeaders)
+      .expect(testutils.checkStatus(200))
+      .end(done);
   });
 
-  it.skip('changeSettings -- invalid field (domain)', function(done) {
-    var req = {
-      params: {
-        account: 'r45r1T2utToqmputeEe2ErKqE1rEFDoccH'
-      },
-      body: {
-        secret: 'snkisrZ4QvDvUv8Xk6nf8br8wecEd',
-        settings: {
-          domain: 1
-        }
-      }
-    };
-
-    var res = {
-      json: function(statusCode, obj) {
-        expect(statusCode).to.equal(400);
-        expect(obj).to.be.an('object');
-        expect(obj).to.have.property('success', false);
-        expect(obj).to.have.property('message', 'Parameter must be a string: domain');
-        done();
-      }
-    };
-
-    settings.change($, req, res, function(err) {
-      expect(err).to.equal(null, err);
+  test('/accounts/:account/settings -- clear setting -- transfer_rate', function(done) {
+    self.wss.once('request_account_info', function(message, conn) {
+      assert.strictEqual(message.command, 'account_info');
+      assert.strictEqual(message.account, addresses.VALID);
+      conn.send(fixtures.accountInfoResponse(message));
     });
+
+    self.wss.once('request_submit', function(message, conn) {
+      assert.strictEqual(message.command, 'submit');
+      assert(message.hasOwnProperty('tx_blob'));
+
+      var so = new ripple.SerializedObject(message.tx_blob).to_json();
+
+      assert.strictEqual(so.TransactionType, 'AccountSet');
+      assert.strictEqual(so.Flags, 2147483648);
+      assert.strictEqual(typeof so.Sequence, 'number');
+      assert.strictEqual(so.TransferRate, 0);
+      assert.strictEqual(so.LastLedgerSequence, self.app.remote._ledger_current_index + LEDGER_OFFSET);
+      assert.strictEqual(so.Fee, '12');
+      assert.strictEqual(so.Account, 'r3GgMwvgvP8h4yVWvjH1dPZNvC37TjzBBE');
+
+      conn.send(fixtures.submitSettingsResponse(message));
+    });
+
+    self.app
+    .post(fixtures.requestPath(addresses.VALID))
+    .send({
+      secret: addresses.SECRET,
+      settings: {
+        transfer_rate: ''
+      }})
+      .expect(testutils.checkHeaders)
+      .expect(testutils.checkStatus(200))
+      .end(done);
   });
 
-  it.skip('changeSettings -- invalid field (email_hash)', function(done) {
-    var req = {
-      params: {
-        account: 'r45r1T2utToqmputeEe2ErKqE1rEFDoccH'
-      },
-      body: {
-        secret: 'snkisrZ4QvDvUv8Xk6nf8br8wecEd',
-        settings: {
-          email_hash: false
-        }
-      }
-    };
-
-    var res = {
-      json: function(statusCode, obj) {
-        expect(statusCode).to.equal(400);
-        expect(obj).to.be.an('object');
-        expect(obj).to.have.property('success', false);
-        expect(obj).to.have.property('message', 'Parameter must be a string: email_hash');
-        done();
-      }
-    };
-
-    settings.change($, req, res, function(err) {
-      expect(err).to.equal(null, err);
+  test('/accounts/:account/settings -- clear setting -- no_freeze', function(done) {
+    self.wss.once('request_account_info', function(message, conn) {
+      assert.strictEqual(message.command, 'account_info');
+      assert.strictEqual(message.account, addresses.VALID);
+      conn.send(fixtures.accountInfoResponse(message));
     });
+
+    self.wss.once('request_submit', function(message, conn) {
+      assert.strictEqual(message.command, 'submit');
+      assert(message.hasOwnProperty('tx_blob'));
+
+      var so = new ripple.SerializedObject(message.tx_blob).to_json();
+
+      assert.strictEqual(so.TransactionType, 'AccountSet');
+      assert.strictEqual(typeof so.Sequence, 'number');
+      assert.strictEqual(so.ClearFlag, 6);
+      assert.strictEqual(so.LastLedgerSequence, self.app.remote._ledger_current_index + LEDGER_OFFSET);
+      assert.strictEqual(so.Fee, '12');
+      assert.strictEqual(so.Account, 'r3GgMwvgvP8h4yVWvjH1dPZNvC37TjzBBE');
+
+      conn.send(fixtures.submitSettingsResponse(message));
+    });
+
+    self.app
+    .post(fixtures.requestPath(addresses.VALID))
+    .send({
+      secret: addresses.SECRET,
+      settings: {
+        no_freeze: false
+      }})
+      .expect(testutils.checkStatus(200))
+      .expect(testutils.checkHeaders)
+      .end(done);
   });
 
-  it.skip('changeSettings -- invalid field (wallet_locator)', function(done) {
-    var req = {
-      params: {
-        account: 'r45r1T2utToqmputeEe2ErKqE1rEFDoccH'
-      },
-      body: {
-        secret: 'snkisrZ4QvDvUv8Xk6nf8br8wecEd',
-        settings: {
-          wallet_locator: false
-        }
-      }
-    };
-
-    var res = {
-      json: function(statusCode, obj) {
-        expect(statusCode).to.equal(400);
-        expect(obj).to.be.an('object');
-        expect(obj).to.have.property('success', false);
-        expect(obj).to.have.property('message', 'Parameter must be a string: wallet_locator');
-        done();
-      }
-    };
-
-    settings.change($, req, res, function(err) {
-      expect(err).to.equal(null, err);
+  test('/accounts/:account/settings -- clear settings -- no_freeze and global_freeze', function(done) {
+    self.wss.once('request_account_info', function(message, conn) {
+      assert(false, 'Should not request account info');
     });
-  });
 
-  it.skip('changeSettings -- invalid field (wallet_size)', function(done) {
-    var req = {
-      params: {
-        account: 'r45r1T2utToqmputeEe2ErKqE1rEFDoccH'
-      },
-      body: {
-        secret: 'snkisrZ4QvDvUv8Xk6nf8br8wecEd',
-        settings: {
-          wallet_size: 'a'
-        }
-      }
-    };
-
-    var res = {
-      json: function(statusCode, obj) {
-        expect(statusCode).to.equal(400);
-        expect(obj).to.be.an('object');
-        expect(obj).to.have.property('success', false);
-        expect(obj).to.have.property('message', 'Parameter must be a number: wallet_size');
-        done();
-      }
-    };
-
-    settings.change($, req, res, function(err) {
-      expect(err).to.equal(null, err);
+    self.wss.once('request_submit', function(message, conn) {
+      assert(false, 'Should not request submit');
     });
-  });
 
-  it.skip('changeSettings -- invalid field (transfer_rate)', function(done) {
-    var req = {
-      params: {
-        account: 'r45r1T2utToqmputeEe2ErKqE1rEFDoccH'
-      },
-      body: {
-        secret: 'snkisrZ4QvDvUv8Xk6nf8br8wecEd',
-        settings: {
-          transfer_rate: 'a'
-        }
-      }
-    };
-
-    var res = {
-      json: function(statusCode, obj) {
-        expect(statusCode).to.equal(400);
-        expect(obj).to.be.an('object');
-        expect(obj).to.have.property('success', false);
-        expect(obj).to.have.property('message', 'Parameter must be a number: transfer_rate');
-        done();
-      }
-    };
-
-    settings.change($, req, res, function(err) {
-      expect(err).to.equal(null, err);
-    });
-  });
-
-  it.skip('changeSettings -- clear field (domain)', function(done) {
-    var req = {
-      params: {
-        account: 'r45r1T2utToqmputeEe2ErKqE1rEFDoccH'
-      },
-      body: {
-        secret: 'snkisrZ4QvDvUv8Xk6nf8br8wecEd',
-        settings: {
-          domain: '',
-        }
-      }
-    };
-
-    var transactionManager = $.remote.account(req.params.account)._transactionManager;
-
-    transactionManager._nextSequence = 1;
-
-    transactionManager._request = function(tx) {
-      expect(tx).to.be.an('object');
-      expect(tx.tx_json).to.be.an('object');
-      expect(tx.tx_json).to.have.property('TransactionType', 'AccountSet');
-      expect(tx.tx_json).to.have.property('Sequence', 1);
-      expect(tx.tx_json).to.have.property('Domain', '');
-      tx.emit('proposed');
-    };
-
-    var res = {
-      json: function(statusCode, obj) {
-        expect(statusCode).to.equal(200);
-        expect(obj).to.be.an('object');
-        expect(obj.success).to.equal(true);
-        expect(obj.settings).to.be.an('object');
-        expect(obj.settings).to.have.property('domain', '');
-        done();
-      }
-    };
-
-    settings.change($, req, res, function(err) {
-      expect(err).to.equal(null, err);
-    });
-  });
-
-  it.skip('changeSettings -- clear field (email_hash)', function(done) {
-    var req = {
-      params: {
-        account: 'r45r1T2utToqmputeEe2ErKqE1rEFDoccH'
-      },
-      body: {
-        secret: 'snkisrZ4QvDvUv8Xk6nf8br8wecEd',
-        settings: {
-          email_hash: ''
-        }
-      }
-    };
-
-    var transactionManager = $.remote.account(req.params.account)._transactionManager;
-
-    transactionManager._nextSequence = 1;
-
-    transactionManager._request = function(tx) {
-      expect(tx).to.be.an('object');
-      expect(tx.tx_json).to.be.an('object');
-      expect(tx.tx_json).to.have.property('TransactionType', 'AccountSet');
-      expect(tx.tx_json).to.have.property('Sequence', 1);
-      expect(tx.tx_json).to.have.property('EmailHash', new Array(32 + 1).join('0'));
-      tx.emit('proposed');
-    };
-
-    var res = {
-      json: function(statusCode, obj) {
-        expect(statusCode).to.equal(200);
-        expect(obj).to.be.an('object');
-        expect(obj.success).to.equal(true);
-        expect(obj.settings).to.be.an('object');
-        expect(obj.settings).to.have.property('email_hash', '');
-        done();
-      }
-    };
-
-    settings.change($, req, res, function(err) {
-      expect(err).to.equal(null, err);
-    });
-  });
-
-  it.skip('changeSettings -- clear field (wallet_locator)', function(done) {
-    var req = {
-      params: {
-        account: 'r45r1T2utToqmputeEe2ErKqE1rEFDoccH'
-      },
-      body: {
-        secret: 'snkisrZ4QvDvUv8Xk6nf8br8wecEd',
-        settings: {
-          wallet_locator: ''
-        }
-      }
-    };
-
-    var transactionManager = $.remote.account(req.params.account)._transactionManager;
-
-    transactionManager._nextSequence = 1;
-
-    transactionManager._request = function(tx) {
-      expect(tx).to.be.an('object');
-      expect(tx.tx_json).to.be.an('object');
-      expect(tx.tx_json).to.have.property('TransactionType', 'AccountSet');
-      expect(tx.tx_json).to.have.property('Sequence', 1);
-      expect(tx.tx_json).to.have.property('WalletLocator', new Array(64 + 1).join('0'));
-      tx.emit('proposed');
-    };
-
-    var res = {
-      json: function(statusCode, obj) {
-        expect(statusCode).to.equal(200);
-        expect(obj).to.be.an('object');
-        expect(obj.success).to.equal(true);
-        expect(obj.settings).to.be.an('object');
-        expect(obj.settings).to.have.property('wallet_locator', '');
-        done();
-      }
-    };
-
-    settings.change($, req, res, function(err) {
-      expect(err).to.equal(null, err);
-    });
-  });
-
-  it.skip('changeSettings -- clear field (transfer_rate)', function(done) {
-    var req = {
-      params: {
-        account: 'r45r1T2utToqmputeEe2ErKqE1rEFDoccH'
-      },
-      body: {
-        secret: 'snkisrZ4QvDvUv8Xk6nf8br8wecEd',
-        settings: {
-          transfer_rate: ''
-        }
-      }
-    };
-
-    var transactionManager = $.remote.account(req.params.account)._transactionManager;
-
-    transactionManager._nextSequence = 1;
-
-    transactionManager._request = function(tx) {
-      expect(tx).to.be.an('object');
-      expect(tx.tx_json).to.be.an('object');
-      expect(tx.tx_json).to.have.property('TransactionType', 'AccountSet');
-      expect(tx.tx_json).to.have.property('Sequence', 1);
-      expect(tx.tx_json).to.have.property('TransferRate', 0);
-      tx.emit('proposed');
-    };
-
-    var res = {
-      json: function(statusCode, obj) {
-        expect(statusCode).to.equal(200);
-        expect(obj).to.be.an('object');
-        expect(obj.success).to.equal(true);
-        expect(obj.settings).to.be.an('object');
-        expect(obj.settings).to.have.property('transfer_rate', '');
-        done();
-      }
-    };
-
-    settings.change($, req, res, function(err) {
-      expect(err).to.equal(null, err);
-    });
+    self.app
+    .post(fixtures.requestPath(addresses.VALID))
+    .send({
+      secret: addresses.SECRET,
+      settings: {
+        no_freeze: false,
+        global_freeze: false
+      }})
+      .expect(testutils.checkBody(fixtures.RESTInvalidFreezeResponse))
+      .expect(testutils.checkStatus(400))
+      .expect(testutils.checkHeaders)
+      .end(done);
   });
 });

@@ -1,15 +1,16 @@
-var _          = require('lodash');
-var async      = require('async');
-var ripple     = require('ripple-lib');
-var server_lib = require('../lib/server-lib');
-var validator  = require('../lib/schema-validator');
-var remote     = require(__dirname+'/../lib/remote.js');
-var dbinterface = require(__dirname+'/../lib/db-interface.js');
+var _           = require('lodash');
+var async       = require('async');
+var ripple      = require('ripple-lib');
+var validator   = require('./../lib/schema-validator');
+var remote      = require('./../lib/remote.js');
+var dbinterface = require('./../lib/db-interface.js');
+var respond     = require('./../lib/response-handler.js');
+var errors      = require('./../lib/errors.js');
 
 module.exports = {
   DEFAULT_RESULTS_PER_PAGE: 10,
   NUM_TRANSACTION_TYPES: 5,
-  DEFAULT_LEDGER_BUFFER: 6,
+  DEFAULT_LEDGER_BUFFER: 3,
   submit: submitTransaction,
   get: getTransaction,
   getTransactionHelper: getTransactionHelper,
@@ -33,36 +34,23 @@ module.exports = {
  *  @param {submission response} response The response received from the 'proposed' event
  */
 function submitTransaction(data, response, callback) {
-
-  function ensureConnected(async_callback) {
-    server_lib.ensureConnected(remote, function(error, connected) {
-      if (connected) {
-        async_callback();
-      } else if (error) {
-        response.json(500, {
-          success: false,
-          message: error.message
-        });
-      } else {
-        response.json(500, {
-          success: false,
-          message: 'No connection to rippled'
-        });
-      }
-    });
-  };
-
   function prepareTransaction(async_callback) {
     data.transaction.secret(data.secret);
     data.transaction.clientID(data.client_resource_id);
     async_callback(null, data.transaction);
   };
 
-  function blockDuplicates(transaction, async_callback) {    
-    var type = transaction.tx_json.TransactionType;
-    if (type !== 'Payment' && type !== 'OfferCreate' && type !== 'OfferCancel') {
-      return async_callback(null, transaction);
+  function blockDuplicates(transaction, async_callback) {
+    switch (transaction.tx_json.TransactionType) {
+      case 'Payment':
+      case 'OfferCreate':
+      case 'OfferCancel':
+        // Only check duplicates for these transaction types... for some reason
+        break;
+      default:
+        return async_callback(null, transaction);
     }
+
     dbinterface.getTransaction({
       source_account: transaction.tx_json.Account,
       client_resource_id: data.client_resource_id,
@@ -71,14 +59,13 @@ function submitTransaction(data, response, callback) {
         if (error) {
           return async_callback(error);
         }
+
         if (db_record && db_record.state !== 'failed') {
-          response.json(500, {
-            success: false,
-            message: 'Duplicate Transaction. ' +
+          async_callback(new errors.ApiError('Duplicate Transaction. ' +
             'A record already exists in the database for a transaction of this type ' +
             'with the same client_resource_id. If this was not an accidental resubmission ' +
-            'please submit the transaction again with a unique client_resource_id'
-          });
+            'please submit the transaction again with a unique client_resource_id')
+          );
         } else {
           async_callback(null, transaction);
         }
@@ -88,28 +75,83 @@ function submitTransaction(data, response, callback) {
   function submitTransaction(transaction, async_callback) {
     transaction.remote = remote;
 
-    var ledgerIndex = remote._ledger_current_index;
+    var ledgerIndex = Number(remote._ledger_current_index);
+    transaction.lastLedger(ledgerIndex + module.exports.DEFAULT_LEDGER_BUFFER);
 
-    if (!isNaN(ledgerIndex)) {
-      transaction.lastLedger(Number(ledgerIndex) + module.exports.DEFAULT_LEDGER_BUFFER);
-    }
+    function saveTransaction() {
+      dbinterface.saveTransaction(transaction.summary());
+    };
 
-    transaction.once('error', async_callback);
+    function isInLedger(message) {
+      return /^te(c|s)/.test(message.engine_result || '');
+    };
 
-    transaction.once('proposed', function() {
+    function handleSubmission(message) {
+      // Handle submission of transaction that should make it into ledger.
       transaction.removeListener('error', async_callback);
-      async_callback(null, transaction._clientID);
+
+      // Save on state change
+      setImmediate(function() {
+        transaction.on('state', saveTransaction);
+      });
+
+      if (/^tes/.test(message.engine_result)) {
+        async_callback(null, transaction._clientID);
+      }
+    };
+
+    function handleSubmissionError(message) {
+      // Handle erred transactions that should not make it into ledger (all
+      // errors that aren't tec-class). This function is called before the
+      // transaction `error` listener.
+
+      switch (message.engine_result) {
+        case 'terNO_ACCOUNT':
+        case 'terNO_AUTH':
+        case 'terNO_LINE':
+        case 'terINSUF_FEE_B':
+          // The transaction needs to be aborted. Preserve the original ter-
+          // class error for presentation to the client
+          transaction.removeListener('error', handleError);
+          transaction.once('error', function(err) {
+            async_callback(message);
+          });
+          transaction.abort();
+          break;
+      }
+    };
+
+    function handleError(message) {
+      async_callback(message);
+    };
+
+    transaction.on('submitted', function(message) {
+      if (isInLedger(message)) {
+        // Save when submitted and will be included in the ledger
+        setImmediate(saveTransaction);
+      }
     });
 
+    transaction.once('submitted', function(message) {
+      if (isInLedger(message)) {
+        // Handle submission of transactions that should make it into ledger.
+        handleSubmission(message);
+      } else {
+        // Handle post-submission error
+        handleSubmissionError(message);
+      }
+    });
+
+    transaction.once('error', handleError);
     transaction.submit();
   };
 
   var steps = [
-    ensureConnected,
     prepareTransaction,
     blockDuplicates,
     submitTransaction
   ];
+
   async.waterfall(steps, callback);
 };
 
@@ -126,10 +168,7 @@ function getTransaction(request, response, next) {
     if (error) {
       next(error);
     } else {
-      response.json(200, {
-        success: true,
-        transaction: transaction
-      });
+      respond.success(response, { transaction: transaction });
     }
   });
 };
@@ -164,7 +203,6 @@ function getTransactionHelper(request, response, callback) {
 
   var steps = [
     validateOptions,
-    ensureConnected,
     queryTransaction,
     checkIfRelatedToAccount,
     attachResourceID,
@@ -175,17 +213,11 @@ function getTransactionHelper(request, response, callback) {
 
   function validateOptions(async_callback) {
     if (options.account && !validator.isValid(options.account, 'RippleAddress')) {
-      return response.json(400, {
-        success: false,
-        message: 'Invalid parameter: account. Must be a valid Ripple Address'
-      });
+      return callback(new errors.InvalidRequestError('Invalid parameter: account. Must be a valid Ripple Address'));
     }
 
     if (!options.identifier) {
-      return response.json(400, {
-        success: false,
-        message: 'Missing parameter: identifier'
-      });
+      return callback(new errors.InvalidRequestError('Missing parameter: identifier'));
     }
 
     if (validator.isValid(options.identifier, 'Hash256')) {
@@ -195,65 +227,50 @@ function getTransactionHelper(request, response, callback) {
       options.client_resource_id = options.identifier;
       async_callback();
     } else {
-      response.json(400, {
-        success: false,
-        message: 'Parameter not a valid transaction hash or client_resource_id: identifier'
-      });
+      return callback(new errors.InvalidRequestError('Parameter not a valid transaction hash or client_resource_id: identifier'));
     }
-  };
-
-  function ensureConnected(async_callback) {
-    server_lib.ensureConnected(remote, function(error, connected){
-      if (connected) {
-        async_callback();
-      } else if (error) {
-        response.json(500, {
-          success: false,
-          message: error.message
-        });
-      } else {
-        response.json(500, {
-          success: false,
-          message: 'No connection to rippled'
-        });
-      }
-    });
   };
 
   function queryTransaction(async_callback) {
     dbinterface.getTransaction(options, function(error, entry) {
       if (error) {
-        return response.json(500, {
-          success: false,
-          message: 'Error querying transaction'
-        });
+        return async_callback(error);
       }
 
-      if (!(entry || options.hash)) {
-        // Need transaction hash
-        return response.json(404, {
-          success: false,
-          message: 'Transaction not found'
-        });
+      var requestHash = options.hash;
+      var dbEntryHash = '';
+
+      if (!entry && !requestHash) {
+        // Transaction hash was not supplied in the request and a matching
+        // database entry was not found. There are no transaction hashes to
+        // look up
+        return async_callback(new errors.InvalidRequestError('Transaction not found. A transaction hash was not supplied and there were no entries matching the client_resource_id.'));
       }
 
-      if (options.hash && entry) {
-        // Verify that transaction hashes match
-        if (options.hash !== entry.transaction.hash) {
-          return response.json(404, {
-            success: false,
-            message: 'Transaction not found'
-          });
+      if (entry) {
+        // Check that the hash present in the database entry matches the one
+        // supplied in the request
+        dbEntryHash = entry.hash || (entry.transaction || {}).hash;
+
+        if (requestHash && requestHash !== dbEntryHash) {
+          // Requested hash and retrieved hash do not match
+          return async_callback(new errors.InvalidRequestError('Transaction not found. Hashes do not match'));
         }
       }
 
-      var transactionHash = options.hash || entry.transaction.hash;
+      // Request transaction based on either the hash supplied in the request
+      // or the hash found in the database
+      remote.requestTx(requestHash || dbEntryHash, function(error, transaction) {
+        if (error) {
+          return async_callback(error);
+        }
 
-      remote.requestTx(transactionHash, function(error, transaction) {
+        // we found a transaction
         if (entry && transaction) {
           transaction.client_resource_id = entry.client_resource_id;
         }
-        async_callback(error, transaction);
+
+        return async_callback(null, transaction);
       });
     });
   };
@@ -263,10 +280,7 @@ function getTransactionHelper(request, response, callback) {
       var transaction_string = JSON.stringify(transaction);
       var account_regex = new RegExp(options.account);
       if (!account_regex.test(transaction_string)) {
-        return response.json(400, {
-          success: false,
-          message: 'Transaction specified did not affect the given account'
-        });
+        return async_callback(new errors.InvalidRequestError('Transaction specified did not affect the given account'));
       }
     }
 
@@ -287,10 +301,7 @@ function getTransactionHelper(request, response, callback) {
 
     remote.requestLedger(transaction.ledger_index, function(error, ledger_res) {
       if (error) {
-        return response.json(404, {
-          success: false,
-          message: 'Transaction ledger not found'
-        });
+        return async_callback(new errors.NotFoundError('Transaction ledger not found'));
       }
 
       if (typeof ledger_res.ledger.close_time === 'number') {
@@ -300,7 +311,6 @@ function getTransactionHelper(request, response, callback) {
       async_callback(null, transaction);
     });
   };
-
 };
 
 /**
@@ -332,12 +342,12 @@ function getTransactionHelper(request, response, callback) {
 function getAccountTransactions(options, response, callback) {
   var steps = [
     validateOptions,
-    ensureConnected,
     queryTransactions,
     filterTransactions,
     sortTransactions,
     mergeAndTruncateResults
   ];
+
   async.waterfall(steps, asyncWaterfallCallback);
   if (!options.min) {
     options.min = module.exports.DEFAULT_RESULTS_PER_PAGE;
@@ -351,38 +361,18 @@ function getAccountTransactions(options, response, callback) {
 
   function validateOptions(async_callback) {
     if (!options.account) {
-      return response.json(400, {
-        success: false,
-        message: 'Missing parameter: account. ' +
-        'Must supply a valid Ripple Address to query account transactions'
-      });
+      return async_callback(new errors.InvalidRequestError('Missing parameter: account. ' +
+        'Must supply a valid Ripple Address to query account transactions')
+      );
     }
-    if (!validator.isValid(options.account, 'RippleAddress')) {
-      return response.json(400, {
-        success: false,
-        message: 'Invalid parameter: account. ' +
-        'Must supply a valid Ripple Address to query account transactions'
-      });
-    }
-    async_callback();
-  };
 
-  function ensureConnected(async_callback) {
-    server_lib.ensureConnected(remote, function(error, connected){
-      if (connected) {
-        async_callback();
-      } else if (error) {
-        response.json(500, {
-          success: false,
-          message: error.message
-        });
-      } else {
-        response.json(500, {
-          success: false,
-          message: 'No connection to rippled'
-        });
-      }
-    });
+    if (!validator.isValid(options.account, 'RippleAddress')) {
+      return async_callback(new errors.InvalidRequestError('Invalid parameter: account. ' +
+        'Must supply a valid Ripple Address to query account transactions')
+      );
+    }
+
+    async_callback();
   };
 
   function queryTransactions(async_callback) {
@@ -428,6 +418,7 @@ function getAccountTransactions(options, response, callback) {
       });
     }
   };
+
 };
 
 /**
@@ -471,10 +462,12 @@ function getLocalAndRemoteTransactions(options, callback) {
       dbinterface.getFailedTransactions(options, callback);
     }
   };
+
   var transaction_sources = [ 
     queryRippled, 
     queryDB
   ];
+
   async.parallel(transaction_sources, function(error, source_results) {
     if (error) {
       return callback(error);
@@ -485,6 +478,7 @@ function getLocalAndRemoteTransactions(options, callback) {
     });
     callback(null, transactions);
   });
+
 };
 
 /**
@@ -531,6 +525,7 @@ function transactionFilter(transactions, options) {
     }
     return true;
   });
+
   return filtered_transactions;
 };
 

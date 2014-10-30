@@ -13,7 +13,11 @@
       "$ref": "UINT32"
     },
     "source_amount": {
-      "description": "An optional amount that can be specified to constrain cross-currency payments",
+      "description": "An optional amount that can be specified to constrain cross-currency payments. The amount the source_account will send or has send",
+      "$ref": "Amount"
+    },
+    "source_amount_submitted": {
+      "description": "An optional amount that can be specified to constrain cross-currency payments. The amount the source_account intended to send",
       "$ref": "Amount"
     },
     "source_slippage": {
@@ -28,7 +32,11 @@
       "$ref": "UINT32"
     },
     "destination_amount": {
-      "description": "The amount the destination_account will receive",
+      "description": "The amount the destination_account will receive or has received",
+      "$ref": "Amount"
+    },
+    "destination_amount_submitted": {
+      "description": "The amount the destination_account was intended to receive",
       "$ref": "Amount"
     },
     "invoice_id": {
@@ -87,7 +95,7 @@
       }
     },
     "destination_balance_changes": {
-      "description": "Parsed from the validated transaction metadata, this array represents the changes to balances held by the destination_account. For those receiving payments this is important to check because if the partial_payment flag is set this value may be less than the destination_amount",
+      "description": "Parsed from the validated transaction metadata, this array represents the changes to balances held by the destination_account. The summation of the balance changes should equal the destination_amount. Use the balance changes to validate the destination_amount.",
       "type": "array",
       "items": {
         "$ref": "Amount"

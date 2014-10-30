@@ -2,34 +2,36 @@ var _                     = require('lodash');
 var async                 = require('async');
 var bignum                = require('bignumber.js');
 var ripple                = require('ripple-lib');
-var validator             = require('../lib/schema-validator');
 var transactions          = require('./transactions');
-var serverLib             = require('../lib/server-lib');
-var utils                 = require('../lib/utils');
-var remote                = require(__dirname+'/../lib/remote.js');
-var dbinterface           = require(__dirname+'/../lib/db-interface.js');
-var config                = require(__dirname+'/../lib/config-loader.js');
-var currency_schema       = require('../schemas/Currency.json');
-var ripple_address_schema = require('../schemas/RippleAddress.json');
-var RestToLibTransactionConverter = require(__dirname+'/../lib/rest_to_lib_transaction_converter.js');
+var validator             = require('./../lib/schema-validator');
+var serverLib             = require('./../lib/server-lib');
+var utils                 = require('./../lib/utils');
+var remote                = require('./../lib/remote.js');
+var dbinterface           = require('./../lib/db-interface.js');
+var config                = require('./../lib/config-loader.js');
+var RestToLibTxConverter  = require('./../lib/rest_to_lib_transaction_converter.js');
+var respond               = require('./../lib/response-handler.js');
+var errors                = require('./../lib/errors.js');
+
+var InvalidRequestError   = errors.InvalidRequestError;
+var NetworkError          = errors.NetworkError;
+var NotFoundError         = errors.NotFoundError;
+var TimeOutError          = errors.TimeOutError;
+
 var DEFAULT_RESULTS_PER_PAGE = 10;
 
 module.exports = {
   submit: submitPayment,
   get: getPayment,
   getAccountPayments: getAccountPayments,
-  getPathFind: getPathFind
+  getPathFind: getPathFind,
+  _parsePaymentFromTx: parsePaymentFromTx
 };
 
-var paymentToTransactionConverter = new RestToLibTransactionConverter();
+var paymentToTransactionConverter = new RestToLibTxConverter();
 
 /**
  *  Submit a payment in the ripple-rest format.
- *
- *  If the payment is successful response.json will be called with
- *  a status_code of 200, the client_resource_id, and a status_url.
- *  Otherwise, most errors will be reported immediately with 400 or
- *  500 status codes, or submission errors will be passed to next
  *
  *  @param {Remote} remote
  *  @param {/lib/db-interface} dbinterface
@@ -41,103 +43,81 @@ var paymentToTransactionConverter = new RestToLibTransactionConverter();
  *  @param {Express.js Next} next
  */
 function submitPayment(request, response, next) {
+
   var steps = [
     validateOptions,
+    normalizeOptions,
     validatePayment,
-    ensureConnected,
     formatPayment,
     submitTransaction
   ];
+
+  var params = {
+    payment: request.body.payment,
+    secret: request.body.secret,
+    client_resource_id: request.body.client_resource_id,
+    url_base: request.protocol + '://' + request.hostname + (config && config.get('port') ? ':' + config.get('port') : '')
+  };
+
   async.waterfall(steps, function(error, client_resource_id) {
     if (error) {
       next(error);
     } else {
-      response.json(200, {
-        success: true,
+      respond.success(response, {
         client_resource_id: client_resource_id,
         status_url: params.url_base + '/v1/accounts/' + params.payment.source_account + '/payments/' + client_resource_id
       });
     }
   });
-  var params = {
-    payment: request.body.payment,
-    secret: request.body.secret,
-    client_resource_id: request.body.client_resource_id,
-    url_base: request.protocol + '://' + request.host + (config && config.get('PORT') ? ':' + config.get('PORT') : '')
-  };
 
   function validateOptions(async_callback) {
     if (!params.payment) {
-      return response.json(400, {
-        success: false,
-        message: 'Missing parameter: payment. Submission must have payment object in JSON form'
-      });
+      async_callback(new InvalidRequestError('Missing parameter: payment. Submission must have payment object in JSON form'));
     }
-    if (!params.secret) {
-      return response.json(400, {
-        success: false,
-        message: 'Missing parameter: secret. Submission must have account secret to sign and submit payment'
-      });
+    else if (!params.secret) {
+      async_callback(new InvalidRequestError('Missing parameter: secret. Submission must have account secret to sign and submit payment'));
     }
-    if (!params.client_resource_id) {
-      return response.json(400, {
-        success: false,
-        message: 'Missing parameter: client_resource_id. All payments must be submitted with a client_resource_id to prevent duplicate payments'
-      });
+    else if (!params.client_resource_id) {
+      async_callback(new InvalidRequestError('Missing parameter: client_resource_id. All payments must be submitted with a client_resource_id to prevent duplicate payments'));
     }
-    if (!validator.isValid(params.client_resource_id, 'ResourceId')) {
-      return response.json(400, {
-        success: false,
-        message: 'Invalid parameter: client_resource_id. Must be a string of ASCII-printable characters. Note that 256-bit hex strings are disallowed because of the potential confusion with transaction hashes.'
-      });
+    else if (!validator.isValid(params.client_resource_id, 'ResourceId')) {
+      async_callback(new InvalidRequestError('Invalid parameter: client_resource_id. Must be a string of ASCII-printable characters. Note that 256-bit hex strings are disallowed because of the potential confusion with transaction hashes.'));
     }
+    else {
+      async_callback();
+    }
+  }
+
+  function normalizeOptions(async_callback) {
+    if (params.payment.destination_amount.currency !== 'XRP' && _.isEmpty(params.payment.destination_amount.issuer)) {
+      params.payment.destination_amount.issuer = params.payment.destination_account;
+    }
+
     async_callback();
-  };
+  }
 
   function validatePayment(async_callback) {
     paymentIsValid(params.payment, function(error, payment){
-      if (error) {
-        response.json(400, {
-          success: false,
-          message: error.message || error
-        });
-      } else {
-        async_callback();
-      }
+      async_callback(error ? error : void(0));
     });
-  };
-
-  function ensureConnected(async_callback) {
-    serverLib.ensureConnected(remote, function(error, connected) {
-      if (connected) {
-        async_callback();
-      } else {
-        response.json(500, {
-          success: false,
-          message: 'No connection to rippled'
-        });
-      }
-    });
-  };
+  }
 
   function formatPayment(async_callback) {
     paymentToTransactionConverter.convert(params.payment, function(error, transaction) {
       if (error) {
-        response.json(400, {
-          success: false,
-          message: error.message
-        });
+        async_callback(error);
       } else {
         async_callback(null, transaction);
       }
     });
-  };
+  }
 
   function submitTransaction(transaction, async_callback) {
     params.transaction = transaction;
     transactions.submit(params, response, async_callback);
-  };
-};
+  }
+
+}
 
 /**
  *  Check that the given payment is valid. If not
@@ -154,65 +134,105 @@ function submitPayment(request, response, next) {
 function paymentIsValid(payment, callback) {
   // Ripple addresses
   if (!validator.isValid(payment.source_account, 'RippleAddress')) {
-    return callback(new TypeError('Invalid parameter: source_account. Must be a valid Ripple address'));
+    return callback(new InvalidRequestError('Invalid parameter: source_account. Must be a valid Ripple address'));
   }
+
   if (!validator.isValid(payment.destination_account, 'RippleAddress')) {
-    return callback(new TypeError('Invalid parameter: destination_account. Must be a valid Ripple address'));
+    return callback(new InvalidRequestError('Invalid parameter: destination_account. Must be a valid Ripple address'));
   }
   // Tags
   if (payment.source_tag && (!validator.isValid(payment.source_tag, 'UINT32'))) {
-    return callback(new TypeError('Invalid parameter: source_tag. Must be a string representation of an unsiged 32-bit integer'));
+    return callback(new InvalidRequestError('Invalid parameter: source_tag. Must be a string representation of an unsiged 32-bit integer'));
   }
   if (payment.destination_tag && (!validator.isValid(payment.destination_tag, 'UINT32'))) {
-    return callback(new TypeError('Invalid parameter: destination_tag. Must be a string representation of an unsiged 32-bit integer'));
+    return callback(new InvalidRequestError('Invalid parameter: destination_tag. Must be a string representation of an unsiged 32-bit integer'));
   }
 
   // Amounts
   // destination_amount is required, source_amount is optional
   if (!payment.destination_amount || (!validator.isValid(payment.destination_amount, 'Amount'))) {
-    return callback(new TypeError('Invalid parameter: destination_amount. Must be a valid Amount object'));
+    return callback(new InvalidRequestError('Invalid parameter: destination_amount. Must be a valid Amount object'));
   }
   if (payment.source_amount && (!validator.isValid(payment.source_amount, 'Amount'))) {
-    return callback(new TypeError('Invalid parameter: source_amount. Must be a valid Amount object'));
+    return callback(new InvalidRequestError('Invalid parameter: source_amount. Must be a valid Amount object'));
   }
 
   // No issuer for XRP
   if (payment.destination_amount && payment.destination_amount.currency.toUpperCase() === 'XRP' && payment.destination_amount.issuer) {
-    return callback(new TypeError('Invalid parameter: destination_amount. XRP cannot have issuer'));
+    return callback(new InvalidRequestError('Invalid parameter: destination_amount. XRP cannot have issuer'));
   }
   if (payment.source_amount && payment.source_amount.currency.toUpperCase() === 'XRP' && payment.source_amount.issuer) {
-    return callback(new TypeError('Invalid parameter: source_amount. XRP cannot have issuer'));
+    return callback(new InvalidRequestError('Invalid parameter: source_amount. XRP cannot have issuer'));
+  }
+
+  // Must have issuer for non-XRP payments
+  if (payment.destination_amount && payment.destination_amount.currency.toUpperCase() !== 'XRP' && !payment.destination_amount.issuer) {
+    return callback(new InvalidRequestError('Invalid parameter: destination_amount. Non-XRP payment must have an issuer'));
   }
 
   // Slippage
   if (payment.source_slippage && !validator.isValid(payment.source_slippage, 'FloatString')) {
-    return callback(new TypeError('Invalid parameter: source_slippage. Must be a valid FloatString'));
+    return callback(new InvalidRequestError('Invalid parameter: source_slippage. Must be a valid FloatString'));
   }
 
   // Advanced options
+
+  // Invoice id
   if (payment.invoice_id && !validator.isValid(payment.invoice_id, 'Hash256')) {
-    return callback(new TypeError('Invalid parameter: invoice_id. Must be a valid Hash256'));
+    return callback(new InvalidRequestError('Invalid parameter: invoice_id. Must be a valid Hash256'));
   }
+
+  // paths
   if (payment.paths) {
     if (typeof payment.paths === 'string') {
       try {
         JSON.parse(payment.paths);
       } catch (exception) {
-        return callback(new TypeError('Invalid parameter: paths. Must be a valid JSON string or object'));
+        return callback(new InvalidRequestError('Invalid parameter: paths. Must be a valid JSON string or object'));
       }
     } else if (typeof payment.paths === 'object') {
       try {
         JSON.parse(JSON.stringify(payment.paths));
       } catch (exception) {
-        return callback(new TypeError('Invalid parameter: paths. Must be a valid JSON string or object'));
+        return callback(new InvalidRequestError('Invalid parameter: paths. Must be a valid JSON string or object'));
       }
     }
   }
+
+  // partial payment
   if (payment.hasOwnProperty('partial_payment') && typeof payment.partial_payment !== 'boolean') {
-    return callback(new TypeError('Invalid parameter: partial_payment. Must be a boolean'));
+    return callback(new InvalidRequestError('Invalid parameter: partial_payment. Must be a boolean'));
   }
+
+  // direct ripple
   if (payment.hasOwnProperty('no_direct_ripple') && typeof payment.no_direct_ripple !== 'boolean') {
-    return callback(new TypeError('Invalid parameter: no_direct_ripple. Must be a boolean'));
+    return callback(new InvalidRequestError('Invalid parameter: no_direct_ripple. Must be a boolean'));
+  }
+
+  // memos
+  if (payment.hasOwnProperty('memos')) {
+    if (!Array.isArray(payment.memos)) {
+      return callback(new InvalidRequestError('Invalid parameter: memos. Must be an array with memo objects'));
+    }
+
+    if (payment.memos.length === 0) {
+      return callback(new InvalidRequestError('Invalid parameter: memos. Must contain at least one Memo object, otherwise omit the memos property'));
+    }
+
+    for (var m = 0; m < payment.memos.length; m++) {
+      var memo = payment.memos[m];
+      if (memo.MemoType && !/(undefined|string)/.test(typeof memo.MemoType)) {
+        return callback(new InvalidRequestError('Invalid parameter: MemoType. MemoType must be a string'));
+      }
+      if (!/(undefined|string)/.test(typeof memo.MemoData)) {
+        return callback(new InvalidRequestError('Invalid parameter: MemoData. MemoData must be a string'));
+      }
+      if (!memo.MemoData && !memo.MemoType) {
+        return callback(new InvalidRequestError('Missing parameter: MemoData or MemoType. For a memo object MemoType or MemoData are both optional, as long as one of them is present'));
+      }
+
+    }
+
   }
   callback(null, true);
 };
@@ -254,35 +274,17 @@ function getPayment(request, response, next) {
         'Must provide a transaction hash or client_resource_id to get payment details';
     }
     if (invalid) {
-      return response.json(400, {
-        success: false,
-        message: invalid
-      });
+      async_callback(new InvalidRequestError(invalid));
+    } else {
+      async_callback();
     }
-    async_callback();
-  };
-
-  function ensureConnected(async_callback) {
-    serverLib.ensureConnected(remote, function(error, connected) {
-      if (connected) {
-        async_callback();
-      } else if (error) {
-        response.json(500, {
-          success: false,
-          message: error.message
-        });
-      } else {
-        response.json(500, {
-          success: false,
-          message: 'No connection to rippled'
-        });
-      }
-    });
   };
 
   // If the transaction was not in the outgoing_transactions db, get it from rippled
   function getTransaction(async_callback) {
-    transactions.getTransactionHelper(request, response, async_callback);
+    transactions.getTransactionHelper(request, response, function(res, err) {
+      async_callback(res, err);
+    });
   };
 
   function checkIsPayment(transaction, async_callback) {
@@ -291,33 +293,28 @@ function getPayment(request, response, next) {
     if (isPayment) {
       async_callback(null, transaction);
     } else {
-      response.json(400, {
-        success: false,
-        message: 'Not a payment. The transaction corresponding to the given identifier is not a payment.'
-      });
+      async_callback(new InvalidRequestError('Not a payment. The transaction corresponding to the given identifier is not a payment.'));
     }
   };
 
   function formatTransaction(transaction, async_callback) {
     if (transaction) {
-      var payment = parsePaymentFromTx(transaction, {
-        account: options.account
-      });
+      var payment = parsePaymentFromTx(transaction,
+        {
+          account: options.account
+        },
+        async_callback);
       async_callback(null, payment);
     } else {
-      response.json(404, {
-        success: false,
-        message: 'Payment Not Found. This may indicate that the payment was never validated and written into '
+      async_callback(new NotFoundError('Payment Not Found. This may indicate that the payment was never validated and written into '
         + 'the Ripple ledger and it was not submitted through this ripple-rest instance. '
         + 'This error may also be seen if the databases of either ripple-rest '
-        + 'or rippled were recently created or deleted.'
-      });
+        + 'or rippled were recently created or deleted.'));
     }
   };
 
   var steps = [
     validateOptions,
-    ensureConnected,
     getTransaction,
     checkIsPayment,
     formatTransaction
@@ -327,111 +324,11 @@ function getPayment(request, response, next) {
     if (error) {
       next(error);
     } else {
-      response.json(200, {
-        success: true,
-        payment: payment
-      });
+      respond.success(response, { payment: payment });
     }
   });
 };
 
-/**
- *  Parse a Payment from the standard ripple
- *  transaction JSON format.
- *
- *  @param {ripple Transaction in JSON format} tx
- *  @param {RippleAddress} options.account Required to determine "direction"
- *  @returns {Payment}
- */
-function parsePaymentFromTx(tx, options) {
-  if (typeof options === 'function') {
-    callback = options;
-    options = {};
-  }
-
-  if (!options.account) {
-    callback(new Error('Internal Error. must supply options.account'));
-    return;
-  }
-
-  if (tx.TransactionType !== 'Payment') {
-    callback(new Error('Not a payment. The transaction corresponding to the given identifier is not a payment.'));
-    return;
-  }
-
-  var payment = {
-
-    // User supplied
-    source_account: tx.Account,
-    source_tag: (tx.SourceTag ? '' + tx.SourceTag : ''),
-    source_amount: (tx.SendMax ?
-      (typeof tx.SendMax === 'object' ?
-        tx.SendMax :
-        {
-          value: utils.dropsToXrp(tx.SendMax),
-          currency: 'XRP',
-          issuer: ''
-        }) :
-      (typeof tx.Amount === 'string' ?
-        {
-          value: utils.dropsToXrp(tx.Amount),
-          currency: 'XRP',
-          issuer: ''
-        } :
-        tx.Amount)),
-    source_slippage: '0',
-
-    destination_account: tx.Destination,
-    destination_tag: (tx.DestinationTag ? '' + tx.DestinationTag : ''),
-    destination_amount: (typeof tx.Amount === 'object' ?
-      tx.Amount :
-      {
-        value: utils.dropsToXrp(tx.Amount),
-        currency: 'XRP',
-        issuer: ''
-      }),
-
-    // Advanced options
-    invoice_id: tx.InvoiceID || '',
-    paths: JSON.stringify(tx.Paths || []),
-    no_direct_ripple: (tx.Flags & 0x00010000 ? true : false),
-    partial_payment: (tx.Flags & 0x00020000 ? true : false),
-
-    // Generated after validation
-    direction: (options.account ?
-      (options.account === tx.Account ?
-        'outgoing' :
-        (options.account === tx.Destination ?
-          'incoming' :
-          'passthrough')) :
-      ''),
-    state: tx.state || (tx.meta.TransactionResult === 'tesSUCCESS' ? 'validated' : 'failed'),
-    result: tx.meta.TransactionResult || '',
-    ledger: '' + (tx.inLedger || tx.ledger_index),
-    hash: tx.hash || '',
-    timestamp: (tx.date ? new Date(ripple.utils.time.fromRipple(tx.date)).toISOString() : ''),
-    fee: utils.dropsToXrp(tx.Fee) || '',
-    source_balance_changes: [],
-    destination_balance_changes: []
-
-  };
-
-  // Add source_balance_changes
-  utils.parseBalanceChanges(tx, tx.Account).forEach(function(amount){
-    if (amount.value < 0) {
-      payment.source_balance_changes.push(amount);
-    }
-  });
-
-  // Add destination_balance_changes
-  utils.parseBalanceChanges(tx, tx.Destination).forEach(function(amount){
-    if (amount.value > 0) {
-      payment.destination_balance_changes.push(amount);
-    }
-  });
-
-  return payment;
-};
 
 /**
  *  Retrieve the details of multiple payments from the Remote
@@ -479,17 +376,32 @@ function getAccountPayments(request, response, next) {
   };
 
   function formatTransactions(transactions, async_callback) {
-    var payments = _.map(transactions, function(transaction) {
-      return parsePaymentFromTx(transaction, { account: request.params.account });
-    });
+
+    // we're not passing in the async_callback to the parsePaymentFromTx
+    // meaning there could be null entries in the payments array after the transactions processing
+    // filter the empty payments out
+    var payments = [];
+    if (Array.isArray(transactions)) {
+      for (var i=0; i < transactions.length; i++) {
+        var parsedPayment = parsePaymentFromTx(transactions[i], { account: request.params.account });
+        if (parsedPayment) {
+          payments.push(parsedPayment);
+        }
+      }
+    }
+
     async_callback(null, payments);
   };
 
   function attachResourceId(transactions, async_callback) {
     async.map(transactions, function(payment, async_map_callback) {
+      if (!payment) {
+        async_map_callback(new Error('No payment found'));
+      }
+
       dbinterface.getTransaction({ hash: payment.hash }, function(error, db_entry) {
         if (error) {
-          return callback(error);
+          return async_map_callback(error);
         }
         var client_resource_id = '';
         if (db_entry && db_entry.client_resource_id) {
@@ -513,10 +425,7 @@ function getAccountPayments(request, response, next) {
     if (error) {
       next(error);
     } else {
-      response.json(200, {
-        success: true,
-        payments: payments
-      });
+      respond.success(response, { payments: payments });
     }
   });
 };
@@ -546,27 +455,19 @@ function getPathFind(request, response, next) {
   };
 
   if (!params.source_account) {
-    return response.json(400, {
-      success: false,
-      message: 'Missing parameter: source_account. ' +
-      'Must be a valid Ripple address' });
+    next(new InvalidRequestError('Missing parameter: source_account. Must be a valid Ripple address'));
+    return;
   }
 
   if (!params.destination_account) {
-    return response.json(400, {
-      success: false,
-      message: 'Missing parameter: destination_account. ' +
-        'Must be a valid Ripple address'
-    });
+    next(new InvalidRequestError('Missing parameter: destination_account. Must be a valid Ripple address'));
+    return;
   }
 
   // Parse destination amount
   if (!request.params.destination_amount_string) {
-    return response.json(400, {
-      success: false,
-      message: 'Missing parameter: destination_amount. ' +
-      'Must be an amount string in the form value+currency+issuer'
-    });
+    next(new InvalidRequestError('Missing parameter: destination_amount. Must be an amount string in the form value+currency+issuer'));
+    return;
   }
   var destination_amount_array = request.params.destination_amount_string.split('+');
   params.destination_amount = {
@@ -576,27 +477,18 @@ function getPathFind(request, response, next) {
   };
 
   if (!validator.isValid(params.source_account, 'RippleAddress')) {
-    return response.json(400, {
-      success: false,
-      message: 'Invalid parameter: source_account. ' +
-      'Must be a valid Ripple address'
-    });
+    next(new InvalidRequestError('Invalid parameter: source_account. Must be a valid Ripple address'));
+    return;
   }
 
   if (!validator.isValid(params.destination_account, 'RippleAddress')) {
-    return response.json(400, {
-      success: false,
-      message: 'Invalid parameter: destination_account. ' +
-      'Must be a valid Ripple address'
-    });
+    next(new InvalidRequestError('Invalid parameter: destination_account. Must be a valid Ripple address'));
+    return;
   }
 
   if (!validator.isValid(params.destination_amount, 'Amount')) {
-    return response.json(400, {
-      success: false,
-      message: 'Invalid parameter: destination_amount. ' +
-      'Must be an amount string in the form value+currency+issuer'
-    });
+    next(new InvalidRequestError('Invalid parameter: destination_amount. Must be an amount string in the form value+currency+issuer'));
+    return;
   }
 
   // Parse source currencies
@@ -618,39 +510,20 @@ function getPathFind(request, response, next) {
         if (validator.isValid(currency_object.currency, 'Currency') && validator.isValid(currency_object.issuer, 'RippleAddress')) {
           params.source_currencies.push(currency_object);
         } else {
-          return response.json(400, {
-            success: false,
-            message: 'Invalid parameter: source_currencies. ' +
-            'Must be a list of valid currencies'
-          });
+          next(new InvalidRequestError('Invalid parameter: source_currencies. Must be a list of valid currencies'));
+          return;
         }
       } else {
         if (validator.isValid(source_currency_strings[c], 'Currency')) {
           params.source_currencies.push({ currency: source_currency_strings[c] });
         } else {
-          return response.json(400, {
-            success: false,
-            message: 'Invalid parameter: source_currencies. ' +
-            'Must be a list of valid currencies'
-          });
+          next(new InvalidRequestError('Invalid parameter: source_currencies. Must be a list of valid currencies'));
+          return;
         }
 
       }
     }
   }
-
-  function ensureConnected(async_callback) {
-    serverLib.ensureConnected(remote, function(error, connected) {
-      if (connected) {
-        async_callback();
-      } else {
-        response.json(500, {
-          success: false,
-          message: 'No connection to rippled'
-        });
-      }
-    });
-  };
 
   function prepareOptions(async_callback) {
     var pathfind_params = {
@@ -687,10 +560,7 @@ function getPathFind(request, response, next) {
     request.timeout(serverLib.CONNECTION_TIMEOUT, function() {
       request.removeAllListeners();
       reconnectRippled();
-      response.json(502, {
-        success: false,
-        message: 'Path request timeout'
-      });
+      async_callback(new TimeOutError('Path request timeout'));
     });
     request.request();
   };
@@ -726,35 +596,27 @@ function getPathFind(request, response, next) {
       return async_callback(null, payment_options);
     }
     if (pathfind_results.destination_currencies.indexOf(params.destination_amount.currency) === -1) {
-      response.json(404, {
-        success: false,
-        message: 'No paths found. ' +
-          'The destination_account does not accept ' +
-          params.destination_amount.currency +
-          ', they only accept: ' +
-          pathfind_results.destination_currencies.join(', ')
-      });
+      async_callback(new NotFoundError('No paths found. ' +
+        'The destination_account does not accept ' +
+        params.destination_amount.currency +
+        ', they only accept: ' +
+        pathfind_results.destination_currencies.join(', ')));
+
     } else if (pathfind_results.source_currencies && pathfind_results.source_currencies.length > 0) {
-      response.json(404, {
-        success: false,
-        message: 'No paths found.' +
-          ' Please ensure that the source_account has sufficient funds to execute' +
-          ' the payment in one of the specified source_currencies. If it does' +
-          ' there may be insufficient liquidity in the network to execute' +
-          ' this payment right now'
-      });
+      async_callback(new NotFoundError('No paths found.' +
+        ' Please ensure that the source_account has sufficient funds to execute' +
+        ' the payment in one of the specified source_currencies. If it does' +
+        ' there may be insufficient liquidity in the network to execute' +
+        ' this payment right now'));
+
     } else {
-      response.json(404, {
-        success: false,
-        message: 'No paths found.' +
-          ' Please ensure that the source_account has sufficient funds to execute' +
-          ' the payment. If it does there may be insufficient liquidity in the' +
-          ' network to execute this payment right now'
-      });
+      async_callback(new NotFoundError('No paths found.' +
+        ' Please ensure that the source_account has sufficient funds to execute' +
+        ' the payment. If it does there may be insufficient liquidity in the' +
+        ' network to execute this payment right now'));
     }
   };
   var steps = [
-    ensureConnected,
     prepareOptions,
     findPath,
     addDirectXrpPath,
@@ -764,128 +626,51 @@ function getPathFind(request, response, next) {
     if (error) {
       next(error);
     } else {
-      response.json(200, {
-        success: true,
-        payments: payments
-      });
+      respond.success(response, { payments: payments });
     }
   });
 };
 
-/**
- *  Validate and parse the pathfinding parameters.
- *
- *  @param {RippleAddress} params.source_account
- *  @param {RippleAddress} params.destination_account
- *  @param {Amount} params.destination_amount
- *  @param {Array of Currencies} params.source_currencies
- */
-function parseParams(params, callback) {
-  var source_currencies = [];
-  if (!validator.isValid(params.source_account, 'RippleAddress')) {
-    return callback(new TypeError('Invalid parameter: source_account. Must be a valid Ripple address'));
-  }
-  if (!validator.isValid(params.destination_account, 'RippleAddress')) {
-    return callback(new TypeError('Invalid parameter: destination_account. Must be a valid Ripple address'));
-  }
-  if (!validator.isValid(params.destination_amount, 'Amount')) {
-    return callback(new TypeError('Invalid parameter: destination_amount. Must be an object of the form { value: \'1\', currency: \'XRP\', issuer: \' }'));
-  }
-  // Parse source currencies
-  if (typeof params.source_currencies === 'object') {
-    params.source_currencies.forEach(function(currency_string) {
-      // Note that express middleware replaces '+' with ' ' in the query string
-      if (/ /.test(currency_string)) {
-        var currency_issuer_array = currency_string.split(' '),
-        currency_object = {
-          currency: currency_issuer_array[0],
-          issuer: currency_issuer_array[1]
-        };
-        var validCurrency = validator.isValid(currency_object.currency, 'Currency')
-                        || validator.isValid(currency_object.issuer, 'RippleAddress')
-        if (!validCurrency) {
-          return callback(new TypeError('Invalid parameter: source_currencies. Must be a list of valid currencies'));
-        } else {
-          source_currencies.push(currency_object);
-        }
-      } else {
-        if (!validator.isValid(currency_string, 'Currency')) {
-          return callback(new TypeError('Invalid parameter: source_currencies. Must be a list of valid currencies'));
-        } else {
-          source_currencies.push({ currency: currency_string });
-        }
-      }
-    });
-  }
-  var pathfindParams = {
-    src_account: params.source_account,
-    dst_account: params.destination_account,
-    dst_amount: (params.destination_amount.currency === 'XRP' ?
-      utils.xrpToDrops(params.destination_amount.value) :
-      params.destination_amount)
-  };
-  if (typeof pathfindParams.dst_amount === 'object' && !pathfindParams.dst_amount.issuer) {
-    pathfindParams.dst_amount.issuer = pathfindParams.dst_account;
-  }
-  if (source_currencies.length > 0) {
-    pathfindParams.src_currencies = source_currencies;
-  }
-  callback(null, pathfindParams);
-};
+function parsePaymentFromTx(tx, options, callback) {
 
-/**
- *  Since ripple_path_find does not return XRP to XRP paths,
- *  add the direct XRP "path", if the source account has a sufficient balance
- *
- *  @param {Remote} remote
- *  @param {rippled Pathfind results} pathfind_results
- *  @param {Function} callback
- *
- *  @callback
- *  @param {Error} error
- *  @param {rippled Pathfind results with XRP path added} pathfind_results
- */
-function addDirectXrpPath(pathfind_results, callback) {
-  // Check if destination_account accepts XRP
-  if (pathfind_results.destination_currencies.indexOf('XRP') === -1) {
-    return callback(null, pathfind_results);
-  }
-
-  // Check source_account balance
-  remote.requestAccountInfo(pathfind_results.source_account, function(error, result) {
-    if (error) {
-      return callback(new Error('Cannot get account info for source_account. ' + error));
-    }
-
-    if (!result || !result.account_data || !result.account_data.Balance) {
-      return callback(new Error('Internal Error. Malformed account info : ' + JSON.stringify(result)));
-    }
-
-    // Add XRP "path" only if the source_account has enough money to execute the payment
-    if (bignum(result.account_data.Balance).greaterThan(pathfind_results.destination_amount)) {
-      pathfind_results.alternatives.unshift({
-        paths_canonical:  [],
-        paths_computed:   [],
-        source_amount:    pathfind_results.destination_amount
-      });
-    }
-    callback(null, pathfind_results);
-  });
-};
-
-function parsePaymentFromTx(tx, options) {
   if (typeof options === 'function') {
     callback = options;
     options = {};
   }
+
   if (!options.account) {
-    callback(new Error('Internal Error. must supply options.account'));
+    if (callback !== void(0)) {
+      callback(new Error('Internal Error. must supply options.account'));
+    }
     return;
   }
   if (tx.TransactionType !== 'Payment') {
-    callback(new Error('Not a payment. The transaction corresponding to the given identifier is not a payment.'));
+    if (callback !== void(0)) {
+      callback(new Error('Not a payment. The transaction corresponding to the given identifier is not a payment.'));
+    }
     return;
   }
+  if (tx.meta !== void(0) && tx.meta.TransactionResult !== void(0)) {
+    if (tx.meta.TransactionResult === 'tejSecretInvalid') {
+      if (callback !== void(0)) {
+        callback(new Error('Invalid secret provided.'));
+      }
+      return;
+    }
+  }
+
+  var Amount;
+  var isPartialPayment = tx.Flags & 0x00020000 ? true : false;
+
+  // if there is a DeliveredAmount we should use it over Amount
+  // there should always be a DeliveredAmount if the partial payment flag is set
+  // also there shouldn't be a DeliveredAmount if there's no partial payment flag
+  if(isPartialPayment && tx.meta && tx.meta.DeliveredAmount) {
+    Amount = tx.meta.DeliveredAmount;
+  } else {
+    Amount = tx.Amount;
+  }
+
   var payment = {
     // User supplied
     source_account: tx.Account,
@@ -898,20 +683,20 @@ function parsePaymentFromTx(tx, options) {
           currency: 'XRP',
           issuer: ''
         }) :
-      (typeof tx.Amount === 'string' ?
+      (typeof Amount === 'string' ?
         {
           value: utils.dropsToXrp(tx.Amount),
           currency: 'XRP',
           issuer: ''
         } :
-        tx.Amount)),
+        Amount)),
     source_slippage: '0',
     destination_account: tx.Destination,
     destination_tag: (tx.DestinationTag ? '' + tx.DestinationTag : ''),
-    destination_amount: (typeof tx.Amount === 'object' ?
-      tx.Amount :
+    destination_amount: (typeof Amount === 'object' ?
+      Amount :
       {
-        value: utils.dropsToXrp(tx.Amount),
+        value: utils.dropsToXrp(Amount),
         currency: 'XRP',
         issuer: ''
       }),
@@ -919,7 +704,7 @@ function parsePaymentFromTx(tx, options) {
     invoice_id: tx.InvoiceID || '',
     paths: JSON.stringify(tx.Paths || []),
     no_direct_ripple: (tx.Flags & 0x00010000 ? true : false),
-    partial_payment: (tx.Flags & 0x00020000 ? true : false),
+    partial_payment: isPartialPayment,
     // Generated after validation
     direction: (options.account ?
       (options.account === tx.Account ?
@@ -949,6 +734,36 @@ function parsePaymentFromTx(tx, options) {
       payment.destination_balance_changes.push(amount);
     }
   });
+  if (Array.isArray(tx.Memos) && tx.Memos.length > 0) {
+    payment.memos = [];
+    for(var m=0; m<tx.Memos.length; m++) {
+      payment.memos.push(tx.Memos[m].Memo);
+    }
+  }
+  if (isPartialPayment && tx.meta && tx.meta.DeliveredAmount) {
+    payment.destination_amount_submitted = (typeof tx.Amount === 'object' ?
+      tx.Amount :
+    {
+      value: utils.dropsToXrp(tx.Amount),
+      currency: 'XRP',
+      issuer: ''
+    });
+    payment.source_amount_submitted = (tx.SendMax ?
+      (typeof tx.SendMax === 'object' ?
+        tx.SendMax :
+      {
+        value: utils.dropsToXrp(tx.SendMax),
+        currency: 'XRP',
+        issuer: ''
+      }) :
+      (typeof tx.Amount === 'string' ?
+      {
+        value: utils.dropsToXrp(tx.Amount),
+        currency: 'XRP',
+        issuer: ''
+      } :
+        tx.Amount));
+  }
   return payment;
 };
 /**
@@ -987,9 +802,7 @@ function parsePaymentsFromPathfind(pathfind_results, options) {
       {
         value: alternative.source_amount.value,
         currency: alternative.source_amount.currency,
-        issuer: (alternative.source_amount.issuer === pathfind_results.source_account ?
-          '' :
-          alternative.source_amount.issuer)
+        issuer: (typeof alternative.source_amount.issuer === 'string' ? alternative.source_amount.issuer : pathfind_results.source_account )
       }),
       source_slippage: '0',
       destination_account: pathfind_results.destination_account,
@@ -1003,9 +816,7 @@ function parsePaymentsFromPathfind(pathfind_results, options) {
         {
           value: pathfind_results.destination_amount.value,
           currency: pathfind_results.destination_amount.currency,
-          issuer: (pathfind_results.destination_amount.issuer === pathfind_results.destination_account ?
-            '' :
-            pathfind_results.destination_amount.issuer)
+          issuer: pathfind_results.destination_amount.issuer
         }),
       invoice_id: '',
       paths: JSON.stringify(alternative.paths_computed),

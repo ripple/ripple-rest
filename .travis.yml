@@ -1,17 +1,14 @@
 language: node_js
 node_js:
 - '0.10'
-addons:
-  postgresql: '9.3'
-script: npm test --coverage
+install:
+- npm install
+- cp config-example.json config.json
+script:
+- npm test --coverage
 after_success:
 - npm run coveralls
-before_install:
-- npm install -g pg
-- psql -c 'create database ripple_rest_test;' -U postgres
 env:
-  matrix:
-  - DATABASE_URL=postgres://postgres:@localhost:5432/ripple_rest_test
   global:
     secure: LuOqYk32n2VrtHgojSP4ugk4ig7/QLNXRRUWFqPy0ZEA+HxMsaPr+uylLMEi0yj43sIa+nAu9xdblkkzfcYzGZIjJRWV5L3CGZZONps9snspx7R9ZBbmuvcvlZmORxzYeJBoFC1C5VKR/lciFT3er8j7nagzMEociY/bR1lPGBw=
 notifications:
