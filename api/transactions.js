@@ -21,11 +21,14 @@ module.exports = {
  *  Submit a normal ripple-lib transaction, blocking duplicates
  *  for payments and orders.
  *
+ *  @global
  *  @param {Remote} remote
  *  @param {/lib/db-interface} dbinterface
+ *
  *  @param {Transaction} data.transaction
  *  @param {String} data.secret
  *  @param {String} data.client_resource_id
+ *  @param {Boolean} data.validated Used to force ripple-rest to wait until rippled has validated a transaction before returning the result
  *  @param {Express.js Response} res Used to send error messages directly to the client
  *  @param {Function} callback
  *
@@ -102,8 +105,8 @@ function submitTransaction(data, response, callback) {
         transaction.on('state', saveTransaction);
       });
 
-      if (/^tes/.test(message.engine_result)) {
-        async_callback(null, transaction._clientID);
+      if (/^tes/.test(message.engine_result) && data.validated === false) {
+        async_callback(null, { client_resource_id: transaction._clientID });
       }
     };
 
@@ -150,6 +153,17 @@ function submitTransaction(data, response, callback) {
     });
 
     transaction.once('error', handleError);
+
+    transaction.once('cleanup', function(message) {
+      if (data.validated === true) {
+        var transaction = message.tx_json;
+        transaction.meta = message.metadata;
+        transaction.ledger_index = transaction.inLedger = message.ledger_index;
+
+        async_callback(null, { transaction: transaction });
+      }
+    });
+
     transaction.submit();
   };
 
