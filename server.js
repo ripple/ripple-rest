@@ -3,7 +3,6 @@ var https     = require('https');
 var constants = require('constants')
 var app       = require('./lib/express_app.js');
 var config    = require('./lib/config-loader');
-var remote    = require('./lib/remote.js');
 var logger    = require('./lib/logger.js').logger;
 var utils     = require('./lib/utils.js');
 
