@@ -284,8 +284,8 @@ function getPayment(request, response, next) {
 
   // If the transaction was not in the outgoing_transactions db, get it from rippled
   function getTransaction(async_callback) {
-    transactions.getTransactionHelper(request, response, function(res, err) {
-      async_callback(res, err);
+    transactions.getTransactionHelper(request.params.account, request.params.identifier, function(err, transaction) {
+      async_callback(err, transaction);
     });
   };
 

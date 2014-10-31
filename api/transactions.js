@@ -171,7 +171,7 @@ function submitTransaction(data, response, callback) {
  *  See getTransactionHelper for parameter details
  */
 function getTransaction(request, response, next) {
-  getTransactionHelper(request, response, function(error, transaction) {
+  getTransactionHelper(request.params.account, request.params.identifier, function(error, transaction) {
     if (error) {
       next(error);
     } else {
@@ -190,23 +190,21 @@ function getTransaction(request, response, next) {
  *  send the transaction directly back to the client (e.g. in the case of
  *  getTransaction) or can process the transaction more (e.g. in the case
  *  of the Notification or Payment related functions).
- *
+ *  
+ *  @global
  *  @param {Remote} remote
  *  @param {/lib/db-interface} dbinterface
- *  @param {RippleAddress} req.params.account
- *  @param {Hex-encoded String|ASCII printable character String} req.params.identifier
- *  @param {Express.js Response} res
+ *
+ *  @param {RippleAddress} account
+ *  @param {Hex-encoded String|ASCII printable character String} identifier
  *  @param {Function} callback
  *
  *  @callback
  *  @param {Error} error
  *  @param {Transaction} transaction
  */
-function getTransactionHelper(request, response, callback) {
-  var options = {
-    account: request.params.account,
-    identifier: request.params.identifier
-  };
+function getTransactionHelper(account, identifier, callback) {
+  var options = {};
 
   var steps = [
     validateOptions,
@@ -219,19 +217,19 @@ function getTransactionHelper(request, response, callback) {
   async.waterfall(steps, callback);
 
   function validateOptions(async_callback) {
-    if (options.account && !validator.isValid(options.account, 'RippleAddress')) {
+    if (account && !validator.isValid(account, 'RippleAddress')) {
       return callback(new errors.InvalidRequestError('Invalid parameter: account. Must be a valid Ripple Address'));
     }
 
-    if (!options.identifier) {
+    if (!identifier) {
       return callback(new errors.InvalidRequestError('Missing parameter: identifier'));
     }
 
-    if (validator.isValid(options.identifier, 'Hash256')) {
-      options.hash = options.identifier;
+    if (validator.isValid(identifier, 'Hash256')) {
+      options.hash = identifier;
       async_callback();
-    } else if (validator.isValid(options.identifier, 'ResourceId')) {
-      options.client_resource_id = options.identifier;
+    } else if (validator.isValid(identifier, 'ResourceId')) {
+      options.client_resource_id = identifier;
       async_callback();
     } else {
       return callback(new errors.InvalidRequestError('Parameter not a valid transaction hash or client_resource_id: identifier'));
