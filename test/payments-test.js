@@ -28,7 +28,7 @@ suite('get payments', function() {
     .get(requestPath(addresses.VALID) + '/' + fixtures.VALID_TRANSACTION_HASH)
     .expect(testutils.checkStatus(200))
     .expect(testutils.checkHeaders)
-    .expect(testutils.checkBody(fixtures.RESTTransactionResponse))
+    .expect(testutils.checkBody(fixtures.RESTTransactionResponse(fixtures.VALID_TRANSACTION_HASH)))
     .end(done);
   });
 
@@ -74,7 +74,7 @@ suite('post payments', function() {
 
   setup(testutils.setup.bind(self));
   teardown(testutils.teardown.bind(self));
-
+  
   test('/payments -- with invalid memos', function(done) {
     self.wss.once('request_account_info', function(message, conn) {
       assert.strictEqual(message.command, 'account_info');
@@ -84,7 +84,7 @@ suite('post payments', function() {
 
     self.wss.once('request_submit', function(message, conn) {
       assert.strictEqual(message.command, 'submit');
-      conn.send(fixtures.requestSubmitReponse(message));
+      conn.send(fixtures.requestSubmitResponse(message));
     })
 
     var body = _.cloneDeep(fixtures.paymentWithMemo);
@@ -108,7 +108,7 @@ suite('post payments', function() {
 
     self.wss.once('request_submit', function(message, conn) {
       assert.strictEqual(message.command, 'submit');
-      conn.send(fixtures.requestSubmitReponse(message));
+      conn.send(fixtures.requestSubmitResponse(message));
     })
 
     var body = _.cloneDeep(fixtures.paymentWithMemo);
@@ -132,7 +132,7 @@ suite('post payments', function() {
 
     self.wss.once('request_submit', function(message, conn) {
       assert.strictEqual(message.command, 'submit');
-      conn.send(fixtures.requestSubmitReponse(message));
+      conn.send(fixtures.requestSubmitResponse(message));
     })
 
     var body = _.cloneDeep(fixtures.paymentWithMemo);
@@ -156,7 +156,7 @@ suite('post payments', function() {
 
     self.wss.once('request_submit', function(message, conn) {
       assert.strictEqual(message.command, 'submit');
-      conn.send(fixtures.requestSubmitReponse(message));
+      conn.send(fixtures.requestSubmitResponse(message));
     })
 
     var body = _.cloneDeep(fixtures.paymentWithMemo);
@@ -180,7 +180,7 @@ suite('post payments', function() {
 
     self.wss.once('request_submit', function(message, conn) {
       assert.strictEqual(message.command, 'submit');
-      conn.send(fixtures.requestSubmitReponse(message));
+      conn.send(fixtures.requestSubmitResponse(message));
     })
 
     var body = _.cloneDeep(fixtures.paymentWithMemo);
@@ -204,7 +204,7 @@ suite('post payments', function() {
 
     self.wss.once('request_submit', function(message, conn) {
       assert.strictEqual(message.command, 'submit');
-      conn.send(fixtures.requestSubmitReponse(message));
+      conn.send(fixtures.requestSubmitResponse(message));
     })
 
     self.app
@@ -225,7 +225,7 @@ suite('post payments', function() {
 
     self.wss.once('request_submit', function(message, conn) {
       assert.strictEqual(message.command, 'submit');
-      conn.send(fixtures.requestSubmitReponse(message));
+      conn.send(fixtures.requestSubmitResponse(message));
     });
 
     self.app
@@ -246,7 +246,7 @@ suite('post payments', function() {
 
     self.wss.once('request_submit', function(message, conn) {
       assert.strictEqual(message.command, 'submit');
-      conn.send(fixtures.requestSubmitReponse(message));
+      conn.send(fixtures.requestSubmitResponse(message));
     });
 
     self.app

@@ -8,6 +8,7 @@ var toAccount = addresses.COUNTERPARTY;
 module.exports.VALID_TRANSACTION_HASH = 'F4AB442A6D4CBB935D66E1DA7309A5FC71C7143ED4049053EC14E3875B0CF9BF';
 module.exports.VALID_TRANSACTION_HASH_MEMO = 'F9DE78E635A418529A5104A56439F305CE7C42B9F29180F05D77326B9ACD1D33';
 module.exports.INVALID_TRANSACTION_HASH = 'XF4AB442A6D4CBB935D66E1DA7309A5FC71C7143ED4049053EC14E3875B0CF9BF';
+module.exports.VALID_SUBMITTED_TRANSACTION_HASH = '797A79F825CC5E5149D16D05960457A2E1C21484B41D8C80312601B39227ACE9'
 
 module.exports.requestPath = function(address, params) {
   return '/v1/accounts/' + address + '/payments' + ( params || '' );
@@ -312,52 +313,53 @@ module.exports.ledgerResponse = function(request) {
   );
 }
 
-
-module.exports.RESTTransactionResponse = JSON.stringify({
-  success: true,
-  payment: {
-    source_account: 'r3GgMwvgvP8h4yVWvjH1dPZNvC37TjzBBE',
-    source_tag: '',
-    source_amount: {
-      value: '1.112209',
-      currency: 'XRP',
-      issuer: ''
-    },
-    source_slippage: '0',
-    destination_account: 'r3PDtZSa5LiYp1Ysn1vMuMzB59RzV3W9QH',
-    destination_tag: '',
-    destination_amount: {
-      currency: 'USD',
-      issuer: 'r3PDtZSa5LiYp1Ysn1vMuMzB59RzV3W9QH',
-      value: '0.001'
-    },
-    invoice_id: '',
-    paths: '[[{"currency":"USD","issuer":"rvYAfWj5gh67oV6fW32ZzP3Aw4Eubs59B","type":48,"type_hex":"0000000000000030"},{"account":"rvYAfWj5gh67oV6fW32ZzP3Aw4Eubs59B","currency":"USD","issuer":"rvYAfWj5gh67oV6fW32ZzP3Aw4Eubs59B","type":49,"type_hex":"0000000000000031"}]]',
-    no_direct_ripple: false,
-    partial_payment: false,
-    direction: 'outgoing',
-    state: 'validated',
-    result: 'tesSUCCESS',
-    ledger: '348860',
-    hash: 'F4AB442A6D4CBB935D66E1DA7309A5FC71C7143ED4049053EC14E3875B0CF9BF',
-    timestamp: '2013-03-12T23:56:50.000Z',
-    fee: '0.00001',
-    source_balance_changes: [
-      {
-      value: '-1.101208',
-      currency: 'XRP',
-      issuer: ''
+module.exports.RESTTransactionResponse = function(hash) {
+  return JSON.stringify({
+    success: true,
+    payment: {
+      source_account: 'r3GgMwvgvP8h4yVWvjH1dPZNvC37TjzBBE',
+      source_tag: '',
+      source_amount: {
+        value: '1.112209',
+        currency: 'XRP',
+        issuer: ''
+      },
+      source_slippage: '0',
+      destination_account: 'r3PDtZSa5LiYp1Ysn1vMuMzB59RzV3W9QH',
+      destination_tag: '',
+      destination_amount: {
+        currency: 'USD',
+        issuer: 'r3PDtZSa5LiYp1Ysn1vMuMzB59RzV3W9QH',
+        value: '0.001'
+      },
+      invoice_id: '',
+      paths: '[[{"currency":"USD","issuer":"rvYAfWj5gh67oV6fW32ZzP3Aw4Eubs59B","type":48,"type_hex":"0000000000000030"},{"account":"rvYAfWj5gh67oV6fW32ZzP3Aw4Eubs59B","currency":"USD","issuer":"rvYAfWj5gh67oV6fW32ZzP3Aw4Eubs59B","type":49,"type_hex":"0000000000000031"}]]',
+      no_direct_ripple: false,
+      partial_payment: false,
+      direction: 'outgoing',
+      state: 'validated',
+      result: 'tesSUCCESS',
+      ledger: '348860',
+      hash: hash,
+      timestamp: '2013-03-12T23:56:50.000Z',
+      fee: '0.00001',
+      source_balance_changes: [
+        {
+        value: '-1.101208',
+        currency: 'XRP',
+        issuer: ''
+      }
+      ],
+      destination_balance_changes: [
+        {
+        value: '0.001',
+        currency: 'USD',
+        issuer: 'rvYAfWj5gh67oV6fW32ZzP3Aw4Eubs59B'
+      }
+      ]
     }
-    ],
-    destination_balance_changes: [
-      {
-      value: '0.001',
-      currency: 'USD',
-      issuer: 'rvYAfWj5gh67oV6fW32ZzP3Aw4Eubs59B'
-    }
-    ]
-  }
-});
+  });
+};
 
 module.exports.RESTTransactionResponseWithMemo = JSON.stringify({
   success: true,
@@ -545,7 +547,7 @@ module.exports.accountInfoResponse = function(request) {
   );
 };
 
-module.exports.requestSubmitReponse = function(request) {
+module.exports.requestSubmitResponse = function(request) {
   return JSON.stringify(
     {
       "id": request.id,
@@ -567,12 +569,12 @@ module.exports.requestSubmitReponse = function(request) {
           "SigningPubKey": "029A98439AF7459E256D64635598E8B21047807E6B5E6BEE3A3CCF35DEAD2C2C55",
           "TransactionType": "Payment",
           "TxnSignature": "30440220688EDB9DC23AEB60A46DDFCC496B4EFCFB1D2432DC9636E2B88F8462FAAE3C4D022005A8EEC4A60AA34B778089EE7BA4622A3D2F18F9B8A05F9EE6709CB2C1FC8996",
-          "hash": "797A79F825CC5E5149D16D05960457A2E1C21484B41D8C80312601B39227ACE9"
+          "hash": module.exports.VALID_SUBMITTED_TRANSACTION_HASH
         }
       }
     }
   );
-}
+};
 
 module.exports.ledgerSequenceTooHighResponse = function(request, lastLedgerSequence) {
   return JSON.stringify({
