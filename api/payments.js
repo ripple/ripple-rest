@@ -99,7 +99,7 @@ function submitPayment(request, response, next) {
   }
 
   function validatePayment(async_callback) {
-    paymentIsValid(params.payment, function(error, payment){
+    isPaymentValid(params.payment, function(error, payment){
       async_callback(error ? error : void(0));
     });
   }
@@ -133,7 +133,7 @@ function submitPayment(request, response, next) {
  *  @param {Error} error
  *  @param {Boolean} is_valid Only defined if there is no error
  */
-function paymentIsValid(payment, callback) {
+function isPaymentValid(payment, callback) {
   // Ripple addresses
   if (!validator.isValid(payment.source_account, 'RippleAddress')) {
     return callback(new InvalidRequestError('Invalid parameter: source_account. Must be a valid Ripple address'));
