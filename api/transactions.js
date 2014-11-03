@@ -12,8 +12,8 @@ module.exports = {
   NUM_TRANSACTION_TYPES: 5,
   DEFAULT_LEDGER_BUFFER: 3,
   submit: submitTransaction,
-  get: getTransaction,
-  getTransactionHelper: getTransactionHelper,
+  get: getTransactionAndRespond,
+  getTransaction: getTransaction,
   getAccountTransactions: getAccountTransactions
 };
 
@@ -177,15 +177,15 @@ function submitTransaction(data, response, callback) {
 };
 
 /**
- *  Wrapper around getTransactionHelper function that is
+ *  Wrapper around getTransaction function that is
  *  meant to be used directly as a client-facing function.
- *  Unlike getTransactionHelper, it will call next with any errors
+ *  Unlike getTransaction, it will call next with any errors
  *  and send a JSON response to the client on success.
  *
- *  See getTransactionHelper for parameter details
+ *  See getTransaction for parameter details
  */
-function getTransaction(request, response, next) {
-  getTransactionHelper(request.params.account, request.params.identifier, function(error, transaction) {
+function getTransactionAndRespond(request, response, next) {
+  getTransaction(request.params.account, request.params.identifier, function(error, transaction) {
     if (error) {
       next(error);
     } else {
@@ -214,7 +214,7 @@ function getTransaction(request, response, next) {
  *  @param {Error} error
  *  @param {Transaction} transaction
  */
-function getTransactionHelper(account, identifier, callback) {
+function getTransaction(account, identifier, callback) {
   var options = {};
 
   var steps = [

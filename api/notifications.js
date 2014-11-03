@@ -81,7 +81,7 @@ function getNotificationHelper(request, response, callback) {
   }
 
   function getTransaction(async_callback) {
-    transactions.getTransactionHelper(request.params.account, request.params.identifier, async_callback);
+    transactions.getTransaction(request.params.account, request.params.identifier, async_callback);
   }
 
   function checkLedger(base_transaction, async_callback) {
