@@ -66,24 +66,25 @@ function submitPayment(request, response, next) {
     validated: request.query.validated === 'true'
   };
 
-
   async.waterfall(steps, function(error, data) {
     if (error) {
       return next(error);
-    } else if (params.validated) {
-      formatPaymentHelper(params.payment.source_account, data.transaction, function (error, payment) {
+    }
+
+    if (params.validated === true) {
+      return formatPaymentHelper(params.payment.source_account, data.transaction, function (error, payment) {
         if (error) {
           return next(error);
         } else {
           respond.success(response, { payment: payment });
         }
       });
-    } else {
-      respond.success(response, {
-        client_resource_id: data.client_resource_id,
-        status_url: params.url_base + '/v1/accounts/' + params.payment.source_account + '/payments/' + data.client_resource_id
-      });
     }
+
+    respond.success(response, {
+      client_resource_id: data.client_resource_id,
+      status_url: params.url_base + '/v1/accounts/' + params.payment.source_account + '/payments/' + data.client_resource_id
+    });
   });
 
   function validateOptions(async_callback) {
@@ -304,7 +305,7 @@ function getPayment(request, response, next) {
   var steps = [
     validateOptions,
     getTransaction,
-    function formatPayment(transaction, async_callback) {
+    function (transaction, async_callback) {
       formatPaymentHelper(options.account, transaction, async_callback);
     }
   ];

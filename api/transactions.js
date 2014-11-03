@@ -200,10 +200,7 @@ function getTransaction(request, response, next) {
  *
  *  Note that if any errors are encountered while executing this function
  *  they will be sent back to the client through the res. If the query is
- *  successful it will be passed to the callback function which can either
- *  send the transaction directly back to the client (e.g. in the case of
- *  getTransaction) or can process the transaction more (e.g. in the case
- *  of the Notification or Payment related functions).
+ *  successful it will be passed to the callback function
  *  
  *  @global
  *  @param {Remote} remote
@@ -235,7 +232,7 @@ function getTransactionHelper(account, identifier, callback) {
       return callback(new errors.InvalidRequestError('Invalid parameter: account. Must be a valid Ripple Address'));
     }
 
-    if (!identifier) {
+    if (!_.isString(identifier)) {
       return callback(new errors.InvalidRequestError('Missing parameter: identifier'));
     }
 
