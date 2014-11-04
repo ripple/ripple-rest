@@ -477,6 +477,23 @@ module.exports.nonXrpPaymentWithIssuer = {
   }
 };
 
+module.exports.nonXrpWithLastLedgerSequence = function(lastLedgerSequence) {
+  return {
+    secret: addresses.SECRET,
+    client_resource_id: "1",
+    last_ledger_sequence: lastLedgerSequence,
+    payment: {
+      source_account: addresses.VALID,
+      destination_account: addresses.COUNTERPARTY,
+      destination_amount: {
+        value: "0.001",
+        currency: "USD",
+        issuer: addresses.ISSUER
+      }
+    }
+  };
+};
+
 module.exports.nonXrpPaymentWithInvalidSecret = {
   "secret": "sssssssssssssssssssssssssssss",
   "client_resource_id": "614013f0-034f-4e22-ada9-4d131d71781f",
@@ -557,6 +574,30 @@ module.exports.requestSubmitReponse = function(request) {
   );
 }
 
+module.exports.ledgerSequenceTooHighResponse = function(request, lastLedgerSequence) {
+  return JSON.stringify({
+    "id": request.id,
+    "status": "success",
+    "type": "response",
+    "result": {
+      "engine_result": "tefMAX_LEDGER",
+      "engine_result_code": -186,
+      "engine_result_message": "Ledger sequence too high.",
+      "tx_blob": "12000322000000002400000043201B0000000168400000000000000F732102AC2A11C997C04EC6A4139E6189111F90E89D05F9A9DDC3E2CA459CEA89C539D374463044022030177B57C6848DBABD9993F1480AC4CAEA04911FF0C6C0ED40484D10A7FA5FC0022073AD09CAFF94CB23821DF9B5915A47A7370178743279D3D676592F35F3A65F5B8114E81DCB25DAA1DDEFF45145D334C56F12EA63C337",
+      "tx_json": {
+        "Account": fromAccount,
+        "Fee": "15",
+        "Flags": 0,
+        "LastLedgerSequence": lastLedgerSequence,
+        "Sequence": 67,
+        "SigningPubKey": "02AC2A11C997C04EC6A4139E6189111F90E89D05F9A9DDC3E2CA459CEA89C539D3",
+        "TransactionType": "AccountSet",
+        "TxnSignature": "3044022030177B57C6848DBABD9993F1480AC4CAEA04911FF0C6C0ED40484D10A7FA5FC0022073AD09CAFF94CB23821DF9B5915A47A7370178743279D3D676592F35F3A65F5B",
+        "hash": "6A171B18021FC45116B72FC80D82B234B1513EDD58DFFCE0E60CC8722A980E08"
+      }
+    }
+  });
+};
 
 module.exports.RESTPaymentWithMemoResponse = JSON.stringify(
   {
@@ -632,6 +673,15 @@ module.exports.RESTNonXrpPaymentWithInvalidsecret = JSON.stringify(
     "success":false,
     "error_type":"transaction",
     "error":"Invalid secret"
+  }
+);
+
+module.exports.RESTNonXrpPaymentWithHighLedgerSequence = JSON.stringify(
+  {
+    "success": false,
+    "error_type": "transaction",
+    "error": "tefMAX_LEDGER",
+    "message": "Ledger sequence too high."
   }
 );
 

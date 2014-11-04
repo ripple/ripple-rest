@@ -39,6 +39,7 @@ var paymentToTransactionConverter = new RestToLibTxConverter();
  *  @param {Payment} req.body.payment
  *  @param {String} req.body.secret
  *  @param {String} req.body.client_resource_id
+ *  @param {String Number} req.body.last_ledger_sequence sets the last ledger sequence that this payment can end up in
  *  @param {Express.js Response} res
  *  @param {Express.js Next} next
  */
@@ -56,6 +57,7 @@ function submitPayment(request, response, next) {
     payment: request.body.payment,
     secret: request.body.secret,
     client_resource_id: request.body.client_resource_id,
+    last_ledger_sequence: request.body.last_ledger_sequence,
     url_base: request.protocol + '://' + request.hostname + (config && config.get('port') ? ':' + config.get('port') : '')
   };
 
