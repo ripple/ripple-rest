@@ -75,8 +75,15 @@ function submitTransaction(data, response, callback) {
   function submitTransaction(transaction, async_callback) {
     transaction.remote = remote;
 
-    var ledgerIndex = Number(remote._ledger_current_index);
-    transaction.lastLedger(ledgerIndex + module.exports.DEFAULT_LEDGER_BUFFER);
+    var ledgerIndex;
+
+    if (Number(data.last_ledger_sequence) > 0) {
+      ledgerIndex = Number(data.last_ledger_sequence);
+    } else {
+      ledgerIndex = Number(remote._ledger_current_index) + module.exports.DEFAULT_LEDGER_BUFFER;
+    }
+    
+    transaction.lastLedger(ledgerIndex);
 
     function saveTransaction() {
       dbinterface.saveTransaction(transaction.summary());

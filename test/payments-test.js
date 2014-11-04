@@ -275,6 +275,48 @@ suite('post payments', function() {
     .expect(testutils.checkBody(fixtures.RESTNonXrpPaymentWithInvalidsecret))
     .end(done);
   });
+
+  test('/payments -- with ledger sequence below current should return ledger sequence too high error', function(done) {
+    self.wss.once('request_account_info', function(message, conn) {
+      assert.strictEqual(message.command, 'account_info');
+      assert.strictEqual(message.account, addresses.VALID);
+      conn.send(fixtures.accountInfoResponse(message));
+    });
+
+    self.wss.once('request_submit', function(message, conn) {
+      assert.strictEqual(message.command, 'submit');
+      conn.send(fixtures.ledgerSequenceTooHighResponse(message, 1));
+    });
+
+    self.app
+    .post('/v1/accounts/' + addresses.VALID + '/payments')
+    .send(fixtures.nonXrpWithLastLedgerSequence(1))
+    .expect(testutils.checkStatus(500))
+    .expect(testutils.checkHeaders)
+    .expect(testutils.checkBody(fixtures.RESTNonXrpPaymentWithHighLedgerSequence))
+    .end(done);
+  });
+
+  test('/payments -- with ledger sequence above current should return successful payment', function(done) {
+    self.wss.once('request_account_info', function(message, conn) {
+      assert.strictEqual(message.command, 'account_info');
+      assert.strictEqual(message.account, addresses.VALID);
+      conn.send(fixtures.accountInfoResponse(message));
+    });
+
+    self.wss.once('request_submit', function(message, conn) {
+      assert.strictEqual(message.command, 'submit');
+      conn.send(fixtures.requestSubmitReponse(message));
+    });
+
+    self.app
+    .post('/v1/accounts/' + addresses.VALID + '/payments')
+    .send(fixtures.nonXrpWithLastLedgerSequence(9036180))
+    .expect(testutils.checkStatus(200))
+    .expect(testutils.checkHeaders)
+    .expect(testutils.checkBody(fixtures.RESTNonXrpPaymentWithIssuer))
+    .end(done);
+  });
 });
 
 /*
