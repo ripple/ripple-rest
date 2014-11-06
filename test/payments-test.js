@@ -352,7 +352,7 @@ suite('post payments', function() {
 
     self.wss.once('request_submit', function(message, conn) {
       assert.strictEqual(message.command, 'submit');
-      conn.send(fixtures.requestSubmitReponse(message));
+      conn.send(fixtures.requestSubmitResponse(message));
     });
 
     self.app
