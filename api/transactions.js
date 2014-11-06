@@ -155,7 +155,7 @@ function submitTransaction(data, response, callback) {
     transaction.once('error', handleError);
 
     transaction.once('cleanup', function(message) {
-      if (data.validated === true) {
+      if (/^tes/.test(message.engine_result) && data.validated === true) {
         var transaction = message.tx_json;
         transaction.meta = message.metadata;
         transaction.ledger_index = transaction.inLedger = message.ledger_index;

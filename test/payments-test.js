@@ -75,7 +75,7 @@ suite('post payments', function() {
   setup(testutils.setup.bind(self));
   teardown(testutils.teardown.bind(self));
   
-  test('/payments -- setting validated query parameter flag to "true" should return validated transaction', function(done){
+  test('/payments -- setting validated query parameter flag to "true" with a valid submit response should return validated transaction', function(done){
     self.wss.once('request_account_info', function(message, conn) {
       assert.strictEqual(message.command, 'account_info');
       assert.strictEqual(message.account, addresses.VALID);
@@ -97,6 +97,27 @@ suite('post payments', function() {
     .expect(testutils.checkStatus(200))
     .expect(testutils.checkHeaders)
     .expect(testutils.checkBody(fixtures.RESTTransactionResponse(fixtures.VALID_SUBMITTED_TRANSACTION_HASH)))
+    .end(done);
+  });
+
+  test('/payments -- setting validated query parameter flag to "true" with a ledger sequence too high error should return the error', function(done) {
+    self.wss.once('request_account_info', function(message, conn) {
+      assert.strictEqual(message.command, 'account_info');
+      assert.strictEqual(message.account, addresses.VALID);
+      conn.send(fixtures.accountInfoResponse(message));
+    });
+
+    self.wss.once('request_submit', function(message, conn) {
+      assert.strictEqual(message.command, 'submit');
+      conn.send(fixtures.ledgerSequenceTooHighResponse(message));
+    });
+
+    self.app
+    .post('/v1/accounts/' + addresses.VALID + '/payments?validated=true')
+    .send(fixtures.nonXrpPaymentWithoutIssuer)
+    .expect(testutils.checkStatus(500))
+    .expect(testutils.checkHeaders)
+    .expect(testutils.checkBody(fixtures.RESTResponseLedgerSequenceTooHigh))
     .end(done);
   });
 
