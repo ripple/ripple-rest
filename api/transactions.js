@@ -12,8 +12,8 @@ module.exports = {
   NUM_TRANSACTION_TYPES: 5,
   DEFAULT_LEDGER_BUFFER: 3,
   submit: submitTransaction,
-  get: getTransaction,
-  getTransactionHelper: getTransactionHelper,
+  get: getTransactionAndRespond,
+  getTransaction: getTransaction,
   getAccountTransactions: getAccountTransactions
 };
 
@@ -21,11 +21,14 @@ module.exports = {
  *  Submit a normal ripple-lib transaction, blocking duplicates
  *  for payments and orders.
  *
+ *  @global
  *  @param {Remote} remote
  *  @param {/lib/db-interface} dbinterface
+ *
  *  @param {Transaction} data.transaction
  *  @param {String} data.secret
  *  @param {String} data.client_resource_id
+ *  @param {Boolean} data.validated Used to force ripple-rest to wait until rippled has validated a transaction before returning the result
  *  @param {Express.js Response} res Used to send error messages directly to the client
  *  @param {Function} callback
  *
@@ -102,8 +105,8 @@ function submitTransaction(data, response, callback) {
         transaction.on('state', saveTransaction);
       });
 
-      if (/^tes/.test(message.engine_result)) {
-        async_callback(null, transaction._clientID);
+      if (/^tes/.test(message.engine_result) && data.validated === false) {
+        async_callback(null, { client_resource_id: transaction._clientID });
       }
     };
 
@@ -150,6 +153,17 @@ function submitTransaction(data, response, callback) {
     });
 
     transaction.once('error', handleError);
+
+    transaction.once('cleanup', function(message) {
+      if (/^tes/.test(message.engine_result) && data.validated === true) {
+        var transaction = message.tx_json;
+        transaction.meta = message.metadata;
+        transaction.ledger_index = transaction.inLedger = message.ledger_index;
+
+        async_callback(null, { transaction: transaction });
+      }
+    });
+
     transaction.submit();
   };
 
@@ -163,15 +177,15 @@ function submitTransaction(data, response, callback) {
 };
 
 /**
- *  Wrapper around getTransactionHelper function that is
+ *  Wrapper around getTransaction function that is
  *  meant to be used directly as a client-facing function.
- *  Unlike getTransactionHelper, it will call next with any errors
+ *  Unlike getTransaction, it will call next with any errors
  *  and send a JSON response to the client on success.
  *
- *  See getTransactionHelper for parameter details
+ *  See getTransaction for parameter details
  */
-function getTransaction(request, response, next) {
-  getTransactionHelper(request, response, function(error, transaction) {
+function getTransactionAndRespond(request, response, next) {
+  getTransaction(request.params.account, request.params.identifier, function(error, transaction) {
     if (error) {
       next(error);
     } else {
@@ -186,27 +200,22 @@ function getTransaction(request, response, next) {
  *
  *  Note that if any errors are encountered while executing this function
  *  they will be sent back to the client through the res. If the query is
- *  successful it will be passed to the callback function which can either
- *  send the transaction directly back to the client (e.g. in the case of
- *  getTransaction) or can process the transaction more (e.g. in the case
- *  of the Notification or Payment related functions).
- *
+ *  successful it will be passed to the callback function
+ *  
+ *  @global
  *  @param {Remote} remote
  *  @param {/lib/db-interface} dbinterface
- *  @param {RippleAddress} req.params.account
- *  @param {Hex-encoded String|ASCII printable character String} req.params.identifier
- *  @param {Express.js Response} res
+ *
+ *  @param {RippleAddress} account
+ *  @param {Hex-encoded String|ASCII printable character String} identifier
  *  @param {Function} callback
  *
  *  @callback
  *  @param {Error} error
  *  @param {Transaction} transaction
  */
-function getTransactionHelper(request, response, callback) {
-  var options = {
-    account: request.params.account,
-    identifier: request.params.identifier
-  };
+function getTransaction(account, identifier, callback) {
+  var options = {};
 
   var steps = [
     validateOptions,
@@ -219,19 +228,19 @@ function getTransactionHelper(request, response, callback) {
   async.waterfall(steps, callback);
 
   function validateOptions(async_callback) {
-    if (options.account && !validator.isValid(options.account, 'RippleAddress')) {
+    if (account && !validator.isValid(account, 'RippleAddress')) {
       return callback(new errors.InvalidRequestError('Invalid parameter: account. Must be a valid Ripple Address'));
     }
 
-    if (!options.identifier) {
+    if (!_.isString(identifier)) {
       return callback(new errors.InvalidRequestError('Missing parameter: identifier'));
     }
 
-    if (validator.isValid(options.identifier, 'Hash256')) {
-      options.hash = options.identifier;
+    if (validator.isValid(identifier, 'Hash256')) {
+      options.hash = identifier;
       async_callback();
-    } else if (validator.isValid(options.identifier, 'ResourceId')) {
-      options.client_resource_id = options.identifier;
+    } else if (validator.isValid(identifier, 'ResourceId')) {
+      options.client_resource_id = identifier;
       async_callback();
     } else {
       return callback(new errors.InvalidRequestError('Parameter not a valid transaction hash or client_resource_id: identifier'));
