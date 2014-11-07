@@ -1,3 +1,4 @@
+var _ = require('lodash');
 var addresses = require('./../fixtures').addresses;
 var paths = require('./paths');
 
@@ -496,6 +497,23 @@ module.exports.nonXrpWithLastLedgerSequence = function(lastLedgerSequence) {
   };
 };
 
+module.exports.nonXrpWithFee = function(fee) {
+  return {
+    secret: addresses.SECRET,
+    client_resource_id: "1",
+    max_fee: String(fee),
+    payment: {
+      source_account: addresses.VALID,
+      destination_account: addresses.COUNTERPARTY,
+      destination_amount: {
+        value: "0.001",
+        currency: "USD",
+        issuer: addresses.ISSUER
+      }
+    }
+  };
+};
+
 module.exports.nonXrpPaymentWithInvalidSecret = {
   "secret": "sssssssssssssssssssssssssssss",
   "client_resource_id": "614013f0-034f-4e22-ada9-4d131d71781f",
@@ -547,7 +565,13 @@ module.exports.accountInfoResponse = function(request) {
   );
 };
 
-module.exports.requestSubmitResponse = function(request) {
+module.exports.requestSubmitResponse = function(request, options) {
+  options = options || {};
+  _.defaults(options, {
+    LastLedgerSequence: 9036180,
+    Fee: '12'
+  });
+
   return JSON.stringify(
     {
       "id": request.id,
@@ -562,9 +586,9 @@ module.exports.requestSubmitResponse = function(request) {
           "Account": fromAccount,
           "Amount": "100",
           "Destination": toAccount,
-          "Fee": "12",
+          "Fee": options.Fee,
           "Flags": 0,
-          "LastLedgerSequence": 9036180,
+          "LastLedgerSequence": options.LastLedgerSequence,
           "Sequence": 23,
           "SigningPubKey": "029A98439AF7459E256D64635598E8B21047807E6B5E6BEE3A3CCF35DEAD2C2C55",
           "TransactionType": "Payment",
@@ -826,6 +850,33 @@ module.exports.ledgerSequenceTooHighResponse = function(request) {
   );
 };
 
+module.exports.feeInsufficientResponse = function(request, fee) {
+  return JSON.stringify({
+    "id": request.id,
+    "status": "success",
+    "type": "response",
+    "result": {
+      "engine_result": "telINSUF_FEE_P",
+      "engine_result_code": -394,
+      "engine_result_message": "Fee insufficient.",
+      "tx_blob": "12000322000000002400000006684000000000000001732102AFA3692CC78A804ACC11DBA23DBB99943C6F8D61D3CB07BBE6D28356EB5B9C5774473045022100AE65DF48DC1D2C6F23AF50C90734EA060FCDC97238B983B76CC9061F97A6F2D4022031325ACBF6AE43CB467BB7B808A6D4079AC66C8BD1145AEC692AFC878493E77D8114625E2F1F09A0D769E05C04FAA64F0D2013306C6A",
+      "tx_json": {
+        "Account": fromAccount,
+        "Amount": "100",
+        "Destination": toAccount,
+        "Fee": String(fee),
+        "Flags": 0,
+        "LastLedgerSequence": 9036180,
+        "Sequence": 23,
+        "SigningPubKey": "029A98439AF7459E256D64635598E8B21047807E6B5E6BEE3A3CCF35DEAD2C2C55",
+        "TransactionType": "Payment",
+        "TxnSignature": "30440220688EDB9DC23AEB60A46DDFCC496B4EFCFB1D2432DC9636E2B88F8462FAAE3C4D022005A8EEC4A60AA34B778089EE7BA4622A3D2F18F9B8A05F9EE6709CB2C1FC8996",
+        "hash": "797A79F825CC5E5149D16D05960457A2E1C21484B41D8C80312601B39227ACE9"
+      }
+    }
+  });
+};
+
 module.exports.RESTPaymentWithMemoResponse = JSON.stringify(
   {
     "success":true,
@@ -918,6 +969,23 @@ module.exports.RESTNonXrpPaymentWithHighLedgerSequence = JSON.stringify(
     "error_type": "transaction",
     "error": "tefMAX_LEDGER",
     "message": "Ledger sequence too high."
+  }
+);
+
+module.exports.RESTNonXrpPaymentWithInsufficientFee = JSON.stringify(
+  {
+    success: false,
+    error_type: 'transaction',
+    error: 'telINSUF_FEE_P',
+    message: 'Fee insufficient. Please ensure that the source_address has sufficient XRP to pay the fee. If it does, please report this error, this service should handle setting the proper fee.' 
+  }
+);
+
+module.exports.RESTNonXrpPaymentWithMaxFeeExceeded = JSON.stringify(
+  {
+    success: false,
+    error_type: 'transaction',
+    error: 'Max fee exceeded' 
   }
 );
 

@@ -351,13 +351,81 @@ suite('post payments', function() {
     });
 
     self.wss.once('request_submit', function(message, conn) {
+      var so = new ripple.SerializedObject(message.tx_blob).to_json();
       assert.strictEqual(message.command, 'submit');
-      conn.send(fixtures.requestSubmitResponse(message));
+      assert.strictEqual(so.LastLedgerSequence, 9036185);
+      conn.send(fixtures.requestSubmitResponse(message, { LastLedgerSequence: 9036185 }));
     });
 
     self.app
     .post('/v1/accounts/' + addresses.VALID + '/payments')
-    .send(fixtures.nonXrpWithLastLedgerSequence(9036180))
+    .send(fixtures.nonXrpWithLastLedgerSequence(9036185))
+    .expect(testutils.checkStatus(200))
+    .expect(testutils.checkHeaders)
+    .expect(testutils.checkBody(fixtures.RESTNonXrpPaymentWithIssuer))
+    .end(done);
+  });
+
+  test('/payments -- with max fee set above computed fee but below expected server fee and remote\'s local_fee flag turned off should return insufficient fee error', function(done) {
+    self.app.remote.local_fee = false;
+
+    self.wss.once('request_account_info', function(message, conn) {
+      assert.strictEqual(message.command, 'account_info');
+      assert.strictEqual(message.account, addresses.VALID);
+      conn.send(fixtures.accountInfoResponse(message));
+    });
+
+    self.wss.once('request_submit', function(message, conn) {
+      assert.strictEqual(message.command, 'submit');
+      conn.send(fixtures.feeInsufficientResponse(message, 15));
+    });
+
+    self.app
+    .post('/v1/accounts/' + addresses.VALID + '/payments')
+    .send(fixtures.nonXrpWithFee(15))
+    .expect(testutils.checkStatus(500))
+    .expect(testutils.checkHeaders)
+    .expect(testutils.checkBody(fixtures.RESTNonXrpPaymentWithInsufficientFee))
+    .end(done);
+  });
+
+  test('/payments -- with max fee set below computed fee should return max fee exceeded error', function(done) {
+    self.wss.once('request_account_info', function(message, conn) {
+      assert.strictEqual(message.command, 'account_info');
+      assert.strictEqual(message.account, addresses.VALID);
+      conn.send(fixtures.accountInfoResponse(message));
+    });
+
+    self.wss.once('request_submit', function(message, conn) {
+      assert.strictEqual(true, false);
+    });
+
+    self.app
+    .post('/v1/accounts/' + addresses.VALID + '/payments')
+    .send(fixtures.nonXrpWithFee(10))
+    .expect(testutils.checkStatus(500))
+    .expect(testutils.checkHeaders)
+    .expect(testutils.checkBody(fixtures.RESTNonXrpPaymentWithMaxFeeExceeded))
+    .end(done);
+  });
+
+  test('/payments -- with max fee set above expected server fee should see fee lowered to computed fee and return successful payment', function(done) {
+    self.wss.once('request_account_info', function(message, conn) {
+      assert.strictEqual(message.command, 'account_info');
+      assert.strictEqual(message.account, addresses.VALID);
+      conn.send(fixtures.accountInfoResponse(message));
+    });
+
+    self.wss.once('request_submit', function(message, conn) {
+      var so = new ripple.SerializedObject(message.tx_blob).to_json();
+      assert.strictEqual(message.command, 'submit');
+      assert.strictEqual(so.Fee, '12');
+      conn.send(fixtures.requestSubmitResponse(message, { Fee: '12' }));
+    });
+
+    self.app
+    .post('/v1/accounts/' + addresses.VALID + '/payments')
+    .send(fixtures.nonXrpWithFee(1200))
     .expect(testutils.checkStatus(200))
     .expect(testutils.checkHeaders)
     .expect(testutils.checkBody(fixtures.RESTNonXrpPaymentWithIssuer))
