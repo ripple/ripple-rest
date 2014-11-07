@@ -40,7 +40,8 @@ var paymentToTransactionConverter = new RestToLibTxConverter();
  *  @param {Payment} request.body.payment
  *  @param {String} request.body.secret
  *  @param {String} request.body.client_resource_id
- *  @param {String Number} req.body.last_ledger_sequence sets the last ledger sequence that this payment can end up in
+ *  @param {String Number} req.body.last_ledger_sequence Sets the last ledger sequence that this payment can end up in
+ *  @param {String Number} req.body.max_fee Sets the maximum fee the payer is willing to pay
  *  
  *  @query
  *  @param {String "true"|"false"} request.query.validated Used to force request to wait until rippled has finished validating the submitted transaction
@@ -62,6 +63,7 @@ function submitPayment(request, response, next) {
     secret: request.body.secret,
     client_resource_id: request.body.client_resource_id,
     last_ledger_sequence: request.body.last_ledger_sequence,
+    max_fee: request.body.max_fee,
     url_base: request.protocol + '://' + request.hostname + (config && config.get('port') ? ':' + config.get('port') : ''),
     validated: request.query.validated === 'true'
   };

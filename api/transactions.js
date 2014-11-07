@@ -29,6 +29,8 @@ module.exports = {
  *  @param {String} data.secret
  *  @param {String} data.client_resource_id
  *  @param {Boolean} data.validated Used to force ripple-rest to wait until rippled has validated a transaction before returning the result
+ *  @param {String Number} data.last_ledger_sequence
+ *  @param {String Number} data.max_fee
  *  @param {Express.js Response} res Used to send error messages directly to the client
  *  @param {Function} callback
  *
@@ -38,6 +40,20 @@ module.exports = {
  */
 function submitTransaction(data, response, callback) {
   function prepareTransaction(async_callback) {
+    var ledgerIndex, maxFee = Number(data.max_fee);
+
+    if (Number(data.last_ledger_sequence) > 0) {
+      ledgerIndex = Number(data.last_ledger_sequence);
+    } else {
+      ledgerIndex = Number(remote._ledger_current_index) + module.exports.DEFAULT_LEDGER_BUFFER;
+    }
+    
+    data.transaction.lastLedger(ledgerIndex);
+
+    if (maxFee >= 0) {
+      data.transaction.maxFee(maxFee);
+    }
+
     data.transaction.secret(data.secret);
     data.transaction.clientID(data.client_resource_id);
     async_callback(null, data.transaction);
@@ -77,16 +93,6 @@ function submitTransaction(data, response, callback) {
 
   function submitTransaction(transaction, async_callback) {
     transaction.remote = remote;
-
-    var ledgerIndex;
-
-    if (Number(data.last_ledger_sequence) > 0) {
-      ledgerIndex = Number(data.last_ledger_sequence);
-    } else {
-      ledgerIndex = Number(remote._ledger_current_index) + module.exports.DEFAULT_LEDGER_BUFFER;
-    }
-    
-    transaction.lastLedger(ledgerIndex);
 
     function saveTransaction() {
       dbinterface.saveTransaction(transaction.summary());
