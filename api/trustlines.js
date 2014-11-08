@@ -54,7 +54,7 @@ function getTrustLines(request, response, next) {
   };
 
   function getAccountLines(callback) {
-    var request = remote.requestAccountLines(options.account);
+    var request = remote.requestAccountLines({account: options.account});
 
     if (options.counterparty) {
       request.message.peer = options.counterparty;

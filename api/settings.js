@@ -77,7 +77,7 @@ function padValue(value, length) {
 };
 
 function getSettings(request, response, next) {
-  remote.requestAccountInfo(request.params.account, function(error, info) {
+  remote.requestAccountInfo({account: request.params.account}, function(error, info) {
     if (error) {
       return next(error);
     }

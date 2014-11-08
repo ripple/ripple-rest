@@ -608,7 +608,7 @@ function getPathFind(request, response, next) {
       return async_callback(null, pathfind_results);
     }
     // Check source_account balance
-    remote.requestAccountInfo(pathfind_results.source_account, function(error, result) {
+    remote.requestAccountInfo({account: pathfind_results.source_account}, function(error, result) {
       if (error) {
         return async_callback(new Error('Cannot get account info for source_account. ' + error));
       }

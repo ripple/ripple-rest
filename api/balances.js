@@ -35,7 +35,7 @@ function getBalances(request, response, next) {
   };
 
   function getXRPBalance(callback) {
-    var request = remote.requestAccountInfo(options.account);
+    var request = remote.requestAccountInfo({account: options.account});
 
     request.once('error', callback);
     request.once('success', function(info) {
@@ -51,7 +51,7 @@ function getBalances(request, response, next) {
   };
 
   function getLineBalances(callback) {
-    var request = remote.requestAccountLines(options.account);
+    var request = remote.requestAccountLines({account: options.account});
 
     if (options.counterparty) {
       request.message.peer = options.counterparty;
