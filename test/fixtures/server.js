@@ -77,6 +77,7 @@ module.exports.RESTServerIndexResponse = JSON.stringify({
     "ripple_transactions": "/v1/transactions/{hash}",
     "server_status": "/v1/server",
     "server_connected": "/v1/server/connected",
+    "transaction_fee": "/v1/fee",
     "uuid_generator": "/v1/uuid"
   }
 });
