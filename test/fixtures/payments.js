@@ -53,7 +53,7 @@ module.exports.transactionResponse = function(request) {
       TransactionType: 'Payment',
       TxnSignature: '304502204EE3E9D1B01D8959B08450FCA9E22025AF503DEF310E34A93863A85CAB3C0BC5022100B61F5B567F77026E8DEED89EED0B7CAF0E6C96C228A2A65216F0DC2D04D52083',
       date: 416447810,
-      hash: 'F4AB442A6D4CBB935D66E1DA7309A5FC71C7143ED4049053EC14E3875B0CF9BF',
+      hash: module.exports.VALID_TRANSACTION_HASH,
       inLedger: 348860,
       ledger_index: 348860,
       meta: {
@@ -234,7 +234,7 @@ module.exports.transactionResponseWithMemo = function(request) {
         "SigningPubKey": "029A98439AF7459E256D64635598E8B21047807E6B5E6BEE3A3CCF35DEAD2C2C55",
         "TransactionType": "Payment",
         "TxnSignature": "3044022022C0ADFB098AF03183329F525184C539D5221104A7C5032C138BF10C19D37A000220443A58890F063AEB8FE1EFA5CC39A0744946B318C9AE9161F82351EB55C43AC1",
-        "hash": "F9DE78E635A418529A5104A56439F305CE7C42B9F29180F05D77326B9ACD1D33",
+        "hash": module.exports.VALID_TRANSACTION_HASH_MEMO,
         "inLedger": 9038214,
         "ledger_index": 9038214,
         "meta": {
@@ -388,7 +388,7 @@ module.exports.RESTTransactionResponseWithMemo = JSON.stringify({
     state: "validated",
     result: "tesSUCCESS",
     ledger: "9038214",
-    hash: "F9DE78E635A418529A5104A56439F305CE7C42B9F29180F05D77326B9ACD1D33",
+    hash: module.exports.VALID_TRANSACTION_HASH_MEMO,
     timestamp: "2014-09-24T21:21:50.000Z",
     fee: "0.000012",
     source_balance_changes: [
@@ -625,6 +625,106 @@ module.exports.ledgerSequenceTooHighResponse = function(request, lastLedgerSeque
   });
 };
 
+module.exports.destinationTagNeededResponse = function(request) {
+  return JSON.stringify({
+    "id": request.id,
+    "result": {
+      "engine_result": "tefDST_TAG_NEEDED",
+      "engine_result_code": -193,
+      "engine_result_message": "Destination tag required.",
+      "tx_blob": "1200002280000000240000004A201B00968D5B61D4838D7EA4C6800000000000000000000000000055534400000000000A20B3C85F482532A9578DBB3950B85CA06594D168400000000000000C69D3C9A10B165530C70000000000000000000000004254430000000000E81DCB25DAA1DDEFF45145D334C56F12EA63C337732102AC2A11C997C04EC6A4139E6189111F90E89D05F9A9DDC3E2CA459CEA89C539D3744730450221009723AA02F9385CFD89C1B08CC8A03FE362F1A33431C8800EEE81D45A131E64AD02203B61F5B88F6B0B1CDF0EF991161535B7A3C3CBA0F9E716A07FF4BA0E4613152A8114E81DCB25DAA1DDEFF45145D334C56F12EA63C33783140A20B3C85F482532A9578DBB3950B85CA06594D10112010A20B3C85F482532A9578DBB3950B85CA06594D13000000000000000000000000055534400000000000A20B3C85F482532A9578DBB3950B85CA06594D1FF010A20B3C85F482532A9578DBB3950B85CA06594D11000000000000000000000000000000000000000003000000000000000000000000055534400000000000A20B3C85F482532A9578DBB3950B85CA06594D1FF01DD39C650A96EDA48334E70CC4A85B8B2E8502CD31000000000000000000000000000000000000000003000000000000000000000000055534400000000000A20B3C85F482532A9578DBB3950B85CA06594D1FF01DD39C650A96EDA48334E70CC4A85B8B2E8502CD33000000000000000000000000055534400000000000A20B3C85F482532A9578DBB3950B85CA06594D100",
+      "tx_json": {
+        "Account": fromAccount,
+        "Amount": {
+          "currency": "USD",
+          "issuer": toAccount,
+          "value": "1"
+        },
+        "Destination": toAccount,
+        "Fee": "12",
+        "Flags": 2147483648,
+        "LastLedgerSequence": 9866587,
+        "Paths": [
+          [
+            {
+              "account": toAccount,
+              "type": 1,
+              "type_hex": "0000000000000001"
+            },
+            {
+              "currency": "USD",
+              "issuer": toAccount,
+              "type": 48,
+              "type_hex": "0000000000000030"
+            }
+          ],
+          [
+            {
+              "account": toAccount,
+              "type": 1,
+              "type_hex": "0000000000000001"
+            },
+            {
+              "currency": "XRP",
+              "type": 16,
+              "type_hex": "0000000000000010"
+            },
+            {
+              "currency": "USD",
+              "issuer": toAccount,
+              "type": 48,
+              "type_hex": "0000000000000030"
+            }
+          ],
+          [
+            {
+              "account": "rMwjYedjc7qqtKYVLiAccJSmCwih4LnE2q",
+              "type": 1,
+              "type_hex": "0000000000000001"
+            },
+            {
+              "currency": "XRP",
+              "type": 16,
+              "type_hex": "0000000000000010"
+            },
+            {
+              "currency": "USD",
+              "issuer": toAccount,
+              "type": 48,
+              "type_hex": "0000000000000030"
+            }
+          ],
+          [
+            {
+              "account": "rMwjYedjc7qqtKYVLiAccJSmCwih4LnE2q",
+              "type": 1,
+              "type_hex": "0000000000000001"
+            },
+            {
+              "currency": "USD",
+              "issuer": toAccount,
+              "type": 48,
+              "type_hex": "0000000000000030"
+            }
+          ]
+        ],
+        "SendMax": {
+          "currency": "BTC",
+          "issuer": fromAccount,
+          "value": "0.002710343781789895"
+        },
+        "Sequence": 74,
+        "SigningPubKey": "02AC2A11C997C04EC6A4139E6189111F90E89D05F9A9DDC3E2CA459CEA89C539D3",
+        "TransactionType": "Payment",
+        "TxnSignature": "30450221009723AA02F9385CFD89C1B08CC8A03FE362F1A33431C8800EEE81D45A131E64AD02203B61F5B88F6B0B1CDF0EF991161535B7A3C3CBA0F9E716A07FF4BA0E4613152A",
+        "hash": module.exports.VALID_SUBMITTED_TRANSACTION_HASH
+      }
+    },
+    "status": "success",
+    "type": "response"
+  });
+};
+
 module.exports.transactionVerifiedResponse = function() {
   return JSON.stringify(
     {
@@ -841,7 +941,7 @@ module.exports.ledgerSequenceTooHighResponse = function(request) {
           SigningPubKey: '02AC2A11C997C04EC6A4139E6189111F90E89D05F9A9DDC3E2CA459CEA89C539D3',
           TransactionType: 'Payment',
           TxnSignature: '304402201B2E35F186C177C9DCF52EB8EB7BAA837EE56FA5A4D6D3A5DF28F115346059980220348EE36BBA46F618DCA38EA00008BA0436BA8C3336289E5B718D2FDA63793FBF',
-          hash: '7DE1CCACE708D73B213F6A68F0D8735C81E88062473FBB330C86A3E2F0F1926D' 
+          hash: module.exports.VALID_SUBMITTED_TRANSACTION_HASH
         }
       },
       status: 'success',
@@ -908,6 +1008,15 @@ module.exports.RESTResponseLedgerSequenceTooHigh = JSON.stringify(
     error_type: 'transaction',
     error: 'tefMAX_LEDGER',
     message: 'Ledger sequence too high.'
+  }
+);
+
+module.exports.RESTResponseDestinationTagNeeded = JSON.stringify(
+  { 
+    success: false,
+    error_type: 'transaction',
+    error: 'tefDST_TAG_NEEDED',
+    message: 'Destination tag required.'
   }
 );
 
