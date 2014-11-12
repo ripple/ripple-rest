@@ -40,8 +40,8 @@ var paymentToTransactionConverter = new RestToLibTxConverter();
  *  @param {Payment} request.body.payment
  *  @param {String} request.body.secret
  *  @param {String} request.body.client_resource_id
- *  @param {String Number} req.body.last_ledger_sequence Sets the last ledger sequence that this payment can end up in
- *  @param {String Number} req.body.max_fee Sets the maximum fee the payer is willing to pay
+ *  @param {Number String} req.body.last_ledger_sequence Sets the last ledger sequence that this payment can end up in
+ *  @param {Number String} req.body.max_fee Sets the maximum fee the payer is willing to pay
  *  
  *  @query
  *  @param {String "true"|"false"} request.query.validated Used to force request to wait until rippled has finished validating the submitted transaction
@@ -475,9 +475,9 @@ function getAccountPayments(request, response, next) {
  *  @param {Remote} remote
  *  @param {/lib/db-interface} dbinterface
  *  @param {RippleAddress} req.params.source_account
- *  @param {Array of currencies written as "USD r...,XRP,..."} req.query.source_currencies Note that Express.js middleware replaces "+" signs with spaces. Clients should use "+" signs but the values here will end up as spaces
+ *  @param {Amount Array ["USD r...,XRP,..."]} req.query.source_currencies Note that Express.js middleware replaces "+" signs with spaces. Clients should use "+" signs but the values here will end up as spaces
  *  @param {RippleAddress} req.params.destination_account
- *  @param {Amount written as "1+USD+r..."} req.params.destination_amount_string
+ *  @param {Amount "1+USD+r..."} req.params.destination_amount_string
  *  @param {Express.js Response} res
  *  @param {Express.js Next} next
  */

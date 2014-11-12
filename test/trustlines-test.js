@@ -171,7 +171,7 @@ suite('post trustlines', function() {
     });
 
     self.wss.once('request_submit', function(message, conn) {
-      assert.strictEqual(true, false);
+      assert(false);
     });
 
     self.app
@@ -190,7 +190,7 @@ suite('post trustlines', function() {
     .end(done);
   });
 
-  test('/accounts/:account/trustlines -- with validated false', function(done) {
+  test('/accounts/:account/trustlines -- with validated false and transaction verified response', function(done) {
     self.wss.once('request_account_info', function(message, conn) {
       assert.strictEqual(message.command, 'account_info');
       assert.strictEqual(message.account, addresses.VALID);
@@ -200,21 +200,6 @@ suite('post trustlines', function() {
     self.wss.once('request_submit', function(message, conn) {
       assert.strictEqual(message.command, 'submit');
       assert(message.hasOwnProperty('tx_blob'));
-
-      var so = new ripple.SerializedObject(message.tx_blob).to_json();
-
-      assert.strictEqual(so.TransactionType, 'TrustSet');
-      assert.strictEqual(so.Flags, 2147483648);
-      assert.strictEqual(typeof so.Sequence, 'number');
-      assert.strictEqual(so.LastLedgerSequence, self.app.remote._ledger_current_index + LEDGER_OFFSET);
-
-      assert.deepEqual(so.LimitAmount, {
-        value: '1',
-        currency: 'USD',
-        issuer: addresses.COUNTERPARTY
-      });
-      assert.strictEqual(so.Fee, '12');
-      assert.strictEqual(so.Account, addresses.VALID);
 
       conn.send(fixtures.submitTrustlineResponse(message));
     });
@@ -277,7 +262,7 @@ suite('post trustlines', function() {
     });
 
     self.wss.once('request_submit', function(message, conn) {
-      assert.strictEqual(true, false);
+      assert(false);
     });
 
     self.app

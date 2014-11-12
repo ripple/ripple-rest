@@ -118,7 +118,7 @@ function addTrustLine(request, response, next) {
     options[param] = request.body[param];
   });
 
-  options.validated = request.query.validated === 'true' ? true : false;
+  options.validated = request.query.validated === 'true';
 
   var steps = [
     validateOptions,
@@ -201,7 +201,7 @@ function addTrustLine(request, response, next) {
           account_froze_trustline: froze_trustline,
           ledger: String(summary.submitIndex),
           hash: m.tx_json.hash,
-          state: m.validated ? 'validated' : 'pending'
+          state: m.validated === true ? 'validated' : 'pending'
         }
       };
 
@@ -210,7 +210,7 @@ function addTrustLine(request, response, next) {
       }
 
       callback(null, result);
-    }
+    };
 
     transaction.once('error', callback);
     transaction.once('proposed', function (result) {

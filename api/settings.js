@@ -76,6 +76,15 @@ function padValue(value, length) {
   return result;
 };
 
+/**
+ *  Retrieves account settings for a given account
+ *
+ *  @url
+ *  @param {String} request.params.account
+ *  
+ *  @param {Express.js Response} response
+ *  @param {Express.js Next} next
+ */
 function getSettings(request, response, next) {
   remote.requestAccountInfo({account: request.params.account}, function(error, info) {
     if (error) {
@@ -110,6 +119,19 @@ function getSettings(request, response, next) {
   });
 };
 
+/**
+ *  Change account settings
+ *
+ *  @body
+ *  @param {Settings} request.body.settings
+ *  @param {String} request.body.secret
+ *  
+ *  @query
+ *  @param {String "true"|"false"} request.query.validated Used to force request to wait until rippled has finished validating the submitted transaction
+ *
+ *  @param {Express.js Response} response
+ *  @param {Express.js Next} next
+ */
 function changeSettings(request, response, next) {
   var options = request.params;
 
