@@ -5,8 +5,6 @@ var remote    = require('./../lib/remote.js');
 var respond   = require('./../lib/response-handler.js');
 var errors    = require('./../lib/errors.js');
 
-module.exports.serverStatus = getServerStatus;
-
 function getServerStatus(request, response, next) {
   serverlib.getStatus(remote, function(error, status) {
     if (error) {
@@ -24,8 +22,6 @@ function getServerStatus(request, response, next) {
  *  connected, as per middleware
  */
 
-module.exports.isConnected = getServerConnected;
-
 function getServerConnected(request, response, next) {
   respond.success(response, { connected: true });
 };
@@ -33,8 +29,6 @@ function getServerConnected(request, response, next) {
 /**
  * Get UUID, for use by the client as transaction identifier
  */
-
-module.exports.uuid = getUUID;
 
 function getUUID(request, response, next) {
   respond.success(response, { uuid: uuid.v4() });
@@ -44,10 +38,13 @@ function getUUID(request, response, next) {
  * Get the current transaction fee
  */
 
-module.exports.fee = getFee;
-
 function getFee(request, response, next) {
   var fee = remote.createTransaction()._computeFee();
 
   respond.success(response, { fee: fee });
 };
+
+module.exports.serverStatus = getServerStatus;
+module.exports.isConnected = getServerConnected;
+module.exports.uuid = getUUID;
+module.exports.fee = getFee;
