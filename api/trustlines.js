@@ -92,6 +92,8 @@ function addTrustLine(request, response, next) {
     options[param] = request.body[param];
   });
 
+  options.validated = request.query.validated === 'true' ? true : false;
+
   var steps = [
     validateOptions,
     addLine
@@ -170,7 +172,10 @@ function addTrustLine(request, response, next) {
           currency: line.currency,
           counterparty: line.issuer,
           account_allows_rippling: allows_rippling,
-          account_froze_trustline: froze_trustline
+          account_froze_trustline: froze_trustline,
+          ledger: String(summary.submitIndex),
+          hash: m.tx_json.hash,
+          state: m.validated ? 'validated' : 'pending'
         }
       };
 
@@ -178,19 +183,33 @@ function addTrustLine(request, response, next) {
         result.trustline.authorized = true;
       }
 
-      result.ledger = String(summary.submitIndex);
-      result.hash = m.tx_json.hash;
       callback(null, result);
     }
 
     transaction.once('error', callback);
-    transaction.once('proposed', transactionSent);
+    transaction.once('proposed', function (result) {
+      if (options.validated === false) {
+        transactionSent(result);
+      }
+    });
+
     transaction.once('success', function(result) {
-      if (!complete) {
+      if (!complete && options.validated === false) {
         transaction.removeAllListeners('proposed');
         transactionSent(result);
       }
-    })
+    });
+
+    transaction.once('final', function(result) {
+      if (!complete && options.validated === true) {
+        if (/^tes/.test(result.engine_result)) {
+          transaction.removeAllListeners('proposed');
+          transactionSent(result);
+        } else {
+          callback(result);
+        }
+      }
+    });
 
     try {
       transaction.trustSet(options.account, limit);
