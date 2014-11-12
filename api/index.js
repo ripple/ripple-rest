@@ -9,9 +9,10 @@ var Wallet        = require('./wallet');
 
 module.exports = {
   info: {
-    uuid: Info.uuid,
     serverStatus: Info.serverStatus,
-    isConnected: Info.isConnected
+    isConnected: Info.isConnected,
+    fee: Info.fee,
+    uuid: Info.uuid,
   },
 
   balances: {
@@ -44,5 +45,4 @@ module.exports = {
   },
 
   wallet: Wallet
-}
-
+};
