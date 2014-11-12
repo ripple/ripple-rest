@@ -75,6 +75,83 @@ module.exports.submitSettingsResponse = function(request, lastLedger) {
   });
 };
 
+module.exports.settingsValidatedResponse = function() {
+  return JSON.stringify({
+    "engine_result": "tesSUCCESS",
+    "engine_result_code": 0,
+    "engine_result_message": "The transaction was applied.",
+    "ledger_hash": "F344F3ADB34FF3636B3A5D1005CFF613D24D5969BC646AF490C07B627BF3765D",
+    "ledger_index": 9903908,
+    "meta": {
+      "AffectedNodes": [
+        {
+          "ModifiedNode": {
+            "FinalFields": {
+              "Account": "r3GgMwvgvP8h4yVWvjH1dPZNvC37TjzBBE",
+              "Balance": "790495028",
+              "Flags": 0,
+              "OwnerCount": 5,
+              "Sequence": 19
+            },
+            "LedgerEntryType": "AccountRoot",
+            "LedgerIndex": "25FF5CC1037AE7E2C491A2E4C6206CBE31D0F1609B6426E6E8C3626BAC8C3439",
+            "PreviousFields": {
+              "Balance": "790495040",
+              "Sequence": 18
+            },
+            "PreviousTxnID": "A6023206583A66E5FFDE81B0E6BAEEF3E3FFFF906F370AD675B5BE4B7BB68C42",
+            "PreviousTxnLgrSeq": 9886121
+          }
+        }
+      ],
+      "TransactionIndex": 10,
+      "TransactionResult": "tesSUCCESS"
+    },
+    "status": "closed",
+    "transaction": {
+      "Account": "r3GgMwvgvP8h4yVWvjH1dPZNvC37TjzBBE",
+      "Fee": "12",
+      "Flags": 2147549184,
+      "LastLedgerSequence": 9903915,
+      "Sequence": 18,
+      "SigningPubKey": '02F89EAEC7667B30F33D0687BBA86C3FE2A08CCA40A9186C5BDE2DAA6FA97A37D8',
+      "TransactionType": 'AccountSet',
+      "TxnSignature": '3044022013ED8E41507111736B4C5EC9E4C01A7B570B273B3DE21302F72D4D1B1F20C4EF0220180C1419108CA39A9FF89E12810EC7429E28468E8D0BA61F793E14DB8D9FEA72',
+      "hash": 'AD922400CB1CE0876CA7203DBE0B1277D0D0EAC56A64F26CEC6C78D447EFEA5E',
+      "date": 469144180
+    },
+    "type": "transaction",
+    "validated": true
+  });
+};
+
+module.exports.ledgerSequenceTooHighResponse = function(request) {
+  return JSON.stringify({
+    id: request.id,
+    result: {
+      engine_result: 'tefMAX_LEDGER',
+      engine_result_code: -186,
+      engine_result_message: "Ledger sequence too high.",
+      tx_blob: request.tx_blob,
+      tx_json: {
+        Account: 'r3GgMwvgvP8h4yVWvjH1dPZNvC37TjzBBE',
+        Fee: '12',
+        Flags: 2147549184,
+        clearFlag: 6,
+        SetFlag: 7,
+        LastLedgerSequence: 8819963,
+        Sequence: 2938,
+        SigningPubKey: '02F89EAEC7667B30F33D0687BBA86C3FE2A08CCA40A9186C5BDE2DAA6FA97A37D8',
+        TransactionType: 'AccountSet',
+        TxnSignature: '3044022013ED8E41507111736B4C5EC9E4C01A7B570B273B3DE21302F72D4D1B1F20C4EF0220180C1419108CA39A9FF89E12810EC7429E28468E8D0BA61F793E14DB8D9FEA72',
+        hash: 'AD922400CB1CE0876CA7203DBE0B1277D0D0EAC56A64F26CEC6C78D447EFEA5E'
+      }
+    },
+    status: 'success',
+    type: 'response'
+  });
+};
+
 module.exports.RESTAccountSettingsResponse = JSON.stringify({
   success: true,
   settings: {
@@ -97,11 +174,9 @@ module.exports.RESTAccountSettingsResponse = JSON.stringify({
   }
 });
 
-module.exports.RESTAccountSettingsSubmitResponse = function(lastLedger) {
+module.exports.RESTAccountSettingsSubmitResponse = function(lastLedger, state) {
   return JSON.stringify({
     success: true,
-    hash: 'AD922400CB1CE0876CA7203DBE0B1277D0D0EAC56A64F26CEC6C78D447EFEA5E',
-    ledger: lastLedger.toString(),
     settings: {
       require_destination_tag: true,
       require_authorization: true,
@@ -112,7 +187,10 @@ module.exports.RESTAccountSettingsSubmitResponse = function(lastLedger) {
       wallet_locator: 'DEADBEEF',
       wallet_size: 1,
       domain: 'example.com',
-      transfer_rate: 2
+      transfer_rate: 2,
+      hash: 'AD922400CB1CE0876CA7203DBE0B1277D0D0EAC56A64F26CEC6C78D447EFEA5E',
+      ledger: lastLedger.toString(),
+      state: state
     }
   });
 };

@@ -117,6 +117,8 @@ function changeSettings(request, response, next) {
     options[param] = request.body[param];
   });
 
+  options.validated = request.query.validated === 'true';
+
   function validateOptions(callback) {
     if (typeof options.settings !== 'object') {
       return callback(new InvalidRequestError('Parameter missing: settings'));
@@ -199,19 +201,33 @@ function changeSettings(request, response, next) {
     var settings = { };
     var transaction = remote.transaction();
 
-    transaction.once('error', callback);
-
-    transaction.once('proposed', function() {
+    function transactionSent(m) {
       var summary = transaction.summary();
       var result = { success: true };
 
       if (summary.result) {
-        result.hash = summary.result.transaction_hash;
-        result.ledger = String(summary.submitIndex)
+        settings.hash = summary.result.transaction_hash;
+        settings.ledger = String(summary.submitIndex)
       }
 
       result.settings = settings;
+      result.settings.state = m.validated === true ? 'validated' : 'pending';
+
       callback(null, result);
+    };
+
+    transaction.once('error', callback);
+
+    transaction.once('proposed', function(message) {
+      if (options.validated === false) {
+        transactionSent(message);
+      }
+    });
+
+    transaction.once('final', function(message) {
+      if (/^tes/.test(message.engine_result) && options.validated === true) {
+        transactionSent(message);
+      }
     });
 
     try {

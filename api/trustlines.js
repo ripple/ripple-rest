@@ -15,6 +15,19 @@ const TrustSetFlags = {
 exports.get = getTrustLines;
 exports.add = addTrustLine;
 
+/**
+ *  Retrieves all trustlines for a given account
+ *
+ *  @url
+ *  @param {String} request.params.account
+ *
+ *  @query
+ *  @param {Amount "1+USD+r..."} request.query.currency
+ *  @param {RippleAddress} request.query.counterparty
+ *  
+ *  @param {Express.js Response} response
+ *  @param {Express.js Next} next
+ */
 function getTrustLines(request, response, next) {
   var steps = [
     validateOptions,
@@ -85,6 +98,19 @@ function getTrustLines(request, response, next) {
   };
 };
 
+/**
+ *  Grant a trustline to a counterparty
+ *
+ *  @body
+ *  @param {Trustline} request.body.trustline
+ *  @param {String} request.body.secret
+ *  
+ *  @query
+ *  @param {String "true"|"false"} request.query.validated Used to force request to wait until rippled has finished validating the submitted transaction
+ *
+ *  @param {Express.js Response} response
+ *  @param {Express.js Next} next
+ */
 function addTrustLine(request, response, next) {
   var options = request.params;
 
