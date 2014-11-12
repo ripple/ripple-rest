@@ -571,43 +571,118 @@ module.exports.submitTrustlineResponse = function(request) {
   });
 };
 
-module.exports.RESTTrustlineSubmitResponse = JSON.stringify({
-  success: true,
-  trustline: {
-    account: 'r3GgMwvgvP8h4yVWvjH1dPZNvC37TjzBBE',
-    limit: '1',
-    currency: 'USD',
-    counterparty: 'rvYAfWj5gh67oV6fW32ZzP3Aw4Eubs59B',
-    account_allows_rippling: true
-  },
-  ledger: '8819955',
-  hash: '0F480D344CFC610DFA5CAC62CC1621C92953A05FE8C319281CA49C5C162AF40E'
-});
+module.exports.ledgerSequenceTooHighResponse = function(request) {
+  return JSON.stringify({
+    id: request.id,
+    result: {
+      engine_result: 'tefMAX_LEDGER',
+      engine_result_code: -186,
+      engine_result_message: "Ledger sequence too high.",
+      tx_blob: request.tx_blob,
+      tx_json: {
+        Account: 'r3GgMwvgvP8h4yVWvjH1dPZNvC37TjzBBE',
+        Fee: '12',
+        Flags: 2147483648,
+        LastLedgerSequence: 8819963,
+        LimitAmount: {
+          currency: 'USD',
+          issuer: 'rvYAfWj5gh67oV6fW32ZzP3Aw4Eubs59B',
+          value: '1'
+        },
+        Sequence: 3054,
+        SigningPubKey: '0306E9F38DF11402953A5B030C1AE8A88C47E348170C3B8EC6C8D775E797168462',
+        TransactionType: 'TrustSet',
+        TxnSignature: '304402202604A313678AC3BEC1A3C46A556258A512422ACB5EB0034D9024DDB45316F1BD02207AD751BF27C937AD5001ADD551312933C67670086155FA0B8B8107452CD00E41',
+        hash: '0F480D344CFC610DFA5CAC62CC1621C92953A05FE8C319281CA49C5C162AF40E'
+      }
+    },
+    status: 'success',
+    type: 'response'
+  });
+};
 
-module.exports.RESTTrustlineSubmitFrozenResponse = JSON.stringify({
-  success: true,
-  trustline: {
-    account: 'r3GgMwvgvP8h4yVWvjH1dPZNvC37TjzBBE',
-    limit: '1',
-    currency: 'USD',
-    counterparty: 'rvYAfWj5gh67oV6fW32ZzP3Aw4Eubs59B',
-    account_froze_trustline: true
-  },
-  ledger: '8819955',
-  hash: '0F480D344CFC610DFA5CAC62CC1621C92953A05FE8C319281CA49C5C162AF40E'
-});
-
-module.exports.RESTTrustlineSubmitNoRippleResponse = JSON.stringify({
-  success: true,
-  trustline: {
-    account: 'r3GgMwvgvP8h4yVWvjH1dPZNvC37TjzBBE',
-    limit: '1',
-    currency: 'USD',
-    counterparty: 'rvYAfWj5gh67oV6fW32ZzP3Aw4Eubs59B',
-    account_allows_rippling: false
-  },
-  ledger: '8819956',
-  hash: '0F480D344CFC610DFA5CAC62CC1621C92953A05FE8C319281CA49C5C162AF40E'
-});
-
-
+module.exports.setTrustValidatedResponse = function() {
+  return JSON.stringify({
+    "engine_result": "tesSUCCESS",
+    "engine_result_code": 0,
+    "engine_result_message": "The transaction was applied.",
+    "ledger_hash": "E0B48625C74115865D83F777081163D1C33144AD11A3104292720092D2183770",
+    "ledger_index": 9810402,
+    "meta": {
+      "AffectedNodes": [
+        {
+          "ModifiedNode": {
+            "FinalFields": {
+              "Account": "r3GgMwvgvP8h4yVWvjH1dPZNvC37TjzBBE",
+              "Balance": "792505355",
+              "Flags": 0,
+              "OwnerCount": 3,
+              "Sequence": 12
+            },
+            "LedgerEntryType": "AccountRoot",
+            "LedgerIndex": "25FF5CC1037AE7E2C491A2E4C6206CBE31D0F1609B6426E6E8C3626BAC8C3439",
+            "PreviousFields": {
+              "Balance": "792505367",
+              "Sequence": 11
+            },
+            "PreviousTxnID": "B7B913FC00AE7838238F5021CE88ED8A5D408110726BED719BDC2A024FAE793D",
+            "PreviousTxnLgrSeq": 9791833
+          }
+        },
+        {
+          "ModifiedNode": {
+            "FinalFields": {
+              "Balance": {
+                "currency": "USD",
+                "issuer": "rrrrrrrrrrrrrrrrrrrrBZbvji",
+                "value": "0.2899999999999999"
+              },
+              "Flags": 1114112,
+              "HighLimit": {
+                "currency": "USD",
+                "issuer": "rMwjYedjc7qqtKYVLiAccJSmCwih4LnE2q",
+                "value": "0"
+              },
+              "HighNode": "0000000000000163",
+              "LowLimit": {
+                "currency": "USD",
+                "issuer": "r3GgMwvgvP8h4yVWvjH1dPZNvC37TjzBBE",
+                "value": "110"
+              },
+              "LowNode": "0000000000000000"
+            },
+            "LedgerEntryType": "RippleState",
+            "LedgerIndex": "620379E07473AAE2E6CCCB196AE9DD13C5D036C4B47211BB3DAA55D019CB2226",
+            "PreviousFields": {
+              "Flags": 65536
+            },
+            "PreviousTxnID": "A1344FACEAE2FA0EC795A1A64B972F144DDBBB1441B9C253BF63AC6294258287",
+            "PreviousTxnLgrSeq": 9791722
+          }
+        }
+      ],
+      "TransactionIndex": 0,
+      "TransactionResult": "tesSUCCESS"
+    },
+    "status": "closed",
+    "transaction": {
+      "Account": "r3GgMwvgvP8h4yVWvjH1dPZNvC37TjzBBE",
+      "Fee": "12",
+      "Flags": 2147614720,
+      "LastLedgerSequence": 9810409,
+      "LimitAmount": {
+        "currency": "USD",
+        "issuer": "rMwjYedjc7qqtKYVLiAccJSmCwih4LnE2q",
+        "value": "110"
+      },
+      "Sequence": 11,
+      "SigningPubKey": "02AFA3692CC78A804ACC11DBA23DBB99943C6F8D61D3CB07BBE6D28356EB5B9C57",
+      "TransactionType": "TrustSet",
+      "TxnSignature": "304402201178957B6ABB7673DB21F05C58E66061D5C753B9D63158032B0C1CC9CB68C94802203CEB99C8B72BB33EF63684B2A6BF77A232448ECACBB5FFC9FD8DCC8065948847",
+      "date": 468718190,
+      "hash": "0F480D344CFC610DFA5CAC62CC1621C92953A05FE8C319281CA49C5C162AF40E"
+    },
+    "type": "transaction",
+    "validated": true
+  });
+};

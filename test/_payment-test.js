@@ -779,8 +779,11 @@ suite('payments', function() {
         }
       })
     .expect(function(resp) {
-      delete resp.body.ledger;
-      delete resp.body.hash;
+      assert.strictEqual(typeof resp.body.trustline.hash, 'string');
+      assert.strictEqual(typeof resp.body.trustline.hash, 'string');
+
+      delete resp.body.trustline.hash;
+      delete resp.body.trustline.ledger;
       assert.deepEqual(resp.body,{
         "success": true,
         "trustline": {
@@ -789,7 +792,8 @@ suite('payments', function() {
           "currency": "USD",
           "counterparty": "rJRLoJSErtNRFnbCyHEUYnRUKNwkVYDM7U",
           "account_allows_rippling": true,
-          "account_froze_trustline": false
+          "account_froze_trustline": false,
+          "state": "pending"
         }
       });
       assert.equal(orderlist.test(),true);
@@ -1057,8 +1061,11 @@ suite('payments', function() {
       })
       .expect(function(resp) {
         assert.equal(resp.status,201);
-        delete resp.body.hash;
-        delete resp.body.ledger;
+        assert.strictEqual(typeof resp.body.trustline.hash, 'string');
+        assert.strictEqual(typeof resp.body.trustline.hash, 'string');
+
+        delete resp.body.trustline.hash;
+        delete resp.body.trustline.ledger;
         assert.deepEqual(resp.body,{
           "success": true,
           "trustline": {
@@ -1067,7 +1074,8 @@ suite('payments', function() {
             "currency": "USD",
             "counterparty": "r3YHFNkQRJDPc9aCkRojPLwKVwok3ihgBJ",
             "account_allows_rippling": true,
-            "account_froze_trustline": false
+            "account_froze_trustline": false,
+            "state": "pending"
           }
         });
       })
@@ -1087,8 +1095,11 @@ suite('payments', function() {
       })
       .expect(function(resp) {
         assert.equal(resp.status,201);
-        delete resp.body.hash;
-        delete resp.body.ledger;
+        assert.strictEqual(typeof resp.body.trustline.hash, 'string');
+        assert.strictEqual(typeof resp.body.trustline.hash, 'string');
+
+        delete resp.body.trustline.hash;
+        delete resp.body.trustline.ledger;
         assert.deepEqual(resp.body, {
           "success": true,
           "trustline": {
@@ -1097,7 +1108,8 @@ suite('payments', function() {
             "currency": "USD",
             "counterparty": "r3YHFNkQRJDPc9aCkRojPLwKVwok3ihgBJ",
             "account_allows_rippling": true,
-            "account_froze_trustline": false
+            "account_froze_trustline": false,
+            "state": "pending"
           }
         });
       })
