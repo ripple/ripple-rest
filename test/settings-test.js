@@ -69,6 +69,232 @@ suite('post settings', function() {
   setup(testutils.setup.bind(self));
   teardown(testutils.teardown.bind(self));
 
+  test('/accounts/:account/settings -- with validated true, transaction verified response, and transaction validated response', function(done) {
+    var lastLedger = self.app.remote._ledger_current_index;
+
+    self.wss.once('request_account_info', function(message, conn) {
+      assert.strictEqual(message.command, 'account_info');
+      assert.strictEqual(message.account, addresses.VALID);
+      conn.send(fixtures.accountInfoResponse(message));
+    });
+
+    self.wss.once('request_submit', function(message, conn) {
+      assert.strictEqual(message.command, 'submit');
+      assert(message.hasOwnProperty('tx_blob'));
+
+      conn.send(fixtures.submitSettingsResponse(message, lastLedger + LEDGER_OFFSET));
+    
+      process.nextTick(function() {
+        conn.send(fixtures.settingsValidatedResponse());
+      });
+    });
+
+    self.app
+    .post(fixtures.requestPath(addresses.VALID, "?validated=true"))
+    .send({
+      secret: addresses.SECRET,
+      settings: {
+        require_destination_tag: true,
+        require_authorization: true,
+        disallow_xrp: true,
+        domain: 'example.com',
+        email_hash: '23463B99B62A72F26ED677CC556C44E8',
+        wallet_locator: 'DEADBEEF',
+        wallet_size: 1,
+        transfer_rate: 2,
+        no_freeze: false,
+        global_freeze: true
+      }})
+      .expect(testutils.checkStatus(200))
+      .expect(testutils.checkHeaders)
+      .expect(testutils.checkBody(fixtures.RESTAccountSettingsSubmitResponse(lastLedger, 'validated')))
+      .end(done);
+  });
+
+  test('/accounts/:account/settings -- with validated true and ledger sequence too high error', function(done) {
+    var lastLedger = self.app.remote._ledger_current_index;
+
+    self.wss.once('request_account_info', function(message, conn) {
+      assert.strictEqual(message.command, 'account_info');
+      assert.strictEqual(message.account, addresses.VALID);
+      conn.send(fixtures.accountInfoResponse(message));
+    });
+
+    self.wss.once('request_submit', function(message, conn) {
+      assert.strictEqual(message.command, 'submit');
+      assert(message.hasOwnProperty('tx_blob'));
+
+      conn.send(fixtures.ledgerSequenceTooHighResponse(message));
+    });
+
+    self.app
+    .post(fixtures.requestPath(addresses.VALID, "?validated=true"))
+    .send({
+      secret: addresses.SECRET,
+      settings: {
+        require_destination_tag: true,
+        require_authorization: true,
+        disallow_xrp: true,
+        domain: 'example.com',
+        email_hash: '23463B99B62A72F26ED677CC556C44E8',
+        wallet_locator: 'DEADBEEF',
+        wallet_size: 1,
+        transfer_rate: 2,
+        no_freeze: false,
+        global_freeze: true
+      }})
+      .expect(testutils.checkStatus(500))
+      .expect(testutils.checkHeaders)
+      .expect(testutils.checkBody(errors.RESTResponseLedgerSequenceTooHigh))
+      .end(done);
+  });
+
+  test('/accounts/:account/settings -- with validated true and invalid secret error', function(done) {
+    var lastLedger = self.app.remote._ledger_current_index;
+
+    self.wss.once('request_account_info', function(message, conn) {
+      assert.strictEqual(message.command, 'account_info');
+      assert.strictEqual(message.account, addresses.VALID);
+      conn.send(fixtures.accountInfoResponse(message));
+    });
+
+    self.wss.once('request_submit', function(message, conn) {
+      assert(false);
+    });
+
+    self.app
+    .post(fixtures.requestPath(addresses.VALID, "?validated=true"))
+    .send({
+      secret: addresses.SECRET + 'test',
+      settings: {
+        require_destination_tag: true,
+        require_authorization: true,
+        disallow_xrp: true,
+        domain: 'example.com',
+        email_hash: '23463B99B62A72F26ED677CC556C44E8',
+        wallet_locator: 'DEADBEEF',
+        wallet_size: 1,
+        transfer_rate: 2,
+        no_freeze: false,
+        global_freeze: true
+      }})
+      .expect(testutils.checkStatus(500))
+      .expect(testutils.checkHeaders)
+      .expect(testutils.checkBody(errors.RESTInvalidSecret))
+      .end(done);
+  });
+
+  test('/accounts/:account/settings -- with validated false and transaction verified response', function(done) {
+    var lastLedger = self.app.remote._ledger_current_index;
+
+    self.wss.once('request_account_info', function(message, conn) {
+      assert.strictEqual(message.command, 'account_info');
+      assert.strictEqual(message.account, addresses.VALID);
+      conn.send(fixtures.accountInfoResponse(message));
+    });
+
+    self.wss.once('request_submit', function(message, conn) {
+      assert.strictEqual(message.command, 'submit');
+      assert(message.hasOwnProperty('tx_blob'));
+
+      conn.send(fixtures.submitSettingsResponse(message, lastLedger + LEDGER_OFFSET));
+    });
+
+    self.app
+    .post(fixtures.requestPath(addresses.VALID, "?validated=false"))
+    .send({
+      secret: addresses.SECRET,
+      settings: {
+        require_destination_tag: true,
+        require_authorization: true,
+        disallow_xrp: true,
+        domain: 'example.com',
+        email_hash: '23463B99B62A72F26ED677CC556C44E8',
+        wallet_locator: 'DEADBEEF',
+        wallet_size: 1,
+        transfer_rate: 2,
+        no_freeze: false,
+        global_freeze: true
+      }})
+      .expect(testutils.checkStatus(200))
+      .expect(testutils.checkHeaders)
+      .expect(testutils.checkBody(fixtures.RESTAccountSettingsSubmitResponse(lastLedger, 'pending')))
+      .end(done);
+  });
+
+  test('/accounts/:account/settings -- with validated false and ledger sequence too high error', function(done) {
+    var lastLedger = self.app.remote._ledger_current_index;
+
+    self.wss.once('request_account_info', function(message, conn) {
+      assert.strictEqual(message.command, 'account_info');
+      assert.strictEqual(message.account, addresses.VALID);
+      conn.send(fixtures.accountInfoResponse(message));
+    });
+
+    self.wss.once('request_submit', function(message, conn) {
+      assert.strictEqual(message.command, 'submit');
+      assert(message.hasOwnProperty('tx_blob'));
+
+      conn.send(fixtures.ledgerSequenceTooHighResponse(message));
+    });
+
+    self.app
+    .post(fixtures.requestPath(addresses.VALID, "?validated=false"))
+    .send({
+      secret: addresses.SECRET,
+      settings: {
+        require_destination_tag: true,
+        require_authorization: true,
+        disallow_xrp: true,
+        domain: 'example.com',
+        email_hash: '23463B99B62A72F26ED677CC556C44E8',
+        wallet_locator: 'DEADBEEF',
+        wallet_size: 1,
+        transfer_rate: 2,
+        no_freeze: false,
+        global_freeze: true
+      }})
+      .expect(testutils.checkStatus(500))
+      .expect(testutils.checkHeaders)
+      .expect(testutils.checkBody(errors.RESTResponseLedgerSequenceTooHigh))
+      .end(done);
+  });
+
+  test('/accounts/:account/settings -- with validated true and invalid secret error', function(done) {
+    var lastLedger = self.app.remote._ledger_current_index;
+
+    self.wss.once('request_account_info', function(message, conn) {
+      assert.strictEqual(message.command, 'account_info');
+      assert.strictEqual(message.account, addresses.VALID);
+      conn.send(fixtures.accountInfoResponse(message));
+    });
+
+    self.wss.once('request_submit', function(message, conn) {
+      assert(false);
+    });
+
+    self.app
+    .post(fixtures.requestPath(addresses.VALID, "?validated=false"))
+    .send({
+      secret: addresses.SECRET + 'test',
+      settings: {
+        require_destination_tag: true,
+        require_authorization: true,
+        disallow_xrp: true,
+        domain: 'example.com',
+        email_hash: '23463B99B62A72F26ED677CC556C44E8',
+        wallet_locator: 'DEADBEEF',
+        wallet_size: 1,
+        transfer_rate: 2,
+        no_freeze: false,
+        global_freeze: true
+      }})
+      .expect(testutils.checkStatus(500))
+      .expect(testutils.checkHeaders)
+      .expect(testutils.checkBody(errors.RESTInvalidSecret))
+      .end(done);
+  });
+
   test('/accounts/:account/settings', function(done) {
     var lastLedger = self.app.remote._ledger_current_index;
 
@@ -115,7 +341,7 @@ suite('post settings', function() {
       }})
       .expect(testutils.checkStatus(200))
       .expect(testutils.checkHeaders)
-      .expect(testutils.checkBody(fixtures.RESTAccountSettingsSubmitResponse(lastLedger)))
+      .expect(testutils.checkBody(fixtures.RESTAccountSettingsSubmitResponse(lastLedger, 'pending')))
       .end(done);
   });
 
@@ -194,6 +420,37 @@ suite('post settings', function() {
       .expect(testutils.checkStatus(400))
       .expect(testutils.checkHeaders)
       .expect(testutils.checkBody(fixtures.RESTMissingSecretResponse))
+      .end(done);
+  });
+
+  test('/accounts/:account/settings -- invalid secret', function(done) {
+    self.wss.once('request_account_info', function(message, conn) {
+      assert.strictEqual(message.command, 'account_info');
+      assert.strictEqual(message.account, addresses.VALID);
+      conn.send(fixtures.accountInfoResponse(message));
+    });
+
+    self.wss.once('request_submit', function(message, conn) {
+      assert(false, 'Should not request submit');
+    });
+
+    self.app
+    .post(fixtures.requestPath(addresses.VALID))
+    .send({
+      secret: addresses.SECRET + 'test',
+      settings: {
+        require_destination_tag: true,
+        require_authorization: true,
+        disallow_xrp: true,
+        domain: 'example.com',
+        email_hash: '23463B99B62A72F26ED677CC556C44E8',
+        wallet_locator: 'DEADBEEF',
+        wallet_size: 1,
+        transfer_rate: 2
+      }})
+      .expect(testutils.checkStatus(500))
+      .expect(testutils.checkHeaders)
+      .expect(testutils.checkBody(errors.RESTInvalidSecret))
       .end(done);
   });
 
@@ -329,7 +586,6 @@ suite('post settings', function() {
       .expect(testutils.checkHeaders)
       .end(done);
   });
-
 
   test('/accounts/:account/settings -- invalid setting -- password_spent', function(done) {
     self.wss.once('request_account_info', function(message, conn) {

@@ -15,6 +15,19 @@ const TrustSetFlags = {
 exports.get = getTrustLines;
 exports.add = addTrustLine;
 
+/**
+ *  Retrieves all trustlines for a given account
+ *
+ *  @url
+ *  @param {String} request.params.account
+ *
+ *  @query
+ *  @param {Amount "1+USD+r..."} request.query.currency
+ *  @param {RippleAddress} request.query.counterparty
+ *  
+ *  @param {Express.js Response} response
+ *  @param {Express.js Next} next
+ */
 function getTrustLines(request, response, next) {
   var steps = [
     validateOptions,
@@ -85,6 +98,19 @@ function getTrustLines(request, response, next) {
   };
 };
 
+/**
+ *  Grant a trustline to a counterparty
+ *
+ *  @body
+ *  @param {Trustline} request.body.trustline
+ *  @param {String} request.body.secret
+ *  
+ *  @query
+ *  @param {String "true"|"false"} request.query.validated Used to force request to wait until rippled has finished validating the submitted transaction
+ *
+ *  @param {Express.js Response} response
+ *  @param {Express.js Next} next
+ */
 function addTrustLine(request, response, next) {
   var options = request.params;
 
@@ -92,7 +118,7 @@ function addTrustLine(request, response, next) {
     options[param] = request.body[param];
   });
 
-  options.validated = request.query.validated === 'true' ? true : false;
+  options.validated = request.query.validated === 'true';
 
   var steps = [
     validateOptions,
@@ -175,7 +201,7 @@ function addTrustLine(request, response, next) {
           account_froze_trustline: froze_trustline,
           ledger: String(summary.submitIndex),
           hash: m.tx_json.hash,
-          state: m.validated ? 'validated' : 'pending'
+          state: m.validated === true ? 'validated' : 'pending'
         }
       };
 
@@ -184,7 +210,7 @@ function addTrustLine(request, response, next) {
       }
 
       callback(null, result);
-    }
+    };
 
     transaction.once('error', callback);
     transaction.once('proposed', function (result) {

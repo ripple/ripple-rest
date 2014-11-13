@@ -29,8 +29,8 @@ module.exports = {
  *  @param {String} data.secret
  *  @param {String} data.client_resource_id
  *  @param {Boolean} data.validated Used to force ripple-rest to wait until rippled has validated a transaction before returning the result
- *  @param {String Number} data.last_ledger_sequence
- *  @param {String Number} data.max_fee
+ *  @param {Number String} data.last_ledger_sequence
+ *  @param {Number String} data.max_fee
  *  @param {Express.js Response} res Used to send error messages directly to the client
  *  @param {Function} callback
  *
@@ -160,7 +160,7 @@ function submitTransaction(data, response, callback) {
 
     transaction.once('error', handleError);
 
-    transaction.once('cleanup', function(message) {
+    transaction.once('final', function(message) {
       if (/^tes/.test(message.engine_result) && data.validated === true) {
         var transaction = message.tx_json;
         transaction.meta = message.metadata;
