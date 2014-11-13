@@ -9,7 +9,7 @@ var toAccount = addresses.COUNTERPARTY;
 module.exports.VALID_TRANSACTION_HASH = 'F4AB442A6D4CBB935D66E1DA7309A5FC71C7143ED4049053EC14E3875B0CF9BF';
 module.exports.VALID_TRANSACTION_HASH_MEMO = 'F9DE78E635A418529A5104A56439F305CE7C42B9F29180F05D77326B9ACD1D33';
 module.exports.INVALID_TRANSACTION_HASH = 'XF4AB442A6D4CBB935D66E1DA7309A5FC71C7143ED4049053EC14E3875B0CF9BF';
-module.exports.VALID_SUBMITTED_TRANSACTION_HASH = '797A79F825CC5E5149D16D05960457A2E1C21484B41D8C80312601B39227ACE9'
+module.exports.VALID_SUBMITTED_TRANSACTION_HASH = '797A79F825CC5E5149D16D05960457A2E1C21484B41D8C80312601B39227ACE9';
 
 module.exports.requestPath = function(address, params) {
   return '/v1/accounts/' + address + '/payments' + ( params || '' );
@@ -514,6 +514,26 @@ module.exports.nonXrpWithFee = function(fee) {
   };
 };
 
+module.exports.xrpPayment = function(xrpAmount, options) {
+  options = options || {};
+  _.defaults(options, {
+    clientResourceId: '1'
+  });
+
+  return { secret: addresses.SECRET,
+    client_resource_id: options.clientResourceId,
+    payment: {
+      source_account: addresses.VALID,
+      destination_account: addresses.COUNTERPARTY,
+      destination_amount: {
+        value: xrpAmount,
+        currency: 'XRP',
+        issuer: ''
+      }
+    }
+  };
+};
+
 module.exports.nonXrpPaymentWithInvalidSecret = {
   "secret": "sssssssssssssssssssssssssssss",
   "client_resource_id": "614013f0-034f-4e22-ada9-4d131d71781f",
@@ -569,7 +589,8 @@ module.exports.requestSubmitResponse = function(request, options) {
   options = options || {};
   _.defaults(options, {
     LastLedgerSequence: 9036180,
-    Fee: '12'
+    Fee: '12',
+    hash: module.exports.VALID_SUBMITTED_TRANSACTION_HASH
   });
 
   return JSON.stringify(
@@ -593,12 +614,210 @@ module.exports.requestSubmitResponse = function(request, options) {
           "SigningPubKey": "029A98439AF7459E256D64635598E8B21047807E6B5E6BEE3A3CCF35DEAD2C2C55",
           "TransactionType": "Payment",
           "TxnSignature": "30440220688EDB9DC23AEB60A46DDFCC496B4EFCFB1D2432DC9636E2B88F8462FAAE3C4D022005A8EEC4A60AA34B778089EE7BA4622A3D2F18F9B8A05F9EE6709CB2C1FC8996",
-          "hash": module.exports.VALID_SUBMITTED_TRANSACTION_HASH
+          "hash": options.hash
         }
       }
     }
   );
 };
+
+module.exports.rippledSuccessResponse = function(request, options) {
+  options = options || {};
+  _.defaults(options, {
+    LastLedgerSequence: 9036180,
+    Fee: '12',
+    hash: module.exports.VALID_SUBMITTED_TRANSACTION_HASH
+  });
+
+  return JSON.stringify(
+    {
+      "engine_result": "tesSUCCESS",
+      "engine_result_code": 0,
+      "engine_result_message": "The transaction was applied.",
+      "ledger_hash": "A7DB52A124E7D20C293EC37FD897DBB965480D7BA039A1F7500C761F8FA613E8",
+      "ledger_index": 9907427,
+      "meta": {
+      "AffectedNodes": [
+        {
+          "ModifiedNode": {
+            "FinalFields": {
+              "Account": toAccount,
+              "Balance": "38917451",
+              "Flags": 0,
+              "OwnerCount": 3,
+              "Sequence": 15
+            },
+            "LedgerEntryType": "AccountRoot",
+            "LedgerIndex": "232B144A8867993B74B65354DFBF94A7E91CDD2AB645E0CDD1C85C953E883D91",
+            "PreviousFields": {
+              "Balance": "38917450"
+            },
+            "PreviousTxnID": "64E8F8D87E96F01850C5F0092A95FED8B199D70E8E61562BF9C52DE768387466",
+            "PreviousTxnLgrSeq": 9907416
+          }
+        },
+        {
+          "ModifiedNode": {
+            "FinalFields": {
+              "Account": fromAccount,
+              "Balance": "34862528",
+              "Flags": 0,
+              "OwnerCount": 1,
+              "Sequence": 242
+            },
+            "LedgerEntryType": "AccountRoot",
+            "LedgerIndex": "2BC3AC309793910D16A3CEA95D5514448C6884765E82C2BA29FA6D6692B4F90A",
+            "PreviousFields": {
+              "Balance": "34862541",
+              "Sequence": 241
+            },
+            "PreviousTxnID": "64E8F8D87E96F01850C5F0092A95FED8B199D70E8E61562BF9C52DE768387466",
+            "PreviousTxnLgrSeq": 9907416
+          }
+        }
+      ],
+        "TransactionIndex": 3,
+        "TransactionResult": "tesSUCCESS"
+    },
+      "status": "closed",
+      "transaction": {
+      "Account": fromAccount,
+        "Amount": "1",
+        "Destination": toAccount,
+        "Fee": options.Fee,
+        "Flags": 2147483648,
+        "LastLedgerSequence": options.LastLedgerSequence,
+        "Sequence": 241,
+        "SigningPubKey": "03D642E6457B8AB4D140E2C66EB4C484FAFB1BF267CB578EC4815FE6CD06379C51",
+        "TransactionType": "Payment",
+        "TxnSignature": "30450221008D77CF76ECF30DEF6C882C1E84E668E87EB03FC3B066A696A6B179579CABE36202205E0B3CF18A5101C52BDAEC6B480FAE4324886249FE019EC80597E668D2805546",
+        "date": 469160470,
+        "hash": options.hash
+    },
+      "type": "transaction",
+      "validated": true
+    }
+  )
+};
+
+module.exports.rippledSubmitErrorResponse = function(request, options) {
+  options = options || {};
+  _.defaults(options, {
+    LastLedgerSequence: 9036180,
+    Fee: '12',
+    amount: '1',
+    hash: module.exports.VALID_SUBMITTED_TRANSACTION_HASH
+  });
+
+  return JSON.stringify(
+    {
+      "id": request.id,
+      "result": {
+        "engine_result": options.engineResult,
+        "engine_result_code": options.engineResultCode,
+        "engine_result_message": options.engineResultMessage,
+        "tx_blob": "120000228000000024000000EC201B00971A5861400000000000000168400000000000000C732103D642E6457B8AB4D140E2C66EB4C484FAFB1BF267CB578EC4815FE6CD06379C5174463044022037A4D233ADA7604BCB329C9A254FA29269627B1C327FB39438724F2262F80DAA02202A8DA1B670BE0AB5D8606170E62C4364F1F0A2FC43392DAEE6A64043DC7716FE811426C4CFB3BD05A9AA23936F2E81634C66A9820C948314B92881442877D9FEEFB3190D6B33F731677B5710",
+        "tx_json": {
+          "Account": fromAccount,
+          "Amount": options.amount,
+          "Destination": toAccount,
+          "Fee": options.Fee,
+          "Flags": 2147483648,
+          "LastLedgerSequence": options.LastLedgerSequence,
+          "Sequence": 236,
+          "SigningPubKey": "03D642E6457B8AB4D140E2C66EB4C484FAFB1BF267CB578EC4815FE6CD06379C51",
+          "TransactionType": "Payment",
+          "TxnSignature": "3044022037A4D233ADA7604BCB329C9A254FA29269627B1C327FB39438724F2262F80DAA02202A8DA1B670BE0AB5D8606170E62C4364F1F0A2FC43392DAEE6A64043DC7716FE",
+          "hash": options.hash
+        }
+      },
+      "status": "success",
+      "type": "response"
+    }
+  );
+};
+
+module.exports.rippledSubscribeRequest = function(request, lastLedger) {
+  return JSON.stringify({
+    id: request.id,
+    command: 'subscribe',
+    accounts: [
+      fromAccount
+    ]
+  });
+};
+
+module.exports.rippledSubcribeResponse = function(request) {
+  return JSON.stringify({
+    id: request.id,
+    result: {},
+    status: 'success',
+    type: 'response'
+  });
+}
+
+
+module.exports.rippledValidatedErrorResponse = function(request, options) {
+  options = options || {};
+  _.defaults(options, {
+    LastLedgerSequence: 9036180,
+    Fee: '12',
+    amount: '1'
+  });
+
+  return JSON.stringify(
+    {
+      "engine_result": options.engineResult,
+      "engine_result_code": options.engineResultCode,
+      "engine_result_message": options.engineResultMessage,
+      "ledger_hash": "D797D779B29900F1ABA65BBCFB18A5675ED8B0B877DDB42983D3250F8280E8BE",
+      "ledger_index": 9902672,
+      "meta": {
+        "AffectedNodes": [
+          {
+            "ModifiedNode": {
+              "FinalFields": {
+                "Account": fromAccount,
+                "Balance": "34862592",
+                "Flags": 0,
+                "OwnerCount": 1,
+                "Sequence": 237
+              },
+              "LedgerEntryType": "AccountRoot",
+              "LedgerIndex": "2BC3AC309793910D16A3CEA95D5514448C6884765E82C2BA29FA6D6692B4F90A",
+              "PreviousFields": {
+                "Balance": "34862604",
+                "Sequence": 236
+              },
+              "PreviousTxnID": "D588A6353D01EF0A8E5E5B1153838D05061D0B332AA8BB85F5C2127215725F91",
+              "PreviousTxnLgrSeq": 9902649
+            }
+          }
+        ],
+        "TransactionIndex": 1,
+        "TransactionResult": options.engineResult
+      },
+      "status": "closed",
+      "transaction": {
+        "Account": fromAccount,
+        "Amount": options.amount,
+        "Destination": toAccount,
+        "Fee": options.Fee,
+        "Flags": 2147483648,
+        "LastLedgerSequence": options.LastLedgerSequence,
+        "Sequence": 236,
+        "SigningPubKey": "03D642E6457B8AB4D140E2C66EB4C484FAFB1BF267CB578EC4815FE6CD06379C51",
+        "TransactionType": "Payment",
+        "TxnSignature": "3044022037A4D233ADA7604BCB329C9A254FA29269627B1C327FB39438724F2262F80DAA02202A8DA1B670BE0AB5D8606170E62C4364F1F0A2FC43392DAEE6A64043DC7716FE",
+        "date": 469138400,
+        "hash": options.hash
+      },
+      "type": "transaction",
+      "validated": true
+    }
+  );
+}
+
 
 module.exports.ledgerSequenceTooHighResponse = function(request, lastLedgerSequence) {
   return JSON.stringify({
@@ -879,10 +1098,10 @@ module.exports.transactionVerifiedResponse = function() {
       },
       "transaction": {
         "Account": addresses.VALID,
-        "Amount": { 
+        "Amount": {
           "currency": 'USD',
           "issuer": 'r3PDtZSa5LiYp1Ysn1vMuMzB59RzV3W9QH',
-          "value": '0.001' 
+          "value": '0.001'
         },
         "Destination": addresses.ISSUER,
         "Fee": "10",
@@ -948,33 +1167,6 @@ module.exports.ledgerSequenceTooHighResponse = function(request) {
       type: 'response'
     }
   );
-};
-
-module.exports.feeInsufficientResponse = function(request, fee) {
-  return JSON.stringify({
-    "id": request.id,
-    "status": "success",
-    "type": "response",
-    "result": {
-      "engine_result": "telINSUF_FEE_P",
-      "engine_result_code": -394,
-      "engine_result_message": "Fee insufficient.",
-      "tx_blob": "12000322000000002400000006684000000000000001732102AFA3692CC78A804ACC11DBA23DBB99943C6F8D61D3CB07BBE6D28356EB5B9C5774473045022100AE65DF48DC1D2C6F23AF50C90734EA060FCDC97238B983B76CC9061F97A6F2D4022031325ACBF6AE43CB467BB7B808A6D4079AC66C8BD1145AEC692AFC878493E77D8114625E2F1F09A0D769E05C04FAA64F0D2013306C6A",
-      "tx_json": {
-        "Account": fromAccount,
-        "Amount": "100",
-        "Destination": toAccount,
-        "Fee": String(fee),
-        "Flags": 0,
-        "LastLedgerSequence": 9036180,
-        "Sequence": 23,
-        "SigningPubKey": "029A98439AF7459E256D64635598E8B21047807E6B5E6BEE3A3CCF35DEAD2C2C55",
-        "TransactionType": "Payment",
-        "TxnSignature": "30440220688EDB9DC23AEB60A46DDFCC496B4EFCFB1D2432DC9636E2B88F8462FAAE3C4D022005A8EEC4A60AA34B778089EE7BA4622A3D2F18F9B8A05F9EE6709CB2C1FC8996",
-        "hash": "797A79F825CC5E5149D16D05960457A2E1C21484B41D8C80312601B39227ACE9"
-      }
-    }
-  });
 };
 
 module.exports.RESTPaymentWithMemoResponse = JSON.stringify(
@@ -1097,6 +1289,51 @@ module.exports.RESTNonXrpPaymentWithMaxFeeExceeded = JSON.stringify(
     error: 'Max fee exceeded' 
   }
 );
+
+
+/**
+ * Construct REST success response
+ *
+ * @param options
+ *   @param {String} clientResourceId
+ *   @param {String} account
+ * @return {String} REST error response message
+ */
+module.exports.RESTSuccessResponse = function(options) {
+  options = options || {};
+  _.defaults(options, {
+    clientResourceId: '1',
+    account: fromAccount
+  });
+
+  return JSON.stringify(
+    {
+      success: true,
+      client_resource_id: options.clientResourceId,
+      status_url: 'http://127.0.0.1:5990/v1/accounts/'+fromAccount+'/payments/'+options.clientResourceId
+    }
+  );
+};
+
+/**
+ * Construct REST error response
+ *
+ * @param options
+ *   @param {String} type - error type
+ *   @param {String} error - error code
+ *   @param {String} message - error message
+ * @return {String} REST error response message
+ */
+module.exports.RESTErrorResponse = function(options) {
+  return JSON.stringify(
+    {
+      "success": false,
+      "error_type": options.type,
+      "error": options.error,
+      "message": options.message
+    }
+  );
+};
 
 module.exports.txPayment = {
   "Account": "radqi6ppXFxVhJdjzaATRBxdrPcVTf1Ung",

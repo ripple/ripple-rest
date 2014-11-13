@@ -74,7 +74,7 @@ suite('post payments', function() {
 
   setup(testutils.setup.bind(self));
   teardown(testutils.teardown.bind(self));
-  
+
   test('/payments -- with validated true, valid submit response, and transaction verified response', function(done){
     self.wss.once('request_account_info', function(message, conn) {
       assert.strictEqual(message.command, 'account_info');
@@ -86,9 +86,9 @@ suite('post payments', function() {
       assert.strictEqual(message.command, 'submit');
       conn.send(fixtures.requestSubmitResponse(message));
 
-      setTimeout(function () {
+      process.nextTick(function () {
         conn.send(fixtures.transactionVerifiedResponse());
-      }, 10);
+      });
     });
 
     self.app
@@ -110,10 +110,6 @@ suite('post payments', function() {
     self.wss.once('request_submit', function(message, conn) {
       assert.strictEqual(message.command, 'submit');
       conn.send(fixtures.ledgerSequenceTooHighResponse(message));
-
-      process.nextTick(function () {
-        conn.send(fixtures.transactionVerifiedResponse());
-      });
     });
 
     self.app
@@ -124,6 +120,7 @@ suite('post payments', function() {
     .expect(testutils.checkBody(fixtures.RESTResponseLedgerSequenceTooHigh))
     .end(done);
   });
+
 
   test('/payments -- with validated true and destination tag needed error', function(done) {
     self.wss.once('request_account_info', function(message, conn) {
@@ -186,7 +183,7 @@ suite('post payments', function() {
     .expect(testutils.checkBody(fixtures.RESTNonXrpPaymentWithIssuer))
     .end(done);
   });
-  
+
   test('/payments -- with validated false and ledger sequence too high error', function(done) {
     self.wss.once('request_account_info', function(message, conn) {
       assert.strictEqual(message.command, 'account_info');
@@ -401,7 +398,11 @@ suite('post payments', function() {
     self.wss.once('request_submit', function(message, conn) {
       assert.strictEqual(message.command, 'submit');
       conn.send(fixtures.requestSubmitResponse(message));
-    })
+
+      process.nextTick(function(){
+        conn.send(fixtures.rippledSuccessResponse(message));
+      });
+    });
 
     var body = _.cloneDeep(fixtures.paymentWithMemo);
     delete body.payment.memos[0].MemoData;
@@ -425,6 +426,10 @@ suite('post payments', function() {
     self.wss.once('request_submit', function(message, conn) {
       assert.strictEqual(message.command, 'submit');
       conn.send(fixtures.requestSubmitResponse(message));
+
+      process.nextTick(function(){
+        conn.send(fixtures.rippledSuccessResponse(message));
+      });
     })
 
     self.app
@@ -446,6 +451,10 @@ suite('post payments', function() {
     self.wss.once('request_submit', function(message, conn) {
       assert.strictEqual(message.command, 'submit');
       conn.send(fixtures.requestSubmitResponse(message));
+
+      process.nextTick(function(){
+        conn.send(fixtures.rippledSuccessResponse(message));
+      });
     });
 
     self.app
@@ -467,6 +476,10 @@ suite('post payments', function() {
     self.wss.once('request_submit', function(message, conn) {
       assert.strictEqual(message.command, 'submit');
       conn.send(fixtures.requestSubmitResponse(message));
+
+      process.nextTick(function(){
+        conn.send(fixtures.rippledSuccessResponse(message));
+      });
     });
 
     self.app
@@ -495,6 +508,8 @@ suite('post payments', function() {
     .expect(testutils.checkBody(fixtures.RESTNonXrpPaymentWithInvalidsecret))
     .end(done);
   });
+
+
 
   test('/payments -- with ledger sequence below current', function(done) {
     self.wss.once('request_account_info', function(message, conn) {
@@ -529,6 +544,10 @@ suite('post payments', function() {
       assert.strictEqual(message.command, 'submit');
       assert.strictEqual(so.LastLedgerSequence, 9036185);
       conn.send(fixtures.requestSubmitResponse(message, { LastLedgerSequence: 9036185 }));
+
+      process.nextTick(function(){
+        conn.send(fixtures.rippledSuccessResponse(message, { LastLedgerSequence: 9036185 }));
+      });
     });
 
     self.app
@@ -551,7 +570,13 @@ suite('post payments', function() {
 
     self.wss.once('request_submit', function(message, conn) {
       assert.strictEqual(message.command, 'submit');
-      conn.send(fixtures.feeInsufficientResponse(message, 15));
+      conn.send(fixtures.rippledSubmitErrorResponse(message, {
+        Fee: '15',
+        engineResult: 'telINSUF_FEE_P',
+        engineResultCode: '-394',
+        engineResultMessage: 'Fee insufficient.'
+      }));
+
     });
 
     self.app
@@ -595,6 +620,10 @@ suite('post payments', function() {
       assert.strictEqual(message.command, 'submit');
       assert.strictEqual(so.Fee, '12');
       conn.send(fixtures.requestSubmitResponse(message, { Fee: '12' }));
+
+      process.nextTick(function(){
+        conn.send(fixtures.rippledSuccessResponse(message, { Fee: '12' }));
+      });
     });
 
     self.app
@@ -605,8 +634,180 @@ suite('post payments', function() {
     .expect(testutils.checkBody(fixtures.RESTNonXrpPaymentWithIssuer))
     .end(done);
   });
-});
 
+  test('/payments -- with not enough XRP to create a new account', function(done) {
+
+    var hash = testutils.generateHash();
+
+    self.wss.once('request_subscribe', function(message, conn) {
+      assert.strictEqual(message.command, 'subscribe');
+      assert.strictEqual(message.accounts[0], addresses.VALID);
+      conn.send(fixtures.rippledSubcribeResponse(message));
+    });
+
+    self.wss.once('request_account_info', function(message, conn) {
+      assert.strictEqual(message.command, 'account_info');
+      assert.strictEqual(message.account, addresses.VALID);
+      conn.send(fixtures.accountInfoResponse(message));
+    });
+
+    self.wss.once('request_submit', function(message, conn) {
+      var so = new ripple.SerializedObject(message.tx_blob).to_json();
+      assert.strictEqual(so.Amount, '1000000');
+      assert.strictEqual(message.command, 'submit');
+      conn.send(fixtures.rippledSubmitErrorResponse(message, {
+        engineResult: 'tecNO_DST_INSUF_XRP',
+        engineResultCode: '125',
+        engineResultMessage: 'This should not show up, is not a validated result',
+        hash: hash
+      }));
+
+      process.nextTick(function () {
+        conn.send(fixtures.rippledValidatedErrorResponse(message, {
+          engineResult: 'tecNO_DST_INSUF_XRP',
+          engineResultCode: '125',
+          engineResultMessage: 'Destination does not exist. Too little XRP sent to create it.',
+          hash: hash
+        }));
+      });
+    });
+
+    self.app
+      .post('/v1/accounts/' + addresses.VALID + '/payments')
+      .send(fixtures.xrpPayment('1'))
+      .expect(testutils.checkStatus(500))
+      .expect(testutils.checkHeaders)
+      .expect(testutils.checkBody(fixtures.RESTErrorResponse({
+        type: 'transaction',
+        error: 'tecNO_DST_INSUF_XRP',
+        message:'Destination does not exist. Too little XRP sent to create it.'
+
+      })))
+      .end(done);
+  });
+
+  test('/payments -- with not enough balance to pay the fee', function(done) {
+
+    var hash = testutils.generateHash();
+
+    self.wss.once('request_subscribe', function(message, conn) {
+      assert.strictEqual(message.command, 'subscribe');
+      assert.strictEqual(message.accounts[0], addresses.VALID);
+      conn.send(fixtures.rippledSubcribeResponse(message));
+    });
+
+    self.wss.once('request_account_info', function(message, conn) {
+      assert.strictEqual(message.command, 'account_info');
+      assert.strictEqual(message.account, addresses.VALID);
+      conn.send(fixtures.accountInfoResponse(message));
+    });
+
+    self.wss.once('request_submit', function(message, conn) {
+      var so = new ripple.SerializedObject(message.tx_blob).to_json();
+      assert.strictEqual(message.command, 'submit');
+      conn.send(fixtures.rippledSubmitErrorResponse(message, {
+        engineResult: 'terINSUF_FEE_B',
+        engineResultCode: '-99',
+        engineResultMessage: 'Account balance can\'t pay fee.',
+        hash: hash
+      }));
+    });
+
+    self.app
+      .post('/v1/accounts/' + addresses.VALID + '/payments')
+      .send(fixtures.xrpPayment('1'))
+      .expect(testutils.checkStatus(500))
+      .expect(testutils.checkHeaders)
+      .expect(testutils.checkBody(fixtures.RESTErrorResponse({
+        type: 'transaction',
+        error: 'terINSUF_FEE_B',
+        message:'Account balance can\'t pay fee.'
+
+      })))
+      .end(done);
+  });
+
+  test('/payments -- with an unfunded account', function(done) {
+
+    var hash = testutils.generateHash();
+
+    self.wss.once('request_subscribe', function(message, conn) {
+      assert.strictEqual(message.command, 'subscribe');
+      assert.strictEqual(message.accounts[0], addresses.VALID);
+      conn.send(fixtures.rippledSubcribeResponse(message));
+    });
+
+    self.wss.once('request_account_info', function(message, conn) {
+      assert.strictEqual(message.command, 'account_info');
+      assert.strictEqual(message.account, addresses.VALID);
+      conn.send(fixtures.accountInfoResponse(message));
+    });
+
+    self.wss.once('request_submit', function(message, conn) {
+      assert.strictEqual(message.command, 'submit');
+      conn.send(fixtures.rippledSubmitErrorResponse(message, {
+        engineResult: 'terNO_ACCOUNT',
+        engineResultCode: '-96',
+        engineResultMessage: 'The source account does not exist.',
+        hash: hash
+      }));
+    });
+
+    self.app
+      .post('/v1/accounts/' + addresses.VALID + '/payments')
+      .send(fixtures.xrpPayment('1'))
+      .expect(testutils.checkStatus(500))
+      .expect(testutils.checkHeaders)
+      .expect(testutils.checkBody(fixtures.RESTErrorResponse({
+        type: 'transaction',
+        error: 'terNO_ACCOUNT',
+        message:'The source account does not exist.'
+
+      })))
+      .end(done);
+  });
+
+  test('/payments -- with a duplicate client resource id', function(done) {
+    self.wss.once('request_account_info', function(message, conn) {
+      assert.strictEqual(message.command, 'account_info');
+      assert.strictEqual(message.account, addresses.VALID);
+      conn.send(fixtures.accountInfoResponse(message));
+    });
+
+    self.wss.once('request_submit', function(message, conn) {
+      assert.strictEqual(message.command, 'submit');
+      conn.send(fixtures.requestSubmitResponse(message));
+
+      self.wss.once('request_submit', function(message, conn) {
+        // second payment should not hit submit
+        assert(false);
+      });
+    });
+
+    var secondPayment = function() {
+      // 2nd payment
+      self.app.post('/v1/accounts/' + addresses.VALID + '/payments')
+        .send(fixtures.xrpPayment('1', {clientResourceId: 'id'}))
+        .expect(testutils.checkStatus(500))
+        .expect(testutils.checkHeaders)
+        .expect(testutils.checkBody(fixtures.RESTErrorResponse({
+          type: 'server',
+          error: 'Duplicate Transaction',
+          message: 'A record already exists in the database for a transaction of this type with the same client_resource_id. If this was not an accidental resubmission please submit the transaction again with a unique client_resource_id'
+        })))
+        .end(done);
+    };
+
+    self.app
+      .post('/v1/accounts/' + addresses.VALID + '/payments')
+      .send(fixtures.xrpPayment('1', {clientResourceId: 'id'}))
+      .expect(testutils.checkStatus(200))
+      .expect(testutils.checkHeaders)
+      .expect(testutils.checkBody(fixtures.RESTSuccessResponse({clientResourceId: 'id'})))
+      .end(secondPayment);
+  });
+
+});
 /*
 //
 // Unit test payments
