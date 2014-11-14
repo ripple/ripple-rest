@@ -301,74 +301,6 @@ suite('payments', function() {
       });
   });
 
-
-  test.skip('send bob 1 drop from Alice', function(done) {
-    // sending bob 1 drop from alice
-    // however this should fail since bob, who does not exist on the ledger,
-    // is recieving a payment that is too small to be created on the ledger
-    orderlist.create([
-      {command:'subscribe'},
-      {command:'account_info'},
-      {command:'submit'}
-    ]);
-
-    var _subscribe = function(data,ws) {
-      orderlist.mark('subscribe');
-      delete data.id;
-      assert.deepEqual(data, {
-        command: 'subscribe',
-        accounts: [ 'rJRLoJSErtNRFnbCyHEUYnRUKNwkVYDM7U' ]
-      });
-    };
-
-    var _account_info = function(data,ws) {
-      orderlist.mark('account_info');
-      delete data.id;
-      assert.deepEqual(data, {
-        command: 'account_info',
-        account: 'rJRLoJSErtNRFnbCyHEUYnRUKNwkVYDM7U'
-      });
-    };
-
-    var _submit = function(data,ws) {
-      var so = new RL.SerializedObject(data.tx_blob).to_json();
-      delete so.TxnSignature; // sigs won't match ever
-      orderlist.mark('submit');
-      assert.deepEqual(so, {
-        Flags: 2147483648,
-        TransactionType: 'Payment',
-        Account: 'rJRLoJSErtNRFnbCyHEUYnRUKNwkVYDM7U',
-        Amount: '1',
-        Destination: 'rwmityd4Ss34DBUsRy7Pacv6UA5n7yjfe5',
-        LastLedgerSequence: 8804619,
-        Sequence: 1,
-        SigningPubKey: '022E3308DCB75B17BEF734CE342AC40FF7FDF55E3FEA3593EE8301A70C532BB5BB',
-        Fee: '12'
-       });
-    };
-
-    route.once('subscribe',_subscribe);
-    route.once('account_info',_account_info);
-    route.once('submit',_submit);
-
-    app.post('/v1/accounts/' + fixtures.accounts.alice.address+ '/payments')
-    .send(store.paymentAliceToBob)
-    .expect(function(resp,err) {
-      assert.strictEqual(resp.status, 500);
-      assert.strictEqual(resp.body.success, false);
-      assert.deepEqual(resp.body, {
-        success: false,
-        error_type: 'transaction',
-        error: 'tecNO_DST_INSUF_XRP',
-        message: 'Destination does not exist. Too little XRP sent to create it.'
-      });
-      assert.equal(orderlist.test(),true);
-      orderlist.reset();
-    })
-    .end(done);
-  });
-
-
   test('discover the reserve_base_xrp', function(done) {
     var _server_info = function(data,ws) {
       orderlist.mark('server_info');
@@ -667,7 +599,7 @@ suite('payments', function() {
 
 
   // TODO: bob should try to send all money back to alice
-  it.skip('try to send 95% of bobs money to alice below reserve', function(done) {
+  test.skip('try to send 95% of bobs money to alice below reserve', function(done) {
     var sendamount = store.bob_balance * 0.95;
     app.get('/v1/accounts/'+fixtures.accounts.bob.address+'/payments/paths/'+fixtures.accounts.alice.address+'/'+sendamount+'+XRP')
       .end(function(err, resp) {
@@ -1177,25 +1109,5 @@ suite('payments', function() {
       })
       .end(done);
   });
-
-  test('Posting 10USD from carol to dan with valid client resource id and correct secret but client resource id already used',function(done) {
-    store.paymentCarolToDan.payment.destination_amount.value = store.value;
-    store.paymentCarolToDan.secret = fixtures.accounts.carol.secret;
-    store.client_resource_id = store.paymentCarolToDan.client_resource_id;
-    store.paymentCarolToDan.client_resource_id = 'abc';
-    app.post('/v1/accounts/' + fixtures.accounts.alice.address + '/payments')
-      .send(store.paymentCarolToDan)
-      .expect(function(resp,err) {
-        assert.strictEqual(resp.status, 500);
-        assert.deepEqual(resp.body, {
-          "success": false,
-          "error_type": "server",
-          "error": "Duplicate Transaction",
-          "message": "A record already exists in the database for a transaction of this type with the same client_resource_id. If this was not an accidental resubmission please submit the transaction again with a unique client_resource_id"
-        });
-      })
-      .end(done);
-  });
-
 
 });
