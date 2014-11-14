@@ -70,3 +70,11 @@ module.exports.RESTResponseLedgerSequenceTooHigh = JSON.stringify(
     "message": "Ledger sequence too high."
   }
 );
+
+module.exports.RESTLedgerMissingWithMarker = JSON.stringify(
+  { 
+    success: false,
+    error_type: 'transaction',
+    error: 'A ledger_index or ledger_hash must be provided when using a marker' 
+  }
+);
