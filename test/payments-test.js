@@ -194,10 +194,6 @@ suite('post payments', function() {
     self.wss.once('request_submit', function(message, conn) {
       assert.strictEqual(message.command, 'submit');
       conn.send(fixtures.ledgerSequenceTooHighResponse(message));
-
-      process.nextTick(function () {
-        conn.send(fixtures.transactionVerifiedResponse());
-      });
     });
 
     self.app
@@ -326,7 +322,7 @@ suite('post payments', function() {
     self.wss.once('request_submit', function(message, conn) {
       assert.strictEqual(message.command, 'submit');
       conn.send(fixtures.requestSubmitResponse(message));
-    })
+    });
 
     var body = _.cloneDeep(fixtures.paymentWithMemo);
     body.payment.memos = [];
@@ -350,7 +346,7 @@ suite('post payments', function() {
     self.wss.once('request_submit', function(message, conn) {
       assert.strictEqual(message.command, 'submit');
       conn.send(fixtures.requestSubmitResponse(message));
-    })
+    });
 
     var body = _.cloneDeep(fixtures.paymentWithMemo);
     body.payment.memos[0].MemoType = 1;
@@ -374,7 +370,7 @@ suite('post payments', function() {
     self.wss.once('request_submit', function(message, conn) {
       assert.strictEqual(message.command, 'submit');
       conn.send(fixtures.requestSubmitResponse(message));
-    })
+    });
 
     var body = _.cloneDeep(fixtures.paymentWithMemo);
     body.payment.memos[0].MemoData = 1;
@@ -398,10 +394,6 @@ suite('post payments', function() {
     self.wss.once('request_submit', function(message, conn) {
       assert.strictEqual(message.command, 'submit');
       conn.send(fixtures.requestSubmitResponse(message));
-
-      process.nextTick(function(){
-        conn.send(fixtures.rippledSuccessResponse(message));
-      });
     });
 
     var body = _.cloneDeep(fixtures.paymentWithMemo);
@@ -426,11 +418,7 @@ suite('post payments', function() {
     self.wss.once('request_submit', function(message, conn) {
       assert.strictEqual(message.command, 'submit');
       conn.send(fixtures.requestSubmitResponse(message));
-
-      process.nextTick(function(){
-        conn.send(fixtures.rippledSuccessResponse(message));
-      });
-    })
+    });
 
     self.app
     .post('/v1/accounts/' + addresses.VALID + '/payments')
@@ -451,10 +439,6 @@ suite('post payments', function() {
     self.wss.once('request_submit', function(message, conn) {
       assert.strictEqual(message.command, 'submit');
       conn.send(fixtures.requestSubmitResponse(message));
-
-      process.nextTick(function(){
-        conn.send(fixtures.rippledSuccessResponse(message));
-      });
     });
 
     self.app
@@ -476,10 +460,6 @@ suite('post payments', function() {
     self.wss.once('request_submit', function(message, conn) {
       assert.strictEqual(message.command, 'submit');
       conn.send(fixtures.requestSubmitResponse(message));
-
-      process.nextTick(function(){
-        conn.send(fixtures.rippledSuccessResponse(message));
-      });
     });
 
     self.app
@@ -508,8 +488,6 @@ suite('post payments', function() {
     .expect(testutils.checkBody(fixtures.RESTNonXrpPaymentWithInvalidsecret))
     .end(done);
   });
-
-
 
   test('/payments -- with ledger sequence below current', function(done) {
     self.wss.once('request_account_info', function(message, conn) {
@@ -544,10 +522,6 @@ suite('post payments', function() {
       assert.strictEqual(message.command, 'submit');
       assert.strictEqual(so.LastLedgerSequence, 9036185);
       conn.send(fixtures.requestSubmitResponse(message, { LastLedgerSequence: 9036185 }));
-
-      process.nextTick(function(){
-        conn.send(fixtures.rippledSuccessResponse(message, { LastLedgerSequence: 9036185 }));
-      });
     });
 
     self.app
@@ -620,10 +594,6 @@ suite('post payments', function() {
       assert.strictEqual(message.command, 'submit');
       assert.strictEqual(so.Fee, '12');
       conn.send(fixtures.requestSubmitResponse(message, { Fee: '12' }));
-
-      process.nextTick(function(){
-        conn.send(fixtures.rippledSuccessResponse(message, { Fee: '12' }));
-      });
     });
 
     self.app
@@ -681,7 +651,6 @@ suite('post payments', function() {
         type: 'transaction',
         error: 'tecNO_DST_INSUF_XRP',
         message:'Destination does not exist. Too little XRP sent to create it.'
-
       })))
       .end(done);
   });
@@ -722,7 +691,6 @@ suite('post payments', function() {
         type: 'transaction',
         error: 'terINSUF_FEE_B',
         message:'Account balance can\'t pay fee.'
-
       })))
       .end(done);
   });
@@ -784,7 +752,13 @@ suite('post payments', function() {
       });
     });
 
-    var secondPayment = function() {
+    var secondPayment = function(err) {
+
+      if (err) {
+        assert(false);
+        return done(err);
+      }
+
       // 2nd payment
       self.app.post('/v1/accounts/' + addresses.VALID + '/payments')
         .send(fixtures.xrpPayment('1', {clientResourceId: 'id'}))
