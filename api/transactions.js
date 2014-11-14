@@ -7,16 +7,6 @@ var dbinterface = require('./../lib/db-interface.js');
 var respond     = require('./../lib/response-handler.js');
 var errors      = require('./../lib/errors.js');
 
-module.exports = {
-  DEFAULT_RESULTS_PER_PAGE: 10,
-  NUM_TRANSACTION_TYPES: 5,
-  DEFAULT_LEDGER_BUFFER: 3,
-  submit: submitTransaction,
-  get: getTransactionAndRespond,
-  getTransaction: getTransaction,
-  getAccountTransactions: getAccountTransactions
-};
-
 /**
  *  Submit a normal ripple-lib transaction, blocking duplicates
  *  for payments and orders.
@@ -47,7 +37,7 @@ function submitTransaction(data, response, callback) {
     } else {
       ledgerIndex = Number(remote._ledger_current_index) + module.exports.DEFAULT_LEDGER_BUFFER;
     }
-    
+
     data.transaction.lastLedger(ledgerIndex);
 
     if (maxFee >= 0) {
@@ -98,20 +88,17 @@ function submitTransaction(data, response, callback) {
       dbinterface.saveTransaction(transaction.summary());
     };
 
-    function isInLedger(message) {
-      return /^te(c|s)/.test(message.engine_result || '');
-    };
-
     function handleSubmission(message) {
       // Handle submission of transaction that should make it into ledger.
       transaction.removeListener('error', async_callback);
 
       // Save on state change
-      setImmediate(function() {
-        transaction.on('state', saveTransaction);
-      });
+      transaction.on('state', saveTransaction);
 
-      if (/^tes/.test(message.engine_result) && data.validated === false) {
+      // Respond immediately after submission if 'validated' query parameter
+      // isn't set. Otherwise delay to respond until the transaction has
+      // validated
+      if (!data.validated && message.engine_result === 'tesSUCCESS') {
         async_callback(null, { client_resource_id: transaction._clientID });
       }
     };
@@ -141,16 +128,14 @@ function submitTransaction(data, response, callback) {
       async_callback(message);
     };
 
-    transaction.on('submitted', function(message) {
-      if (isInLedger(message)) {
-        // Save when submitted and will be included in the ledger
-        setImmediate(saveTransaction);
-      }
+    transaction.on('postsubmit', function() {
+      // Save after submitted and before response
+      saveTransaction();
     });
 
     transaction.once('submitted', function(message) {
-      if (isInLedger(message)) {
-        // Handle submission of transactions that should make it into ledger.
+      if (/^te(c|s)/.test(message.engine_result)) {
+        // Handle submission of transactions that should make it into ledger
         handleSubmission(message);
       } else {
         // Handle post-submission error
@@ -161,7 +146,8 @@ function submitTransaction(data, response, callback) {
     transaction.once('error', handleError);
 
     transaction.once('final', function(message) {
-      if (/^tes/.test(message.engine_result) && data.validated === true) {
+      // Only respond here if 'validated' query parameter is set
+      if (data.validated && message.engine_result === 'tesSUCCESS') {
         var transaction = message.tx_json;
         transaction.meta = message.metadata;
         transaction.ledger_index = transaction.inLedger = message.ledger_index;
@@ -637,4 +623,14 @@ function getAccountTx(remote, options, callback) {
       marker: account_tx_results.marker
     });
   });
+};
+
+module.exports = {
+  DEFAULT_RESULTS_PER_PAGE: 10,
+  NUM_TRANSACTION_TYPES: 5,
+  DEFAULT_LEDGER_BUFFER: 3,
+  submit: submitTransaction,
+  get: getTransactionAndRespond,
+  getTransaction: getTransaction,
+  getAccountTransactions: getAccountTransactions
 };
