@@ -17,13 +17,20 @@ exports.add = addTrustLine;
 
 /**
  *  Retrieves all trustlines for a given account
+ *  
+ *  Notes: 
+ *  In order to use paging, you must provide at least ledger as a query parameter.
+ *  Additionally, any limit lower than 10 will be bumped up to 10.
  *
  *  @url
- *  @param {String} request.params.account
+ *  @param {String} request.params.account - account to retrieve trustlines for
  *
  *  @query
- *  @param {Amount "1+USD+r..."} request.query.currency
- *  @param {RippleAddress} request.query.counterparty
+ *  @param {String ISO 4217 Currency Code} [request.query.currency] - only request trustlines with given currency
+ *  @param {RippleAddress} [request.query.counterparty] - only request trustlines with given counterparty
+ *  @param {String} [request.query.marker] - start position in response paging
+ *  @param {Number String} [request.query.limit] - max results per response
+ *  @param {Number String} [request.query.ledger] - identifier
  *  
  *  @param {Express.js Response} response
  *  @param {Express.js Next} next
@@ -67,14 +74,28 @@ function getTrustLines(request, response, next) {
   };
 
   function getAccountLines(callback) {
-    var request = remote.requestAccountLines({account: options.account});
+    var accountLinesRequest;
+    var marker = request.query.marker;
+    var limit = /^[0-9]*$/.test(request.query.limit) ? Number(request.query.limit) : void(0);
+    var ledger = /^[0-9]*$/.test(request.query.ledger) ? Number(request.query.ledger) : void(0);
 
-    if (options.counterparty) {
-      request.message.peer = options.counterparty;
+    try {
+      accountLinesRequest = remote.requestAccountLines({
+        account: options.account,
+        marker: marker,
+        limit: limit,
+        ledger: ledger
+      });
+    } catch (error) {
+      return callback(error);
     }
 
-    request.once('error', callback);
-    request.once('success', function(result) {
+    if (options.counterparty) {
+      accountLinesRequest.message.peer = options.counterparty;
+    }
+
+    accountLinesRequest.once('error', callback);
+    accountLinesRequest.once('success', function(result) {
       var lines = [ ];
       result.lines.forEach(function(line) {
         if (!currencyRE.test(line.currency)) return;
@@ -94,7 +115,7 @@ function getTrustLines(request, response, next) {
       callback(null, lines);
     });
 
-    request.request();
+    accountLinesRequest.request();
   };
 };
 

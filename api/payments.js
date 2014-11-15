@@ -40,8 +40,8 @@ var paymentToTransactionConverter = new RestToLibTxConverter();
  *  @param {Payment} request.body.payment
  *  @param {String} request.body.secret
  *  @param {String} request.body.client_resource_id
- *  @param {Number String} req.body.last_ledger_sequence Sets the last ledger sequence that this payment can end up in
- *  @param {Number String} req.body.max_fee Sets the maximum fee the payer is willing to pay
+ *  @param {Number String} req.body.last_ledger_sequence - last ledger sequence that this payment can end up in
+ *  @param {Number String} req.body.max_fee - maximum fee the payer is willing to pay
  *  
  *  @query
  *  @param {String "true"|"false"} request.query.validated Used to force request to wait until rippled has finished validating the submitted transaction
@@ -147,7 +147,7 @@ function submitPayment(request, response, next) {
  *
  *  @callback
  *  @param {Error} error
- *  @param {Boolean} is_valid Only defined if there is no error
+ *  @param {Boolean} is_valid - only defined if there is no error
  */
 function isPaymentValid(payment, callback) {
   // Ripple addresses
@@ -381,7 +381,7 @@ function formatPaymentHelper(account, transaction, async_callback) {
  *  @param {RippleAddress} req.params.account
  *  @param {RippleAddress} req.query.source_account
  *  @param {RippleAddress} req.query.destination_account
- *  @param {String} req.query.direction Possible values are "incoming", "outgoing"
+ *  @param {String "incoming"|"outgoing"} req.query.direction
  *  @param {Number} [-1] req.query.start_ledger
  *  @param {Number} [-1] req.query.end_ledger
  *  @param {Boolean} [false] req.query.earliest_first
