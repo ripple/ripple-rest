@@ -1,15 +1,13 @@
-var async       = require('async');
-var ripple      = require('ripple-lib');
-var remote      = require('./../lib/remote.js');
-var respond     = require('./../lib/response-handler.js');
-var errors      = require('./../lib/errors.js');
+var ripple  = require('ripple-lib');
+var remote  = require('./../lib/remote.js');
+var respond = require('./../lib/response-handler.js');
+var errors  = require('./../lib/errors.js');
 
-exports.get = getOrders;
 
 function getOrders(request, response, next) {
 
-  var taker_gets = request.params['taker_gets'];
-  var taker_pays = request.params['taker_pays'];
+  var taker_gets = request.params.taker_gets;
+  var taker_pays = request.params.taker_pays;
 
   var options = {
     gets: {
@@ -22,9 +20,8 @@ function getOrders(request, response, next) {
     }
   };
 
-  var request = remote.requestBookOffers(options);
 
-  request.request(function(err, orders) {
+  remote.requestBookOffers(options).request(function(err, orders) {
     if (err) {
       next(err);
     } else {
@@ -32,3 +29,7 @@ function getOrders(request, response, next) {
     }
   });
 }
+
+module.exports = {
+  get: getOrders
+};
