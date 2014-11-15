@@ -6,6 +6,7 @@ var TrustLines    = require('./trustlines');
 var Notifications = require('./notifications');
 var Payments      = require('./payments');
 var Wallet        = require('./wallet');
+var Orders        = require('./orders');
 
 module.exports = {
   info: {
@@ -41,6 +42,10 @@ module.exports = {
 
   notifications: {
     getNotification: Notifications.getNotification
+  },
+
+  orders: {
+	get: Orders.get
   },
 
   wallet: Wallet
