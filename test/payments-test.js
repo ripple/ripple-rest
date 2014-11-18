@@ -206,7 +206,7 @@ suite('post payments', function() {
       value: '0.001',
       currency: 'USD',
       issuer: addresses.ISSUER,
-      fee: 10
+      max_fee: 10
     }))
     .expect(testutils.checkStatus(500))
     .expect(testutils.checkHeaders)
@@ -314,7 +314,7 @@ suite('post payments', function() {
       value: '0.001',
       currency: 'USD',
       issuer: addresses.ISSUER,
-      fee: 10
+      max_fee: 10
     }))
     .expect(testutils.checkStatus(500))
     .expect(testutils.checkHeaders)
@@ -718,7 +718,7 @@ suite('post payments', function() {
       value: '0.001',
       currency: 'USD',
       issuer: addresses.ISSUER,
-      fee: 15
+      max_fee: 15
     }))
     .expect(testutils.checkStatus(500))
     .expect(testutils.checkHeaders)
@@ -747,7 +747,7 @@ suite('post payments', function() {
       value: '0.001',
       currency: 'USD',
       issuer: addresses.ISSUER,
-      fee: 10
+      max_fee: 10
     }))
     .expect(testutils.checkStatus(500))
     .expect(testutils.checkHeaders)
@@ -778,7 +778,7 @@ suite('post payments', function() {
       value: '0.001',
       currency: 'USD',
       issuer: addresses.ISSUER,
-      fee: 1200
+      max_fee: 1200
     }))
     .expect(testutils.checkStatus(200))
     .expect(testutils.checkHeaders)

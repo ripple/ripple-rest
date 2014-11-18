@@ -309,7 +309,7 @@ module.exports.payment = function(options) {
   return { 
     secret: options.secret,
     client_resource_id: options.clientResourceId,
-    max_fee: options.fee ? String(options.fee) : undefined,
+    max_fee: options.max_fee ? String(options.max_fee) : undefined,
     last_ledger_sequence: options.lastLedgerSequence,
     payment: {
       source_account: addresses.VALID,
