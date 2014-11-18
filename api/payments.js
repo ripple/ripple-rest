@@ -33,17 +33,23 @@ var paymentToTransactionConverter = new RestToLibTxConverter();
 /**
  *  Submit a payment in the ripple-rest format.
  *
- *  @param {Remote} remote
- *  @param {/lib/db-interface} dbinterface
+ *  @global
  *  @param {/config/config-loader} config
- *  @param {Payment} req.body.payment
- *  @param {String} req.body.secret
- *  @param {String} req.body.client_resource_id
- *  @param {Express.js Response} res
+ *
+ *  @body
+ *  @param {Payment} request.body.payment
+ *  @param {String} request.body.secret
+ *  @param {String} request.body.client_resource_id
+ *  @param {Number String} req.body.last_ledger_sequence - last ledger sequence that this payment can end up in
+ *  @param {Number String} req.body.max_fee - maximum fee the payer is willing to pay
+ *  
+ *  @query
+ *  @param {String "true"|"false"} request.query.validated Used to force request to wait until rippled has finished validating the submitted transaction
+ *
+ *  @param {Express.js Response} response
  *  @param {Express.js Next} next
  */
 function submitPayment(request, response, next) {
-
   var steps = [
     validateOptions,
     normalizeOptions,
@@ -56,18 +62,31 @@ function submitPayment(request, response, next) {
     payment: request.body.payment,
     secret: request.body.secret,
     client_resource_id: request.body.client_resource_id,
-    url_base: request.protocol + '://' + request.hostname + (config && config.get('port') ? ':' + config.get('port') : '')
+    last_ledger_sequence: request.body.last_ledger_sequence,
+    max_fee: request.body.max_fee,
+    url_base: request.protocol + '://' + request.hostname + (config && config.get('port') ? ':' + config.get('port') : ''),
+    validated: request.query.validated === 'true'
   };
 
-  async.waterfall(steps, function(error, client_resource_id) {
+  async.waterfall(steps, function(error, data) {
     if (error) {
-      next(error);
-    } else {
-      respond.success(response, {
-        client_resource_id: client_resource_id,
-        status_url: params.url_base + '/v1/accounts/' + params.payment.source_account + '/payments/' + client_resource_id
+      return next(error);
+    }
+
+    if (params.validated === true) {
+      return formatPaymentHelper(params.payment.source_account, data.transaction, function (error, payment) {
+        if (error) {
+          return next(error);
+        } else {
+          respond.success(response, { payment: payment });
+        }
       });
     }
+
+    respond.success(response, {
+      client_resource_id: data.client_resource_id,
+      status_url: params.url_base + '/v1/accounts/' + params.payment.source_account + '/payments/' + data.client_resource_id
+    });
   });
 
   function validateOptions(async_callback) {
@@ -97,7 +116,7 @@ function submitPayment(request, response, next) {
   }
 
   function validatePayment(async_callback) {
-    paymentIsValid(params.payment, function(error, payment){
+    isPaymentValid(params.payment, function(error, payment){
       async_callback(error ? error : void(0));
     });
   }
@@ -116,7 +135,6 @@ function submitPayment(request, response, next) {
     params.transaction = transaction;
     transactions.submit(params, response, async_callback);
   }
-
 }
 
 /**
@@ -129,9 +147,9 @@ function submitPayment(request, response, next) {
  *
  *  @callback
  *  @param {Error} error
- *  @param {Boolean} is_valid Only defined if there is no error
+ *  @param {Boolean} is_valid - only defined if there is no error
  */
-function paymentIsValid(payment, callback) {
+function isPaymentValid(payment, callback) {
   // Ripple addresses
   if (!validator.isValid(payment.source_account, 'RippleAddress')) {
     return callback(new InvalidRequestError('Invalid parameter: source_account. Must be a valid Ripple address'));
@@ -255,7 +273,6 @@ function getPayment(request, response, next) {
     identifier: request.params.identifier
   };
 
-
   function validateOptions(async_callback) {
     var invalid;
     if (!options.account) {
@@ -282,12 +299,41 @@ function getPayment(request, response, next) {
 
   // If the transaction was not in the outgoing_transactions db, get it from rippled
   function getTransaction(async_callback) {
-    transactions.getTransactionHelper(request, response, function(res, err) {
-      async_callback(res, err);
+    transactions.getTransaction(request.params.account, request.params.identifier, function(err, transaction) {
+      async_callback(err, transaction);
     });
   };
 
-  function checkIsPayment(transaction, async_callback) {
+  var steps = [
+    validateOptions,
+    getTransaction,
+    function (transaction, async_callback) {
+      formatPaymentHelper(options.account, transaction, async_callback);
+    }
+  ];
+
+  async.waterfall(steps, function(error, payment) {
+    if (error) {
+      next(error);
+    } else {
+      respond.success(response, { payment: payment });
+    }
+  });
+};
+
+/**
+ *  Formats the local database transaction into ripple-rest Payment format
+ *
+ *  @param {RippleAddress} account
+ *  @param {Transaction} transaction
+ *  @param {Function} async_callback
+ *
+ *  @callback
+ *  @param {Error} error
+ *  @param {RippleRestTransaction} transaction
+ */
+function formatPaymentHelper(account, transaction, async_callback) {
+  function checkIsPayment(async_callback) {
     var isPayment = transaction && /^payment$/i.test(transaction.TransactionType);
 
     if (isPayment) {
@@ -301,7 +347,7 @@ function getPayment(request, response, next) {
     if (transaction) {
       var payment = parsePaymentFromTx(transaction,
         {
-          account: options.account
+          account: account
         },
         async_callback);
       async_callback(null, payment);
@@ -314,21 +360,12 @@ function getPayment(request, response, next) {
   };
 
   var steps = [
-    validateOptions,
-    getTransaction,
     checkIsPayment,
     formatTransaction
   ];
 
-  async.waterfall(steps, function(error, payment) {
-    if (error) {
-      next(error);
-    } else {
-      respond.success(response, { payment: payment });
-    }
-  });
+  async.waterfall(steps, async_callback);
 };
-
 
 /**
  *  Retrieve the details of multiple payments from the Remote
@@ -344,7 +381,7 @@ function getPayment(request, response, next) {
  *  @param {RippleAddress} req.params.account
  *  @param {RippleAddress} req.query.source_account
  *  @param {RippleAddress} req.query.destination_account
- *  @param {String} req.query.direction Possible values are "incoming", "outgoing"
+ *  @param {String "incoming"|"outgoing"} req.query.direction
  *  @param {Number} [-1] req.query.start_ledger
  *  @param {Number} [-1] req.query.end_ledger
  *  @param {Boolean} [false] req.query.earliest_first
@@ -438,9 +475,9 @@ function getAccountPayments(request, response, next) {
  *  @param {Remote} remote
  *  @param {/lib/db-interface} dbinterface
  *  @param {RippleAddress} req.params.source_account
- *  @param {Array of currencies written as "USD r...,XRP,..."} req.query.source_currencies Note that Express.js middleware replaces "+" signs with spaces. Clients should use "+" signs but the values here will end up as spaces
+ *  @param {Amount Array ["USD r...,XRP,..."]} req.query.source_currencies Note that Express.js middleware replaces "+" signs with spaces. Clients should use "+" signs but the values here will end up as spaces
  *  @param {RippleAddress} req.params.destination_account
- *  @param {Amount written as "1+USD+r..."} req.params.destination_amount_string
+ *  @param {Amount "1+USD+r..."} req.params.destination_amount_string
  *  @param {Express.js Response} res
  *  @param {Express.js Next} next
  */
@@ -571,7 +608,7 @@ function getPathFind(request, response, next) {
       return async_callback(null, pathfind_results);
     }
     // Check source_account balance
-    remote.requestAccountInfo(pathfind_results.source_account, function(error, result) {
+    remote.requestAccountInfo({account: pathfind_results.source_account}, function(error, result) {
       if (error) {
         return async_callback(new Error('Cannot get account info for source_account. ' + error));
       }

@@ -15,6 +15,26 @@ const TrustSetFlags = {
 exports.get = getTrustLines;
 exports.add = addTrustLine;
 
+/**
+ *  Retrieves all trustlines for a given account
+ *  
+ *  Notes: 
+ *  In order to use paging, you must provide at least ledger as a query parameter.
+ *  Additionally, any limit lower than 10 will be bumped up to 10.
+ *
+ *  @url
+ *  @param {String} request.params.account - account to retrieve trustlines for
+ *
+ *  @query
+ *  @param {String ISO 4217 Currency Code} [request.query.currency] - only request trustlines with given currency
+ *  @param {RippleAddress} [request.query.counterparty] - only request trustlines with given counterparty
+ *  @param {String} [request.query.marker] - start position in response paging
+ *  @param {Number String} [request.query.limit] - max results per response
+ *  @param {Number String} [request.query.ledger] - identifier
+ *  
+ *  @param {Express.js Response} response
+ *  @param {Express.js Next} next
+ */
 function getTrustLines(request, response, next) {
   var steps = [
     validateOptions,
@@ -54,14 +74,28 @@ function getTrustLines(request, response, next) {
   };
 
   function getAccountLines(callback) {
-    var request = remote.requestAccountLines(options.account);
+    var accountLinesRequest;
+    var marker = request.query.marker;
+    var limit = /^[0-9]*$/.test(request.query.limit) ? Number(request.query.limit) : void(0);
+    var ledger = /^[0-9]*$/.test(request.query.ledger) ? Number(request.query.ledger) : void(0);
 
-    if (options.counterparty) {
-      request.message.peer = options.counterparty;
+    try {
+      accountLinesRequest = remote.requestAccountLines({
+        account: options.account,
+        marker: marker,
+        limit: limit,
+        ledger: ledger
+      });
+    } catch (error) {
+      return callback(error);
     }
 
-    request.once('error', callback);
-    request.once('success', function(result) {
+    if (options.counterparty) {
+      accountLinesRequest.message.peer = options.counterparty;
+    }
+
+    accountLinesRequest.once('error', callback);
+    accountLinesRequest.once('success', function(result) {
       var lines = [ ];
       result.lines.forEach(function(line) {
         if (!currencyRE.test(line.currency)) return;
@@ -81,16 +115,31 @@ function getTrustLines(request, response, next) {
       callback(null, lines);
     });
 
-    request.request();
+    accountLinesRequest.request();
   };
 };
 
+/**
+ *  Grant a trustline to a counterparty
+ *
+ *  @body
+ *  @param {Trustline} request.body.trustline
+ *  @param {String} request.body.secret
+ *  
+ *  @query
+ *  @param {String "true"|"false"} request.query.validated Used to force request to wait until rippled has finished validating the submitted transaction
+ *
+ *  @param {Express.js Response} response
+ *  @param {Express.js Next} next
+ */
 function addTrustLine(request, response, next) {
   var options = request.params;
 
   Object.keys(request.body).forEach(function(param) {
     options[param] = request.body[param];
   });
+
+  options.validated = request.query.validated === 'true';
 
   var steps = [
     validateOptions,
@@ -170,7 +219,10 @@ function addTrustLine(request, response, next) {
           currency: line.currency,
           counterparty: line.issuer,
           account_allows_rippling: allows_rippling,
-          account_froze_trustline: froze_trustline
+          account_froze_trustline: froze_trustline,
+          ledger: String(summary.submitIndex),
+          hash: m.tx_json.hash,
+          state: m.validated === true ? 'validated' : 'pending'
         }
       };
 
@@ -178,19 +230,33 @@ function addTrustLine(request, response, next) {
         result.trustline.authorized = true;
       }
 
-      result.ledger = String(summary.submitIndex);
-      result.hash = m.tx_json.hash;
       callback(null, result);
-    }
+    };
 
     transaction.once('error', callback);
-    transaction.once('proposed', transactionSent);
+    transaction.once('proposed', function (result) {
+      if (options.validated === false) {
+        transactionSent(result);
+      }
+    });
+
     transaction.once('success', function(result) {
-      if (!complete) {
+      if (!complete && options.validated === false) {
         transaction.removeAllListeners('proposed');
         transactionSent(result);
       }
-    })
+    });
+
+    transaction.once('final', function(result) {
+      if (!complete && options.validated === true) {
+        if (/^tes/.test(result.engine_result)) {
+          transaction.removeAllListeners('proposed');
+          transactionSent(result);
+        } else {
+          callback(result);
+        }
+      }
+    });
 
     try {
       transaction.trustSet(options.account, limit);

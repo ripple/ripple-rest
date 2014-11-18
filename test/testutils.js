@@ -6,8 +6,8 @@ var ripple = require('ripple-lib');
 var fixtures = require('./fixtures').startup;
 var app = require('../lib/express_app');
 var dbinterface = require('../lib/db-interface');
-
-module.exports.setup = setup;
+var crypto = require('crypto');
+var UInt256 = ripple.UInt256;
 
 function setup(done) {
   var self = this;
@@ -46,8 +46,6 @@ function setup(done) {
   app.get('remote').connect();
 };
 
-module.exports.teardown = teardown;
-
 function teardown(done) {
   var self = this;
 
@@ -59,15 +57,11 @@ function teardown(done) {
   app.get('remote').disconnect();
 };
 
-module.exports.checkStatus = checkStatus;
-
 function checkStatus(expected) {
   return function(res) {
     assert.strictEqual(res.statusCode, expected);
   };
 };
-
-module.exports.checkHeaders = checkHeaders;
 
 function checkHeaders(res) {
   assert.strictEqual(res.headers['content-type'], 'application/json; charset=utf-8');
@@ -75,12 +69,28 @@ function checkHeaders(res) {
   assert.strictEqual(res.headers['access-control-allow-headers'], 'X-Requested-With, Content-Type');
 };
 
-module.exports.checkBody = checkBody;
-
 function checkBody(expected) {
   return function(res, err) {
     assert.ifError(err);
     assert.strictEqual(JSON.stringify(res.body), expected);
   };
 };
+
+function generateHash(bytes) {
+  bytes = bytes || 32;
+  var hash;
+  while (!UInt256.is_valid(hash)) {
+    hash = crypto.randomBytes(bytes).toString('hex')
+  }
+  return hash;
+}
+
+module.exports = {
+  setup: setup,
+  teardown: teardown,
+  checkStatus: checkStatus,
+  checkHeaders: checkHeaders,
+  checkBody: checkBody,
+  generateHash: generateHash
+}
 

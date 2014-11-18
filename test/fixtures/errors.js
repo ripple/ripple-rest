@@ -1,3 +1,9 @@
+module.exports.RESTInvalidSecret = JSON.stringify({ 
+  success: false,
+  error_type: 'transaction',
+  error: 'Invalid secret' 
+});
+
 module.exports.RESTInvalidAccount = JSON.stringify({
   success: false,
   error_type: 'invalid_request',
@@ -55,3 +61,20 @@ module.exports.RESTCannotConnectToRippleD = JSON.stringify({
   error_type: 'connection',
   error: 'Cannot connect to rippled'
 });
+
+module.exports.RESTResponseLedgerSequenceTooHigh = JSON.stringify(
+  {
+    "success": false,
+    "error_type": "transaction",
+    "error": "tefMAX_LEDGER",
+    "message": "Ledger sequence too high."
+  }
+);
+
+module.exports.RESTLedgerMissingWithMarker = JSON.stringify(
+  { 
+    success: false,
+    error_type: 'transaction',
+    error: 'A ledger_index or ledger_hash must be provided when using a marker' 
+  }
+);

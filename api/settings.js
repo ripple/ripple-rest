@@ -76,8 +76,17 @@ function padValue(value, length) {
   return result;
 };
 
+/**
+ *  Retrieves account settings for a given account
+ *
+ *  @url
+ *  @param {String} request.params.account
+ *  
+ *  @param {Express.js Response} response
+ *  @param {Express.js Next} next
+ */
 function getSettings(request, response, next) {
-  remote.requestAccountInfo(request.params.account, function(error, info) {
+  remote.requestAccountInfo({account: request.params.account}, function(error, info) {
     if (error) {
       return next(error);
     }
@@ -110,12 +119,27 @@ function getSettings(request, response, next) {
   });
 };
 
+/**
+ *  Change account settings
+ *
+ *  @body
+ *  @param {Settings} request.body.settings
+ *  @param {String} request.body.secret
+ *  
+ *  @query
+ *  @param {String "true"|"false"} request.query.validated Used to force request to wait until rippled has finished validating the submitted transaction
+ *
+ *  @param {Express.js Response} response
+ *  @param {Express.js Next} next
+ */
 function changeSettings(request, response, next) {
   var options = request.params;
 
   Object.keys(request.body).forEach(function(param) {
     options[param] = request.body[param];
   });
+
+  options.validated = request.query.validated === 'true';
 
   function validateOptions(callback) {
     if (typeof options.settings !== 'object') {
@@ -199,19 +223,33 @@ function changeSettings(request, response, next) {
     var settings = { };
     var transaction = remote.transaction();
 
-    transaction.once('error', callback);
-
-    transaction.once('proposed', function() {
+    function transactionSent(m) {
       var summary = transaction.summary();
       var result = { success: true };
 
       if (summary.result) {
-        result.hash = summary.result.transaction_hash;
-        result.ledger = String(summary.submitIndex)
+        settings.hash = summary.result.transaction_hash;
+        settings.ledger = String(summary.submitIndex)
       }
 
       result.settings = settings;
+      result.settings.state = m.validated === true ? 'validated' : 'pending';
+
       callback(null, result);
+    };
+
+    transaction.once('error', callback);
+
+    transaction.once('proposed', function(message) {
+      if (options.validated === false) {
+        transactionSent(message);
+      }
+    });
+
+    transaction.once('final', function(message) {
+      if (/^tes/.test(message.engine_result) && options.validated === true) {
+        transactionSent(message);
+      }
     });
 
     try {

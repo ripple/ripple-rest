@@ -7,25 +7,20 @@ var dbinterface = require('./../lib/db-interface.js');
 var respond     = require('./../lib/response-handler.js');
 var errors      = require('./../lib/errors.js');
 
-module.exports = {
-  DEFAULT_RESULTS_PER_PAGE: 10,
-  NUM_TRANSACTION_TYPES: 5,
-  DEFAULT_LEDGER_BUFFER: 3,
-  submit: submitTransaction,
-  get: getTransaction,
-  getTransactionHelper: getTransactionHelper,
-  getAccountTransactions: getAccountTransactions
-};
-
 /**
  *  Submit a normal ripple-lib transaction, blocking duplicates
  *  for payments and orders.
  *
+ *  @global
  *  @param {Remote} remote
  *  @param {/lib/db-interface} dbinterface
+ *
  *  @param {Transaction} data.transaction
  *  @param {String} data.secret
  *  @param {String} data.client_resource_id
+ *  @param {Boolean} data.validated Used to force ripple-rest to wait until rippled has validated a transaction before returning the result
+ *  @param {Number String} data.last_ledger_sequence
+ *  @param {Number String} data.max_fee
  *  @param {Express.js Response} res Used to send error messages directly to the client
  *  @param {Function} callback
  *
@@ -35,6 +30,20 @@ module.exports = {
  */
 function submitTransaction(data, response, callback) {
   function prepareTransaction(async_callback) {
+    var ledgerIndex, maxFee = Number(data.max_fee);
+
+    if (Number(data.last_ledger_sequence) > 0) {
+      ledgerIndex = Number(data.last_ledger_sequence);
+    } else {
+      ledgerIndex = Number(remote._ledger_current_index) + module.exports.DEFAULT_LEDGER_BUFFER;
+    }
+
+    data.transaction.lastLedger(ledgerIndex);
+
+    if (maxFee >= 0) {
+      data.transaction.maxFee(maxFee);
+    }
+
     data.transaction.secret(data.secret);
     data.transaction.clientID(data.client_resource_id);
     async_callback(null, data.transaction);
@@ -75,15 +84,8 @@ function submitTransaction(data, response, callback) {
   function submitTransaction(transaction, async_callback) {
     transaction.remote = remote;
 
-    var ledgerIndex = Number(remote._ledger_current_index);
-    transaction.lastLedger(ledgerIndex + module.exports.DEFAULT_LEDGER_BUFFER);
-
     function saveTransaction() {
       dbinterface.saveTransaction(transaction.summary());
-    };
-
-    function isInLedger(message) {
-      return /^te(c|s)/.test(message.engine_result || '');
     };
 
     function handleSubmission(message) {
@@ -91,12 +93,13 @@ function submitTransaction(data, response, callback) {
       transaction.removeListener('error', async_callback);
 
       // Save on state change
-      setImmediate(function() {
-        transaction.on('state', saveTransaction);
-      });
+      transaction.on('state', saveTransaction);
 
-      if (/^tes/.test(message.engine_result)) {
-        async_callback(null, transaction._clientID);
+      // Respond immediately after submission if 'validated' query parameter
+      // isn't set. Otherwise delay to respond until the transaction has
+      // validated
+      if (!data.validated && message.engine_result === 'tesSUCCESS') {
+        async_callback(null, { client_resource_id: transaction._clientID });
       }
     };
 
@@ -125,16 +128,14 @@ function submitTransaction(data, response, callback) {
       async_callback(message);
     };
 
-    transaction.on('submitted', function(message) {
-      if (isInLedger(message)) {
-        // Save when submitted and will be included in the ledger
-        setImmediate(saveTransaction);
-      }
+    transaction.on('postsubmit', function() {
+      // Save after submitted and before response
+      saveTransaction();
     });
 
     transaction.once('submitted', function(message) {
-      if (isInLedger(message)) {
-        // Handle submission of transactions that should make it into ledger.
+      if (/^te(c|s)/.test(message.engine_result)) {
+        // Handle submission of transactions that should make it into ledger
         handleSubmission(message);
       } else {
         // Handle post-submission error
@@ -143,6 +144,18 @@ function submitTransaction(data, response, callback) {
     });
 
     transaction.once('error', handleError);
+
+    transaction.once('final', function(message) {
+      // Only respond here if 'validated' query parameter is set
+      if (data.validated && message.engine_result === 'tesSUCCESS') {
+        var transaction = message.tx_json;
+        transaction.meta = message.metadata;
+        transaction.ledger_index = transaction.inLedger = message.ledger_index;
+
+        async_callback(null, { transaction: transaction });
+      }
+    });
+
     transaction.submit();
   };
 
@@ -156,15 +169,15 @@ function submitTransaction(data, response, callback) {
 };
 
 /**
- *  Wrapper around getTransactionHelper function that is
+ *  Wrapper around getTransaction function that is
  *  meant to be used directly as a client-facing function.
- *  Unlike getTransactionHelper, it will call next with any errors
+ *  Unlike getTransaction, it will call next with any errors
  *  and send a JSON response to the client on success.
  *
- *  See getTransactionHelper for parameter details
+ *  See getTransaction for parameter details
  */
-function getTransaction(request, response, next) {
-  getTransactionHelper(request, response, function(error, transaction) {
+function getTransactionAndRespond(request, response, next) {
+  getTransaction(request.params.account, request.params.identifier, function(error, transaction) {
     if (error) {
       next(error);
     } else {
@@ -179,27 +192,22 @@ function getTransaction(request, response, next) {
  *
  *  Note that if any errors are encountered while executing this function
  *  they will be sent back to the client through the res. If the query is
- *  successful it will be passed to the callback function which can either
- *  send the transaction directly back to the client (e.g. in the case of
- *  getTransaction) or can process the transaction more (e.g. in the case
- *  of the Notification or Payment related functions).
- *
+ *  successful it will be passed to the callback function
+ *  
+ *  @global
  *  @param {Remote} remote
  *  @param {/lib/db-interface} dbinterface
- *  @param {RippleAddress} req.params.account
- *  @param {Hex-encoded String|ASCII printable character String} req.params.identifier
- *  @param {Express.js Response} res
+ *
+ *  @param {RippleAddress} account
+ *  @param {Hex-encoded String|ASCII printable character String} identifier
  *  @param {Function} callback
  *
  *  @callback
  *  @param {Error} error
  *  @param {Transaction} transaction
  */
-function getTransactionHelper(request, response, callback) {
-  var options = {
-    account: request.params.account,
-    identifier: request.params.identifier
-  };
+function getTransaction(account, identifier, callback) {
+  var options = {};
 
   var steps = [
     validateOptions,
@@ -212,19 +220,19 @@ function getTransactionHelper(request, response, callback) {
   async.waterfall(steps, callback);
 
   function validateOptions(async_callback) {
-    if (options.account && !validator.isValid(options.account, 'RippleAddress')) {
+    if (account && !validator.isValid(account, 'RippleAddress')) {
       return callback(new errors.InvalidRequestError('Invalid parameter: account. Must be a valid Ripple Address'));
     }
 
-    if (!options.identifier) {
+    if (!_.isString(identifier)) {
       return callback(new errors.InvalidRequestError('Missing parameter: identifier'));
     }
 
-    if (validator.isValid(options.identifier, 'Hash256')) {
-      options.hash = options.identifier;
+    if (validator.isValid(identifier, 'Hash256')) {
+      options.hash = identifier;
       async_callback();
-    } else if (validator.isValid(options.identifier, 'ResourceId')) {
-      options.client_resource_id = options.identifier;
+    } else if (validator.isValid(identifier, 'ResourceId')) {
+      options.client_resource_id = identifier;
       async_callback();
     } else {
       return callback(new errors.InvalidRequestError('Parameter not a valid transaction hash or client_resource_id: identifier'));
@@ -615,4 +623,14 @@ function getAccountTx(remote, options, callback) {
       marker: account_tx_results.marker
     });
   });
+};
+
+module.exports = {
+  DEFAULT_RESULTS_PER_PAGE: 10,
+  NUM_TRANSACTION_TYPES: 5,
+  DEFAULT_LEDGER_BUFFER: 3,
+  submit: submitTransaction,
+  get: getTransactionAndRespond,
+  getTransaction: getTransaction,
+  getAccountTransactions: getAccountTransactions
 };

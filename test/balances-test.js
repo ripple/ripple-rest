@@ -6,6 +6,8 @@ var errors = require('./fixtures').errors;
 var addresses = require('./fixtures').addresses;
 var requestPath = fixtures.requestPath;
 
+const MARKER = '29F992CC252056BF690107D1E8F2D9FBAFF29FF107B62B1D1F4E4E11ADF2CC73';
+
 suite('get balances', function() {
   var self = this;
 
@@ -30,6 +32,197 @@ suite('get balances', function() {
 
     self.app
     .get(requestPath(addresses.VALID))
+    .expect(testutils.checkStatus(200))
+    .expect(testutils.checkHeaders)
+    .expect(testutils.checkBody(fixtures.RESTAccountBalancesResponse))
+    .end(done);
+  });
+
+  test('/accounts/:account/balances -- with invalid ledger', function(done) {
+    self.wss.once('request_account_info', function(message, conn) {
+      assert.strictEqual(message.command, 'account_info');
+      assert.strictEqual(message.account, addresses.VALID);
+      conn.send(fixtures.accountInfoResponse(message));
+    });
+
+    self.wss.once('request_account_lines', function(message, conn) {
+      assert.strictEqual(message.command, 'account_lines');
+      assert.strictEqual(message.account, addresses.VALID);
+      assert.strictEqual(message.ledger, void(0));
+      conn.send(fixtures.accountLinesResponse(message));
+    });
+
+    self.app
+    .get(requestPath(addresses.VALID, '?ledger=foo'))
+    .expect(testutils.checkStatus(200))
+    .expect(testutils.checkHeaders)
+    .expect(testutils.checkBody(fixtures.RESTAccountBalancesResponse))
+    .end(done);
+  });
+
+  test('/accounts/:account/balances -- with ledger', function(done) {
+    self.wss.once('request_account_info', function(message, conn) {
+      assert.strictEqual(message.command, 'account_info');
+      assert.strictEqual(message.account, addresses.VALID);
+      conn.send(fixtures.accountInfoResponse(message));
+    });
+
+    self.wss.once('request_account_lines', function(message, conn) {
+      assert.strictEqual(message.command, 'account_lines');
+      assert.strictEqual(message.account, addresses.VALID);
+      assert.strictEqual(message.ledger_index, 9592219);
+      conn.send(fixtures.accountLinesResponse(message));
+    });
+
+    self.app
+    .get(requestPath(addresses.VALID, '?ledger=9592219'))
+    .expect(testutils.checkStatus(200))
+    .expect(testutils.checkHeaders)
+    .expect(testutils.checkBody(fixtures.RESTAccountBalancesResponse))
+    .end(done);
+  });
+
+  test('/accounts/:account/balances -- with invalid marker', function(done) {
+    self.wss.once('request_account_info', function(message, conn) {
+      assert.strictEqual(message.command, 'account_info');
+      assert.strictEqual(message.account, addresses.VALID);
+      conn.send(fixtures.accountInfoResponse(message));
+    });
+
+    self.wss.once('request_account_lines', function(message, conn) {
+      assert(false);
+    });
+
+    self.app
+    .get(requestPath(addresses.VALID, '?marker=abcd'))
+    .expect(testutils.checkStatus(500))
+    .expect(testutils.checkHeaders)
+    .expect(testutils.checkBody(errors.RESTLedgerMissingWithMarker))
+    .end(done);
+  });
+
+  test('/accounts/:account/balances -- with valid marker and invalid limit', function(done) {
+    self.wss.once('request_account_info', function(message, conn) {
+      assert.strictEqual(message.command, 'account_info');
+      assert.strictEqual(message.account, addresses.VALID);
+      conn.send(fixtures.accountInfoResponse(message));
+    });
+
+    self.wss.once('request_account_lines', function(message, conn) {
+      assert(false);
+    });
+
+    self.app
+    .get(requestPath(addresses.VALID, '?marker=' + MARKER + '&limit=foo'))
+    .expect(testutils.checkStatus(500))
+    .expect(testutils.checkHeaders)
+    .expect(testutils.checkBody(errors.RESTLedgerMissingWithMarker))
+    .end(done);
+  });
+
+  test('/accounts/:account/balances -- with valid marker and valid limit', function(done) {
+    self.wss.once('request_account_info', function(message, conn) {
+      assert.strictEqual(message.command, 'account_info');
+      assert.strictEqual(message.account, addresses.VALID);
+      conn.send(fixtures.accountInfoResponse(message));
+    });
+
+    self.wss.once('request_account_lines', function(message, conn) {
+      assert(false);
+    });
+
+    self.app
+    .get(requestPath(addresses.VALID, '?marker=' + MARKER + '&limit=100'))
+    .expect(testutils.checkStatus(500))
+    .expect(testutils.checkHeaders)
+    .expect(testutils.checkBody(errors.RESTLedgerMissingWithMarker))
+    .end(done);
+  });
+
+  test('/accounts/:account/balances -- with valid marker and valid ledger', function(done) {
+    self.wss.once('request_account_info', function(message, conn) {
+      assert.strictEqual(message.command, 'account_info');
+      assert.strictEqual(message.account, addresses.VALID);
+      conn.send(fixtures.accountInfoResponse(message));
+    });
+
+    self.wss.once('request_account_lines', function(message, conn) {
+      assert.strictEqual(message.command, 'account_lines');
+      assert.strictEqual(message.account, addresses.VALID);
+      assert.strictEqual(message.ledger_index, 9592219);
+      assert.strictEqual(message.marker, MARKER);
+      conn.send(fixtures.accountLinesResponse(message));
+    });
+
+    self.app
+    .get(requestPath(addresses.VALID, '?marker=' + MARKER + '&ledger=9592219'))
+    .expect(testutils.checkStatus(200))
+    .expect(testutils.checkHeaders)
+    .expect(testutils.checkBody(fixtures.RESTAccountBalancesResponse))
+    .end(done);
+  });
+
+  test('/accounts/:account/balances -- valid ledger and valid limit', function(done) {
+    self.wss.once('request_account_info', function(message, conn) {
+      assert.strictEqual(message.command, 'account_info');
+      assert.strictEqual(message.account, addresses.VALID);
+      conn.send(fixtures.accountInfoResponse(message));
+    });
+
+    self.wss.once('request_account_lines', function(message, conn) {
+      assert.strictEqual(message.command, 'account_lines');
+      assert.strictEqual(message.account, addresses.VALID);
+      assert.strictEqual(message.ledger_index, 9592219);
+      assert.strictEqual(message.limit, 5);
+      conn.send(fixtures.accountLinesResponse(message));
+    });
+
+    self.app
+    .get(requestPath(addresses.VALID, '?ledger=9592219&limit=5'))
+    .expect(testutils.checkStatus(200))
+    .expect(testutils.checkHeaders)
+    .expect(testutils.checkBody(fixtures.RESTAccountBalancesResponse))
+    .end(done);
+  });
+
+  test('/accounts/:account/balances -- with valid marker, valid limit, and invalid ledger', function(done) {
+    self.wss.once('request_account_info', function(message, conn) {
+      assert.strictEqual(message.command, 'account_info');
+      assert.strictEqual(message.account, addresses.VALID);
+      conn.send(fixtures.accountInfoResponse(message));
+    });
+
+    self.wss.once('request_account_lines', function(message, conn) {
+      assert(false);
+    });
+
+    self.app
+    .get(requestPath(addresses.VALID, '?marker=' + MARKER + '&limit=100&ledger=foo'))
+    .expect(testutils.checkStatus(500))
+    .expect(testutils.checkHeaders)
+    .expect(testutils.checkBody(errors.RESTLedgerMissingWithMarker))
+    .end(done);
+  });
+
+  test('/accounts/:account/balances -- with valid marker, valid limit, and valid ledger', function(done) {
+    self.wss.once('request_account_info', function(message, conn) {
+      assert.strictEqual(message.command, 'account_info');
+      assert.strictEqual(message.account, addresses.VALID);
+
+      conn.send(fixtures.accountInfoResponse(message));
+    });
+
+    self.wss.once('request_account_lines', function(message, conn) {
+      assert.strictEqual(message.command, 'account_lines');
+      assert.strictEqual(message.account, addresses.VALID);
+      assert.strictEqual(message.ledger_index, 9592219);
+      assert.strictEqual(message.limit, 1);
+      assert.strictEqual(message.marker, MARKER);
+      conn.send(fixtures.accountLinesResponse(message));
+    });
+
+    self.app
+    .get(requestPath(addresses.VALID, '?marker=' + MARKER + '&limit=1&ledger=9592219'))
     .expect(testutils.checkStatus(200))
     .expect(testutils.checkHeaders)
     .expect(testutils.checkBody(fixtures.RESTAccountBalancesResponse))
