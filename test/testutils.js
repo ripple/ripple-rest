@@ -83,7 +83,7 @@ function generateHash(bytes) {
     hash = crypto.randomBytes(bytes).toString('hex')
   }
   return hash;
-}
+};
 
 module.exports = {
   setup: setup,
@@ -92,5 +92,4 @@ module.exports = {
   checkHeaders: checkHeaders,
   checkBody: checkBody,
   generateHash: generateHash
-}
-
+};

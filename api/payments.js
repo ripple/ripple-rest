@@ -557,7 +557,6 @@ function getPathFind(request, response, next) {
           next(new InvalidRequestError('Invalid parameter: source_currencies. Must be a list of valid currencies'));
           return;
         }
-
       }
     }
   }
@@ -669,7 +668,6 @@ function getPathFind(request, response, next) {
 };
 
 function parsePaymentFromTx(tx, options, callback) {
-
   if (typeof options === 'function') {
     callback = options;
     options = {};
@@ -862,5 +860,6 @@ function parsePaymentsFromPathfind(pathfind_results, options) {
     };
     payments.push(payment);
   });
+
   return payments;
 };
