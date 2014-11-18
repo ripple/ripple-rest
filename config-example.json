@@ -1,5 +1,5 @@
 {
-  "config_version": "2.0.0",
+  "config_version": "2.0.1",
   "debug": false,
   "port": 5990,
   "host": "localhost",
@@ -9,6 +9,7 @@
     "cert_path": "./certs/server.crt"
   },
   "db_path": "./ripple-rest.db",
+  "max_transaction_fee": 1000000,
   "rippled_servers": [
     "wss://s1.ripple.com:443"
   ]
