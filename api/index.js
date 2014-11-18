@@ -45,7 +45,7 @@ module.exports = {
   },
 
   orders: {
-	get: Orders.get
+    get: Orders.get
   },
 
   wallet: Wallet

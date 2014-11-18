@@ -10,3 +10,4 @@ module.exports._payments = require('./_payments');
 module.exports.settings = require('./settings');
 module.exports.balances = require('./balances');
 module.exports.trustlines = require('./trustlines');
+module.exports.orders = require('./orders');
