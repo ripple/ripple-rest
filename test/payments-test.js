@@ -28,7 +28,7 @@ suite('get payments', function() {
     .get(requestPath(addresses.VALID) + '/' + fixtures.VALID_TRANSACTION_HASH)
     .expect(testutils.checkStatus(200))
     .expect(testutils.checkHeaders)
-    .expect(testutils.checkBody(fixtures.RESTTransactionResponse(fixtures.VALID_TRANSACTION_HASH)))
+    .expect(testutils.checkBody(fixtures.RESTTransactionResponse()))
     .end(done);
   });
 
@@ -36,7 +36,21 @@ suite('get payments', function() {
     self.wss.once('request_tx', function(message, conn) {
       assert.strictEqual(message.command, 'tx');
       assert.strictEqual(message.transaction, fixtures.VALID_TRANSACTION_HASH_MEMO);
-      conn.send(fixtures.transactionResponseWithMemo(message));
+      conn.send(fixtures.transactionResponse(message, {
+        memos: [
+          {
+            "Memo": {
+              "MemoData": "736F6D655F76616C7565",
+              "MemoType": "736F6D655F6B6579"
+            }
+          },
+          {
+            "Memo": {
+              "MemoData": "736F6D655F76616C7565"
+            }
+          }
+        ]
+      }));
     });
 
     self.wss.once('request_ledger', function(message, conn) {
@@ -45,10 +59,20 @@ suite('get payments', function() {
     });
 
     self.app
-    .get(requestPath('rGUpotx8YYDiocqS577N4T1p1kHBNdEJ9s') + '/' + fixtures.VALID_TRANSACTION_HASH_MEMO)
+    .get(requestPath(addresses.VALID) + '/' + fixtures.VALID_TRANSACTION_HASH_MEMO)
     .expect(testutils.checkStatus(200))
     .expect(testutils.checkHeaders)
-    .expect(testutils.checkBody(fixtures.RESTTransactionResponseWithMemo))
+    .expect(testutils.checkBody(fixtures.RESTTransactionResponse({
+      memos: [
+        {
+          MemoData: "736F6D655F76616C7565",
+          MemoType: "736F6D655F6B6579"
+        },
+        {
+          MemoData: "736F6D655F76616C7565"
+        }
+      ]
+    })))
     .end(done);
   });
 
@@ -61,7 +85,11 @@ suite('get payments', function() {
     .get(requestPath(addresses.VALID) + '/' + fixtures.INVALID_TRANSACTION_HASH)
     .expect(testutils.checkStatus(400))
     .expect(testutils.checkHeaders)
-    .expect(testutils.checkBody(errors.RESTInvalidTransactionHash))
+    .expect(testutils.checkBody(fixtures.RESTErrorResponse({
+      type: 'invalid_request',
+      error: 'Transaction not found',
+      message: 'A transaction hash was not supplied and there were no entries matching the client_resource_id.'
+    })))
     .end(done);
   });
 });
@@ -93,10 +121,15 @@ suite('post payments', function() {
 
     self.app
     .post('/v1/accounts/' + addresses.VALID + '/payments?validated=true')
-    .send(fixtures.nonXrpPaymentWithoutIssuer)
+    .send(fixtures.payment({
+      value: '0.001',
+      currency: 'USD'
+    }))
     .expect(testutils.checkStatus(200))
     .expect(testutils.checkHeaders)
-    .expect(testutils.checkBody(fixtures.RESTTransactionResponse(fixtures.VALID_SUBMITTED_TRANSACTION_HASH)))
+    .expect(testutils.checkBody(fixtures.RESTTransactionResponse({ 
+      hash: fixtures.VALID_SUBMITTED_TRANSACTION_HASH 
+    })))
     .end(done);
   });
 
@@ -114,13 +147,19 @@ suite('post payments', function() {
 
     self.app
     .post('/v1/accounts/' + addresses.VALID + '/payments?validated=true')
-    .send(fixtures.nonXrpPaymentWithoutIssuer)
+    .send(fixtures.payment({
+      value: '0.001',
+      currency: 'USD'
+    }))
     .expect(testutils.checkStatus(500))
     .expect(testutils.checkHeaders)
-    .expect(testutils.checkBody(fixtures.RESTResponseLedgerSequenceTooHigh))
+    .expect(testutils.checkBody(fixtures.RESTErrorResponse({
+      type: 'transaction',
+      error: 'tefMAX_LEDGER',
+      message: 'Ledger sequence too high.'
+    })))
     .end(done);
   });
-
 
   test('/payments -- with validated true and destination tag needed error', function(done) {
     self.wss.once('request_account_info', function(message, conn) {
@@ -136,10 +175,17 @@ suite('post payments', function() {
 
     self.app
     .post('/v1/accounts/' + addresses.VALID + '/payments?validated=true')
-    .send(fixtures.nonXrpPaymentWithoutIssuer)
+    .send(fixtures.payment({
+      value: '0.001',
+      currency: 'USD'
+    }))
     .expect(testutils.checkStatus(500))
     .expect(testutils.checkHeaders)
-    .expect(testutils.checkBody(fixtures.RESTResponseDestinationTagNeeded))
+    .expect(testutils.checkBody(fixtures.RESTErrorResponse({
+      type: 'transaction',
+      error: 'tefDST_TAG_NEEDED',
+      message: 'Destination tag required.'
+    })))
     .end(done);
   });
 
@@ -156,10 +202,18 @@ suite('post payments', function() {
 
     self.app
     .post('/v1/accounts/' + addresses.VALID + '/payments?validated=true')
-    .send(fixtures.nonXrpWithFee(10))
+    .send(fixtures.payment({
+      value: '0.001',
+      currency: 'USD',
+      issuer: addresses.ISSUER,
+      fee: 10
+    }))
     .expect(testutils.checkStatus(500))
     .expect(testutils.checkHeaders)
-    .expect(testutils.checkBody(fixtures.RESTNonXrpPaymentWithMaxFeeExceeded))
+    .expect(testutils.checkBody(fixtures.RESTErrorResponse({
+      type: 'transaction',
+      error: 'Max fee exceeded'
+    })))
     .end(done);
   });
 
@@ -177,10 +231,13 @@ suite('post payments', function() {
 
     self.app
     .post('/v1/accounts/' + addresses.VALID + '/payments?validated=false')
-    .send(fixtures.nonXrpPaymentWithoutIssuer)
+    .send(fixtures.payment({
+      value: '0.001',
+      currency: 'USD'
+    }))
     .expect(testutils.checkStatus(200))
     .expect(testutils.checkHeaders)
-    .expect(testutils.checkBody(fixtures.RESTNonXrpPaymentWithIssuer))
+    .expect(testutils.checkBody(fixtures.RESTSuccessResponse()))
     .end(done);
   });
 
@@ -198,10 +255,17 @@ suite('post payments', function() {
 
     self.app
     .post('/v1/accounts/' + addresses.VALID + '/payments?validated=false')
-    .send(fixtures.nonXrpPaymentWithoutIssuer)
+    .send(fixtures.payment({
+      value: '0.001',
+      currency: 'USD'
+    }))
     .expect(testutils.checkStatus(500))
     .expect(testutils.checkHeaders)
-    .expect(testutils.checkBody(fixtures.RESTResponseLedgerSequenceTooHigh))
+    .expect(testutils.checkBody(fixtures.RESTErrorResponse({
+      type: 'transaction',
+      error: 'tefMAX_LEDGER',
+      message: 'Ledger sequence too high.'
+    })))
     .end(done);
   });
 
@@ -219,10 +283,17 @@ suite('post payments', function() {
 
     self.app
     .post('/v1/accounts/' + addresses.VALID + '/payments?validated=false')
-    .send(fixtures.nonXrpPaymentWithoutIssuer)
+    .send(fixtures.payment({
+      value: '0.001',
+      currency: 'USD'
+    }))
     .expect(testutils.checkStatus(500))
     .expect(testutils.checkHeaders)
-    .expect(testutils.checkBody(fixtures.RESTResponseDestinationTagNeeded))
+    .expect(testutils.checkBody(fixtures.RESTErrorResponse({
+      type: 'transaction',
+      error: 'tefDST_TAG_NEEDED',
+      message: 'Destination tag required.'
+    })))
     .end(done);
   });
 
@@ -239,10 +310,18 @@ suite('post payments', function() {
 
     self.app
     .post('/v1/accounts/' + addresses.VALID + '/payments?validated=false')
-    .send(fixtures.nonXrpWithFee(10))
+    .send(fixtures.payment({
+      value: '0.001',
+      currency: 'USD',
+      issuer: addresses.ISSUER,
+      fee: 10
+    }))
     .expect(testutils.checkStatus(500))
     .expect(testutils.checkHeaders)
-    .expect(testutils.checkBody(fixtures.RESTNonXrpPaymentWithMaxFeeExceeded))
+    .expect(testutils.checkBody(fixtures.RESTErrorResponse({
+      type: 'transaction',
+      error: 'Max fee exceeded'
+    })))
     .end(done);
   });
 
@@ -260,10 +339,17 @@ suite('post payments', function() {
 
     self.app
     .post('/v1/accounts/' + addresses.VALID + '/payments')
-    .send(fixtures.nonXrpPaymentWithoutIssuer)
+    .send(fixtures.payment({
+      value: '0.001',
+      currency: 'USD'
+    }))
     .expect(testutils.checkStatus(500))
     .expect(testutils.checkHeaders)
-    .expect(testutils.checkBody(fixtures.RESTResponseLedgerSequenceTooHigh))
+    .expect(testutils.checkBody(fixtures.RESTErrorResponse({
+      type: 'transaction',
+      error: 'tefMAX_LEDGER',
+      message: 'Ledger sequence too high.'
+    })))
     .end(done);
   });
 
@@ -281,10 +367,17 @@ suite('post payments', function() {
 
     self.app
     .post('/v1/accounts/' + addresses.VALID + '/payments')
-    .send(fixtures.nonXrpPaymentWithoutIssuer)
+    .send(fixtures.payment({
+      value: '0.001',
+      currency: 'USD'
+    }))
     .expect(testutils.checkStatus(500))
     .expect(testutils.checkHeaders)
-    .expect(testutils.checkBody(fixtures.RESTResponseDestinationTagNeeded))
+    .expect(testutils.checkBody(fixtures.RESTErrorResponse({
+      type: 'transaction',
+      error: 'tefDST_TAG_NEEDED',
+      message: 'Destination tag required.'
+    })))
     .end(done);
   });
 
@@ -298,17 +391,20 @@ suite('post payments', function() {
     self.wss.once('request_submit', function(message, conn) {
       assert.strictEqual(message.command, 'submit');
       conn.send(fixtures.requestSubmitResponse(message));
-    })
-
-    var body = _.cloneDeep(fixtures.paymentWithMemo);
-    body.payment.memos = "some string";
+    });
 
     self.app
     .post('/v1/accounts/' + addresses.VALID + '/payments')
-    .send(body)
+    .send(fixtures.payment({
+      memos: 'some string'
+    }))
     .expect(testutils.checkStatus(400))
     .expect(testutils.checkHeaders)
-    .expect(testutils.checkBody(fixtures.RESTResponseNonArrayMemo))
+    .expect(testutils.checkBody(fixtures.RESTErrorResponse({
+      type: 'invalid_request',
+      error: 'Invalid parameter: memos',
+      message: 'Must be an array with memo objects'
+    })))
     .end(done);
   });
 
@@ -324,15 +420,18 @@ suite('post payments', function() {
       conn.send(fixtures.requestSubmitResponse(message));
     });
 
-    var body = _.cloneDeep(fixtures.paymentWithMemo);
-    body.payment.memos = [];
-
     self.app
     .post('/v1/accounts/' + addresses.VALID + '/payments')
-    .send(body)
+    .send(fixtures.payment({
+      memos: []
+    }))
     .expect(testutils.checkStatus(400))
     .expect(testutils.checkHeaders)
-    .expect(testutils.checkBody(fixtures.RESTResponseEmptyMemosArray))
+    .expect(testutils.checkBody(fixtures.RESTErrorResponse({
+      type: 'invalid_request',
+      error: 'Invalid parameter: memos',
+      message: 'Must contain at least one Memo object, otherwise omit the memos property'
+    })))
     .end(done);
   });
 
@@ -348,15 +447,26 @@ suite('post payments', function() {
       conn.send(fixtures.requestSubmitResponse(message));
     });
 
-    var body = _.cloneDeep(fixtures.paymentWithMemo);
-    body.payment.memos[0].MemoType = 1;
-
     self.app
     .post('/v1/accounts/' + addresses.VALID + '/payments')
-    .send(body)
+    .send(fixtures.payment({
+      memos: [
+        {
+          "MemoType": 1,
+          "MemoData": "some_value"
+        },
+        {
+          "MemoData": "some_value"
+        }
+      ]
+    }))
     .expect(testutils.checkStatus(400))
     .expect(testutils.checkHeaders)
-    .expect(testutils.checkBody(fixtures.RESTResponseMemoTypeInt))
+    .expect(testutils.checkBody(fixtures.RESTErrorResponse({
+      type: 'invalid_request',
+      error: 'Invalid parameter: MemoType',
+      message: 'MemoType must be a string'
+    })))
     .end(done);
   });
 
@@ -372,15 +482,26 @@ suite('post payments', function() {
       conn.send(fixtures.requestSubmitResponse(message));
     });
 
-    var body = _.cloneDeep(fixtures.paymentWithMemo);
-    body.payment.memos[0].MemoData = 1;
-
     self.app
     .post('/v1/accounts/' + addresses.VALID + '/payments')
-    .send(body)
+    .send(fixtures.payment({
+      memos: [
+        {
+          "MemoType": "some_key",
+          "MemoData": 1
+        },
+        {
+          "MemoData": "some_value"
+        }
+      ]
+    }))
     .expect(testutils.checkStatus(400))
     .expect(testutils.checkHeaders)
-    .expect(testutils.checkBody(fixtures.RESTResponseMemoDataInt))
+    .expect(testutils.checkBody(fixtures.RESTErrorResponse({
+      type: 'invalid_request',
+      error: 'Invalid parameter: MemoData',
+      message: 'MemoData must be a string'
+    })))
     .end(done);
   });
 
@@ -396,15 +517,18 @@ suite('post payments', function() {
       conn.send(fixtures.requestSubmitResponse(message));
     });
 
-    var body = _.cloneDeep(fixtures.paymentWithMemo);
-    delete body.payment.memos[0].MemoData;
-
     self.app
     .post('/v1/accounts/' + addresses.VALID + '/payments')
-    .send(body)
+    .send(fixtures.payment({
+      memos: [
+        {
+          "MemoData": "some_value"
+        }
+      ]
+    }))
     .expect(testutils.checkStatus(200))
     .expect(testutils.checkHeaders)
-    .expect(testutils.checkBody(fixtures.RESTResponseMissingMemoData))
+    .expect(testutils.checkBody(fixtures.RESTSuccessResponse()))
     .end(done);
   });
 
@@ -422,10 +546,20 @@ suite('post payments', function() {
 
     self.app
     .post('/v1/accounts/' + addresses.VALID + '/payments')
-    .send(fixtures.paymentWithMemo)
+    .send(fixtures.payment({
+      memos: [
+        {
+          "MemoType": "some_key",
+          "MemoData": "some_value"
+        },
+        {
+          "MemoData": "some_value"
+        }
+      ]
+    }))
     .expect(testutils.checkStatus(200))
     .expect(testutils.checkHeaders)
-    .expect(testutils.checkBody(fixtures.RESTPaymentWithMemoResponse))
+    .expect(testutils.checkBody(fixtures.RESTSuccessResponse()))
     .end(done);
   });
 
@@ -443,10 +577,14 @@ suite('post payments', function() {
 
     self.app
     .post('/v1/accounts/' + addresses.VALID + '/payments')
-    .send(fixtures.nonXrpPaymentWithIssuer)
+    .send(fixtures.payment({
+      value: '0.001',
+      currency: 'USD',
+      issuer: addresses.ISSUER
+    }))
     .expect(testutils.checkStatus(200))
     .expect(testutils.checkHeaders)
-    .expect(testutils.checkBody(fixtures.RESTNonXrpPaymentWithIssuer))
+    .expect(testutils.checkBody(fixtures.RESTSuccessResponse()))
     .end(done);
   });
 
@@ -464,10 +602,13 @@ suite('post payments', function() {
 
     self.app
     .post('/v1/accounts/' + addresses.VALID + '/payments')
-    .send(fixtures.nonXrpPaymentWithoutIssuer)
+    .send(fixtures.payment({
+      value: '0.001',
+      currency: 'USD'
+    }))
     .expect(testutils.checkStatus(200))
     .expect(testutils.checkHeaders)
-    .expect(testutils.checkBody(fixtures.RESTNonXrpPaymentWithIssuer))
+    .expect(testutils.checkBody(fixtures.RESTSuccessResponse()))
     .end(done);
   });
 
@@ -482,10 +623,15 @@ suite('post payments', function() {
 
     self.app
     .post('/v1/accounts/' + addresses.VALID + '/payments')
-    .send(fixtures.nonXrpPaymentWithInvalidSecret)
+    .send(fixtures.payment({
+      secret: 'foo'
+    }))
     .expect(testutils.checkStatus(500))
     .expect(testutils.checkHeaders)
-    .expect(testutils.checkBody(fixtures.RESTNonXrpPaymentWithInvalidsecret))
+    .expect(testutils.checkBody(fixtures.RESTErrorResponse({
+      type: 'transaction',
+      error: 'Invalid secret'
+    })))
     .end(done);
   });
 
@@ -503,10 +649,19 @@ suite('post payments', function() {
 
     self.app
     .post('/v1/accounts/' + addresses.VALID + '/payments')
-    .send(fixtures.nonXrpWithLastLedgerSequence(1))
+    .send(fixtures.payment({
+      value: '0.001',
+      currency: 'USD',
+      issuer: addresses.issuer,
+      lastLedgerSequence: 1
+    }))
     .expect(testutils.checkStatus(500))
     .expect(testutils.checkHeaders)
-    .expect(testutils.checkBody(fixtures.RESTNonXrpPaymentWithHighLedgerSequence))
+    .expect(testutils.checkBody(fixtures.RESTErrorResponse({
+      type: 'transaction',
+      error: 'tefMAX_LEDGER',
+      message: 'Ledger sequence too high.'
+    })))
     .end(done);
   });
 
@@ -526,10 +681,15 @@ suite('post payments', function() {
 
     self.app
     .post('/v1/accounts/' + addresses.VALID + '/payments')
-    .send(fixtures.nonXrpWithLastLedgerSequence(9036185))
+    .send(fixtures.payment({
+      value: '0.001',
+      currency: 'USD',
+      issuer: addresses.issuer,
+      lastLedgerSequence: 9036185
+    }))
     .expect(testutils.checkStatus(200))
     .expect(testutils.checkHeaders)
-    .expect(testutils.checkBody(fixtures.RESTNonXrpPaymentWithIssuer))
+    .expect(testutils.checkBody(fixtures.RESTSuccessResponse()))
     .end(done);
   });
 
@@ -550,15 +710,23 @@ suite('post payments', function() {
         engineResultCode: '-394',
         engineResultMessage: 'Fee insufficient.'
       }));
-
     });
 
     self.app
     .post('/v1/accounts/' + addresses.VALID + '/payments')
-    .send(fixtures.nonXrpWithFee(15))
+    .send(fixtures.payment({
+      value: '0.001',
+      currency: 'USD',
+      issuer: addresses.ISSUER,
+      fee: 15
+    }))
     .expect(testutils.checkStatus(500))
     .expect(testutils.checkHeaders)
-    .expect(testutils.checkBody(fixtures.RESTNonXrpPaymentWithInsufficientFee))
+    .expect(testutils.checkBody(fixtures.RESTErrorResponse({
+        type: 'transaction',
+        error: 'telINSUF_FEE_P',
+        message: 'Fee insufficient. Please ensure that the source_address has sufficient XRP to pay the fee. If it does, please report this error, this service should handle setting the proper fee.'
+      })))
     .end(done);
   });
 
@@ -575,10 +743,18 @@ suite('post payments', function() {
 
     self.app
     .post('/v1/accounts/' + addresses.VALID + '/payments')
-    .send(fixtures.nonXrpWithFee(10))
+    .send(fixtures.payment({
+      value: '0.001',
+      currency: 'USD',
+      issuer: addresses.ISSUER,
+      fee: 10
+    }))
     .expect(testutils.checkStatus(500))
     .expect(testutils.checkHeaders)
-    .expect(testutils.checkBody(fixtures.RESTNonXrpPaymentWithMaxFeeExceeded))
+    .expect(testutils.checkBody(fixtures.RESTErrorResponse({
+      type: 'transaction',
+      error: 'Max fee exceeded'
+    })))
     .end(done);
   });
 
@@ -598,15 +774,19 @@ suite('post payments', function() {
 
     self.app
     .post('/v1/accounts/' + addresses.VALID + '/payments')
-    .send(fixtures.nonXrpWithFee(1200))
+    .send(fixtures.payment({
+      value: '0.001',
+      currency: 'USD',
+      issuer: addresses.ISSUER,
+      fee: 1200
+    }))
     .expect(testutils.checkStatus(200))
     .expect(testutils.checkHeaders)
-    .expect(testutils.checkBody(fixtures.RESTNonXrpPaymentWithIssuer))
+    .expect(testutils.checkBody(fixtures.RESTSuccessResponse()))
     .end(done);
   });
 
   test('/payments -- with not enough XRP to create a new account', function(done) {
-
     var hash = testutils.generateHash();
 
     self.wss.once('request_subscribe', function(message, conn) {
@@ -644,19 +824,18 @@ suite('post payments', function() {
 
     self.app
       .post('/v1/accounts/' + addresses.VALID + '/payments')
-      .send(fixtures.xrpPayment('1'))
+      .send(fixtures.payment())
       .expect(testutils.checkStatus(500))
       .expect(testutils.checkHeaders)
       .expect(testutils.checkBody(fixtures.RESTErrorResponse({
         type: 'transaction',
         error: 'tecNO_DST_INSUF_XRP',
-        message:'Destination does not exist. Too little XRP sent to create it.'
+        message: 'Destination does not exist. Too little XRP sent to create it.'
       })))
       .end(done);
   });
 
   test('/payments -- with not enough balance to pay the fee', function(done) {
-
     var hash = testutils.generateHash();
 
     self.wss.once('request_subscribe', function(message, conn) {
@@ -684,19 +863,18 @@ suite('post payments', function() {
 
     self.app
       .post('/v1/accounts/' + addresses.VALID + '/payments')
-      .send(fixtures.xrpPayment('1'))
+      .send(fixtures.payment())
       .expect(testutils.checkStatus(500))
       .expect(testutils.checkHeaders)
       .expect(testutils.checkBody(fixtures.RESTErrorResponse({
         type: 'transaction',
         error: 'terINSUF_FEE_B',
-        message:'Account balance can\'t pay fee.'
+        message: 'Account balance can\'t pay fee.'
       })))
       .end(done);
   });
 
   test('/payments -- with an unfunded account', function(done) {
-
     var hash = testutils.generateHash();
 
     self.wss.once('request_subscribe', function(message, conn) {
@@ -723,13 +901,13 @@ suite('post payments', function() {
 
     self.app
       .post('/v1/accounts/' + addresses.VALID + '/payments')
-      .send(fixtures.xrpPayment('1'))
+      .send(fixtures.payment())
       .expect(testutils.checkStatus(500))
       .expect(testutils.checkHeaders)
       .expect(testutils.checkBody(fixtures.RESTErrorResponse({
         type: 'transaction',
         error: 'terNO_ACCOUNT',
-        message:'The source account does not exist.'
+        message: 'The source account does not exist.'
 
       })))
       .end(done);
@@ -753,7 +931,6 @@ suite('post payments', function() {
     });
 
     var secondPayment = function(err) {
-
       if (err) {
         assert(false);
         return done(err);
@@ -761,7 +938,9 @@ suite('post payments', function() {
 
       // 2nd payment
       self.app.post('/v1/accounts/' + addresses.VALID + '/payments')
-        .send(fixtures.xrpPayment('1', {clientResourceId: 'id'}))
+        .send(fixtures.payment({
+          clientResourceId: 'id'
+        }))
         .expect(testutils.checkStatus(500))
         .expect(testutils.checkHeaders)
         .expect(testutils.checkBody(fixtures.RESTErrorResponse({
@@ -774,35 +953,14 @@ suite('post payments', function() {
 
     self.app
       .post('/v1/accounts/' + addresses.VALID + '/payments')
-      .send(fixtures.xrpPayment('1', {clientResourceId: 'id'}))
+      .send(fixtures.payment({
+        clientResourceId: 'id'
+      }))
       .expect(testutils.checkStatus(200))
       .expect(testutils.checkHeaders)
-      .expect(testutils.checkBody(fixtures.RESTSuccessResponse({clientResourceId: 'id'})))
+      .expect(testutils.checkBody(fixtures.RESTSuccessResponse({
+        clientResourceId: 'id'
+      })))
       .end(secondPayment);
   });
-
 });
-/*
-//
-// Unit test payments
-//
-suite('unit test payments', function() {
-
-test('should parse payment tx', function(done) {
-var transaction = Payments._parsePaymentFromTx(fixtures.txPayment, { account: 'rGUpotx8YYDiocqS577N4T1p1kHBNdEJ9s' }, function(err){
-assert(false, 'callback should not have been called');
-});
-assert.deepEqual(transaction, fixtures.RESTResponsePayment);
-done();
-});
-
-test('should parse partial payment tx', function(done) {
-var transaction = Payments._parsePaymentFromTx(fixtures.txPartialPayment, { account: 'rDuV4ndTFUn5NjLJSTNfEFMTxqQVeafvxC' }, function(err){
-assert(false, 'callback should not have been called');
-});
-assert.deepEqual(transaction, fixtures.RESTResponsePartialPayment);
-done();
-});
-
-});
-*/
