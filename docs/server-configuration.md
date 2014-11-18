@@ -6,6 +6,43 @@ An example configuration file is provided [here](../config-example.json).
 
 ----------
 
+### Version 2.0.1
+
+### Changes
+
++ Add `max_transaction_fee` property to set the maximum fee you're willing to pay for a transaction
+
+```js
+{
+  "config_version": "2.0.`",
+  "debug": false,
+  "port": 5990,
+  "host": "localhost",
+  "ssl_enabled": false,
+  "ssl": {
+    "key_path": "./certs/server.key",
+    "cert_path": "./certs/server.crt"
+  },
+  "db_path": "./ripple-rest.db",
+  "max_transaction_fee": 1000000,
+  "rippled_servers": [
+    "wss://s1.ripple.com:443"
+  ]
+}
+```
+
++ `config_version` - will be checked by the configuration loader and it will throw an error if there have been breaking changes to the format
++ `port` - the port that the API server will be available on
++ `host` - the host the API server will be available on
++ `dp_path` - path for sqlite3 to save the database to. Can be populated with `:memory:` to run an in-memory version of the sqlite db
++ `ssl_enabled` - boolean to configure to server to host over SSL
++ `ssl` - if an object with `key_path` and `cert_path` are provided, the API server will be available over HTTPS
++ `max_transaction_fee` - the maximum fee you're willing to pay for a transaction, has to be a `Number`
++ `rippled_servers` - an array of server objects indicating which `rippled` servers the API should connect to. These should be configured to point to your local `rippled` if you are running one, instead of `s_west.ripple.com`
++ `debug` - boolean to log debugging information
+
+----------
+
 ### Version 2.0.0
 
 ### Changes
