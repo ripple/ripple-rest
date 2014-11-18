@@ -13,9 +13,9 @@ suite('get fee', function() {
   setup(testutils.setup.bind(self));
   teardown(testutils.teardown.bind(self));
 
-  test('/fee', function(done) {
+  test('/transaction-fee', function(done) {
     self.app
-    .get('/v1/fee')
+    .get('/v1/transaction-fee')
     .expect(testutils.checkStatus(200))
     .expect(testutils.checkHeaders)
     .expect(function(res, err) {
@@ -26,7 +26,7 @@ suite('get fee', function() {
     .end(done);
   });
 
-  test('/fee -- increased fee', function(done) {
+  test('/transaction-fee -- increased fee', function(done) {
     self.app.remote._servers[0].emit('message', {
       type: 'serverStatus',
       load_base: 256,
@@ -35,7 +35,7 @@ suite('get fee', function() {
     });
 
     self.app
-    .get('/v1/fee')
+    .get('/v1/transaction-fee')
     .expect(testutils.checkStatus(200))
     .expect(testutils.checkHeaders)
     .expect(function(res, err) {
