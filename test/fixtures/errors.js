@@ -78,3 +78,23 @@ module.exports.RESTLedgerMissingWithMarker = JSON.stringify(
     error: 'A ledger_index or ledger_hash must be provided when using a marker' 
   }
 );
+
+/**
+ * Construct REST error response
+ *
+ * @param options
+ *   @param {String} type - error type
+ *   @param {String} error - error code
+ *   @param {String} message - error message
+ * @return {String} REST error response message
+ */
+module.exports.RESTErrorResponse = function(options) {
+  return JSON.stringify(
+    {
+      "success": false,
+      "error_type": options.type,
+      "error": options.error,
+      "message": options.message
+    }
+  );
+};

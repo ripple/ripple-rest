@@ -85,7 +85,7 @@ suite('get payments', function() {
     .get(requestPath(addresses.VALID) + '/' + fixtures.INVALID_TRANSACTION_HASH)
     .expect(testutils.checkStatus(400))
     .expect(testutils.checkHeaders)
-    .expect(testutils.checkBody(fixtures.RESTErrorResponse({
+    .expect(testutils.checkBody(errors.RESTErrorResponse({
       type: 'invalid_request',
       error: 'Transaction not found',
       message: 'A transaction hash was not supplied and there were no entries matching the client_resource_id.'
@@ -153,7 +153,7 @@ suite('post payments', function() {
     }))
     .expect(testutils.checkStatus(500))
     .expect(testutils.checkHeaders)
-    .expect(testutils.checkBody(fixtures.RESTErrorResponse({
+    .expect(testutils.checkBody(errors.RESTErrorResponse({
       type: 'transaction',
       error: 'tefMAX_LEDGER',
       message: 'Ledger sequence too high.'
@@ -181,7 +181,7 @@ suite('post payments', function() {
     }))
     .expect(testutils.checkStatus(500))
     .expect(testutils.checkHeaders)
-    .expect(testutils.checkBody(fixtures.RESTErrorResponse({
+    .expect(testutils.checkBody(errors.RESTErrorResponse({
       type: 'transaction',
       error: 'tefDST_TAG_NEEDED',
       message: 'Destination tag required.'
@@ -210,7 +210,7 @@ suite('post payments', function() {
     }))
     .expect(testutils.checkStatus(500))
     .expect(testutils.checkHeaders)
-    .expect(testutils.checkBody(fixtures.RESTErrorResponse({
+    .expect(testutils.checkBody(errors.RESTErrorResponse({
       type: 'transaction',
       error: 'Max fee exceeded'
     })))
@@ -261,7 +261,7 @@ suite('post payments', function() {
     }))
     .expect(testutils.checkStatus(500))
     .expect(testutils.checkHeaders)
-    .expect(testutils.checkBody(fixtures.RESTErrorResponse({
+    .expect(testutils.checkBody(errors.RESTErrorResponse({
       type: 'transaction',
       error: 'tefMAX_LEDGER',
       message: 'Ledger sequence too high.'
@@ -289,7 +289,7 @@ suite('post payments', function() {
     }))
     .expect(testutils.checkStatus(500))
     .expect(testutils.checkHeaders)
-    .expect(testutils.checkBody(fixtures.RESTErrorResponse({
+    .expect(testutils.checkBody(errors.RESTErrorResponse({
       type: 'transaction',
       error: 'tefDST_TAG_NEEDED',
       message: 'Destination tag required.'
@@ -318,7 +318,7 @@ suite('post payments', function() {
     }))
     .expect(testutils.checkStatus(500))
     .expect(testutils.checkHeaders)
-    .expect(testutils.checkBody(fixtures.RESTErrorResponse({
+    .expect(testutils.checkBody(errors.RESTErrorResponse({
       type: 'transaction',
       error: 'Max fee exceeded'
     })))
@@ -345,7 +345,7 @@ suite('post payments', function() {
     }))
     .expect(testutils.checkStatus(500))
     .expect(testutils.checkHeaders)
-    .expect(testutils.checkBody(fixtures.RESTErrorResponse({
+    .expect(testutils.checkBody(errors.RESTErrorResponse({
       type: 'transaction',
       error: 'tefMAX_LEDGER',
       message: 'Ledger sequence too high.'
@@ -373,7 +373,7 @@ suite('post payments', function() {
     }))
     .expect(testutils.checkStatus(500))
     .expect(testutils.checkHeaders)
-    .expect(testutils.checkBody(fixtures.RESTErrorResponse({
+    .expect(testutils.checkBody(errors.RESTErrorResponse({
       type: 'transaction',
       error: 'tefDST_TAG_NEEDED',
       message: 'Destination tag required.'
@@ -400,7 +400,7 @@ suite('post payments', function() {
     }))
     .expect(testutils.checkStatus(400))
     .expect(testutils.checkHeaders)
-    .expect(testutils.checkBody(fixtures.RESTErrorResponse({
+    .expect(testutils.checkBody(errors.RESTErrorResponse({
       type: 'invalid_request',
       error: 'Invalid parameter: memos',
       message: 'Must be an array with memo objects'
@@ -427,7 +427,7 @@ suite('post payments', function() {
     }))
     .expect(testutils.checkStatus(400))
     .expect(testutils.checkHeaders)
-    .expect(testutils.checkBody(fixtures.RESTErrorResponse({
+    .expect(testutils.checkBody(errors.RESTErrorResponse({
       type: 'invalid_request',
       error: 'Invalid parameter: memos',
       message: 'Must contain at least one Memo object, otherwise omit the memos property'
@@ -462,7 +462,7 @@ suite('post payments', function() {
     }))
     .expect(testutils.checkStatus(400))
     .expect(testutils.checkHeaders)
-    .expect(testutils.checkBody(fixtures.RESTErrorResponse({
+    .expect(testutils.checkBody(errors.RESTErrorResponse({
       type: 'invalid_request',
       error: 'Invalid parameter: MemoType',
       message: 'MemoType must be a string'
@@ -497,7 +497,7 @@ suite('post payments', function() {
     }))
     .expect(testutils.checkStatus(400))
     .expect(testutils.checkHeaders)
-    .expect(testutils.checkBody(fixtures.RESTErrorResponse({
+    .expect(testutils.checkBody(errors.RESTErrorResponse({
       type: 'invalid_request',
       error: 'Invalid parameter: MemoData',
       message: 'MemoData must be a string'
@@ -628,7 +628,7 @@ suite('post payments', function() {
     }))
     .expect(testutils.checkStatus(500))
     .expect(testutils.checkHeaders)
-    .expect(testutils.checkBody(fixtures.RESTErrorResponse({
+    .expect(testutils.checkBody(errors.RESTErrorResponse({
       type: 'transaction',
       error: 'Invalid secret'
     })))
@@ -657,7 +657,7 @@ suite('post payments', function() {
     }))
     .expect(testutils.checkStatus(500))
     .expect(testutils.checkHeaders)
-    .expect(testutils.checkBody(fixtures.RESTErrorResponse({
+    .expect(testutils.checkBody(errors.RESTErrorResponse({
       type: 'transaction',
       error: 'tefMAX_LEDGER',
       message: 'Ledger sequence too high.'
@@ -722,7 +722,7 @@ suite('post payments', function() {
     }))
     .expect(testutils.checkStatus(500))
     .expect(testutils.checkHeaders)
-    .expect(testutils.checkBody(fixtures.RESTErrorResponse({
+    .expect(testutils.checkBody(errors.RESTErrorResponse({
         type: 'transaction',
         error: 'telINSUF_FEE_P',
         message: 'Fee insufficient. Please ensure that the source_address has sufficient XRP to pay the fee. If it does, please report this error, this service should handle setting the proper fee.'
@@ -751,7 +751,7 @@ suite('post payments', function() {
     }))
     .expect(testutils.checkStatus(500))
     .expect(testutils.checkHeaders)
-    .expect(testutils.checkBody(fixtures.RESTErrorResponse({
+    .expect(testutils.checkBody(errors.RESTErrorResponse({
       type: 'transaction',
       error: 'Max fee exceeded'
     })))
@@ -827,7 +827,7 @@ suite('post payments', function() {
       .send(fixtures.payment())
       .expect(testutils.checkStatus(500))
       .expect(testutils.checkHeaders)
-      .expect(testutils.checkBody(fixtures.RESTErrorResponse({
+      .expect(testutils.checkBody(errors.RESTErrorResponse({
         type: 'transaction',
         error: 'tecNO_DST_INSUF_XRP',
         message: 'Destination does not exist. Too little XRP sent to create it.'
@@ -866,7 +866,7 @@ suite('post payments', function() {
       .send(fixtures.payment())
       .expect(testutils.checkStatus(500))
       .expect(testutils.checkHeaders)
-      .expect(testutils.checkBody(fixtures.RESTErrorResponse({
+      .expect(testutils.checkBody(errors.RESTErrorResponse({
         type: 'transaction',
         error: 'terINSUF_FEE_B',
         message: 'Account balance can\'t pay fee.'
@@ -904,7 +904,7 @@ suite('post payments', function() {
       .send(fixtures.payment())
       .expect(testutils.checkStatus(500))
       .expect(testutils.checkHeaders)
-      .expect(testutils.checkBody(fixtures.RESTErrorResponse({
+      .expect(testutils.checkBody(errors.RESTErrorResponse({
         type: 'transaction',
         error: 'terNO_ACCOUNT',
         message: 'The source account does not exist.'
@@ -943,7 +943,7 @@ suite('post payments', function() {
         }))
         .expect(testutils.checkStatus(500))
         .expect(testutils.checkHeaders)
-        .expect(testutils.checkBody(fixtures.RESTErrorResponse({
+        .expect(testutils.checkBody(errors.RESTErrorResponse({
           type: 'server',
           error: 'Duplicate Transaction',
           message: 'A record already exists in the database for a transaction of this type with the same client_resource_id. If this was not an accidental resubmission please submit the transaction again with a unique client_resource_id'
