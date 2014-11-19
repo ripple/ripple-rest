@@ -13,15 +13,6 @@ The Ripple-REST API provides a simplified, easy-to-use interface to the Ripple N
 We recommend Ripple-REST for users just getting started with Ripple, since it provides high-level abstractions and convenient simplifications in the data format. If you prefer to access a `rippled` server directly, you can use [rippled's WebSocket or JSON-RPC APIs](rippled-apis.html) instead, which provide the full power of Ripple at the cost of more complexity.
 
 
-# Ripple-REST API #
-
-The Ripple-REST API provides a simplified, easy-to-use interface to the Ripple Network via a RESTful API. This page explains how to use the API to send and receive payments on Ripple.
-
-We recommend Ripple-REST for users just getting started with Ripple, since it provides high-level abstractions and convenient simplifications in the data format. If you prefer to access a `rippled` server directly, you can use [rippled's WebSocket or JSON-RPC APIs](rippled-apis.html) instead, which provide the full power of Ripple at the cost of more complexity.
-
-Installation instructions and source code can be found in the [Ripple-REST repository](https://github.com/ripple/ripple-rest).
-
-
 ## Available API Routes ##
 
 #### Accounts ####
@@ -110,9 +101,6 @@ Make sure you know both the account address and the account secret for your acco
 
  * The *address* can be found by clicking the *Show Address* button in the __Fund__ tab of Ripple Trade
  * The *secret* is provided when you first create your account. **WARNING: If you submit your secret to a server you do not control, your account can be stolen, along with all the money in it.** We recommend using a test account with very limited funds on the public Ripple-REST server.
-
-If you want to run your own Ripple-REST server, see the [installation instructions](https://github.com/ripple/ripple-rest/#installing-and-running).
-
 
 As a programmer, you will also need to have a suitable HTTP client that allows you to make secure HTTP (`HTTPS`) GET and POST requests. For testing, there are lots of options, including:
 
