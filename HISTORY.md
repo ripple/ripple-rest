@@ -1,3 +1,19 @@
+## 1.3.1
+
++ Add `validated` query parameter to POST payment, account settings and trustlines. When set to true this will force the request to wait until the transaction has been validated. [f2710f4b](https://github.com/ripple/ripple-rest/commit/f2710f4b78a8c1b9860f2876f6f051022241c641), [1ee9c9ff](https://github.com/ripple/ripple-rest/commit/1ee9c9ff06ada4a14955bf64ed42d7c3c75f5a3e), [f243fef9](https://github.com/ripple/ripple-rest/commit/f243fef9d28be86f593dae11a3fac7421115e5bf)
+
++ Add `/v1/transaction-fee` endpoint to retrieve the current fee that connected servers are charging. [212c0bfb](https://github.com/ripple/ripple-rest/commit/212c0bfbcde887db9e9842ef43af062b5ab77598) and [afaa381b](https://github.com/ripple/ripple-rest/commit/afaa381bb5f9a4fdd50f1e35cb1d7990b4926833)
+
++ [Support `last_ledger_sequence` in POST payments, sets the last ledger this payment can be included in.](https://github.com/ripple/ripple-rest/commit/7ed11a94de0e7e6fd52adfdf64763d110ce13353)
+
++ [Support `max_fee` in POST payments. This will set the maximum fee the user will pay when posting a payment.](https://github.com/ripple/ripple-rest/commit/7bc6a892c42d628534c5d7529c76b7feb17e3b3c)
+
++ [Add config entry to configure `max_transaction_fee`. This allows you to set the maximum fee you're willing to pay for any transaction.](https://github.com/ripple/ripple-rest/commit/6667719614ce90a25f377473762f26a6b28aaa25) [Documented changes](https://github.com/ripple/ripple-rest/blob/develop/docs/server-configuration.md)
+ 
++ [Save unsubmitted transactions to database](https://github.com/ripple/ripple-rest/commit/860dccef01bef51238142e7a4d7287d4f09ed268)
+
+
+
 ## 1.3.0
 
 #### Added features
