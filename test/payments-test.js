@@ -1,12 +1,13 @@
-var assert = require('assert');
-var ripple = require('ripple-lib');
-var _ = require('lodash');
-var testutils = require('./testutils');
-var fixtures = require('./fixtures').payments;
-var errors = require('./fixtures').errors;
-var addresses = require('./fixtures').addresses;
-var requestPath = fixtures.requestPath;
-var Payments = require('./../api/payments');
+var assert        = require('assert');
+var ripple        = require('ripple-lib');
+var _             = require('lodash');
+var testutils     = require('./testutils');
+var fixtures      = require('./fixtures').payments;
+var errors        = require('./fixtures').errors;
+var addresses     = require('./fixtures').addresses;
+var utils         = require('./../lib/utils');
+var requestPath   = fixtures.requestPath;
+
 
 suite('get payments', function() {
   var self = this;
@@ -206,7 +207,7 @@ suite('post payments', function() {
       value: '0.001',
       currency: 'USD',
       issuer: addresses.ISSUER,
-      max_fee: 10
+      max_fee: utils.dropsToXrp(10)
     }))
     .expect(testutils.checkStatus(500))
     .expect(testutils.checkHeaders)
@@ -314,7 +315,7 @@ suite('post payments', function() {
       value: '0.001',
       currency: 'USD',
       issuer: addresses.ISSUER,
-      max_fee: 10
+      max_fee: 0.000010
     }))
     .expect(testutils.checkStatus(500))
     .expect(testutils.checkHeaders)
@@ -718,7 +719,7 @@ suite('post payments', function() {
       value: '0.001',
       currency: 'USD',
       issuer: addresses.ISSUER,
-      max_fee: 15
+      max_fee: 0.000015
     }))
     .expect(testutils.checkStatus(500))
     .expect(testutils.checkHeaders)
@@ -747,7 +748,7 @@ suite('post payments', function() {
       value: '0.001',
       currency: 'USD',
       issuer: addresses.ISSUER,
-      max_fee: 10
+      max_fee: 0.000010
     }))
     .expect(testutils.checkStatus(500))
     .expect(testutils.checkHeaders)
@@ -778,7 +779,7 @@ suite('post payments', function() {
       value: '0.001',
       currency: 'USD',
       issuer: addresses.ISSUER,
-      max_fee: 1200
+      max_fee: 0.001200
     }))
     .expect(testutils.checkStatus(200))
     .expect(testutils.checkHeaders)

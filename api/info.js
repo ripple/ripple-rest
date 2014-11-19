@@ -4,6 +4,7 @@ var serverlib = require('./../lib/server-lib');
 var remote    = require('./../lib/remote.js');
 var respond   = require('./../lib/response-handler.js');
 var errors    = require('./../lib/errors.js');
+var utils     = require('./../lib/utils.js');
 
 function getServerStatus(request, response, next) {
   serverlib.getStatus(remote, function(error, status) {
@@ -41,7 +42,7 @@ function getUUID(request, response, next) {
 function getFee(request, response, next) {
   var fee = remote.createTransaction()._computeFee();
 
-  respond.success(response, { fee: fee });
+  respond.success(response, { fee: utils.dropsToXrp(fee) });
 };
 
 module.exports.serverStatus = getServerStatus;
