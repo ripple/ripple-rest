@@ -63,7 +63,7 @@ function submitPayment(request, response, next) {
     secret: request.body.secret,
     client_resource_id: request.body.client_resource_id,
     last_ledger_sequence: request.body.last_ledger_sequence,
-    max_fee: request.body.max_fee,
+    max_fee: Number(request.body.max_fee) > 0 ? utils.xrpToDrops(request.body.max_fee) : void(0),
     url_base: request.protocol + '://' + request.hostname + (config && config.get('port') ? ':' + config.get('port') : ''),
     validated: request.query.validated === 'true'
   };
