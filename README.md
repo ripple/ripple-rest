@@ -13,6 +13,15 @@ The Ripple-REST API provides a simplified, easy-to-use interface to the Ripple N
 We recommend Ripple-REST for users just getting started with Ripple, since it provides high-level abstractions and convenient simplifications in the data format. If you prefer to access a `rippled` server directly, you can use [rippled's WebSocket or JSON-RPC APIs](rippled-apis.html) instead, which provide the full power of Ripple at the cost of more complexity.
 
 
+# Ripple-REST API #
+
+The Ripple-REST API provides a simplified, easy-to-use interface to the Ripple Network via a RESTful API. This page explains how to use the API to send and receive payments on Ripple.
+
+We recommend Ripple-REST for users just getting started with Ripple, since it provides high-level abstractions and convenient simplifications in the data format. If you prefer to access a `rippled` server directly, you can use [rippled's WebSocket or JSON-RPC APIs](rippled-apis.html) instead, which provide the full power of Ripple at the cost of more complexity.
+
+Installation instructions and source code can be found in the [Ripple-REST repository](https://github.com/ripple/ripple-rest).
+
+
 ## Available API Routes ##
 
 #### Accounts ####
@@ -46,6 +55,7 @@ We recommend Ripple-REST for users just getting started with Ripple, since it pr
 #### Utilities ####
 
 * [Retrieve Ripple Transaction - `GET /v1/transactions/{:transaction-hash}`](#retrieve-ripple-transaction)
+* [Retrieve Transaction Fee - `GET /v1/transaction-fee`](#retrieve-transaction-fee)
 * [Generate UUID - `GET /v1/uuid`](#create-client-resource-id)
 
 
@@ -86,27 +96,33 @@ The Ripple protocol supports multiple types of transactions other than just paym
  * Trustline: A Trustline transaction is an authorized grant of trust between two addresses. (This maps to rippled's [TrustSet transaction type](transactions.html#payment))
  * Setting: A Setting transaction is an authorized update of account flags under a Ripple Account. (This maps to rippled's [AccountSet transaction type](transactions.html#payment))
 
-
 ## Getting Started ##
+
+### Setup ###
 
 You don't need to do any setup to retrieve information from a public Ripple-REST server. Ripple Labs hosts a public Ripple-REST server here:
 
 `https://api.ripple.com`
 
-However, in order to submit payments or other transactions, you need an activated Ripple account. See the [online support](https://support.ripplelabs.com/hc/en-us/categories/200194196-Set-Up-Activation) for how you can create an account using the [Ripple Trade client](https://rippletrade.com/). 
+However, in order to submit payments or other transactions, you need an activated Ripple account. See the [online support](https://support.ripplelabs.com/hc/en-us/categories/200194196-Set-Up-Activation) for how you can create an account using the [Ripple Trade client](https://rippletrade.com/).
 
 Make sure you know both the account address and the account secret for your account:
 
  * The *address* can be found by clicking the *Show Address* button in the __Fund__ tab of Ripple Trade
  * The *secret* is provided when you first create your account. **WARNING: If you submit your secret to a server you do not control, your account can be stolen, along with all the money in it.** We recommend using a test account with very limited funds on the public Ripple-REST server.
 
+If you want to run your own Ripple-REST server, see the [installation instructions](https://github.com/ripple/ripple-rest/#installing-and-running).
+
+
 As a programmer, you will also need to have a suitable HTTP client that allows you to make secure HTTP (`HTTPS`) GET and POST requests. For testing, there are lots of options, including:
 
-  * The [`curl`](http://curl.haxx.se/) commandline utility
-  * The [Poster Firefox extension](https://addons.mozilla.org/en-US/firefox/addon/poster/)
-  * The [Postman Chrome extension](https://chrome.google.com/webstore/detail/postman-rest-client/fdmmgilgnpjigdojojpjoooidkmcomcm?hl=en)
+ * The [`curl`](http://curl.haxx.se/) commandline utility
+ * The [Poster Firefox extension](https://addons.mozilla.org/en-US/firefox/addon/poster/)
+ * The [Postman Chrome extension](https://chrome.google.com/webstore/detail/postman-rest-client/fdmmgilgnpjigdojojpjoooidkmcomcm?hl=en)
 
- You can also use the [REST API Tool](rest-api-tool.html) here on the Dev Portal to try out the API.
+You can also use the [REST API Tool](rest-api-tool.html) here on the Dev Portal to try out the API.
+
+[Try it! >](rest-api-tool.html)
 
 ### Quick Start ###
 
@@ -193,6 +209,7 @@ check process ripple-rest with pidfile /var/run/ripple-rest/ripple-rest.pid
     then restart
 ```
 
+
 ### Exploring the API ###
 
 A REST API makes resources available via HTTP, the same protocol used by your browser to access the web. This means you can even use your browser to get a response from the API. Try visiting the following URL:
@@ -250,7 +267,7 @@ The `ripple-rest` API conforms to the following general behavior for [RESTful AP
   * This means that you must set `Content-Type: application/json` in the headers when sending POST requests with a body.
 * Upon successful completion, the server returns an [HTTP status code](http://www.w3.org/Protocols/rfc2616/rfc2616-sec10.html) of 200 OK, and a `Content-Type` value of `application/json`.  The body of the response will be a JSON-formatted object containing the information returned by the endpoint.
 
-As an additional convention, all responses from Ripple-REST contain a `"success"` field with a boolean value indicating whether or not the success 
+As an additional convention, all responses from Ripple-REST contain a `"success"` field with a boolean value indicating whether or not the success
 
 ## Errors ##
 
@@ -258,7 +275,7 @@ When errors occur, the server returns an HTTP status code in the 400-599 range, 
 
 In general, the HTTP status code is indicative of where the problem occurred:
 
-* Codes in the 200-299 range indicate success. (*Note:* This behavior is new in [Ripple-REST v1.3.0](https://github.com/ripple/ripple-rest/releases/tag/v1.3.0-rc4). Previous versions sometimes return 200 OK for some types of errors.)
+* Codes in the 200-299 range indicate success. (*Note:* This behavior is new in [Ripple-REST v1.3.0](https://github.com/ripple/ripple-rest/releases/tag/1.3.0). Previous versions sometimes return 200 OK for some types of errors.)
     * Unless otherwise specified, methods are expected to return `200 OK` on success.
 * Codes in the 400-499 range indicate that the request was invalid or incorrect somehow. For example:
     * `400 Bad Request` occurs if the JSON body is malformed. This includes syntax errors as well as when invalid or mutually-exclusive options are selected.
@@ -335,7 +352,7 @@ The `value` field can get very large or very small. See the [Currency Format](ht
 
 ### Amounts in URLs ###
 
-When an amount of currency has to be specified in a URL, you use the same fields as the JSON object -- value, currency, and issuer -- but concatenate them with `+` symbols. 
+When an amount of currency has to be specified in a URL, you use the same fields as the JSON object -- value, currency, and issuer -- but concatenate them with `+` symbols.
 
 Example Amount:
 
@@ -414,7 +431,7 @@ Submitted transactions can have additional fields reflecting the current status 
 
 ### Memo Objects ###
 
-(New in [Ripple-REST v1.3.0](https://github.com/ripple/ripple-rest/releases/tag/v1.3.0-rc4))
+(New in [Ripple-REST v1.3.0](https://github.com/ripple/ripple-rest/releases/tag/1.3.0))
 
 Memo objects represent arbitrary data that can be included in a transaction. The overall size of the `memos` field cannot exceed 1KB after serialization.
 
@@ -468,13 +485,13 @@ A trust line with a limit *and* a balance of 0 is equivalent to no trust line.
 
 # ACCOUNTS #
 
-Accounts are the core unit of authentication in the Ripple Network. Each account can hold balances in multiple currencies, and all transactions must be signed by an account’s secret key. In order for an account to exist in a validated ledger version, it must hold a minimum reserve amount of XRP. (The [account reserve](https://wiki.ripple.com/Reserves) increases with the amount of data it is responsible for in the shared ledger.) It is expected that accounts will correspond loosely to individual users. 
+Accounts are the core unit of authentication in the Ripple Network. Each account can hold balances in multiple currencies, and all transactions must be signed by an account’s secret key. In order for an account to exist in a validated ledger version, it must hold a minimum reserve amount of XRP. (The [account reserve](https://wiki.ripple.com/Reserves) increases with the amount of data it is responsible for in the shared ledger.) It is expected that accounts will correspond loosely to individual users.
 
 
 
 ## Generate Wallet ##
 
-(New in [Ripple-REST v1.3.0](https://github.com/ripple/ripple-rest/releases/tag/v1.3.0-rc4))
+(New in [Ripple-REST v1.3.0](https://github.com/ripple/ripple-rest/releases/tag/1.3.0))
 
 Randomly generate keys for a potential new Ripple account.
 
@@ -483,6 +500,9 @@ Randomly generate keys for a potential new Ripple account.
 ```
 GET /v1/wallet/new
 ```
+
+[Try it! >](https://ripple.com/build/ripple-rest/rest-api-tool.html#generate-account)
+<!-- not a typo; waiting for the tool to be updated -->
 
 There are two steps to making a new account on the Ripple network: randomly creating the keys for that account, and sending it enough XRP to meet the account reserve.
 
@@ -519,6 +539,8 @@ Retrieve the current balances for the given Ripple account.
 GET /v1/accounts/{:address}/balances
 ```
 
+[Try it! >](https://ripple.com/build/ripple-rest/rest-api-tool.html#get-account-balances)
+
 The following URL parameters are required by this API endpoint:
 
 | Field | Type | Description |
@@ -530,7 +552,12 @@ Optionally, you can also include the following query parameters:
 | Field | Type | Description |
 |-------|------|-------------|
 | currency | String ([ISO 4217 Currency Code](http://www.xe.com/iso4217.php)) | If provided, only include balances in the given currency. |
-| counterparty | String (Address) | If provided, only include balances issued by the provided address (usually a gateway) |
+| counterparty | String (Address) | If provided, only include balances issued by the provided address (usually a gateway). |
+| marker | String | Start position in response paging. |
+| limit | String (Integer) | Max results per response. Will default to 10 if not set or set below 10. |
+| ledger | String | Ledger to request paged results from. Use the ledger's hash. |
+
+*Note:* In order to use paging, you must provide `ledger` as a URL query parameter.
 
 #### Response ####
 
@@ -567,6 +594,8 @@ Retrieve the current settings for a given account.
 ```
 GET /v1/accounts/{:address}/settings
 ```
+
+[Try it! >](https://ripple.com/build/ripple-rest/rest-api-tool.html#get-account-settings)
 
 The following URL parameters are required by this API endpoint:
 
@@ -626,7 +655,7 @@ Modify the existing settings for an account.
 *REST*
 
 ```
-POST /v1/accounts/{:address}/settings
+POST /v1/accounts/{:address}/settings?validated=true
 
 {
   "secret": "sssssssssssssssssssssssssssss",
@@ -641,6 +670,8 @@ POST /v1/accounts/{:address}/settings
 }
 ```
 
+[Try it! >](https://ripple.com/build/ripple-rest/rest-api-tool.html#update-account-settings)
+
 The following URL parameters are required by this API endpoint:
 
 | Field | Value | Description |
@@ -653,6 +684,12 @@ The request body must be a JSON object with the following fields:
 |-------|-------|-------------|
 | secret | String | A secret key for your Ripple account. This is either the master secret, or a regular secret, if your account has one configured. |
 | settings | Object | A map of settings to change for this account. Any settings not included are left unchanged. |
+
+Optionally, you can include the following as a URL query parameter:
+
+| Field | Type | Description |
+|-------|------|-------------|
+| validated | String | `true` or `false`. When set to `true`, will force the request to wait until the account transaction has been successfully validated by the server. A validated transaction will have the `state` attribute set to `"validated"` in the response. |
 
 __DO NOT SUBMIT YOUR SECRET TO AN UNTRUSTED REST API SERVER__ -- The secret key can be used to send transactions from your account, including spending all the balances it holds. For the public server, only use test accounts.
 
@@ -677,13 +714,14 @@ The `settings` object can contain any of the following fields (any omitted field
 ```js
 {
   "success": true,
-  "hash": "81FA244915767DAF65B0ACF262C88ABC60E9437A4A1B728F7A9F932E727B82C6",
-  "ledger": "9248628",
   "settings": {
     "require_destination_tag": false,
     "require_authorization": false,
     "disallow_xrp": false,
-    "email_hash": "98b4375e1d753e5b91627516f6d70977"
+    "email_hash": "98b4375e1d753e5b91627516f6d70977",
+    "state": "pending",
+    "ledger": "9248628",
+    "hash": "81FA244915767DAF65B0ACF262C88ABC60E9437A4A1B728F7A9F932E727B82C6",
   }
 }
 ```
@@ -716,6 +754,8 @@ Get quotes for possible ways to make a particular payment.
 GET /v1/accounts/{:address}/payments/paths/{:destination_account}/{:destination_amount}
 ```
 
+[Try it! >](https://ripple.com/build/ripple-rest/rest-api-tool.html#prepare-payment)
+
 The following URL parameters are required by this API endpoint:
 
 | Field | Type | Description |
@@ -747,7 +787,7 @@ You can then choose one of the returned payment objects, modify it as desired (f
 }
 ```
 
-You can then select the desired payment, modify it if necessary, and submit the payment object to the [`POST /v1/accounts/{:address}/payments`](#submit-payment) endpoint for processing.
+You can then select the desired payment, modify it if necessary, and submit the payment object to the [`POST /v1/accounts/{address}/payments`](#submit-payment) endpoint for processing.
 
 __NOTE:__ This command may be quite slow. If the command times out, please try it again.
 
@@ -756,16 +796,18 @@ __NOTE:__ This command may be quite slow. If the command times out, please try i
 ## Submit Payment ##
 [[Source]<br>](https://github.com/ripple/ripple-rest/blob/master/api/payments.js#L43 "Source")
 
-Submit a payment object to be processed and executed. 
+Submit a payment object to be processed and executed.
 
 *REST*
 
 ```
-POST /v1/accounts/{:address}/payments
+POST /v1/accounts/{address}/payments?validated=true
 
 {
   "secret": "s...",
   "client_resource_id": "123",
+  "last_ledger_sequence": "1...",
+  "max_fee": "100",
   "payment": {
     "source_account": "rBEXjfD3MuXKATePRwrk4AqgqzuD9JjQqv",
     "source_tag": "",
@@ -790,6 +832,8 @@ POST /v1/accounts/{:address}/payments
 }
 ```
 
+[Try it! >](https://ripple.com/build/ripple-rest/rest-api-tool.html#submit-payment)
+
 The following parameters are required in the JSON body of the request:
 
 | Field | Type | Description |
@@ -798,9 +842,24 @@ The following parameters are required in the JSON body of the request:
 | client_resource_id | String | A unique identifier for this payment. You can generate one using the [`GET /v1/uuid`](#calculating_a_uuid) method. |
 | secret | String | A secret key for your Ripple account. This is either the master secret, or a regular secret, if your account has one configured. |
 
+Optionally, you can include the following as a URL query parameter:
+
+| Field | Type | Description |
+|-------|------|-------------|
+| validated | String | `true` or `false`. When set to `true`, will force the request to wait until the payment has been successfully validated by the server. Response format in this case will match [`GET /v1/accounts/{:address}/payments/{:payment}`](#confirm-payment) |
+
+Optionally, you can also include the following as a JSON body parameter:
+
+| Field | Type | Description |
+|-------|------|-------------|
+| last_ledger_sequence | String | A string representation of a ledger sequence number. If this parameter is not set, it defaults to the current ledger sequence plus an appropriate buffer. |
+| max_fee | String | A string representation of a fee amount in drops. If this parameter is not set, it defaults to a median of the connected ripple server fees |
+
 __DO NOT SUBMIT YOUR SECRET TO AN UNTRUSTED REST API SERVER__ -- The secret key can be used to send transactions from your account, including spending all the balances it holds. For the public server, only use test accounts.
 
 #### Response ####
+
+*Note:* This response holds when the validated query parameter is not set or set to `false`. For responses with validated `true`, please refer to [`GET /v1/accounts/{:address}/payments/{:payment}`](#confirm-payment)
 
 ```js
 {
@@ -815,7 +874,7 @@ __DO NOT SUBMIT YOUR SECRET TO AN UNTRUSTED REST API SERVER__ -- The secret key 
 | client_resource_id | String | The client resource ID provided in the request |
 | status_url | String | A URL that you can GET to check the status of the request. This refers to the [Confirm Payment](#confirm-payment) method. |
 
-
+#### Response (With Validated Parameter) ####
 
 ## Confirm Payment ##
 [[Source]<br>](https://github.com/ripple/ripple-rest/blob/master/api/payments.js#L232 "Source")
@@ -827,6 +886,8 @@ Retrieve the details of a payment, including the current state of the transactio
 ```
 GET /v1/accounts/{:address}/payments/{:id}
 ```
+
+[Try it! >](https://ripple.com/build/ripple-rest/rest-api-tool.html#confirm-payment)
 
 The following URL parameters are required by this API endpoint:
 
@@ -898,13 +959,15 @@ Processing a payment can take several seconds to complete, depending on the [con
 ## Get Payment History ##
 [[Source]<br>](https://github.com/ripple/ripple-rest/blob/master/api/payments.js#L460 "Source")
 
-Retrieve a selection of payments that affected the specified account. 
+Retrieve a selection of payments that affected the specified account.
 
 *REST*
 
 ```
 GET /v1/accounts/{:address}/payments
 ```
+
+[Try it! >](https://ripple.com/build/ripple-rest/rest-api-tool.html#get-payment-history)
 
 The following URL parameters are required by this API endpoint:
 
@@ -1342,6 +1405,8 @@ Retrieves all trustlines associated with the Ripple address.
 GET /v1/accounts/{:address}/trustlines
 ```
 
+[Try it! >](https://ripple.com/build/ripple-rest/rest-api-tool.html#get-trustlines)
+
 The following URL parameters are required by this API endpoint:
 
 | Field | Value | Description |
@@ -1352,8 +1417,13 @@ Optionally, you can also include the following query parameters:
 
 | Field | Value | Description |
 |-------|-------|-------------|
-| currency | String ([ISO4217 currency code](http://www.xe.com/iso4217.php)) | Filter results to include only trustlines for the given currency |
-| counterparty | String (Address) | Filter results to include only trustlines to the given account |
+| currency | String ([ISO4217 currency code](http://www.xe.com/iso4217.php)) | Filter results to include only trustlines for the given currency. |
+| counterparty | String (Address) | Filter results to include only trustlines to the given account. |
+| marker | String | Start position in response paging. |
+| limit | String (Integer) | Max results per response. Will default to 10 if not set or set below 10. |
+| ledger | String | Ledger to request paged results from. Use the ledger's hash. |
+
+*Note:* In order to use paging, you must provide `ledger` as a URL query parameter.
 
 #### Response ####
 
@@ -1395,7 +1465,7 @@ Creates or modifies a trustline.
 *REST*
 
 ```
-POST /v1/accounts/{:address}/trustlines
+POST /v1/accounts/{:address}/trustlines?validated=true
 {
     "secret": "sneThnzgBgxc3zXPG....",
     "trustline": {
@@ -1407,12 +1477,20 @@ POST /v1/accounts/{:address}/trustlines
 }
 ```
 
+[Try it! >](https://ripple.com/build/ripple-rest/rest-api-tool.html#grant-trustline)
+
 The following parameters are required in the JSON body of the request:
 
 | Field | Value | Description |
 |-------|-------|-------------|
 | secret | String | A secret key for your Ripple account. This is either the master secret, or a regular secret, if your account has one configured. |
 | trustline | Object ([Trustline](#trustline-objects)) | The trustline object to set. Ignores fields not controlled by this account. Any fields that are omitted are unchanged. |
+
+Optionally, you can include the following as a URL query parameter:
+
+| Field | Type | Description |
+|-------|------|-------------|
+| validated | String | `true` or `false`. When set to `true`, will force the request to wait until the trustline transaction has been successfully validated by the server. A validated transaction will have the `state` attribute set to `"validated"` in the response. |
 
 __DO NOT SUBMIT YOUR SECRET TO AN UNTRUSTED REST API SERVER__ -- The secret key can be used to send transactions from your account, including spending all the balances it holds. For the public server, only use test accounts.
 
@@ -1431,10 +1509,11 @@ A successful response uses the `201 Created` HTTP response code, and provides a 
     "currency": "USD",
     "counterparty": "rMwjYedjc7qqtKYVLiAccJSmCwih4LnE2q",
     "account_allows_rippling": false,
-    "account_froze_trustline": false
-  },
-  "ledger": "9302926",
-  "hash": "57695598CD32333F67A70DC6EBC3501D71569CE11C9803162CBA61990D89C1EE"
+    "account_froze_trustline": false,
+    "state": "pending",
+    "ledger": "9302926",
+    "hash": "57695598CD32333F67A70DC6EBC3501D71569CE11C9803162CBA61990D89C1EE"
+  }
 }
 ```
 
@@ -1451,9 +1530,15 @@ Notifications are sorted in order of when they occurred, so you can save the mos
 ## Check Notifications ##
 [[Source]<br>](https://github.com/ripple/ripple-rest/blob/develop/api/notifications.js "Source")
 
-Get a notification for the specific transaction hash, along with links to previous and next notifications, if available. 
+Get a notification for the specific transaction hash, along with links to previous and next notifications, if available.
 
-__`GET /v1/accounts/{:address}/notifications/{:transaction_hash}`__
+*REST*
+
+```
+GET /v1/accounts/{:address}/notifications/{:transaction_hash}
+```
+
+[Try it! >](https://ripple.com/build/ripple-rest/rest-api-tool.html#check-notifications)
 
 The following URL parameters are required by this API endpoint:
 
@@ -1493,7 +1578,7 @@ A successful response contains a notification object, for example:
 }
 ```
 
-If the server has any notifications that are older than this one, the `previous_hash` field contains a hash you can use to call this method again to get the previous one. The `previous_notification_url` contains the same information, but already formatted into a URL you can perform a GET request on. If no older notifications are available, both fields are either omitted, or provided as an empty string. 
+If the server has any notifications that are older than this one, the `previous_hash` field contains a hash you can use to call this method again to get the previous one. The `previous_notification_url` contains the same information, but already formatted into a URL you can perform a GET request on. If no older notifications are available, both fields are either omitted, or provided as an empty string.
 
 The `next_hash` and `next_notification_url` fields work the same way, but they provide information on newer notifications instead.
 
@@ -1517,6 +1602,8 @@ Perform a simple ping to make sure that the server is working properly.
 GET /v1/server/connected
 ```
 
+[Try it! >](https://ripple.com/build/ripple-rest/rest-api-tool.html#check-connection)
+
 #### Response ####
 
 ```js
@@ -1538,6 +1625,8 @@ Retrieve information about the current status of the Ripple-REST API and the `ri
 ```
 GET /v1/server
 ```
+
+[Try it! >](https://ripple.com/build/ripple-rest/rest-api-tool.html#get-server-status)
 
 #### Response ####
 
@@ -1619,8 +1708,10 @@ Returns a Ripple transaction, in its complete, original format.
 *REST*
 
 ```
-GET /v1/transactions/{:transaction-hash}
+GET /v1/transactions/{:transaction_hash}
 ```
+
+[Try it! >](https://ripple.com/build/ripple-rest/rest-api-tool.html#retrieve-ripple-transaction)
 
 The following URL parameters are required by this API endpoint:
 
@@ -1810,6 +1901,30 @@ The result is a JSON object, whose `transaction` field has the requested transac
 ```
 
 
+## Retrieve Transaction Fee ##
+
+(New in [Ripple-REST v1.3.1](https://github.com/ripple/ripple-rest/releases/tag/1.3.1-rc1))
+
+Retrieve the current transaction fee for the rippled server `ripple-rest` is connected to. If `ripple-rest` is connected to multiple rippled servers, the median fee between the connected servers is calculated.
+
+*REST*
+
+```
+GET /v1/transaction-fee
+```
+
+[Try it! >](https://ripple.com/build/ripple-rest/rest-api-tool.html#retrieve-transaction-fee)
+
+#### Response ####
+
+```js
+{
+  "success": true,
+  "fee": "12000"
+}
+```
+
+
 
 ## Create Client Resource ID ##
 
@@ -1820,6 +1935,8 @@ Generate a universally-unique identifier suitable for use as the Client Resource
 ```
 GET /v1/uuid
 ```
+
+[Try it! >](https://ripple.com/build/ripple-rest/rest-api-tool.html#generate-uuid)
 
 #### Response ####
 
