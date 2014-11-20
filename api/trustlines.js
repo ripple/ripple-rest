@@ -1,8 +1,8 @@
-var async       = require('async');
-var ripple      = require('ripple-lib');
-var remote      = require('./../lib/remote.js');
-var respond     = require('./../lib/response-handler.js');
-var errors      = require('./../lib/errors.js');
+var async   = require('async');
+var ripple  = require('ripple-lib');
+var remote  = require('./../lib/remote.js');
+var respond = require('./../lib/response-handler.js');
+var errors  = require('./../lib/errors.js');
 
 const TrustSetFlags = {
   SetAuth: { name: 'authorized', value: 0x00010000 },
@@ -12,13 +12,10 @@ const TrustSetFlags = {
   ClearFreeze: { name: 'unfreeze', value: 0x00200000 }
 };
 
-exports.get = getTrustLines;
-exports.add = addTrustLine;
-
 /**
  *  Retrieves all trustlines for a given account
- *  
- *  Notes: 
+ *
+ *  Notes:
  *  In order to use paging, you must provide at least ledger as a query parameter.
  *  Additionally, any limit lower than 10 will be bumped up to 10.
  *
@@ -31,10 +28,11 @@ exports.add = addTrustLine;
  *  @param {String} [request.query.marker] - start position in response paging
  *  @param {Number String} [request.query.limit] - max results per response
  *  @param {Number String} [request.query.ledger] - identifier
- *  
+ *
  *  @param {Express.js Response} response
  *  @param {Express.js Next} next
  */
+
 function getTrustLines(request, response, next) {
   var steps = [
     validateOptions,
@@ -107,8 +105,8 @@ function getTrustLines(request, response, next) {
           reciprocated_limit: line.limit_peer,
           account_allows_rippling: line.no_ripple ? !line.no_ripple : true,
           counterparty_allows_rippling: line.no_ripple_peer ? !line.no_ripple_peer : true,
-          account_froze_line: line.freeze ? line.freeze : false,
-          counterparty_froze_line: line.freeze_peer ? line.freeze_peer : false
+          account_froze_trustline: line.freeze ? line.freeze : false,
+          counterparty_froze_trustline: line.freeze_peer ? line.freeze_peer : false
         });
       });
 
@@ -125,13 +123,14 @@ function getTrustLines(request, response, next) {
  *  @body
  *  @param {Trustline} request.body.trustline
  *  @param {String} request.body.secret
- *  
+ *
  *  @query
  *  @param {String "true"|"false"} request.query.validated Used to force request to wait until rippled has finished validating the submitted transaction
  *
  *  @param {Express.js Response} response
  *  @param {Express.js Next} next
  */
+
 function addTrustLine(request, response, next) {
   var options = request.params;
 
@@ -294,3 +293,6 @@ function addTrustLine(request, response, next) {
     transaction.submit();
   };
 };
+
+module.exports.get = getTrustLines;
+module.exports.add = addTrustLine;

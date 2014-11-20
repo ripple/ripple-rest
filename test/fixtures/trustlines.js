@@ -259,8 +259,8 @@ module.exports.RESTAccountTrustlinesResponse = JSON.stringify({
       reciprocated_limit: '10',
       account_allows_rippling: true,
       counterparty_allows_rippling: true,
-      account_froze_line: false,
-      counterparty_froze_line: false
+      account_froze_trustline: false,
+      counterparty_froze_trustline: false
   },
   { account: 'r3GgMwvgvP8h4yVWvjH1dPZNvC37TjzBBE',
     counterparty: 'r3vi7mWxru9rJCxETCyA1CHvzL96eZWx5z',
@@ -269,8 +269,8 @@ module.exports.RESTAccountTrustlinesResponse = JSON.stringify({
     reciprocated_limit: '0',
     account_allows_rippling: false,
     counterparty_allows_rippling: false,
-    account_froze_line: false,
-    counterparty_froze_line: false
+    account_froze_trustline: false,
+    counterparty_froze_trustline: false
   },
   { account: 'r3GgMwvgvP8h4yVWvjH1dPZNvC37TjzBBE',
     counterparty: 'rMwjYedjc7qqtKYVLiAccJSmCwih4LnE2q',
@@ -279,8 +279,8 @@ module.exports.RESTAccountTrustlinesResponse = JSON.stringify({
     reciprocated_limit: '0',
     account_allows_rippling: false,
     counterparty_allows_rippling: true,
-    account_froze_line: false,
-    counterparty_froze_line: false
+    account_froze_trustline: false,
+    counterparty_froze_trustline: false
   },
   { account: 'r3GgMwvgvP8h4yVWvjH1dPZNvC37TjzBBE',
     counterparty: 'rHpXfibHgSb64n8kK9QWDpdbfqSpYbM9a4',
@@ -289,8 +289,8 @@ module.exports.RESTAccountTrustlinesResponse = JSON.stringify({
     reciprocated_limit: '0',
     account_allows_rippling: true,
     counterparty_allows_rippling: true ,
-    account_froze_line: false,
-    counterparty_froze_line: false
+    account_froze_trustline: false,
+    counterparty_froze_trustline: false
   },
   { account: 'r3GgMwvgvP8h4yVWvjH1dPZNvC37TjzBBE',
     counterparty: 'rLEsXccBGNR3UPuPu2hUXPjziKC3qKSBun',
@@ -299,8 +299,8 @@ module.exports.RESTAccountTrustlinesResponse = JSON.stringify({
     reciprocated_limit: '0',
     account_allows_rippling: false,
     counterparty_allows_rippling: true,
-    account_froze_line: false,
-    counterparty_froze_line: false
+    account_froze_trustline: false,
+    counterparty_froze_trustline: false
   },
   { account: 'r3GgMwvgvP8h4yVWvjH1dPZNvC37TjzBBE',
     counterparty: 'rnuF96W4SZoCJmbHYBFoJZpR8eCaxNvekK',
@@ -309,8 +309,8 @@ module.exports.RESTAccountTrustlinesResponse = JSON.stringify({
     reciprocated_limit: '0',
     account_allows_rippling: false,
     counterparty_allows_rippling: true,
-    account_froze_line: false,
-    counterparty_froze_line: false
+    account_froze_trustline: false,
+    counterparty_froze_trustline: false
   },
   { account: 'r3GgMwvgvP8h4yVWvjH1dPZNvC37TjzBBE',
     counterparty: 'rGwUWgN5BEg3QGNY3RX2HfYowjUTZdid3E',
@@ -319,8 +319,8 @@ module.exports.RESTAccountTrustlinesResponse = JSON.stringify({
     reciprocated_limit: '0',
     account_allows_rippling: true,
     counterparty_allows_rippling: true,
-    account_froze_line: false,
-    counterparty_froze_line: false
+    account_froze_trustline: false,
+    counterparty_froze_trustline: false
   },
   { account: 'r3GgMwvgvP8h4yVWvjH1dPZNvC37TjzBBE',
     counterparty: 'rvYAfWj5gh67oV6fW32ZzP3Aw4Eubs59B',
@@ -329,8 +329,8 @@ module.exports.RESTAccountTrustlinesResponse = JSON.stringify({
     reciprocated_limit: '0',
     account_allows_rippling: true,
     counterparty_allows_rippling: true,
-    account_froze_line: false,
-    counterparty_froze_line: false
+    account_froze_trustline: false,
+    counterparty_froze_trustline: false
   },
   { account: 'r3GgMwvgvP8h4yVWvjH1dPZNvC37TjzBBE',
     counterparty: 'rvYAfWj5gh67oV6fW32ZzP3Aw4Eubs59B',
@@ -339,8 +339,8 @@ module.exports.RESTAccountTrustlinesResponse = JSON.stringify({
     reciprocated_limit: '0',
     account_allows_rippling: true,
     counterparty_allows_rippling: true,
-    account_froze_line: false,
-    counterparty_froze_line: false
+    account_froze_trustline: false,
+    counterparty_froze_trustline: false
   },
   { account: 'r3GgMwvgvP8h4yVWvjH1dPZNvC37TjzBBE',
     counterparty: 'rvYAfWj5gh67oV6fW32ZzP3Aw4Eubs59B',
@@ -349,8 +349,8 @@ module.exports.RESTAccountTrustlinesResponse = JSON.stringify({
     reciprocated_limit: '0',
     account_allows_rippling: true,
     counterparty_allows_rippling: true,
-    account_froze_line: false,
-    counterparty_froze_line: false
+    account_froze_trustline: false,
+    counterparty_froze_trustline: false
   },
   { account: 'r3GgMwvgvP8h4yVWvjH1dPZNvC37TjzBBE',
     counterparty: 'rpgKWEmNqSDAGFhy5WDnsyPqfQxbWxKeVd',
@@ -359,8 +359,8 @@ module.exports.RESTAccountTrustlinesResponse = JSON.stringify({
     reciprocated_limit: '10',
     account_allows_rippling: true,
     counterparty_allows_rippling: true,
-    account_froze_line: false,
-    counterparty_froze_line: false
+    account_froze_trustline: false,
+    counterparty_froze_trustline: false
   },
   { account: 'r3GgMwvgvP8h4yVWvjH1dPZNvC37TjzBBE',
     counterparty: 'rBJ3YjwXi2MGbg7GVLuTXUWQ8DjL7tDXh4',
@@ -369,8 +369,8 @@ module.exports.RESTAccountTrustlinesResponse = JSON.stringify({
     reciprocated_limit: '10',
     account_allows_rippling: true,
     counterparty_allows_rippling: true,
-    account_froze_line: false,
-    counterparty_froze_line: true
+    account_froze_trustline: false,
+    counterparty_froze_trustline: true
   },
   { account: 'r3GgMwvgvP8h4yVWvjH1dPZNvC37TjzBBE',
     counterparty: 'rLEsXccBGNR3UPuPu2hUXPjziKC3qKSBun',
@@ -379,8 +379,8 @@ module.exports.RESTAccountTrustlinesResponse = JSON.stringify({
     reciprocated_limit: '0',
     account_allows_rippling: true,
     counterparty_allows_rippling: true,
-    account_froze_line: false,
-    counterparty_froze_line: false
+    account_froze_trustline: false,
+    counterparty_froze_trustline: false
   },
   { account: 'r3GgMwvgvP8h4yVWvjH1dPZNvC37TjzBBE',
     counterparty: 'razqQKzJRdB4UxFPWf5NEpEG3WMkmwgcXA',
@@ -389,8 +389,8 @@ module.exports.RESTAccountTrustlinesResponse = JSON.stringify({
     reciprocated_limit: '0',
     account_allows_rippling: false,
     counterparty_allows_rippling: true,
-    account_froze_line: false,
-    counterparty_froze_line: false
+    account_froze_trustline: false,
+    counterparty_froze_trustline: false
   },
   { account: 'r3GgMwvgvP8h4yVWvjH1dPZNvC37TjzBBE',
     counterparty: 'rvYAfWj5gh67oV6fW32ZzP3Aw4Eubs59B',
@@ -399,8 +399,8 @@ module.exports.RESTAccountTrustlinesResponse = JSON.stringify({
     reciprocated_limit: '0',
     account_allows_rippling: false,
     counterparty_allows_rippling: true,
-    account_froze_line: true,
-    counterparty_froze_line: false
+    account_froze_trustline: true,
+    counterparty_froze_trustline: false
   },
   { account: 'r3GgMwvgvP8h4yVWvjH1dPZNvC37TjzBBE',
     counterparty: 'r3vi7mWxru9rJCxETCyA1CHvzL96eZWx5z',
@@ -409,8 +409,8 @@ module.exports.RESTAccountTrustlinesResponse = JSON.stringify({
     reciprocated_limit: '0',
     account_allows_rippling: false,
     counterparty_allows_rippling: false,
-    account_froze_line: false,
-    counterparty_froze_line: false
+    account_froze_trustline: false,
+    counterparty_froze_trustline: false
   },
   { account: 'r3GgMwvgvP8h4yVWvjH1dPZNvC37TjzBBE',
     counterparty: 'r9vbV3EHvXWjSkeQ6CAcYVPGeq7TuiXY2X',
@@ -419,8 +419,8 @@ module.exports.RESTAccountTrustlinesResponse = JSON.stringify({
     reciprocated_limit: '0',
     account_allows_rippling: false,
     counterparty_allows_rippling: true,
-    account_froze_line: false,
-    counterparty_froze_line: false
+    account_froze_trustline: false,
+    counterparty_froze_trustline: false
   },
   { account: 'r3GgMwvgvP8h4yVWvjH1dPZNvC37TjzBBE',
     counterparty: 'rvYAfWj5gh67oV6fW32ZzP3Aw4Eubs59B',
@@ -429,8 +429,8 @@ module.exports.RESTAccountTrustlinesResponse = JSON.stringify({
     reciprocated_limit: '0',
     account_allows_rippling: false,
     counterparty_allows_rippling: true,
-    account_froze_line: false,
-    counterparty_froze_line: false
+    account_froze_trustline: false,
+    counterparty_froze_trustline: false
   },
   { account: 'r3GgMwvgvP8h4yVWvjH1dPZNvC37TjzBBE',
     counterparty: 'rfF3PNkwkq1DygW2wum2HK3RGfgkJjdPVD',
@@ -439,8 +439,8 @@ module.exports.RESTAccountTrustlinesResponse = JSON.stringify({
     reciprocated_limit: '0',
     account_allows_rippling: false,
     counterparty_allows_rippling: true,
-    account_froze_line: false,
-    counterparty_froze_line: false
+    account_froze_trustline: false,
+    counterparty_froze_trustline: false
   },
   { account: 'r3GgMwvgvP8h4yVWvjH1dPZNvC37TjzBBE',
     counterparty: 'rwUVoVMSURqNyvocPCcvLu3ygJzZyw8qwp',
@@ -449,8 +449,8 @@ module.exports.RESTAccountTrustlinesResponse = JSON.stringify({
     reciprocated_limit: '50',
     account_allows_rippling: true,
     counterparty_allows_rippling: false,
-    account_froze_line: false,
-    counterparty_froze_line: false
+    account_froze_trustline: false,
+    counterparty_froze_trustline: false
   },
   { account: 'r3GgMwvgvP8h4yVWvjH1dPZNvC37TjzBBE',
     counterparty: 'rE6R3DWF9fBD7CyiQciePF9SqK58Ubp8o2',
@@ -459,8 +459,8 @@ module.exports.RESTAccountTrustlinesResponse = JSON.stringify({
     reciprocated_limit: '100',
     account_allows_rippling: true,
     counterparty_allows_rippling: false,
-    account_froze_line: false,
-    counterparty_froze_line: false
+    account_froze_trustline: false,
+    counterparty_froze_trustline: false
   },
   { account: 'r3GgMwvgvP8h4yVWvjH1dPZNvC37TjzBBE',
     counterparty: 'rE6R3DWF9fBD7CyiQciePF9SqK58Ubp8o2',
@@ -469,8 +469,8 @@ module.exports.RESTAccountTrustlinesResponse = JSON.stringify({
     reciprocated_limit: '100',
     account_allows_rippling: true,
     counterparty_allows_rippling: false,
-    account_froze_line: false,
-    counterparty_froze_line: false
+    account_froze_trustline: false,
+    counterparty_froze_trustline: false
   },
   { account: 'r3GgMwvgvP8h4yVWvjH1dPZNvC37TjzBBE',
     counterparty: 'rs9M85karFkCRjvc6KMWn8Coigm9cbcgcx',
@@ -479,8 +479,8 @@ module.exports.RESTAccountTrustlinesResponse = JSON.stringify({
     reciprocated_limit: '0',
     account_allows_rippling: false,
     counterparty_allows_rippling: true,
-    account_froze_line: false,
-    counterparty_froze_line: false
+    account_froze_trustline: false,
+    counterparty_froze_trustline: false
   },
   { account: 'r3GgMwvgvP8h4yVWvjH1dPZNvC37TjzBBE',
     counterparty: 'rEhDDUUNxpXgEHVJtC2cjXAgyx5VCFxdMF',
@@ -489,8 +489,8 @@ module.exports.RESTAccountTrustlinesResponse = JSON.stringify({
     reciprocated_limit: '1',
     account_allows_rippling: true,
     counterparty_allows_rippling: true,
-    account_froze_line: false,
-    counterparty_froze_line: false
+    account_froze_trustline: false,
+    counterparty_froze_trustline: false
   }
   ]
 });
@@ -603,86 +603,86 @@ module.exports.ledgerSequenceTooHighResponse = function(request) {
 
 module.exports.setTrustValidatedResponse = function() {
   return JSON.stringify({
-    "engine_result": "tesSUCCESS",
-    "engine_result_code": 0,
-    "engine_result_message": "The transaction was applied.",
-    "ledger_hash": "E0B48625C74115865D83F777081163D1C33144AD11A3104292720092D2183770",
-    "ledger_index": 9810402,
-    "meta": {
-      "AffectedNodes": [
+    engine_result: 'tesSUCCESS',
+    engine_result_code: 0,
+    engine_result_message: 'The transaction was applied.',
+    ledger_hash: 'E0B48625C74115865D83F777081163D1C33144AD11A3104292720092D2183770',
+    ledger_index: 9810402,
+    meta: {
+      AffectedNodes: [
         {
-          "ModifiedNode": {
-            "FinalFields": {
-              "Account": "r3GgMwvgvP8h4yVWvjH1dPZNvC37TjzBBE",
-              "Balance": "792505355",
-              "Flags": 0,
-              "OwnerCount": 3,
-              "Sequence": 12
+          ModifiedNode: {
+            FinalFields: {
+              Account: 'r3GgMwvgvP8h4yVWvjH1dPZNvC37TjzBBE',
+              Balance: '792505355',
+              Flags: 0,
+              OwnerCount: 3,
+              Sequence: 12
             },
-            "LedgerEntryType": "AccountRoot",
-            "LedgerIndex": "25FF5CC1037AE7E2C491A2E4C6206CBE31D0F1609B6426E6E8C3626BAC8C3439",
-            "PreviousFields": {
-              "Balance": "792505367",
-              "Sequence": 11
+            LedgerEntryType: 'AccountRoot',
+            LedgerIndex: '25FF5CC1037AE7E2C491A2E4C6206CBE31D0F1609B6426E6E8C3626BAC8C3439',
+            PreviousFields: {
+              Balance: '792505367',
+              Sequence: 11
             },
-            "PreviousTxnID": "B7B913FC00AE7838238F5021CE88ED8A5D408110726BED719BDC2A024FAE793D",
-            "PreviousTxnLgrSeq": 9791833
+            PreviousTxnID: 'B7B913FC00AE7838238F5021CE88ED8A5D408110726BED719BDC2A024FAE793D',
+            PreviousTxnLgrSeq: 9791833
           }
         },
         {
-          "ModifiedNode": {
-            "FinalFields": {
-              "Balance": {
-                "currency": "USD",
-                "issuer": "rrrrrrrrrrrrrrrrrrrrBZbvji",
-                "value": "0.2899999999999999"
+          ModifiedNode: {
+            FinalFields: {
+              Balance: {
+                currency: 'USD',
+                issuer: 'rrrrrrrrrrrrrrrrrrrrBZbvji',
+                value: '0.2899999999999999'
               },
-              "Flags": 1114112,
-              "HighLimit": {
-                "currency": "USD",
-                "issuer": "rMwjYedjc7qqtKYVLiAccJSmCwih4LnE2q",
-                "value": "0"
+              Flags: 1114112,
+              HighLimit: {
+                currency: 'USD',
+                issuer: 'rMwjYedjc7qqtKYVLiAccJSmCwih4LnE2q',
+                value: '0'
               },
-              "HighNode": "0000000000000163",
-              "LowLimit": {
-                "currency": "USD",
-                "issuer": "r3GgMwvgvP8h4yVWvjH1dPZNvC37TjzBBE",
-                "value": "110"
+              HighNode: '0000000000000163',
+              LowLimit: {
+                currency: 'USD',
+                issuer: 'r3GgMwvgvP8h4yVWvjH1dPZNvC37TjzBBE',
+                value: '110'
               },
-              "LowNode": "0000000000000000"
+              LowNode: '0000000000000000'
             },
-            "LedgerEntryType": "RippleState",
-            "LedgerIndex": "620379E07473AAE2E6CCCB196AE9DD13C5D036C4B47211BB3DAA55D019CB2226",
-            "PreviousFields": {
-              "Flags": 65536
+            LedgerEntryType: 'RippleState',
+            LedgerIndex: '620379E07473AAE2E6CCCB196AE9DD13C5D036C4B47211BB3DAA55D019CB2226',
+            PreviousFields: {
+              Flags: 65536
             },
-            "PreviousTxnID": "A1344FACEAE2FA0EC795A1A64B972F144DDBBB1441B9C253BF63AC6294258287",
-            "PreviousTxnLgrSeq": 9791722
+            PreviousTxnID: 'A1344FACEAE2FA0EC795A1A64B972F144DDBBB1441B9C253BF63AC6294258287',
+            PreviousTxnLgrSeq: 9791722
           }
         }
       ],
-      "TransactionIndex": 0,
-      "TransactionResult": "tesSUCCESS"
+      TransactionIndex: 0,
+      TransactionResult: 'tesSUCCESS'
     },
-    "status": "closed",
-    "transaction": {
-      "Account": "r3GgMwvgvP8h4yVWvjH1dPZNvC37TjzBBE",
-      "Fee": "12",
-      "Flags": 2147614720,
-      "LastLedgerSequence": 9810409,
-      "LimitAmount": {
-        "currency": "USD",
-        "issuer": "rMwjYedjc7qqtKYVLiAccJSmCwih4LnE2q",
-        "value": "110"
+    status: 'closed',
+    transaction: {
+      Account: 'r3GgMwvgvP8h4yVWvjH1dPZNvC37TjzBBE',
+      Fee: '12',
+      Flags: 2147614720,
+      LastLedgerSequence: 9810409,
+      LimitAmount: {
+        currency: 'USD',
+        issuer: 'rMwjYedjc7qqtKYVLiAccJSmCwih4LnE2q',
+        value: '110'
       },
-      "Sequence": 11,
-      "SigningPubKey": "02AFA3692CC78A804ACC11DBA23DBB99943C6F8D61D3CB07BBE6D28356EB5B9C57",
-      "TransactionType": "TrustSet",
-      "TxnSignature": "304402201178957B6ABB7673DB21F05C58E66061D5C753B9D63158032B0C1CC9CB68C94802203CEB99C8B72BB33EF63684B2A6BF77A232448ECACBB5FFC9FD8DCC8065948847",
-      "date": 468718190,
-      "hash": "0F480D344CFC610DFA5CAC62CC1621C92953A05FE8C319281CA49C5C162AF40E"
+      Sequence: 11,
+      SigningPubKey: '02AFA3692CC78A804ACC11DBA23DBB99943C6F8D61D3CB07BBE6D28356EB5B9C57',
+      TransactionType: 'TrustSet',
+      TxnSignature: '304402201178957B6ABB7673DB21F05C58E66061D5C753B9D63158032B0C1CC9CB68C94802203CEB99C8B72BB33EF63684B2A6BF77A232448ECACBB5FFC9FD8DCC8065948847',
+      date: 468718190,
+      hash: '0F480D344CFC610DFA5CAC62CC1621C92953A05FE8C319281CA49C5C162AF40E'
     },
-    "type": "transaction",
-    "validated": true
+    type: 'transaction',
+    validated: true
   });
 };
