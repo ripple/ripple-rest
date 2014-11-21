@@ -20,11 +20,6 @@ var TimeOutError          = errors.TimeOutError;
 
 var DEFAULT_RESULTS_PER_PAGE = 10;
 
-module.exports = {
-  placeOrder: placeOrder,
-  cancelOrder: cancelOrder
-};
-
 var paymentToTransactionConverter = new RestToLibTxConverter();
 
 /**
@@ -225,4 +220,9 @@ function cancelOrder(request, response, next) {
 
     transaction.submit();
   };
+};
+
+module.exports = {
+  placeOrder: placeOrder,
+  cancelOrder: cancelOrder
 };
