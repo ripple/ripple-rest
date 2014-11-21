@@ -5,6 +5,7 @@ module.exports.server = require('./server');
 module.exports.transactions = require('./transactions');
 module.exports.notifications = require('./notifications');
 module.exports.payments = require('./payments');
+module.exports.orders = require('./orders');
 module.exports.paths = require('./paths');
 module.exports._payments = require('./_payments');
 module.exports.settings = require('./settings');

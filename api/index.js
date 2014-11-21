@@ -4,6 +4,7 @@ var Settings      = require('./settings');
 var Transactions  = require('./transactions');
 var TrustLines    = require('./trustlines');
 var Notifications = require('./notifications');
+var Orders        = require('./orders');
 var Payments      = require('./payments');
 var Wallet        = require('./wallet');
 
@@ -38,6 +39,11 @@ module.exports = {
     get: Payments.get,
     getAccountPayments: Payments.getAccountPayments,
     getPathFind: Payments.getPathFind
+  },
+
+  orders: {
+    placeOrder: Orders.placeOrder,
+    deleteOrder: Orders.deleteOrder
   },
 
   notifications: {
