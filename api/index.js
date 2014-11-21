@@ -43,7 +43,7 @@ module.exports = {
 
   orders: {
     placeOrder: Orders.placeOrder,
-    deleteOrder: Orders.deleteOrder
+    cancelOrder: Orders.cancelOrder
   },
 
   notifications: {

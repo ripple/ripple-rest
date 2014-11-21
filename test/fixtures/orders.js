@@ -96,6 +96,35 @@ module.exports.requestSubmitResponse = function(request, options) {
   });
 };
 
+module.exports.requestCancelResponse = function(request, options) {
+  options = options || {};
+  _.defaults(options, DEFAULTS);
+
+  return JSON.stringify({
+    "id": request.id,
+    "status": "success",
+    "type": "response",
+    "result": {
+      "engine_result": "tesSUCCESS",
+      "engine_result_code": 0,
+      "engine_result_message": "The transaction was applied.",
+      "tx_blob": "12000822800000002400000083201900000082201B0099B518684000000000002EE0732102AC2A11C997C04EC6A4139E6189111F90E89D05F9A9DDC3E2CA459CEA89C539D374463044022063C7C53712737A8715EF940F954C80D72C54D0D82DD01426059AEE147A831815022042CE97F22661B80897D07BAB6B66E80C184D424778062343881063E695AC0E7E8114E81DCB25DAA1DDEFF45145D334C56F12EA63C337",
+      "tx_json": {
+        "Account": options.account,
+        "Fee": "12000",
+        "Flags": 2147483648,
+        "LastLedgerSequence": 10073368,
+        "OfferSequence": options.sequence,
+        "Sequence": options.sequence + 1,
+        "SigningPubKey": "02AC2A11C997C04EC6A4139E6189111F90E89D05F9A9DDC3E2CA459CEA89C539D3",
+        "TransactionType": "OfferCancel",
+        "TxnSignature": "3044022063C7C53712737A8715EF940F954C80D72C54D0D82DD01426059AEE147A831815022042CE97F22661B80897D07BAB6B66E80C184D424778062343881063E695AC0E7E",
+        "hash": options.hash
+      }
+    }
+  });
+};
+
 module.exports.rippledSubmitErrorResponse = function(request, options) {
   options = options || {};
   _.defaults(options, DEFAULTS);
@@ -120,6 +149,35 @@ module.exports.rippledSubmitErrorResponse = function(request, options) {
         "TxnSignature": "3045022100F6CAC4B1A57D7298112B970D4D2F93CCDADD897BBE20612D6D8210697360563202201B91F3B1FA184BDC1A4EDFBC47B43D22EE858F1A902D469031D641BFCEFA652F",
         "hash": options.hash
       } 
+    },
+    status: 'success',
+    type: 'response' 
+  });
+};
+
+module.exports.rippledCancelErrorResponse = function(request, options) {
+  options = options || {};
+  _.defaults(options, DEFAULTS);
+
+  return JSON.stringify({ 
+    id: request.id,
+    result: { 
+      engine_result: options.engine_result,
+      engine_result_code: options.engine_result_code,
+      engine_result_message: options.engine_result_message,
+      tx_blob: '1200072280080000240000001B201B0099737164D54E35FA931A00000000000000000000000000004A50590000000000E5C92828261DBAAC933B6309C6F5C72AF020AFD465D448E1BC9BF0400000000000000000000000000055534400000000000A20B3C85F482532A9578DBB3950B85CA06594D1684000000000002EE0732102AFA3692CC78A804ACC11DBA23DBB99943C6F8D61D3CB07BBE6D28356EB5B9C5774463044022034FF61A42D649DA06BB13A2844BBF4C77AD8EE830666639E0850F58259ADFF7C022007048D1DD3896939A4BDB7D8221A9611302E0377EC7572740378DB2A7DE8485C8114625E2F1F09A0D769E05C04FAA64F0D2013306C6A',
+      tx_json: {
+        "Account": options.account,
+        "Fee": "12000",
+        "Flags": 2147483648,
+        "LastLedgerSequence": 10055679,
+        "OffserSequence": options.sequence,
+        "Sequence": options.sequence + 1,
+        "SigningPubKey": "02AFA3692CC78A804ACC11DBA23DBB99943C6F8D61D3CB07BBE6D28356EB5B9C57",
+        "TransactionType": "OfferCancel",
+        "TxnSignature": "3045022100F6CAC4B1A57D7298112B970D4D2F93CCDADD897BBE20612D6D8210697360563202201B91F3B1FA184BDC1A4EDFBC47B43D22EE858F1A902D469031D641BFCEFA652F",
+        "hash": options.hash
+      }
     },
     status: 'success',
     type: 'response' 
@@ -223,6 +281,105 @@ module.exports.submitTransactionVerifiedResponse = function(options) {
   });
 };
 
+module.exports.cancelTransactionVerifiedResponse = function(options) {
+  options = options || {};
+  _.defaults(options, DEFAULTS);
+
+  return JSON.stringify({
+    "engine_result": "tesSUCCESS",
+    "engine_result_code": 0,
+    "engine_result_message": "The transaction was applied.",
+    "ledger_hash": "22148DA306D45FA966F0AA2A667078AF80E782D02A21E346A7F49E07A274F186",
+    "ledger_index": 10073361,
+    "meta": {
+      "AffectedNodes": [
+        {
+          "DeletedNode": {
+            "FinalFields": {
+              "Account": options.account,
+              "BookDirectory": "3B95C29205977C2136BBC70F21895F8C8F471C8522BF446E5905AF3107A40000",
+              "BookNode": "0000000000000000",
+              "Flags": options.flags,
+              "OwnerNode": "0000000000000000",
+              "PreviousTxnID": "052D575D49936BAF2DC674C2A80D6E19995FC8197577B8EB6163D31DA49D0D9E",
+              "PreviousTxnLgrSeq": 10073252,
+              "Sequence": options.sequence,
+              "TakerGets": options.taker_gets,
+              "TakerPays": options.taker_pays
+            },
+            "LedgerEntryType": "Offer",
+            "LedgerIndex": "093E00CAE2C35822017F99E27C2BD1FED6730858D109E3F5FA4C9FD8C9640453"
+          }
+        },
+        {
+          "DeletedNode": {
+            "FinalFields": {
+              "ExchangeRate": "5905AF3107A40000",
+              "Flags": 0,
+              "RootIndex": "3B95C29205977C2136BBC70F21895F8C8F471C8522BF446E5905AF3107A40000",
+              "TakerGetsCurrency": "0000000000000000000000005553440000000000",
+              "TakerGetsIssuer": "0A20B3C85F482532A9578DBB3950B85CA06594D1",
+              "TakerPaysCurrency": "0000000000000000000000004A50590000000000",
+              "TakerPaysIssuer": "E5C92828261DBAAC933B6309C6F5C72AF020AFD4"
+            },
+            "LedgerEntryType": "DirectoryNode",
+            "LedgerIndex": "3B95C29205977C2136BBC70F21895F8C8F471C8522BF446E5905AF3107A40000"
+          }
+        },
+        {
+          "ModifiedNode": {
+            "FinalFields": {
+              "Flags": 0,
+              "Owner": options.account,
+              "RootIndex": "4CC6A36EE801B2A3A3B2E2C44857631BAF1A7FD1CAF73BAD55EB6F584815858A"
+            },
+            "LedgerEntryType": "DirectoryNode",
+            "LedgerIndex": "4CC6A36EE801B2A3A3B2E2C44857631BAF1A7FD1CAF73BAD55EB6F584815858A"
+          }
+        },
+        {
+          "ModifiedNode": {
+            "FinalFields": {
+              "Account": options.account,
+              "Balance": "511738048423",
+              "Flags": 0,
+              "OwnerCount": 5,
+              "Sequence": options.sequence + 2
+            },
+            "LedgerEntryType": "AccountRoot",
+            "LedgerIndex": "53539B9154C83B7D657103C27ABCA0EF1AD3674F6D0B341F20710FC50EC4DC03",
+            "PreviousFields": {
+              "Balance": "511738060423",
+              "OwnerCount": 6,
+              "Sequence": options.sequence + 1
+            },
+            "PreviousTxnID": "052D575D49936BAF2DC674C2A80D6E19995FC8197577B8EB6163D31DA49D0D9E",
+            "PreviousTxnLgrSeq": 10073252
+          }
+        }
+      ],
+      "TransactionIndex": 8,
+      "TransactionResult": "tesSUCCESS"
+    },
+    "status": "closed",
+    "transaction": {
+      "Account": options.account,
+      "Fee": "12000",
+      "Flags": 2147483648,
+      "LastLedgerSequence": 10073368,
+      "OfferSequence": options.sequence,
+      "Sequence": options.sequence + 1,
+      "SigningPubKey": "02AC2A11C997C04EC6A4139E6189111F90E89D05F9A9DDC3E2CA459CEA89C539D3",
+      "TransactionType": "OfferCancel",
+      "TxnSignature": "3044022063C7C53712737A8715EF940F954C80D72C54D0D82DD01426059AEE147A831815022042CE97F22661B80897D07BAB6B66E80C184D424778062343881063E695AC0E7E",
+      "date": 469910420,
+      "hash": options.hash
+    },
+    "type": "transaction",
+    "validated": true
+  });
+};
+
 module.exports.unfundedOrderFinalizedResponse = function(options) {
   options = options || {};
   _.defaults(options, DEFAULTS);
@@ -292,6 +449,24 @@ module.exports.RESTSubmitTransactionResponse = function(options) {
       fee: '0.012',
       type: options.type,
       sequence: options.sequence,
+      hash: options.hash,
+      ledger: String(options.last_ledger),
+      state: options.state
+    }
+  });
+};
+
+module.exports.RESTCancelTransactionResponse = function(options) {
+  options = options || {};
+  _.defaults(options, DEFAULTS);
+
+  return JSON.stringify({
+    success: true,
+    order: {
+      account: options.account,
+      fee: '0.012',
+      offer_sequence: options.sequence,
+      sequence: options.sequence + 1,
       hash: options.hash,
       ledger: String(options.last_ledger),
       state: options.state
