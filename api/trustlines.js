@@ -105,8 +105,8 @@ function getTrustLines(request, response, next) {
           reciprocated_limit: line.limit_peer,
           account_allows_rippling: line.no_ripple ? !line.no_ripple : true,
           counterparty_allows_rippling: line.no_ripple_peer ? !line.no_ripple_peer : true,
-          account_froze_trustline: line.freeze ? line.freeze : false,
-          counterparty_froze_trustline: line.freeze_peer ? line.freeze_peer : false
+          account_trustline_frozen: line.freeze ? line.freeze : false,
+          counterparty_trustline_frozen: line.freeze_peer ? line.freeze_peer : false
         });
       });
 
@@ -218,7 +218,7 @@ function addTrustLine(request, response, next) {
           currency: line.currency,
           counterparty: line.issuer,
           account_allows_rippling: allows_rippling,
-          account_froze_trustline: froze_trustline,
+          account_trustline_frozen: froze_trustline,
           ledger: String(summary.submitIndex),
           hash: m.tx_json.hash,
           state: m.validated === true ? 'validated' : 'pending'
@@ -276,8 +276,8 @@ function addTrustLine(request, response, next) {
         }
       }
 
-      if (typeof options.trustline.account_froze_trustline === 'boolean') {
-        if (options.trustline.account_froze_trustline) {
+      if (typeof options.trustline.account_trustline_frozen === 'boolean') {
+        if (options.trustline.account_trustline_frozen) {
           transaction.setFlags('SetFreeze');
         } else {
           transaction.setFlags('ClearFreeze');

@@ -622,7 +622,7 @@ suite('post trustlines', function() {
         limit: '1',
         currency: 'USD',
         counterparty: addresses.COUNTERPARTY,
-        account_froze_trustline: true
+        account_trustline_frozen: true
       }
     })
     .expect(testutils.checkStatus(201))
@@ -635,7 +635,7 @@ suite('post trustlines', function() {
       assert.strictEqual(body.trustline.counterparty, addresses.COUNTERPARTY);
       assert.strictEqual(body.trustline.limit, '1');
       assert.strictEqual(body.trustline.currency, 'USD');
-      assert.strictEqual(body.trustline.account_froze_trustline, true);
+      assert.strictEqual(body.trustline.account_trustline_frozen, true);
     })
     .end(done);
   });

@@ -724,7 +724,7 @@ suite('payments', function() {
           "currency": "USD",
           "counterparty": "rJRLoJSErtNRFnbCyHEUYnRUKNwkVYDM7U",
           "account_allows_rippling": true,
-          "account_froze_trustline": false,
+          "account_trustline_frozen": false,
           "state": "pending"
         }
       });
@@ -1006,7 +1006,7 @@ suite('payments', function() {
             "currency": "USD",
             "counterparty": "r3YHFNkQRJDPc9aCkRojPLwKVwok3ihgBJ",
             "account_allows_rippling": true,
-            "account_froze_trustline": false,
+            "account_trustline_frozen": false,
             "state": "pending"
           }
         });
@@ -1040,7 +1040,7 @@ suite('payments', function() {
             "currency": "USD",
             "counterparty": "r3YHFNkQRJDPc9aCkRojPLwKVwok3ihgBJ",
             "account_allows_rippling": true,
-            "account_froze_trustline": false,
+            "account_trustline_frozen": false,
             "state": "pending"
           }
         });
