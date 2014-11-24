@@ -8,7 +8,6 @@ var addresses     = require('./fixtures').addresses;
 var utils         = require('./../lib/utils');
 var requestPath   = fixtures.requestPath;
 
-
 suite('get payments', function() {
   var self = this;
 
