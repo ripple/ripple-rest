@@ -2,7 +2,7 @@
   "config_version": "2.0.1",
   "debug": false,
   "port": 5990,
-  "host": "localhost",
+  "host": "192.168.59.103",
   "ssl_enabled": false,
   "ssl": {
     "key_path": "./certs/server.key",
