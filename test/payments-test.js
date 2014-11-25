@@ -103,6 +103,61 @@ suite('post payments', function() {
   setup(testutils.setup.bind(self));
   teardown(testutils.teardown.bind(self));
 
+  test('/payments -- successful payment with issuer', function(done){
+    var hash = testutils.generateHash();
+
+    self.wss.once('request_account_info', function(message, conn) {
+      assert.strictEqual(message.command, 'account_info');
+      assert.strictEqual(message.account, addresses.VALID);
+      conn.send(fixtures.accountInfoResponse(message));
+    });
+
+    self.wss.once('request_submit', function(message, conn) {
+      assert.strictEqual(message.command, 'submit');
+      conn.send(fixtures.requestSubmitResponse(message, {hash: hash}));
+    });
+
+    self.app
+      .post('/v1/accounts/' + addresses.VALID + '/payments')
+      .send(fixtures.payment({
+        value: '0.001',
+        currency: 'USD',
+        issuer: addresses.ISSUER,
+        hash: hash
+      }))
+      .expect(testutils.checkStatus(200))
+      .expect(testutils.checkHeaders)
+      .expect(testutils.checkBody(fixtures.RESTSuccessResponse()))
+      .end(done);
+  });
+
+  test('/payments -- without issuer', function(done){
+    var hash = testutils.generateHash();
+
+    self.wss.once('request_account_info', function(message, conn) {
+      assert.strictEqual(message.command, 'account_info');
+      assert.strictEqual(message.account, addresses.VALID);
+      conn.send(fixtures.accountInfoResponse(message));
+    });
+
+    self.wss.once('request_submit', function(message, conn) {
+      assert.strictEqual(message.command, 'submit');
+      conn.send(fixtures.requestSubmitResponse(message, {hash: hash}));
+    });
+
+    self.app
+      .post('/v1/accounts/' + addresses.VALID + '/payments')
+      .send(fixtures.payment({
+        value: '0.001',
+        currency: 'USD',
+        hash: hash
+      }))
+      .expect(testutils.checkStatus(200))
+      .expect(testutils.checkHeaders)
+      .expect(testutils.checkBody(fixtures.RESTSuccessResponse()))
+      .end(done);
+  });
+
   test('/payments -- with validated true, valid submit response, and transaction verified response', function(done){
     self.wss.once('request_account_info', function(message, conn) {
       assert.strictEqual(message.command, 'account_info');
@@ -556,55 +611,6 @@ suite('post payments', function() {
           "MemoData": "some_value"
         }
       ]
-    }))
-    .expect(testutils.checkStatus(200))
-    .expect(testutils.checkHeaders)
-    .expect(testutils.checkBody(fixtures.RESTSuccessResponse()))
-    .end(done);
-  });
-
-  test('/payments -- successful payment with issuer', function(done){
-    self.wss.once('request_account_info', function(message, conn) {
-      assert.strictEqual(message.command, 'account_info');
-      assert.strictEqual(message.account, addresses.VALID);
-      conn.send(fixtures.accountInfoResponse(message));
-    });
-
-    self.wss.once('request_submit', function(message, conn) {
-      assert.strictEqual(message.command, 'submit');
-      conn.send(fixtures.requestSubmitResponse(message));
-    });
-
-    self.app
-    .post('/v1/accounts/' + addresses.VALID + '/payments')
-    .send(fixtures.payment({
-      value: '0.001',
-      currency: 'USD',
-      issuer: addresses.ISSUER
-    }))
-    .expect(testutils.checkStatus(200))
-    .expect(testutils.checkHeaders)
-    .expect(testutils.checkBody(fixtures.RESTSuccessResponse()))
-    .end(done);
-  });
-
-  test('/payments -- without issuer', function(done){
-    self.wss.once('request_account_info', function(message, conn) {
-      assert.strictEqual(message.command, 'account_info');
-      assert.strictEqual(message.account, addresses.VALID);
-      conn.send(fixtures.accountInfoResponse(message));
-    });
-
-    self.wss.once('request_submit', function(message, conn) {
-      assert.strictEqual(message.command, 'submit');
-      conn.send(fixtures.requestSubmitResponse(message));
-    });
-
-    self.app
-    .post('/v1/accounts/' + addresses.VALID + '/payments')
-    .send(fixtures.payment({
-      value: '0.001',
-      currency: 'USD'
     }))
     .expect(testutils.checkStatus(200))
     .expect(testutils.checkHeaders)
