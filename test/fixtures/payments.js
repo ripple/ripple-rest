@@ -2,9 +2,10 @@ var _ = require('lodash');
 var addresses = require('./../fixtures').addresses;
 var paths = require('./paths');
 
-var fromAccount = addresses.VALID;
-var fromSecret = addresses.SECRET;
-var toAccount = addresses.COUNTERPARTY;
+var fromAccount   = addresses.VALID;
+var fromSecret    = addresses.SECRET;
+var toAccount     = addresses.COUNTERPARTY;
+var issuerAccount = addresses.ISSUER;
 
 module.exports.VALID_TRANSACTION_HASH = 'F4AB442A6D4CBB935D66E1DA7309A5FC71C7143ED4049053EC14E3875B0CF9BF';
 module.exports.VALID_TRANSACTION_HASH_MEMO = 'F9DE78E635A418529A5104A56439F305CE7C42B9F29180F05D77326B9ACD1D33';
@@ -245,13 +246,15 @@ module.exports.RESTTransactionResponse = function(options) {
   options = options || {};
   _.defaults(options, {
     memos: undefined,
-    hash: module.exports.VALID_TRANSACTION_HASH
+    hash: module.exports.VALID_TRANSACTION_HASH,
+    fromAccount: fromAccount,
+    toAccount: issuerAccount
   });
 
   return JSON.stringify({
     "success": true,
     "payment": {
-      "source_account": 'r3GgMwvgvP8h4yVWvjH1dPZNvC37TjzBBE',
+      "source_account": options.fromAccount,
       "source_tag": '',
       "source_amount": {
         "value": '1.112209',
@@ -259,11 +262,11 @@ module.exports.RESTTransactionResponse = function(options) {
         "issuer": ''
       },
       "source_slippage": '0',
-      "destination_account": 'r3PDtZSa5LiYp1Ysn1vMuMzB59RzV3W9QH',
+      "destination_account": options.toAccount,
       "destination_tag": '',
       "destination_amount": {
         "currency": 'USD',
-        "issuer": 'r3PDtZSa5LiYp1Ysn1vMuMzB59RzV3W9QH',
+        "issuer": options.toAccount,
         "value": '0.001'
       },
       "invoice_id": '',
@@ -292,6 +295,65 @@ module.exports.RESTTransactionResponse = function(options) {
         }
       ],
       "memos": options.memos
+    }
+  });
+};
+
+module.exports.RESTTransactionResponseComplexCurrencies = function(options) {
+  options = options || {};
+  _.defaults(options, {
+    memos: undefined,
+    hash: module.exports.VALID_TRANSACTION_HASH
+  });
+
+  return JSON.stringify({
+    "success": true,
+    "payment": {
+      "source_account": "r3GgMwvgvP8h4yVWvjH1dPZNvC37TjzBBE",
+      "source_tag": "",
+      "source_amount": {
+        "currency": "0158415500000000C1F76FF6ECB0BAC600000000",
+        "issuer": "rvYAfWj5gh67oV6fW32ZzP3Aw4Eubs59B",
+        "value": "0.00000001"
+      },
+      "source_slippage": "0",
+      "destination_account": "rvYAfWj5gh67oV6fW32ZzP3Aw4Eubs59B",
+      "destination_tag": "",
+      "destination_amount": {
+        "currency": "0158415500000000C1F76FF6ECB0BAC600000000",
+        "issuer": "rvYAfWj5gh67oV6fW32ZzP3Aw4Eubs59B",
+        "value": "0.00000001"
+      },
+      "invoice_id": "",
+      "paths": "[]",
+      "no_direct_ripple": false,
+      "partial_payment": false,
+      "direction": "outgoing",
+      "state": "validated",
+      "result": "tesSUCCESS",
+      "ledger": "10151421",
+      "hash": options.hash,
+      "timestamp": "2014-11-25T21:03:00.000Z",
+      "fee": "0.012",
+      "source_balance_changes": [
+        {
+          "value": "-0.012",
+          "currency": "XRP",
+          "issuer": ""
+        },
+        {
+          "value": "-1e-8",
+          "currency": "0158415500000000C1F76FF6ECB0BAC600000000",
+          "issuer": "r3GgMwvgvP8h4yVWvjH1dPZNvC37TjzBBE"
+        }
+      ],
+      "destination_balance_changes": [
+        {
+          "value": "1e-8",
+          "currency": "0158415500000000C1F76FF6ECB0BAC600000000",
+          "issuer": "r3GgMwvgvP8h4yVWvjH1dPZNvC37TjzBBE"
+        }
+      ]
     }
   });
 };
@@ -899,6 +961,105 @@ module.exports.transactionVerifiedResponse = function() {
     }
   );
 };
+
+
+module.exports.verifiedResponseComplexCurrency = function(options) {
+  options = options || {};
+  _.defaults(options, {
+    hash: module.exports.VALID_SUBMITTED_TRANSACTION_HASH,
+    fromAccount: fromAccount,
+    toAccount: toAccount
+  });
+
+  return JSON.stringify({
+    "engine_result": "tesSUCCESS",
+    "engine_result_code": 0,
+    "engine_result_message": "The transaction was applied.",
+    "ledger_hash": "4D63F66E96FA9FDD477A3CECE7BCCC474CF69820530F0993853BD74810939B2B",
+    "ledger_index": 10151421,
+    "meta": {
+      "AffectedNodes": [
+        {
+          "ModifiedNode": {
+            "FinalFields": {
+              "Account": options.fromAccount,
+              "Balance": "38821580",
+              "Flags": 0,
+              "OwnerCount": 3,
+              "Sequence": 23
+            },
+            "LedgerEntryType": "AccountRoot",
+            "LedgerIndex": "232B144A8867993B74B65354DFBF94A7E91CDD2AB645E0CDD1C85C953E883D91",
+            "PreviousFields": {
+              "Balance": "38833580",
+              "Sequence": 22
+            },
+            "PreviousTxnID": "3C7368462683AF6731F0CF7D68C9126534599FB8A5842084C6515B8BD3FA8C91",
+            "PreviousTxnLgrSeq": 10151364
+          }
+        },
+        {
+          "ModifiedNode": {
+            "FinalFields": {
+              "Balance": {
+                "currency": "0158415500000000C1F76FF6ECB0BAC600000000",
+                "issuer": "rrrrrrrrrrrrrrrrrrrrBZbvji",
+                "value": "-0.00000022"
+              },
+              "Flags": 2228224,
+              "HighLimit": {
+                "currency": "0158415500000000C1F76FF6ECB0BAC600000000",
+                "issuer": options.toAccount,
+                "value": "107.5942812604172"
+              },
+              "HighNode": "0000000000000000",
+              "LowLimit": {
+                "currency": "0158415500000000C1F76FF6ECB0BAC600000000",
+                "issuer": options.fromAccount,
+                "value": "0"
+              },
+              "LowNode": "0000000000000000"
+            },
+            "LedgerEntryType": "RippleState",
+            "LedgerIndex": "8AB5CFA846695B5BA335D113125D0D5165E979EDC3014333CC594E16A8D4042E",
+            "PreviousFields": {
+              "Balance": {
+                "currency": "0158415500000000C1F76FF6ECB0BAC600000000",
+                "issuer": "rrrrrrrrrrrrrrrrrrrrBZbvji",
+                "value": "-0.00000021"
+              }
+            },
+            "PreviousTxnID": "3C7368462683AF6731F0CF7D68C9126534599FB8A5842084C6515B8BD3FA8C91",
+            "PreviousTxnLgrSeq": 10151364
+          }
+        }
+      ],
+      "TransactionIndex": 19,
+      "TransactionResult": "tesSUCCESS"
+    },
+    "status": "closed",
+    "transaction": {
+      "Account": options.fromAccount,
+      "Amount": {
+        "currency": "0158415500000000C1F76FF6ECB0BAC600000000",
+        "issuer": options.toAccount,
+        "value": "0.00000001"
+      },
+      "Destination": options.toAccount,
+      "Fee": "12000",
+      "Flags": 2147483648,
+      "LastLedgerSequence": 10151428,
+      "Sequence": 22,
+      "SigningPubKey": "0347FFA8A09A9C473D0A8D9026B02C12C8065E5E66A787A278B379132950EDA0DD",
+      "TransactionType": "Payment",
+      "TxnSignature": "304402203657E0A56CA849B9D0DA1066590FF5E2E4936328027219E23690E8072F9DC1FD02202DED19813D54881183C0385DE362BD15ECD1ADBF54FCD09DACF456C170064D6D",
+      "date": 470264580,
+      "hash": options.hash
+    },
+    "type": "transaction",
+    "validated": true
+  });
+}
 
 module.exports.ledgerSequenceTooHighResponse = function(request) {
   return JSON.stringify(
