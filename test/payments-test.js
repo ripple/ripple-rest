@@ -158,6 +158,34 @@ suite('post payments', function() {
       .end(done);
   });
 
+  test('/payments -- hex currency gold with issuer', function(done){
+    var hash = testutils.generateHash();
+
+    self.wss.once('request_account_info', function(message, conn) {
+      assert.strictEqual(message.command, 'account_info');
+      assert.strictEqual(message.account, addresses.VALID);
+      conn.send(fixtures.accountInfoResponse(message));
+    });
+
+    self.wss.once('request_submit', function(message, conn) {
+      assert.strictEqual(message.command, 'submit');
+      conn.send(fixtures.requestSubmitResponse(message, {hash: hash}));
+    });
+
+    self.app
+      .post('/v1/accounts/' + addresses.VALID + '/payments')
+      .send(fixtures.payment({
+        value: '0.0001',
+        currency: '015841550000000041F78E0A28CBF19200000000',
+        issuer: addresses.VALID,
+        hash: hash
+      }))
+      .expect(testutils.checkStatus(200))
+      .expect(testutils.checkHeaders)
+      .expect(testutils.checkBody(fixtures.RESTSuccessResponse()))
+      .end(done);
+  });
+
   test('/payments -- with validated true, valid submit response, and transaction verified response', function(done){
     self.wss.once('request_account_info', function(message, conn) {
       assert.strictEqual(message.command, 'account_info');
@@ -186,6 +214,40 @@ suite('post payments', function() {
       hash: fixtures.VALID_SUBMITTED_TRANSACTION_HASH 
     })))
     .end(done);
+  });
+
+  test('/payments -- hex currency gold with validated true, valid submit response, and transaction verified response', function(done){
+    var hash = testutils.generateHash();
+
+    self.wss.once('request_account_info', function(message, conn) {
+      assert.strictEqual(message.command, 'account_info');
+      assert.strictEqual(message.account, addresses.VALID);
+      conn.send(fixtures.accountInfoResponse(message));
+    });
+
+    self.wss.once('request_submit', function(message, conn) {
+      assert.strictEqual(message.command, 'submit');
+      conn.send(fixtures.requestSubmitResponse(message, {hash: hash}));
+
+      process.nextTick(function () {
+        conn.send(fixtures.verifiedResponseComplexCurrency({hash: hash}));
+      });
+    });
+
+    self.app
+      .post('/v1/accounts/' + addresses.VALID + '/payments?validated=true')
+      .send(fixtures.payment({
+        value: '0.0001',
+        currency: '015841550000000041F78E0A28CBF19200000000',
+        issuer: addresses.VALID,
+        hash: hash
+      }))
+      .expect(testutils.checkStatus(200))
+      .expect(testutils.checkHeaders)
+      .expect(testutils.checkBody(fixtures.RESTTransactionResponseComplexCurrencies({
+        hash: hash
+      })))
+      .end(done);
   });
 
   test('/payments -- with validated true and ledger sequence too high error', function(done) {
