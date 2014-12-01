@@ -443,15 +443,15 @@ module.exports.RESTSubmitTransactionResponse = function(options) {
   return JSON.stringify({
     success: true,
     order: {
+      hash: options.hash,
+      ledger: String(options.last_ledger),
+      state: options.state,
       account: options.account,
       taker_gets: options.taker_gets,
       taker_pays: options.taker_pays,
       fee: '0.012',
       type: options.type,
-      sequence: options.sequence,
-      hash: options.hash,
-      ledger: String(options.last_ledger),
-      state: options.state
+      sequence: options.sequence
     }
   });
 };
@@ -463,13 +463,13 @@ module.exports.RESTCancelTransactionResponse = function(options) {
   return JSON.stringify({
     success: true,
     order: {
+      hash: options.hash,
+      ledger: String(options.last_ledger),
+      state: options.state,
       account: options.account,
       fee: '0.012',
       offer_sequence: options.sequence,
-      sequence: options.sequence + 1,
-      hash: options.hash,
-      ledger: String(options.last_ledger),
-      state: options.state
+      sequence: options.sequence + 1
     }
   });
 };

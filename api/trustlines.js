@@ -1,16 +1,21 @@
-var async   = require('async');
-var ripple  = require('ripple-lib');
-var remote  = require('./../lib/remote.js');
-var respond = require('./../lib/response-handler.js');
-var errors  = require('./../lib/errors.js');
+var _            = require('lodash');
+var async        = require('async');
+var ripple       = require('ripple-lib');
+var transactions = require('./transactions.js');
+var remote       = require('./../lib/remote.js');
+var respond      = require('./../lib/response-handler.js');
+var errors       = require('./../lib/errors.js');
 
 const TrustSetFlags = {
-  SetAuth: { name: 'authorized', value: 0x00010000 },
-  NoRipple: { name: 'prevent_rippling', value: 0x00020000 },
-  ClearNoRipple: { name: 'allow_rippling', value: 0x00040000 },
-  SetFreeze: { name: 'freeze', value: 0x00100000 },
-  ClearFreeze: { name: 'unfreeze', value: 0x00200000 }
+  ClearNoRipple: { name: 'account_allows_rippling', set: 'ClearNoRipple', unset: 'NoRipple' },
+  SetFreeze:     { name: 'account_trustline_frozen', set: 'SetFreeze', unset: 'ClearFreeze' }
 };
+
+const TrustSetResponseFlags = {
+  NoRipple:      { name: 'prevent_rippling', value: ripple.Transaction.flags.TrustSet.NoRipple },
+  SetFreeze:     { name: 'account_trustline_frozen', value: ripple.Transaction.flags.TrustSet.SetFreeze },
+  SetAuth:       { name: 'authorized', value: ripple.Transaction.flags.TrustSet.SetAuth }
+}
 
 /**
  *  Retrieves all trustlines for a given account
@@ -132,165 +137,111 @@ function getTrustLines(request, response, next) {
  */
 
 function addTrustLine(request, response, next) {
-  var options = request.params;
+  var params = request.params;
 
   Object.keys(request.body).forEach(function(param) {
-    options[param] = request.body[param];
+    params[param] = request.body[param];
   });
 
-  options.validated = request.query.validated === 'true';
+  var options = {
+    secret: params.secret,
+    validated: request.query.validated === 'true'
+  };
 
-  var steps = [
-    validateOptions,
-    addLine
-  ];
+  var hooks = {
+    validateParams: validateParams,
+    formatTransactionResponse: formatTransactionResponse,
+    setTransactionParameters: setTransactionParameters
+  };
 
-  async.waterfall(steps, function(err, line) {
+  transactions.submit(options, hooks, function(err, trustline) {
     if (err) {
-      next(err);
-    } else {
-      respond.created(response, line);
+      return next(err);
     }
-  });
 
-  function validateOptions(callback) {
-    if (!ripple.UInt160.is_valid(options.account)) {
+    respond.created(response, trustline);
+  });
+  
+  function validateParams(callback) {
+    if (!ripple.UInt160.is_valid(params.account)) {
       return callback(new errors.InvalidRequestError('Parameter is not a Ripple address: account'));
     }
-    if (!options.secret) {
-      return callback(new errors.InvalidRequestError('Parameter missing: secret'));
-    }
-    if (typeof options.trustline !== 'object') {
+    if (typeof params.trustline !== 'object') {
       return callback(new errors.InvalidRequestError('Parameter missing: trustline'));
     }
-    if (!options.trustline.limit) {
+    if (!params.trustline.limit) {
       return callback(new errors.InvalidRequestError('Parameter missing: trustline.limit'));
     }
-    if (isNaN(options.trustline.limit = String(options.trustline.limit))) {
+    if (isNaN(params.trustline.limit = String(params.trustline.limit))) {
       return callback(new errors.InvalidRequestError('Parameter is not a number: trustline.limit'));
     }
-    if (!options.trustline.currency) {
+    if (!params.trustline.currency) {
       return callback(new errors.InvalidRequestError('Parameter missing: trustline.currency'));
     }
-    if (!/^[A-Z0-9]{3}$/.test(options.trustline.currency)) {
+    if (!/^[A-Z0-9]{3}$/.test(params.trustline.currency)) {
       return callback(new errors.InvalidRequestError('Parameter is not a valid currency: trustline.currency'));
     }
-    if (!options.trustline.counterparty) {
+    if (!params.trustline.counterparty) {
       return callback(new errors.InvalidRequestError('Parameter missing: trustline.counterparty'));
     }
-    if (!ripple.UInt160.is_valid(options.trustline.counterparty)) {
+    if (!ripple.UInt160.is_valid(params.trustline.counterparty)) {
       return callback(new errors.InvalidRequestError('Parameter is not a Ripple address: trustline.counterparty'));
     }
-    if (!/^(undefined|number)$/.test(typeof options.trustline.quality_in)) {
+    if (!/^(undefined|number)$/.test(typeof params.trustline.quality_in)) {
       return callback(new errors.InvalidRequestError('Parameter must be a number: trustline.quality_in'));
     }
-    if (!/^(undefined|number)$/.test(typeof options.trustline.quality_out)) {
+    if (!/^(undefined|number)$/.test(typeof params.trustline.quality_out)) {
       return callback(new errors.InvalidRequestError('Parameter must be a number: trustline.quality_out'));
     }
-    if (!/^(undefined|boolean)$/.test(typeof options.trustline.account_allows_rippling)) {
+    if (!/^(undefined|boolean)$/.test(typeof params.trustline.account_allows_rippling)) {
       return callback(new errors.InvalidRequestError('Parameter must be a boolean: trustline.allow_rippling'));
     }
 
     callback();
   };
 
-  function addLine(callback) {
+  function formatTransactionResponse(message, meta, callback) {
+    var result = {};
+    var line = message.tx_json.LimitAmount;
+    var parsedFlags = transactions.parseFlagsFromResponse(message.tx_json.Flags, TrustSetResponseFlags);
+    
+    _.extend(meta, {
+      account: message.tx_json.Account,
+      limit: line.value,
+      currency: line.currency,
+      counterparty: line.issuer,
+      account_allows_rippling: !parsedFlags.prevent_rippling,
+      account_trustline_frozen: parsedFlags.account_trustline_frozen,
+      authorized: parsedFlags.authorized ? parsedFlags.authorized : void(0)
+    });
+
+    result.trustline = meta;
+
+    callback(null, result);
+  };
+
+  function setTransactionParameters(transaction) {
     var limit = [
-      options.trustline.limit,
-      options.trustline.currency,
-      options.trustline.counterparty
+      params.trustline.limit,
+      params.trustline.currency,
+      params.trustline.counterparty
     ].join('/');
 
-    var transaction = remote.transaction();
-    var complete = false;
-    var allows_rippling = false;
-    var froze_trustline = false;
-
-    function transactionSent(m) {
-      complete = true;
-      var summary = transaction.summary();
-      var line = summary.tx_json.LimitAmount;
-      var result = {
-        success: true,
-        trustline: {
-          account: options.account,
-          limit: line.value,
-          currency: line.currency,
-          counterparty: line.issuer,
-          account_allows_rippling: allows_rippling,
-          account_trustline_frozen: froze_trustline,
-          ledger: String(summary.submitIndex),
-          hash: m.tx_json.hash,
-          state: m.validated === true ? 'validated' : 'pending'
-        }
-      };
-
-      if (m.tx_json.Flags & TrustSetFlags.SetAuth) {
-        result.trustline.authorized = true;
-      }
-
-      callback(null, result);
-    };
-
-    transaction.once('error', callback);
-    transaction.once('proposed', function (result) {
-      if (options.validated === false) {
-        transactionSent(result);
-      }
-    });
-
-    transaction.once('success', function(result) {
-      if (!complete && options.validated === false) {
-        transaction.removeAllListeners('proposed');
-        transactionSent(result);
-      }
-    });
-
-    transaction.once('final', function(result) {
-      if (!complete && options.validated === true) {
-        if (/^tes/.test(result.engine_result)) {
-          transaction.removeAllListeners('proposed');
-          transactionSent(result);
-        } else {
-          callback(result);
-        }
-      }
-    });
-
-    try {
-      transaction.trustSet(options.account, limit);
-      transaction.secret(options.secret);
-
-      if (typeof options.trustline.quality_in === 'number') {
-        transaction.tx_json.QualityIn = options.trustline.quality_in;
-      }
-      if (typeof options.trustline.quality_out === 'number') {
-        transaction.tx_json.QualityOut = options.trustline.quality_out;
-      }
-
-      if (typeof options.trustline.account_allows_rippling === 'boolean') {
-        if (options.trustline.account_allows_rippling) {
-          transaction.setFlags('ClearNoRipple');
-        } else {
-          transaction.setFlags('NoRipple');
-        }
-      }
-
-      if (typeof options.trustline.account_trustline_frozen === 'boolean') {
-        if (options.trustline.account_trustline_frozen) {
-          transaction.setFlags('SetFreeze');
-        } else {
-          transaction.setFlags('ClearFreeze');
-        }
-      }
-
-      allows_rippling = !Boolean(transaction.tx_json.Flags & 0x00020000);
-      froze_trustline = Boolean(transaction.tx_json.Flags & 0x00100000);
-    } catch (exception) {
-      return callback(new errors.ApiError(exception));
+    transaction.trustSet(params.account, limit);
+    transaction.secret(params.secret);
+    
+    if (typeof params.trustline.quality_in === 'number') {
+      transaction.tx_json.QualityIn = params.trustline.quality_in;
+    }
+    if (typeof params.trustline.quality_out === 'number') {
+      transaction.tx_json.QualityOut = params.trustline.quality_out;
     }
 
-    transaction.submit();
+    transactions.setTransactionBitFlags(transaction, {
+      input: params.trustline, 
+      flags: TrustSetFlags,
+      clear_setting: ''
+    });
   };
 };
 

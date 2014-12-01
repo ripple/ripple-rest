@@ -260,7 +260,7 @@ suite('post settings', function() {
       .end(done);
   });
 
-  test('/accounts/:account/settings -- with validated true and invalid secret error', function(done) {
+  test('/accounts/:account/settings -- with validated false and invalid secret error', function(done) {
     var lastLedger = self.app.remote._ledger_current_index;
 
     self.wss.once('request_account_info', function(message, conn) {
@@ -483,6 +483,70 @@ suite('post settings', function() {
       .end(done);
   });
 
+  test('/accounts/:account/settings -- invalid setting -- require_authorization', function(done) {
+    self.wss.once('request_account_info', function(message, conn) {
+      assert(false, 'Should not request account info');
+    });
+
+    self.wss.once('request_submit', function(message, conn) {
+      assert(false, 'Should not request submit');
+    });
+
+    self.app
+    .post(fixtures.requestPath(addresses.VALID))
+    .send({
+      secret: addresses.SECRET,
+      settings: {
+        require_destination_tag: true,
+        require_authorization: 1,
+        disallow_xrp: true,
+        domain: 'example.com',
+        email_hash: '23463B99B62A72F26ED677CC556C44E8',
+        wallet_locator: 'DEADBEEF',
+        wallet_size: 1,
+        transfer_rate: 2
+      }})
+      .expect(testutils.checkStatus(400))
+      .expect(testutils.checkHeaders)
+      .expect(testutils.checkBody(errors.RESTErrorResponse({
+        type: 'invalid_request',
+        error: 'Parameter must be a boolean: require_authorization'
+      })))
+      .end(done);
+  });
+
+  test('/accounts/:account/settings -- invalid setting -- disallow_xrp', function(done) {
+    self.wss.once('request_account_info', function(message, conn) {
+      assert(false, 'Should not request account info');
+    });
+
+    self.wss.once('request_submit', function(message, conn) {
+      assert(false, 'Should not request submit');
+    });
+
+    self.app
+    .post(fixtures.requestPath(addresses.VALID))
+    .send({
+      secret: addresses.SECRET,
+      settings: {
+        require_destination_tag: true,
+        require_authorization: true,
+        disallow_xrp: 1,
+        domain: 'example.com',
+        email_hash: '23463B99B62A72F26ED677CC556C44E8',
+        wallet_locator: 'DEADBEEF',
+        wallet_size: 1,
+        transfer_rate: 2
+      }})
+      .expect(testutils.checkStatus(400))
+      .expect(testutils.checkHeaders)
+      .expect(testutils.checkBody(errors.RESTErrorResponse({
+        type: 'invalid_request',
+        error: 'Parameter must be a boolean: disallow_xrp'
+      })))
+      .end(done);
+  });
+
   test('/accounts/:account/settings -- invalid setting -- domain', function(done) {
     self.wss.once('request_account_info', function(message, conn) {
       assert(false, 'Should not request account info');
@@ -642,6 +706,69 @@ suite('post settings', function() {
       .expect(testutils.checkStatus(400))
       .expect(testutils.checkHeaders)
       .expect(testutils.checkBody(fixtures.RESTInvalidDisableMasterResponse))
+      .end(done);
+  });
+
+  test('/accounts/:account/settings -- invalid setting -- email_hash too long', function(done) {
+    self.wss.once('request_account_info', function(message, conn) {
+      assert(false, 'Should not request account info');
+    });
+
+    self.wss.once('request_submit', function(message, conn) {
+      assert(false, 'Should not request submit');
+    });
+
+    self.app
+      .post(fixtures.requestPath(addresses.VALID))
+      .send({
+        secret: addresses.SECRET,
+        settings: {
+          require_destination_tag: true,
+          require_authorization: true,
+          disallow_xrp: true,
+          domain: 'example.com',
+          email_hash: '23463B99B62A72F26ED677CC556C44E8F',
+          wallet_locator: 'DEADBEEF',
+          wallet_size: 1,
+          disable_master: false
+        }})
+      .expect(testutils.checkStatus(400))
+      .expect(testutils.checkHeaders)
+      .expect(testutils.checkBody(errors.RESTErrorResponse({
+        type: 'invalid_request',
+        error: 'Parameter length exceeded: EmailHash'
+      })))
+      .end(done);
+  });
+
+  test('/accounts/:account/settings -- no op setting -- require_destination_tag', function(done) {
+    self.wss.once('request_account_info', function(message, conn) {
+      assert.strictEqual(message.command, 'account_info');
+      assert.strictEqual(message.account, addresses.VALID);
+      conn.send(fixtures.accountInfoResponse(message));
+    });
+
+    self.wss.once('request_submit', function(message, conn) {
+      assert.strictEqual(message.command, 'submit');
+      assert(message.hasOwnProperty('tx_blob'));
+
+      var so = new ripple.SerializedObject(message.tx_blob).to_json();
+
+      assert.strictEqual(so.TransactionType, 'AccountSet');
+      assert.strictEqual(so.Flags & ripple.Transaction.flags.AccountSet.RequireDestTag, 0);
+
+      conn.send(fixtures.submitSettingsResponse(message));
+    });
+
+    self.app
+    .post(fixtures.requestPath(addresses.VALID))
+    .send({
+      secret: addresses.SECRET,
+      settings: {
+        require_destination_tag: undefined,
+      }})
+      .expect(testutils.checkStatus(200))
+      .expect(testutils.checkHeaders)
       .end(done);
   });
 

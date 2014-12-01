@@ -331,8 +331,7 @@ suite('post orders', function() {
     .expect(testutils.checkHeaders)
     .expect(testutils.checkBody(errors.RESTErrorResponse({
       type: 'invalid_request',
-      error: 'Missing parameter: secret',
-      message: 'Submission must have account secret to sign and submit payment'
+      error: 'Parameter missing: secret'
     })))
     .end(done);
   });
@@ -858,8 +857,7 @@ suite('delete orders', function() {
     .expect(testutils.checkHeaders)
     .expect(testutils.checkBody(errors.RESTErrorResponse({
       type: 'invalid_request',
-      error: 'Missing parameter: secret',
-      message: 'Submission must have account secret to sign and submit payment'
+      error: 'Parameter missing: secret'
     })))
     .end(done);
   });

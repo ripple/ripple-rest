@@ -61,7 +61,7 @@ module.exports.submitSettingsResponse = function(request, lastLedger) {
       tx_json: {
         Account: 'r3GgMwvgvP8h4yVWvjH1dPZNvC37TjzBBE',
         Fee: '12',
-        Flags: 2147549184,
+        Flags: -2146107392,
         clearFlag: 6,
         SetFlag: 7,
         LastLedgerSequence: lastLedger,
@@ -111,7 +111,7 @@ module.exports.settingsValidatedResponse = function() {
     "transaction": {
       "Account": "r3GgMwvgvP8h4yVWvjH1dPZNvC37TjzBBE",
       "Fee": "12",
-      "Flags": 2147549184,
+      "Flags": -2146107392,
       "LastLedgerSequence": 9903915,
       "Sequence": 18,
       "SigningPubKey": '02F89EAEC7667B30F33D0687BBA86C3FE2A08CCA40A9186C5BDE2DAA6FA97A37D8',
@@ -136,7 +136,7 @@ module.exports.ledgerSequenceTooHighResponse = function(request) {
       tx_json: {
         Account: 'r3GgMwvgvP8h4yVWvjH1dPZNvC37TjzBBE',
         Fee: '12',
-        Flags: 2147549184,
+        Flags: -2146107392,
         clearFlag: 6,
         SetFlag: 7,
         LastLedgerSequence: 8819963,
@@ -178,9 +178,6 @@ module.exports.RESTAccountSettingsSubmitResponse = function(lastLedger, state) {
   return JSON.stringify({
     success: true,
     settings: {
-      require_destination_tag: true,
-      require_authorization: true,
-      disallow_xrp: true,
       no_freeze: false,
       global_freeze: true,
       email_hash: '23463B99B62A72F26ED677CC556C44E8',
@@ -190,7 +187,10 @@ module.exports.RESTAccountSettingsSubmitResponse = function(lastLedger, state) {
       transfer_rate: 2,
       hash: 'AD922400CB1CE0876CA7203DBE0B1277D0D0EAC56A64F26CEC6C78D447EFEA5E',
       ledger: lastLedger.toString(),
-      state: state
+      state: state,
+      require_destination_tag: true,
+      require_authorization: true,
+      disallow_xrp: true
     }
   });
 };
