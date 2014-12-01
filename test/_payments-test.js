@@ -650,7 +650,6 @@ suite('payments', function() {
       .end(done);
   });
 
-
   test('grant a trustline of 10 usd towards alice', function(done) {
     orderlist.create([
       {command:'subscribe'},
@@ -716,6 +715,7 @@ suite('payments', function() {
 
       delete resp.body.trustline.hash;
       delete resp.body.trustline.ledger;
+
       assert.deepEqual(resp.body,{
         "success": true,
         "trustline": {

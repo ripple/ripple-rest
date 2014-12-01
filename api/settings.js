@@ -1,6 +1,8 @@
+var _ = require('lodash');
 var assert  = require('assert');
 var async   = require('async');
 var ripple  = require('ripple-lib');
+var transactions = require('./transactions.js');
 var remote  = require('./../lib/remote.js');
 var respond = require('./../lib/response-handler.js');
 var errors  = require('./../lib/errors.js');
@@ -19,41 +21,34 @@ const AccountRootFlags = {
 
 const AccountRootFields = {
   Sequence:       { name:  'transaction_sequence' },
-  EmailHash:      { name:  'email_hash', encoding: 'hex', length: 32 },
-  WalletLocator:  { name:  'wallet_locator', encoding: 'hex', length: 64 },
-  WalletSize:     { name:  'wallet_size' },
+  EmailHash:      { name:  'email_hash', encoding: 'hex', length: 32, defaults: '0' },
+  WalletLocator:  { name:  'wallet_locator', encoding: 'hex', length: 64, defaults: '0' },
+  WalletSize:     { name:  'wallet_size', defaults: 0 },
   MessageKey:     { name:  'message_key' },
   Domain:         { name:  'domain', encoding: 'hex' },
-  TransferRate:   { name:  'transfer_rate' },
+  TransferRate:   { name:  'transfer_rate', defaults: 0 },
   Signers:        { name:  'signers' }
+};
+
+const AccountSetResponseFlags = {
+  RequireDestTag: { name:   'require_destination_tag', value: ripple.Transaction.flags.AccountSet.RequireDestTag },
+  RequireAuth:    { name:   'require_authorization', value: ripple.Transaction.flags.AccountSet.RequireAuth },
+  DisallowXRP:    { name:   'disallow_xrp', value: ripple.Transaction.flags.AccountSet.DisallowXRP }
+};
+
+const AccountSetIntFlags = {
+  NoFreeze:       { name:   'no_freeze', value: ripple.Transaction.set_clear_flags.AccountSet.asfNoFreeze },
+  GlobalFreeze:   { name:   'global_freeze', value: ripple.Transaction.set_clear_flags.AccountSet.asfGlobalFreeze }
+};
+
+const AccountSetFlags = {
+  RequireDestTag: { name:   'require_destination_tag', set: 'RequireDestTag', unset: 'OptionalDestTag' },
+  RequireAuth:    { name:   'require_authorization', set: 'RequireAuth', unset: 'OptionalAuth' },
+  DisallowXRP:    { name:   'disallow_xrp', set: 'DisallowXRP', unset: 'AllowXRP' }
 };
 
 // Emptry string passed to setting will clear it
 const CLEAR_SETTING = '';
-
-/**
- * There are different ways to clear account root fields. Find the clearing
- * value for a given field name
- *
- * @param {String} fieldName
- */
-
-function getClearValue(fieldName) {
-  assert.strictEqual(typeof fieldName, 'string');
-
-  switch (fieldName) {
-    case 'Emailhash':
-    case 'WalletLocator':
-      return '0';
-      break;
-    case 'TransferRate':
-    case 'WalletSize':
-      return 0;
-      break;
-    default:
-      return '';
-  }
-};
 
 /**
  * Pad the value of a  fixed-length field
@@ -62,7 +57,6 @@ function getClearValue(fieldName) {
  * @param {Number} length
  * @return {String}
  */
-
 function padValue(value, length) {
   assert.strictEqual(typeof value, 'string');
   assert.strictEqual(typeof length, 'number');
@@ -74,6 +68,94 @@ function padValue(value, length) {
   }
 
   return result;
+};
+
+function parseFieldsFromResponse(responseBody, fields) {
+  var parsedBody = {};
+
+  for (var fieldName in fields) {
+    var field = fields[fieldName];
+    var value = responseBody[fieldName] || '';
+    if (field.encoding === 'hex' && !field.length) {
+      value = new Buffer(value, 'hex').toString('ascii');
+    }
+    parsedBody[field.name] = value;
+  }
+
+  return parsedBody
+};
+
+/**
+ * Set integer flags on a transaction based on input and a flag map
+ * 
+ * @param {Transaction} transaction
+ * @param {Object} input - Object whose properties determine whether to update the transaction's SetFlag or ClearFlag property
+ * @param {Object} flags - Object that maps property names to transaction integer flag values
+ *
+ * @returns undefined
+ */
+function setTransactionIntFlags(transaction, input, flags) {
+  for (var flagName in flags) {
+    var flag = flags[flagName];
+
+    if (!input.hasOwnProperty(flag.name)) {
+      continue;
+    }
+
+    var value = input[flag.name];
+
+    if (value) {
+      transaction.tx_json.SetFlag = flag.value;
+    } else {
+      transaction.tx_json.ClearFlag = flag.value;
+    }
+  }
+};
+
+/**
+ * Set fields on a transaction based on input and fields schema object
+ * 
+ * @param {Transaction} transaction
+ * @param {Object} input       - Object whose properties are used to set fields on the transaction
+ * @param {Object} fieldSchema - Object that holds the schema of each field
+ *
+ * @returns undefined
+ */
+function setTransactionFields(transaction, input, fieldSchema) {
+  for (var fieldName in fieldSchema) {
+    var field = fieldSchema[fieldName];
+    var value = input[field.name];
+
+    if (typeof value === 'undefined') {
+      continue;
+    }
+
+    // The value required to clear an account root field varies
+    if (value === CLEAR_SETTING && field.hasOwnProperty('defaults')) {
+      value = field.defaults;
+    }
+
+    if (field.encoding === 'hex') {
+      // If the field is supposed to be hex, why don't we do a toString('hex') on it?
+      if (field.length) {
+        // Field is fixed length, why are we checking here though? We could move this to validateInputs
+        if (value.length > field.length) {
+          throw new InvalidRequestError(
+            'Parameter length exceeded: ' + fieldName);
+        } else if (value.length < field.length) {
+          value = padValue(value, field.length);
+        }
+      } else {
+        // Field is variable length. Expecting an ascii string as input.
+        // This is currently only used for Domain field
+        value = new Buffer(value, 'ascii').toString('hex');
+      }
+
+      value = value.toUpperCase();
+    }
+
+    transaction.tx_json[fieldName] = value;
+  }
 };
 
 /**
@@ -98,20 +180,10 @@ function getSettings(request, response, next) {
     };
 
     // Attach account flags
-    for (var flagName in AccountRootFlags) {
-      var flag = AccountRootFlags[flagName];
-      settings[flag.name] = Boolean(data.Flags & flag.value);
-    }
+    _.extend(settings, transactions.parseFlagsFromResponse(data.Flags, AccountRootFlags));
 
     // Attach account fields
-    for (var fieldName in AccountRootFields) {
-      var field = AccountRootFields[fieldName];
-      var value = data[fieldName] || '';
-      if (field.encoding === 'hex' && !field.length) {
-        value = new Buffer(value, 'hex').toString('ascii');
-      }
-      settings[field.name] = value;
-    }
+    _.extend(settings, parseFieldsFromResponse(data, AccountRootFields));
 
     settings.transaction_sequence = String(settings.transaction_sequence);
 
@@ -133,235 +205,142 @@ function getSettings(request, response, next) {
  *  @param {Express.js Next} next
  */
 function changeSettings(request, response, next) {
-  var options = request.params;
+  var params = request.params;
 
   Object.keys(request.body).forEach(function(param) {
-    options[param] = request.body[param];
+    params[param] = request.body[param];
   });
 
-  options.validated = request.query.validated === 'true';
+  var options = {
+    secret: params.secret,
+    validated: request.query.validated === 'true'
+  };
 
-  function validateOptions(callback) {
-    if (typeof options.settings !== 'object') {
+  var hooks = {
+    validateParams: validateParams,
+    formatTransactionResponse: formatTransactionResponse,
+    setTransactionParameters: setTransactionParameters
+  }
+
+  transactions.submit(options, hooks, function(err, settings) {
+    if (err) {
+      return next(err);
+    }
+
+    respond.success(response, settings);
+  });
+  
+  function validateParams(callback) {
+    if (typeof params.settings !== 'object') {
       return callback(new InvalidRequestError('Parameter missing: settings'));
     }
-    if (!ripple.UInt160.is_valid(options.account)) {
+    if (!ripple.UInt160.is_valid(params.account)) {
       return callback(new InvalidRequestError(
         'Parameter is not a valid Ripple address: account'));
     }
-    if (!options.secret) {
-      return callback(new InvalidRequestError('Parameter missing: secret'));
-    }
-    if (!/(undefined|string)/.test(typeof options.settings.domain)) {
+    if (!/(undefined|string)/.test(typeof params.settings.domain)) {
       return callback(new InvalidRequestError(
         'Parameter must be a string: domain'));
     }
-    if (!/(undefined|string)/.test(typeof options.settings.wallet_locator)) {
+    if (!/(undefined|string)/.test(typeof params.settings.wallet_locator)) {
       return callback(new InvalidRequestError(
         'Parameter must be a string: wallet_locator'));
     }
-    if (!/(undefined|string)/.test(typeof options.settings.email_hash)) {
+    if (!/(undefined|string)/.test(typeof params.settings.email_hash)) {
       return callback(new InvalidRequestError(
         'Parameter must be a string: email_hash'));
     }
-    if (!/(undefined|string)/.test(typeof options.settings.message_key)) {
+    if (!/(undefined|string)/.test(typeof params.settings.message_key)) {
       return callback(new InvalidRequestError(
         'Parameter must be a string: message_key'));
     }
-    if (!/(undefined|number)/.test(typeof options.settings.transfer_rate)) {
-      if (options.settings.transfer_rate !== '') {
+    if (!/(undefined|number)/.test(typeof params.settings.transfer_rate)) {
+      if (params.settings.transfer_rate !== '') {
         return callback(new InvalidRequestError(
           'Parameter must be a number: transfer_rate'));
       }
     }
-    if (!/(undefined|number)/.test(typeof options.settings.wallet_size)) {
-      if (options.settings.wallet_size !== '') {
+    if (!/(undefined|number)/.test(typeof params.settings.wallet_size)) {
+      if (params.settings.wallet_size !== '') {
         return callback(new InvalidRequestError(
           'Parameter must be a number: wallet_size'));
       }
     }
-    if (!/(undefined|boolean)/.test(typeof options.settings.no_freeze)) {
+    if (!/(undefined|boolean)/.test(typeof params.settings.no_freeze)) {
       return callback(new InvalidRequestError(
         'Parameter must be a boolean: no_freeze'));
     }
-    if (!/(undefined|boolean)/.test(typeof options.settings.global_freeze)) {
+    if (!/(undefined|boolean)/.test(typeof params.settings.global_freeze)) {
       return callback(new InvalidRequestError(
         'Parameter must be a boolean: global_freeze'));
     }
-    if (!/(undefined|boolean)/.test(typeof options.settings.password_spent)) {
+    if (!/(undefined|boolean)/.test(typeof params.settings.password_spent)) {
       return callback(new InvalidRequestError(
         'Parameter must be a boolean: password_spent'));
     }
-    if (!/(undefined|boolean)/.test(typeof options.settings.disable_master)) {
+    if (!/(undefined|boolean)/.test(typeof params.settings.disable_master)) {
       return callback(new InvalidRequestError(
         'Parameter must be a boolean: disable_master'));
     }
-
-    callback();
-  };
-
-  function changeAccountSettings(callback) {
-    // Decimal flags
-    const SetClearFlags = ripple.Transaction.set_clear_flags.AccountSet;
-
-    // Bit flags
-    const FlagSet = {
-      require_destination_tag: {
-        unset: 'OptionalDestTag',
-        set: 'RequireDestTag'
-      },
-      require_authorization: {
-        unset: 'OptionalAuth',
-        set: 'RequireAuth'
-      },
-      disallow_xrp: {
-        unset: 'AllowXRP',
-        set: 'DisallowXRP'
-      }
-    };
-
-    var settings = { };
-    var transaction = remote.transaction();
-
-    function transactionSent(m) {
-      var summary = transaction.summary();
-      var result = { success: true };
-
-      if (summary.result) {
-        settings.hash = summary.result.transaction_hash;
-        settings.ledger = String(summary.submitIndex)
-      }
-
-      result.settings = settings;
-      result.settings.state = m.validated === true ? 'validated' : 'pending';
-
-      callback(null, result);
-    };
-
-    transaction.once('error', callback);
-
-    transaction.once('proposed', function(message) {
-      if (options.validated === false) {
-        transactionSent(message);
-      }
-    });
-
-    transaction.once('final', function(message) {
-      if (/^tes/.test(message.engine_result) && options.validated === true) {
-        transactionSent(message);
-      }
-    });
-
-    try {
-      transaction.accountSet(options.account);
-      transaction.secret(options.secret);
-    } catch (exception) {
-      return callback(exception);
+    if (!/(undefined|boolean)/.test(typeof params.settings.require_destination_tag)) {
+      return callback(new InvalidRequestError(
+        'Parameter must be a boolean: require_destination_tag'));
+    }
+    if (!/(undefined|boolean)/.test(typeof params.settings.require_authorization)) {
+      return callback(new InvalidRequestError(
+        'Parameter must be a boolean: require_authorization'));
+    }
+    if (!/(undefined|boolean)/.test(typeof params.settings.disallow_xrp)) {
+      return callback(new InvalidRequestError(
+        'Parameter must be a boolean: disallow_xrp'));
     }
 
-    for (var flagName in FlagSet) {
-      // Set transaction flags
-      if (!(flagName in options.settings)) {
-        continue;
-      }
-
-      var flag = FlagSet[flagName];
-      var value = options.settings[flagName];
-
-      if (value === CLEAR_SETTING) {
-        value = false;
-      }
-
-      if (typeof value !== 'boolean') {
-        return callback(new InvalidRequestError(
-          'Parameter must be a boolean: ' + flagName));
-      }
-
-      settings[flagName] = value;
-      transaction.setFlags(value ? flag.set : flag.unset);
-    }
-
-    if (options.settings.hasOwnProperty('no_freeze')) {
-      // Set/clear NoFreeze
-      settings.no_freeze = options.settings.no_freeze;
-      if (options.settings.no_freeze) {
-        transaction.tx_json.SetFlag = SetClearFlags.asfNoFreeze;
-      } else {
-        transaction.tx_json.ClearFlag = SetClearFlags.asfNoFreeze;
-      }
-    }
-
-    if (options.settings.hasOwnProperty('global_freeze')) {
-      // Set/clear GlobalFreeze
-      settings.global_freeze = options.settings.global_freeze;
-      if (options.settings.global_freeze) {
-        transaction.tx_json.SetFlag = SetClearFlags.asfGlobalFreeze;
-      } else {
-        transaction.tx_json.ClearFlag = SetClearFlags.asfGlobalFreeze;
-      }
-    }
-
-    var setCollision = (typeof settings.no_freeze === 'boolean')
-      && (typeof settings.global_freeze === 'boolean')
-      && settings.no_freeze === settings.global_freeze;
-
+    var setCollision = (typeof params.settings.no_freeze === 'boolean')
+      && (typeof params.settings.global_freeze === 'boolean')
+      && params.settings.no_freeze === params.settings.global_freeze;
 
     if (setCollision) {
       return callback(new InvalidRequestError(
         'Unable to set/clear no_freeze and global_freeze'));
     }
 
-    for (var fieldName in AccountRootFields) {
-      // Set transaction fields
-      var field = AccountRootFields[fieldName];
-      var value = options.settings[field.name];
-
-      if (typeof value === 'undefined') {
-        continue;
-      }
-
-      if (value === CLEAR_SETTING) {
-        // The value required to clear an account root field varies
-        value = getClearValue(fieldName);
-      }
-
-      if (field.encoding === 'hex') {
-        if (field.length) {
-          // Field is fixed length
-          if (value.length > field.length) {
-            return callback(new InvalidRequestError(
-              'Parameter length exceeded: ' + fieldName));
-          } else if (value.length < field.length) {
-            value = padValue(value, field.length);
-          }
-        } else {
-          // Field is variable length. Expecting an ascii string as input.
-          // This is currently only used for Domain field
-          value = new Buffer(value, 'ascii').toString('hex');
-        }
-
-        value = value.toUpperCase();
-      }
-
-      settings[field.name] = options.settings[field.name];
-      transaction.tx_json[fieldName] = value;
-    }
-
-    transaction.submit();
+    callback();
   };
 
-  var steps = [
-    validateOptions,
-    changeAccountSettings
-  ];
+  function formatTransactionResponse(message, meta, callback) {
+    var result = {
+      settings: {}
+    };
 
-  async.waterfall(steps, function(error, settings) {
-    if (error) {
-      next(error);
-    } else {
-      respond.success(response, settings);
+    for (var flagName in AccountSetIntFlags) {
+      var flag = AccountSetIntFlags[flagName];
+  
+      result.settings[flag.name] = params.settings[flag.name];
     }
-  });
+
+    for (var fieldName in AccountRootFields) {
+      var field = AccountRootFields[fieldName];
+
+      result.settings[field.name] = params.settings[field.name];
+    }
+
+    _.extend(meta, transactions.parseFlagsFromResponse(message.tx_json.Flags, AccountSetResponseFlags));
+    _.extend(result.settings, meta);
+
+    callback(null, result);
+  };
+
+  function setTransactionParameters(transaction) {
+    transaction.accountSet(params.account);
+
+    transactions.setTransactionBitFlags(transaction, {
+      input: params.settings, 
+      flags: AccountSetFlags,
+      clear_setting: CLEAR_SETTING
+    });
+    setTransactionIntFlags(transaction, params.settings, AccountSetIntFlags);
+    setTransactionFields(transaction, params.settings, AccountRootFields);
+  };
 };
 
 module.exports = {

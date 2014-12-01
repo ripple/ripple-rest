@@ -4,6 +4,7 @@ var bignum                = require('bignumber.js');
 var ripple                = require('ripple-lib');
 var transactions          = require('./transactions');
 var validator             = require('./../lib/schema-validator');
+var remote                = require('./../lib/remote.js');
 var serverLib             = require('./../lib/server-lib');
 var utils                 = require('./../lib/utils');
 var remote                = require('./../lib/remote.js');
@@ -50,211 +51,207 @@ var paymentToTransactionConverter = new RestToLibTxConverter();
  *  @param {Express.js Next} next
  */
 function submitPayment(request, response, next) {
-  var steps = [
-    validateOptions,
-    normalizeOptions,
-    validatePayment,
-    formatPayment,
-    submitTransaction
-  ];
+  var params = request.params;
 
-  var params = {
-    payment: request.body.payment,
-    secret: request.body.secret,
-    client_resource_id: request.body.client_resource_id,
-    last_ledger_sequence: request.body.last_ledger_sequence,
-    max_fee: Number(request.body.max_fee) > 0 ? utils.xrpToDrops(request.body.max_fee) : void(0),
-    url_base: request.protocol + '://' + request.hostname + (config && config.get('port') ? ':' + config.get('port') : ''),
-    validated: request.query.validated === 'true'
+  Object.keys(request.body).forEach(function(param) {
+    params[param] = request.body[param];
+  });
+
+  params.max_fee = Number(request.body.max_fee) > 0 ? utils.xrpToDrops(request.body.max_fee) : void(0);
+  params.url_base = request.protocol + '://' + request.hostname + (config && config.get('port') ? ':' + config.get('port') : '');
+
+  if (params.payment.destination_amount && params.payment.destination_amount.currency !== 'XRP' && _.isEmpty(params.payment.destination_amount.issuer)) {
+    params.payment.destination_amount.issuer = params.payment.destination_account;
+  }
+
+  var options = {
+    secret: params.secret,
+    validated: request.query.validated === 'true',
+    blockDuplicates: true,
+    clientResourceId: params.client_resource_id,
+    saveTransaction: true
   };
 
-  async.waterfall(steps, function(error, data) {
-    if (error) {
-      return next(error);
+  var hooks = {
+    validateParams: validateParams,
+    initializeTransaction: initializeTransaction,
+    formatTransactionResponse: formatTransactionResponse,
+    setTransactionParameters: setTransactionParameters
+  };
+
+  transactions.submit(options, hooks, function(err, payment) {
+    if (err) {
+      return next(err);
     }
 
-    if (params.validated === true) {
-      return formatPaymentHelper(params.payment.source_account, data.transaction, function (error, payment) {
-        if (error) {
-          return next(error);
-        } else {
-          respond.success(response, { payment: payment });
+    respond.success(response, payment);
+  });
+  
+  function validateParams(async_callback) {
+    var payment = params.payment;
+
+    if (!payment) {
+      return async_callback(new InvalidRequestError('Missing parameter: payment. Submission must have payment object in JSON form'));
+    }
+    if (!params.client_resource_id) {
+      return async_callback(new InvalidRequestError('Missing parameter: client_resource_id. All payments must be submitted with a client_resource_id to prevent duplicate payments'));
+    }
+    if (!validator.isValid(params.client_resource_id, 'ResourceId')) {
+      return async_callback(new InvalidRequestError('Invalid parameter: client_resource_id. Must be a string of ASCII-printable characters. Note that 256-bit hex strings are disallowed because of the potential confusion with transaction hashes.'));
+    }
+
+    if (!validator.isValid(payment.source_account, 'RippleAddress')) {
+      return async_callback(new InvalidRequestError('Invalid parameter: source_account. Must be a valid Ripple address'));
+    }
+
+    if (!validator.isValid(payment.destination_account, 'RippleAddress')) {
+      return async_callback(new InvalidRequestError('Invalid parameter: destination_account. Must be a valid Ripple address'));
+    }
+    // Tags
+    if (payment.source_tag && (!validator.isValid(payment.source_tag, 'UINT32'))) {
+      return async_callback(new InvalidRequestError('Invalid parameter: source_tag. Must be a string representation of an unsiged 32-bit integer'));
+    }
+    if (payment.destination_tag && (!validator.isValid(payment.destination_tag, 'UINT32'))) {
+      return async_callback(new InvalidRequestError('Invalid parameter: destination_tag. Must be a string representation of an unsiged 32-bit integer'));
+    }
+
+    // Amounts
+    // destination_amount is required, source_amount is optional
+    if (!payment.destination_amount || (!validator.isValid(payment.destination_amount, 'Amount'))) {
+      return async_callback(new InvalidRequestError('Invalid parameter: destination_amount. Must be a valid Amount object'));
+    }
+    if (payment.source_amount && (!validator.isValid(payment.source_amount, 'Amount'))) {
+      return async_callback(new InvalidRequestError('Invalid parameter: source_amount. Must be a valid Amount object'));
+    }
+
+    // No issuer for XRP
+    if (payment.destination_amount && payment.destination_amount.currency.toUpperCase() === 'XRP' && payment.destination_amount.issuer) {
+      return async_callback(new InvalidRequestError('Invalid parameter: destination_amount. XRP cannot have issuer'));
+    }
+    if (payment.source_amount && payment.source_amount.currency.toUpperCase() === 'XRP' && payment.source_amount.issuer) {
+      return async_callback(new InvalidRequestError('Invalid parameter: source_amount. XRP cannot have issuer'));
+    }
+
+    // Must have issuer for non-XRP payments
+    if (payment.destination_amount && payment.destination_amount.currency.toUpperCase() !== 'XRP' && !payment.destination_amount.issuer) {
+      return async_callback(new InvalidRequestError('Invalid parameter: destination_amount. Non-XRP payment must have an issuer'));
+    }
+
+    // Slippage
+    if (payment.source_slippage && !validator.isValid(payment.source_slippage, 'FloatString')) {
+      return async_callback(new InvalidRequestError('Invalid parameter: source_slippage. Must be a valid FloatString'));
+    }
+
+    // Advanced options
+
+    // Invoice id
+    if (payment.invoice_id && !validator.isValid(payment.invoice_id, 'Hash256')) {
+      return async_callback(new InvalidRequestError('Invalid parameter: invoice_id. Must be a valid Hash256'));
+    }
+
+    // paths
+    if (payment.paths) {
+      if (typeof payment.paths === 'string') {
+        try {
+          JSON.parse(payment.paths);
+        } catch (exception) {
+          return async_callback(new InvalidRequestError('Invalid parameter: paths. Must be a valid JSON string or object'));
         }
+      } else if (typeof payment.paths === 'object') {
+        try {
+          JSON.parse(JSON.stringify(payment.paths));
+        } catch (exception) {
+          return async_callback(new InvalidRequestError('Invalid parameter: paths. Must be a valid JSON string or object'));
+        }
+      }
+    }
+
+    // partial payment
+    if (payment.hasOwnProperty('partial_payment') && typeof payment.partial_payment !== 'boolean') {
+      return async_callback(new InvalidRequestError('Invalid parameter: partial_payment. Must be a boolean'));
+    }
+
+    // direct ripple
+    if (payment.hasOwnProperty('no_direct_ripple') && typeof payment.no_direct_ripple !== 'boolean') {
+      return async_callback(new InvalidRequestError('Invalid parameter: no_direct_ripple. Must be a boolean'));
+    }
+
+    // memos
+    if (payment.hasOwnProperty('memos')) {
+      if (!Array.isArray(payment.memos)) {
+        return async_callback(new InvalidRequestError('Invalid parameter: memos. Must be an array with memo objects'));
+      }
+
+      if (payment.memos.length === 0) {
+        return async_callback(new InvalidRequestError('Invalid parameter: memos. Must contain at least one Memo object, otherwise omit the memos property'));
+      }
+
+      for (var m = 0; m < payment.memos.length; m++) {
+        var memo = payment.memos[m];
+        if (memo.MemoType && !/(undefined|string)/.test(typeof memo.MemoType)) {
+          return async_callback(new InvalidRequestError('Invalid parameter: MemoType. MemoType must be a string'));
+        }
+        if (!/(undefined|string)/.test(typeof memo.MemoData)) {
+          return async_callback(new InvalidRequestError('Invalid parameter: MemoData. MemoData must be a string'));
+        }
+        if (!memo.MemoData && !memo.MemoType) {
+          return async_callback(new InvalidRequestError('Missing parameter: MemoData or MemoType. For a memo object MemoType or MemoData are both optional, as long as one of them is present'));
+        }
+      }
+    }
+
+    async_callback(null);
+  };
+
+  function initializeTransaction(async_callback) {
+    paymentToTransactionConverter.convert(params.payment, function(error, transaction) {
+      if (error) {
+        return async_callback(error);
+      }
+
+      async_callback(null, transaction);
+    });
+  };
+
+  function formatTransactionResponse(message, meta, async_callback) {
+    if (meta.state === 'validated') {
+      var transaction = message.tx_json;
+      transaction.meta = message.metadata;
+      transaction.ledger_index = transaction.inLedger = message.ledger_index;
+
+      return formatPaymentHelper(params.payment.source_account, transaction, function (error, payment) {
+        if (error) {
+          return async_callback(error);
+        }
+
+        async_callback(null, { payment: payment });
       });
     }
 
-    respond.success(response, {
-      client_resource_id: data.client_resource_id,
-      status_url: params.url_base + '/v1/accounts/' + params.payment.source_account + '/payments/' + data.client_resource_id
+    async_callback(null, {
+      client_resource_id: params.client_resource_id,
+      status_url: params.url_base + '/v1/accounts/' + params.payment.source_account + '/payments/' + params.client_resource_id
     });
-  });
+  };
 
-  function validateOptions(async_callback) {
-    if (!params.payment) {
-      async_callback(new InvalidRequestError('Missing parameter: payment. Submission must have payment object in JSON form'));
-    }
-    else if (!params.secret) {
-      async_callback(new InvalidRequestError('Missing parameter: secret. Submission must have account secret to sign and submit payment'));
-    }
-    else if (!params.client_resource_id) {
-      async_callback(new InvalidRequestError('Missing parameter: client_resource_id. All payments must be submitted with a client_resource_id to prevent duplicate payments'));
-    }
-    else if (!validator.isValid(params.client_resource_id, 'ResourceId')) {
-      async_callback(new InvalidRequestError('Invalid parameter: client_resource_id. Must be a string of ASCII-printable characters. Note that 256-bit hex strings are disallowed because of the potential confusion with transaction hashes.'));
-    }
-    else {
-      async_callback();
-    }
-  }
+  function setTransactionParameters(transaction) {
+    var ledgerIndex, maxFee = Number(params.max_fee);
 
-  function normalizeOptions(async_callback) {
-    if (params.payment.destination_amount.currency !== 'XRP' && _.isEmpty(params.payment.destination_amount.issuer)) {
-      params.payment.destination_amount.issuer = params.payment.destination_account;
+    if (Number(params.last_ledger_sequence) > 0) {
+      ledgerIndex = Number(params.last_ledger_sequence);
+    } else {
+      ledgerIndex = Number(remote._ledger_current_index) + transactions.DEFAULT_LEDGER_BUFFER;
     }
 
-    async_callback();
-  }
+    transaction.lastLedger(ledgerIndex);
 
-  function validatePayment(async_callback) {
-    isPaymentValid(params.payment, function(error, payment){
-      async_callback(error ? error : void(0));
-    });
-  }
-
-  function formatPayment(async_callback) {
-    paymentToTransactionConverter.convert(params.payment, function(error, transaction) {
-      if (error) {
-        async_callback(error);
-      } else {
-        async_callback(null, transaction);
-      }
-    });
-  }
-
-  function submitTransaction(transaction, async_callback) {
-    params.transaction = transaction;
-    transactions.submit(params, response, async_callback);
-  }
-}
-
-/**
- *  Check that the given payment is valid. If not
- *  pass an error to the callback. Otherwise call
- *  the callback with (null, true)
- *
- *  @param {Payment} payment
- *  @param {Function} callback
- *
- *  @callback
- *  @param {Error} error
- *  @param {Boolean} is_valid - only defined if there is no error
- */
-function isPaymentValid(payment, callback) {
-  // Ripple addresses
-  if (!validator.isValid(payment.source_account, 'RippleAddress')) {
-    return callback(new InvalidRequestError('Invalid parameter: source_account. Must be a valid Ripple address'));
-  }
-
-  if (!validator.isValid(payment.destination_account, 'RippleAddress')) {
-    return callback(new InvalidRequestError('Invalid parameter: destination_account. Must be a valid Ripple address'));
-  }
-  // Tags
-  if (payment.source_tag && (!validator.isValid(payment.source_tag, 'UINT32'))) {
-    return callback(new InvalidRequestError('Invalid parameter: source_tag. Must be a string representation of an unsiged 32-bit integer'));
-  }
-  if (payment.destination_tag && (!validator.isValid(payment.destination_tag, 'UINT32'))) {
-    return callback(new InvalidRequestError('Invalid parameter: destination_tag. Must be a string representation of an unsiged 32-bit integer'));
-  }
-
-  // Amounts
-  // destination_amount is required, source_amount is optional
-  if (!payment.destination_amount || (!validator.isValid(payment.destination_amount, 'Amount'))) {
-    return callback(new InvalidRequestError('Invalid parameter: destination_amount. Must be a valid Amount object'));
-  }
-  if (payment.source_amount && (!validator.isValid(payment.source_amount, 'Amount'))) {
-    return callback(new InvalidRequestError('Invalid parameter: source_amount. Must be a valid Amount object'));
-  }
-
-  // No issuer for XRP
-  if (payment.destination_amount && payment.destination_amount.currency.toUpperCase() === 'XRP' && payment.destination_amount.issuer) {
-    return callback(new InvalidRequestError('Invalid parameter: destination_amount. XRP cannot have issuer'));
-  }
-  if (payment.source_amount && payment.source_amount.currency.toUpperCase() === 'XRP' && payment.source_amount.issuer) {
-    return callback(new InvalidRequestError('Invalid parameter: source_amount. XRP cannot have issuer'));
-  }
-
-  // Must have issuer for non-XRP payments
-  if (payment.destination_amount && payment.destination_amount.currency.toUpperCase() !== 'XRP' && !payment.destination_amount.issuer) {
-    return callback(new InvalidRequestError('Invalid parameter: destination_amount. Non-XRP payment must have an issuer'));
-  }
-
-  // Slippage
-  if (payment.source_slippage && !validator.isValid(payment.source_slippage, 'FloatString')) {
-    return callback(new InvalidRequestError('Invalid parameter: source_slippage. Must be a valid FloatString'));
-  }
-
-  // Advanced options
-
-  // Invoice id
-  if (payment.invoice_id && !validator.isValid(payment.invoice_id, 'Hash256')) {
-    return callback(new InvalidRequestError('Invalid parameter: invoice_id. Must be a valid Hash256'));
-  }
-
-  // paths
-  if (payment.paths) {
-    if (typeof payment.paths === 'string') {
-      try {
-        JSON.parse(payment.paths);
-      } catch (exception) {
-        return callback(new InvalidRequestError('Invalid parameter: paths. Must be a valid JSON string or object'));
-      }
-    } else if (typeof payment.paths === 'object') {
-      try {
-        JSON.parse(JSON.stringify(payment.paths));
-      } catch (exception) {
-        return callback(new InvalidRequestError('Invalid parameter: paths. Must be a valid JSON string or object'));
-      }
-    }
-  }
-
-  // partial payment
-  if (payment.hasOwnProperty('partial_payment') && typeof payment.partial_payment !== 'boolean') {
-    return callback(new InvalidRequestError('Invalid parameter: partial_payment. Must be a boolean'));
-  }
-
-  // direct ripple
-  if (payment.hasOwnProperty('no_direct_ripple') && typeof payment.no_direct_ripple !== 'boolean') {
-    return callback(new InvalidRequestError('Invalid parameter: no_direct_ripple. Must be a boolean'));
-  }
-
-  // memos
-  if (payment.hasOwnProperty('memos')) {
-    if (!Array.isArray(payment.memos)) {
-      return callback(new InvalidRequestError('Invalid parameter: memos. Must be an array with memo objects'));
+    if (maxFee >= 0) {
+      transaction.maxFee(maxFee);
     }
 
-    if (payment.memos.length === 0) {
-      return callback(new InvalidRequestError('Invalid parameter: memos. Must contain at least one Memo object, otherwise omit the memos property'));
-    }
-
-    for (var m = 0; m < payment.memos.length; m++) {
-      var memo = payment.memos[m];
-      if (memo.MemoType && !/(undefined|string)/.test(typeof memo.MemoType)) {
-        return callback(new InvalidRequestError('Invalid parameter: MemoType. MemoType must be a string'));
-      }
-      if (!/(undefined|string)/.test(typeof memo.MemoData)) {
-        return callback(new InvalidRequestError('Invalid parameter: MemoData. MemoData must be a string'));
-      }
-      if (!memo.MemoData && !memo.MemoType) {
-        return callback(new InvalidRequestError('Missing parameter: MemoData or MemoType. For a memo object MemoType or MemoData are both optional, as long as one of them is present'));
-      }
-
-    }
-
-  }
-  callback(null, true);
+    transaction.clientID(params.client_resource_id);
+  };
 };
-
 
 /**
  *  Retrieve the details of a particular payment from the Remote or
@@ -299,8 +296,8 @@ function getPayment(request, response, next) {
 
   // If the transaction was not in the outgoing_transactions db, get it from rippled
   function getTransaction(async_callback) {
-    transactions.getTransaction(request.params.account, request.params.identifier, function(err, transaction) {
-      async_callback(err, transaction);
+    transactions.getTransaction(request.params.account, request.params.identifier, function(error, transaction) {
+      async_callback(error, transaction);
     });
   };
 

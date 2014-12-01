@@ -556,7 +556,9 @@ suite('post trustlines', function() {
       assert.strictEqual(so.Fee, '12');
       assert.strictEqual(so.Account, addresses.VALID);
 
-      conn.send(fixtures.submitTrustlineResponse(message));
+      conn.send(fixtures.submitTrustlineResponse(message, {
+        flags: 2147614720
+      }));
     });
 
     self.app
@@ -611,7 +613,9 @@ suite('post trustlines', function() {
       assert.strictEqual(so.Fee, '12');
       assert.strictEqual(so.Account, addresses.VALID);
 
-      conn.send(fixtures.submitTrustlineResponse(message));
+      conn.send(fixtures.submitTrustlineResponse(message, {
+        flags: 2148532224
+      }));
     });
 
     self.app
@@ -875,4 +879,3 @@ suite('post trustlines', function() {
     .end(done);
   });
 });
-

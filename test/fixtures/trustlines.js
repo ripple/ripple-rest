@@ -1,3 +1,5 @@
+var _ = require('lodash');
+
 module.exports.requestPath = function(address, params) {
   return '/v1/accounts/' + address + '/trustlines' + ( params || '' );
 };
@@ -541,7 +543,12 @@ module.exports.accountInfoResponse = function(request) {
   });
 };
 
-module.exports.submitTrustlineResponse = function(request) {
+module.exports.submitTrustlineResponse = function(request, options) {
+  options = options || {};
+  _.defaults(options, {
+    flags: 2147483648
+  });
+
   return JSON.stringify({
     id: request.id,
     result: {
@@ -552,7 +559,7 @@ module.exports.submitTrustlineResponse = function(request) {
       tx_json: {
         Account: 'r3GgMwvgvP8h4yVWvjH1dPZNvC37TjzBBE',
         Fee: '12',
-        Flags: 2147483648,
+        Flags: options.flags,
         LastLedgerSequence: 8819963,
         LimitAmount: {
           currency: 'USD',
