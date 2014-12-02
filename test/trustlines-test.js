@@ -8,6 +8,7 @@ var addresses = require('./fixtures').addresses;
 // Transaction LastLedgerSequence offset from current ledger sequence
 const LEDGER_OFFSET = 8;
 const MARKER = '29F992CC252056BF690107D1E8F2D9FBAFF29FF107B62B1D1F4E4E11ADF2CC73';
+const NEXT_MARKER = '0C812C919D343EAE789B29E8027C62C5792C22172D37EA2B2C0121D2381F80E1';
 
 suite('get trustlines', function() {
   var self = this;
@@ -29,7 +30,7 @@ suite('get trustlines', function() {
     .get(fixtures.requestPath(addresses.VALID))
     .expect(testutils.checkStatus(200))
     .expect(testutils.checkHeaders)
-    .expect(testutils.checkBody(fixtures.RESTAccountTrustlinesResponse))
+    .expect(testutils.checkBody(fixtures.RESTAccountTrustlinesResponse()))
     .end(done);
   });
 
@@ -51,7 +52,7 @@ suite('get trustlines', function() {
     .get(fixtures.requestPath(addresses.VALID, '?ledger=foo'))
     .expect(testutils.checkStatus(200))
     .expect(testutils.checkHeaders)
-    .expect(testutils.checkBody(fixtures.RESTAccountTrustlinesResponse))
+    .expect(testutils.checkBody(fixtures.RESTAccountTrustlinesResponse()))
     .end(done);
   });
 
@@ -66,14 +67,18 @@ suite('get trustlines', function() {
       assert.strictEqual(message.command, 'account_lines');
       assert.strictEqual(message.account, addresses.VALID);
       assert.strictEqual(message.ledger_index, 9592219);
-      conn.send(fixtures.accountLinesResponse(message));
+      conn.send(fixtures.accountLinesResponse(message, {
+        marker: NEXT_MARKER
+      }));
     });
 
     self.app
     .get(fixtures.requestPath(addresses.VALID, '?ledger=9592219'))
     .expect(testutils.checkStatus(200))
     .expect(testutils.checkHeaders)
-    .expect(testutils.checkBody(fixtures.RESTAccountTrustlinesResponse))
+    .expect(testutils.checkBody(fixtures.RESTAccountTrustlinesResponse({
+      marker: NEXT_MARKER
+    })))
     .end(done);
   });
 
@@ -146,14 +151,18 @@ suite('get trustlines', function() {
       assert.strictEqual(message.account, addresses.VALID);
       assert.strictEqual(message.ledger_index, 9592219);
       assert.strictEqual(message.marker, MARKER);
-      conn.send(fixtures.accountLinesResponse(message));
+      conn.send(fixtures.accountLinesResponse(message, {
+        marker: NEXT_MARKER
+      }));
     });
 
     self.app
     .get(fixtures.requestPath(addresses.VALID, '?marker=' + MARKER + '&ledger=9592219'))
     .expect(testutils.checkStatus(200))
     .expect(testutils.checkHeaders)
-    .expect(testutils.checkBody(fixtures.RESTAccountTrustlinesResponse))
+    .expect(testutils.checkBody(fixtures.RESTAccountTrustlinesResponse({
+      marker: NEXT_MARKER
+    })))
     .end(done);
   });
 
@@ -169,14 +178,18 @@ suite('get trustlines', function() {
       assert.strictEqual(message.account, addresses.VALID);
       assert.strictEqual(message.ledger_index, 9592219);
       assert.strictEqual(message.limit, 5);
-      conn.send(fixtures.accountLinesResponse(message));
+      conn.send(fixtures.accountLinesResponse(message, {
+        marker: NEXT_MARKER
+      }));
     });
 
     self.app
     .get(fixtures.requestPath(addresses.VALID, '?ledger=9592219&limit=5'))
     .expect(testutils.checkStatus(200))
     .expect(testutils.checkHeaders)
-    .expect(testutils.checkBody(fixtures.RESTAccountTrustlinesResponse))
+    .expect(testutils.checkBody(fixtures.RESTAccountTrustlinesResponse({
+      marker: NEXT_MARKER
+    })))
     .end(done);
   });
 
@@ -213,14 +226,18 @@ suite('get trustlines', function() {
       assert.strictEqual(message.ledger_index, 9592219);
       assert.strictEqual(message.limit, 1);
       assert.strictEqual(message.marker, MARKER);
-      conn.send(fixtures.accountLinesResponse(message));
+      conn.send(fixtures.accountLinesResponse(message, {
+        marker: NEXT_MARKER
+      }));
     });
 
     self.app
     .get(fixtures.requestPath(addresses.VALID, '?marker=' + MARKER + '&limit=1&ledger=9592219'))
     .expect(testutils.checkStatus(200))
     .expect(testutils.checkHeaders)
-    .expect(testutils.checkBody(fixtures.RESTAccountTrustlinesResponse))
+    .expect(testutils.checkBody(fixtures.RESTAccountTrustlinesResponse({
+      marker: NEXT_MARKER
+    })))
     .end(done);
   });
 

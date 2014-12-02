@@ -44,11 +44,11 @@ function getTrustLines(request, response, next) {
     getAccountLines
   ];
 
-  async.waterfall(steps, function(err, lines) {
+  async.waterfall(steps, function(err, trustlines) {
     if (err) {
       next(err);
     } else {
-      respond.success(response, { trustlines: lines });
+      respond.success(response, trustlines);
     }
   });
 
@@ -99,6 +99,8 @@ function getTrustLines(request, response, next) {
 
     accountLinesRequest.once('error', callback);
     accountLinesRequest.once('success', function(result) {
+      var trustlines = {};
+
       var lines = [ ];
       result.lines.forEach(function(line) {
         if (!currencyRE.test(line.currency)) return;
@@ -115,7 +117,13 @@ function getTrustLines(request, response, next) {
         });
       });
 
-      callback(null, lines);
+      if (result.marker) {
+        trustlines.marker = result.marker;
+      }
+
+      trustlines.trustlines = lines;
+
+      callback(null, trustlines);
     });
 
     accountLinesRequest.request();

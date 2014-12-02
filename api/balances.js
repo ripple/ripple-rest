@@ -40,6 +40,7 @@ function getBalances(request, response, next) {
 
   var currencyRE = new RegExp(options.currency ? ('^' + options.currency.toUpperCase() + '$') : /./);
   var balances = [];
+  var nextMarker;
 
   function validateOptions(callback) {
     if (!ripple.UInt160.is_valid(options.account)) {
@@ -103,6 +104,11 @@ function getBalances(request, response, next) {
           });
         }
       });
+
+      if (result.marker) {
+        nextMarker = result.marker;
+      }
+
       callback();
     });
 
@@ -125,7 +131,7 @@ function getBalances(request, response, next) {
     if (error) {
       next(error);
     } else {
-      respond.success(response, { balances: balances });
+      respond.success(response, { marker: nextMarker, balances: balances });
     }
   });
 };
