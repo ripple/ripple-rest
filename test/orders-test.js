@@ -7,6 +7,10 @@ var errors        = require('./fixtures').errors;
 var addresses     = require('./fixtures').addresses;
 var utils         = require('./../lib/utils');
 
+const HEX_CURRENCY = '0158415500000000C1F76FF6ECB0BAC600000000';
+const ISSUER = 'rvYAfWj5gh67oV6fW32ZzP3Aw4Eubs59B'
+const VALUE = '0.00000001'
+
 suite('post orders', function() {
   var self = this;
 
@@ -47,6 +51,100 @@ suite('post orders', function() {
       last_ledger: lastLedger
     })))
     .end(done);
+  });
+
+  test('/orders -- with taker_gets hex currency', function(done) {
+    var lastLedger = self.app.remote._ledger_current_index;
+    var hash = testutils.generateHash();
+
+    var options = {
+      hash: hash,
+      last_ledger: lastLedger,
+      taker_gets: {
+        currency: HEX_CURRENCY,
+        issuer: ISSUER,
+        value: VALUE
+      }
+    };
+
+    self.wss.once('request_account_info', function(message, conn) {
+      assert.strictEqual(message.command, 'account_info');
+      assert.strictEqual(message.account, addresses.VALID);
+      conn.send(fixtures.accountInfoResponse(message));
+    });
+
+    self.wss.once('request_submit', function (message, conn) {
+      var so = new ripple.SerializedObject(message.tx_blob).to_json();
+      assert.strictEqual(so.TakerGets.value, VALUE);
+      assert.strictEqual(so.TakerGets.currency, HEX_CURRENCY);
+      assert.strictEqual(so.TakerGets.issuer, ISSUER);
+      assert.strictEqual(message.command, 'submit');
+
+      conn.send(fixtures.requestSubmitResponse(message, options));
+    });
+
+
+    self.app
+    .post('/v1/accounts/' + addresses.VALID + '/orders')
+    .send(fixtures.order({taker_gets: VALUE + '/' + HEX_CURRENCY + '/' + ISSUER}))
+    .expect(testutils.checkStatus(200))
+    .expect(testutils.checkHeaders)
+    .end(function(err, res) {
+      if (err) return done(err);
+
+      assert.strictEqual(res.body.order.taker_gets.currency, HEX_CURRENCY);
+      assert.strictEqual(res.body.order.taker_gets.value, VALUE);
+      assert.strictEqual(res.body.order.taker_gets.issuer, ISSUER);
+
+      done();
+    });
+  });
+
+
+  test('/orders -- with taker_pays hex currency', function(done) {
+    var lastLedger = self.app.remote._ledger_current_index;
+    var hash = testutils.generateHash();
+
+    var options = {
+      hash: hash,
+      last_ledger: lastLedger,
+      taker_pays: {
+        currency: HEX_CURRENCY,
+        issuer: ISSUER,
+        value: VALUE
+      }
+    };
+
+    self.wss.once('request_account_info', function(message, conn) {
+      assert.strictEqual(message.command, 'account_info');
+      assert.strictEqual(message.account, addresses.VALID);
+      conn.send(fixtures.accountInfoResponse(message));
+    });
+
+    self.wss.once('request_submit', function (message, conn) {
+      var so = new ripple.SerializedObject(message.tx_blob).to_json();
+      assert.strictEqual(so.TakerPays.value, VALUE);
+      assert.strictEqual(so.TakerPays.currency, HEX_CURRENCY);
+      assert.strictEqual(so.TakerPays.issuer, ISSUER);
+      assert.strictEqual(message.command, 'submit');
+
+      conn.send(fixtures.requestSubmitResponse(message, options));
+    });
+
+    self.app
+    .post('/v1/accounts/' + addresses.VALID + '/orders')
+    .send(fixtures.order({taker_pays: VALUE + '/' + HEX_CURRENCY + '/' + ISSUER}))
+    .expect(testutils.checkStatus(200))
+    .expect(testutils.checkHeaders)
+    .end(function(err, res) {
+      if (err) return done(err);
+
+      assert.strictEqual(res.body.order.taker_pays.currency, HEX_CURRENCY);
+      assert.strictEqual(res.body.order.taker_pays.value, VALUE);
+      assert.strictEqual(res.body.order.taker_pays.issuer, ISSUER);
+
+      done();
+    });
   });
 
   test('/orders -- with validated true and ledger sequence too high error', function(done) {
@@ -501,7 +599,7 @@ suite('post orders', function() {
   });
 });
 
-suite('delete orders', function() { 
+suite('delete orders', function() {
   var self = this;
 
   setup(testutils.setup.bind(self));

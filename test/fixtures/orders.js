@@ -31,7 +31,7 @@ module.exports.order = function(options) {
     taker_pays: '100/USD/' + addresses.ISSUER
   });
 
-  return { 
+  return {
     secret: options.secret,
     order: {
        type: options.type,
@@ -129,9 +129,9 @@ module.exports.rippledSubmitErrorResponse = function(request, options) {
   options = options || {};
   _.defaults(options, DEFAULTS);
 
-  return JSON.stringify({ 
+  return JSON.stringify({
     id: request.id,
-    result: { 
+    result: {
       engine_result: options.engine_result,
       engine_result_code: options.engine_result_code,
       engine_result_message: options.engine_result_message,
@@ -148,10 +148,10 @@ module.exports.rippledSubmitErrorResponse = function(request, options) {
         "TransactionType": "OfferCreate",
         "TxnSignature": "3045022100F6CAC4B1A57D7298112B970D4D2F93CCDADD897BBE20612D6D8210697360563202201B91F3B1FA184BDC1A4EDFBC47B43D22EE858F1A902D469031D641BFCEFA652F",
         "hash": options.hash
-      } 
+      }
     },
     status: 'success',
-    type: 'response' 
+    type: 'response'
   });
 };
 
@@ -159,9 +159,9 @@ module.exports.rippledCancelErrorResponse = function(request, options) {
   options = options || {};
   _.defaults(options, DEFAULTS);
 
-  return JSON.stringify({ 
+  return JSON.stringify({
     id: request.id,
-    result: { 
+    result: {
       engine_result: options.engine_result,
       engine_result_code: options.engine_result_code,
       engine_result_message: options.engine_result_message,
@@ -180,7 +180,7 @@ module.exports.rippledCancelErrorResponse = function(request, options) {
       }
     },
     status: 'success',
-    type: 'response' 
+    type: 'response'
   });
 };
 
