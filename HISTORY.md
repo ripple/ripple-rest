@@ -1,3 +1,14 @@
+## 1.3.2
+
++ Add place and cancel order functionality [d80d198](https://github.com/ripple/ripple-rest/commit/d80d198e18f9c1f96adad8fba4be67b8ae26c4d5)
+
++ Support paging behavior for balances and trustlines [6980ab7](https://github.com/ripple/ripple-rest/commit/6980ab7c844508caae5c62ee7202aa429d12ef0b)
+
++ Fix parameter discrepancy, `*_froze_line` -> `*_trustline_frozen` [2701c0b](https://github.com/ripple/ripple-rest/commit/2701c0b9ac481b4e9172b6faaf0d0a4821d6acb5) and [a8aeeec](https://github.com/ripple/ripple-rest/commit/a8aeeeced9b9f896608160a3d34aaedf00e3dc96)
+
++ Add tests to show use of complex currencies [9c5412f](https://github.com/ripple/ripple-rest/commit/9c5412f3a0e1498e3108930d38da6157dc764e53)
+
+
 ## 1.3.1
 
 + Add `validated` query parameter to POST payment, account settings and trustlines. When set to true this will force the request to wait until the transaction has been validated. [f2710f4b](https://github.com/ripple/ripple-rest/commit/f2710f4b78a8c1b9860f2876f6f051022241c641), [1ee9c9ff](https://github.com/ripple/ripple-rest/commit/1ee9c9ff06ada4a14955bf64ed42d7c3c75f5a3e), [f243fef9](https://github.com/ripple/ripple-rest/commit/f243fef9d28be86f593dae11a3fac7421115e5bf)
