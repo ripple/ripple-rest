@@ -10,7 +10,7 @@
       "$ref": "FloatString"
     },
     "currency": {
-      "description": "The currency expressed as a three-character code",
+      "description": "The three-character code or hex string used to denote currencies",
       "$ref": "Currency"
     },
     "issuer": {

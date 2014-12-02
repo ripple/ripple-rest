@@ -294,6 +294,39 @@ suite('get payment paths', function() {
     });
   });
 
+  // radqi6ppXFxVhJdjzaATRBxdrPcVTf1Ung/payments/paths/rGUpotx8YYDiocqS577N4T1p1kHBNdEJ9s/0.0001+0158415500000000C1F76FF6ECB0BAC600000000
+
+  test('/accounts/:account/payments/paths/:destination/:amount -- hex currency gold source amount response has source account, destination account, and destination amount issuer correctly set', function(done) {
+    self.wss.once('request_ripple_path_find', function(message, conn) {
+      assert.strictEqual(message.command, 'ripple_path_find');
+      assert.strictEqual(message.source_account, addresses.VALID);
+      assert.strictEqual(message.destination_account, addresses.VALID);
+      conn.send(pathFixtures.generateIOUPaymentPaths(message.id, message.source_account, message.destination_account, message.destination_amount));
+    });
+
+    self.wss.once('request_account_info', function(message, conn) {
+      assert.strictEqual(message.command, 'account_info');
+      assert.strictEqual(message.account, addresses.VALID);
+      conn.send(fixtures.accountInfoResponse(message));
+    });
+
+    self.app
+      .get('/v1/accounts/' + addresses.VALID + '/payments/paths/' + addresses.VALID + '/0.001+0158415500000000C1F76FF6ECB0BAC600000000')
+      .expect(testutils.checkStatus(200))
+      .expect(testutils.checkHeaders)
+      .end(function(err, res) {
+        if (err) return done(err);
+
+        _.each(res.body.payments, function(paymentObj) {
+          assert.strictEqual(paymentObj.source_account, addresses.VALID);
+          assert.strictEqual(paymentObj.destination_account, addresses.VALID);
+          assert.strictEqual(paymentObj.destination_amount.issuer, addresses.VALID);
+        });
+
+        done();
+      });
+  });
+
   test('/accounts/:account/payments/paths/:destination/:amount -- IOU destination amount response has source amount issuer set to alternative\'s source amount issuer but defaults to source account for all non-XRP source amounts', function(done) {
     self.wss.once('request_ripple_path_find', function(message, conn) {
       assert.strictEqual(message.command, 'ripple_path_find');
