@@ -74,6 +74,8 @@ module.exports.RESTServerIndexResponse = JSON.stringify({
     "account_balances": "/v1/accounts/{address}/balances",
     "account_settings": "/v1/accounts/{address}/settings",
     "account_trustlines": "/v1/accounts/{address}/trustlines",
+    "account_orders_place": "/v1/accounts/{address}/orders",
+    "account_orders_cancel": "/v1/accounts/{address}/orders/{sequence}",
     "ripple_transactions": "/v1/transactions/{hash}",
     "server_status": "/v1/server",
     "server_connected": "/v1/server/connected",
