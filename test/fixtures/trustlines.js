@@ -14,6 +14,7 @@ module.exports.accountLinesResponse = function(request, options) {
     result: {
       account: 'r3GgMwvgvP8h4yVWvjH1dPZNvC37TjzBBE',
       marker: options.marker,
+      limit: request.limit,
       lines: [
         {
         account: 'r3vi7mWxru9rJCxETCyA1CHvzL96eZWx5z',
@@ -260,6 +261,7 @@ module.exports.RESTAccountTrustlinesResponse = function(options) {
   return JSON.stringify({
     success: true,
     marker: options.marker,
+    limit: options.limit,
     trustlines: [
       { account: 'r3GgMwvgvP8h4yVWvjH1dPZNvC37TjzBBE',
         counterparty: 'r3vi7mWxru9rJCxETCyA1CHvzL96eZWx5z',

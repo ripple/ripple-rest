@@ -9,6 +9,7 @@ var addresses = require('./fixtures').addresses;
 const LEDGER_OFFSET = 8;
 const MARKER = '29F992CC252056BF690107D1E8F2D9FBAFF29FF107B62B1D1F4E4E11ADF2CC73';
 const NEXT_MARKER = '0C812C919D343EAE789B29E8027C62C5792C22172D37EA2B2C0121D2381F80E1';
+const LIMIT = 5;
 
 suite('get trustlines', function() {
   var self = this;
@@ -132,7 +133,7 @@ suite('get trustlines', function() {
     });
 
     self.app
-    .get(fixtures.requestPath(addresses.VALID, '?marker=' + MARKER + '&limit=100'))
+    .get(fixtures.requestPath(addresses.VALID, '?marker=' + MARKER + '&limit=' + LIMIT))
     .expect(testutils.checkStatus(500))
     .expect(testutils.checkHeaders)
     .expect(testutils.checkBody(errors.RESTLedgerMissingWithMarker))
@@ -177,7 +178,7 @@ suite('get trustlines', function() {
       assert.strictEqual(message.command, 'account_lines');
       assert.strictEqual(message.account, addresses.VALID);
       assert.strictEqual(message.ledger_index, 9592219);
-      assert.strictEqual(message.limit, 5);
+      assert.strictEqual(message.limit, LIMIT);
       conn.send(fixtures.accountLinesResponse(message, {
         marker: NEXT_MARKER
       }));
@@ -188,7 +189,8 @@ suite('get trustlines', function() {
     .expect(testutils.checkStatus(200))
     .expect(testutils.checkHeaders)
     .expect(testutils.checkBody(fixtures.RESTAccountTrustlinesResponse({
-      marker: NEXT_MARKER
+      marker: NEXT_MARKER,
+      limit: LIMIT
     })))
     .end(done);
   });
@@ -205,7 +207,7 @@ suite('get trustlines', function() {
     });
 
     self.app
-    .get(fixtures.requestPath(addresses.VALID, '?marker=' + MARKER + '&limit=100&ledger=foo'))
+    .get(fixtures.requestPath(addresses.VALID, '?marker=' + MARKER + '&limit=' + LIMIT + '&ledger=foo'))
     .expect(testutils.checkStatus(500))
     .expect(testutils.checkHeaders)
     .expect(testutils.checkBody(errors.RESTLedgerMissingWithMarker))
@@ -224,7 +226,7 @@ suite('get trustlines', function() {
       assert.strictEqual(message.command, 'account_lines');
       assert.strictEqual(message.account, addresses.VALID);
       assert.strictEqual(message.ledger_index, 9592219);
-      assert.strictEqual(message.limit, 1);
+      assert.strictEqual(message.limit, LIMIT);
       assert.strictEqual(message.marker, MARKER);
       conn.send(fixtures.accountLinesResponse(message, {
         marker: NEXT_MARKER
@@ -232,11 +234,12 @@ suite('get trustlines', function() {
     });
 
     self.app
-    .get(fixtures.requestPath(addresses.VALID, '?marker=' + MARKER + '&limit=1&ledger=9592219'))
+    .get(fixtures.requestPath(addresses.VALID, '?marker=' + MARKER + '&limit=' + LIMIT + '&ledger=9592219'))
     .expect(testutils.checkStatus(200))
     .expect(testutils.checkHeaders)
     .expect(testutils.checkBody(fixtures.RESTAccountTrustlinesResponse({
-      marker: NEXT_MARKER
+      marker: NEXT_MARKER,
+      limit: LIMIT
     })))
     .end(done);
   });

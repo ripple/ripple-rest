@@ -121,6 +121,10 @@ function getTrustLines(request, response, next) {
         trustlines.marker = result.marker;
       }
 
+      if (result.limit) {
+        trustlines.limit = result.limit;
+      }
+
       trustlines.trustlines = lines;
 
       callback(null, trustlines);
@@ -169,7 +173,7 @@ function addTrustLine(request, response, next) {
 
     respond.created(response, trustline);
   });
-  
+
   function validateParams(callback) {
     if (!ripple.UInt160.is_valid(params.account)) {
       return callback(new errors.InvalidRequestError('Parameter is not a Ripple address: account'));
@@ -212,7 +216,7 @@ function addTrustLine(request, response, next) {
     var result = {};
     var line = message.tx_json.LimitAmount;
     var parsedFlags = transactions.parseFlagsFromResponse(message.tx_json.Flags, TrustSetResponseFlags);
-    
+
     _.extend(meta, {
       account: message.tx_json.Account,
       limit: line.value,
@@ -237,7 +241,7 @@ function addTrustLine(request, response, next) {
 
     transaction.trustSet(params.account, limit);
     transaction.secret(params.secret);
-    
+
     if (typeof params.trustline.quality_in === 'number') {
       transaction.tx_json.QualityIn = params.trustline.quality_in;
     }
@@ -246,7 +250,7 @@ function addTrustLine(request, response, next) {
     }
 
     transactions.setTransactionBitFlags(transaction, {
-      input: params.trustline, 
+      input: params.trustline,
       flags: TrustSetFlags,
       clear_setting: ''
     });

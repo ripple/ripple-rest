@@ -14,7 +14,7 @@ var InvalidRequestError = errors.InvalidRequestError;
 /**
  *  Request the balances for a given account
  *
- *  Notes: 
+ *  Notes:
  *  In order to use paging, you must provide at least ledger as a query parameter.
  *  Additionally, any limit lower than 10 will be bumped up to 10.
  *
@@ -41,6 +41,7 @@ function getBalances(request, response, next) {
   var currencyRE = new RegExp(options.currency ? ('^' + options.currency.toUpperCase() + '$') : /./);
   var balances = [];
   var nextMarker;
+  var responseLimit;
 
   function validateOptions(callback) {
     if (!ripple.UInt160.is_valid(options.account)) {
@@ -109,6 +110,10 @@ function getBalances(request, response, next) {
         nextMarker = result.marker;
       }
 
+      if (result.limit) {
+        responseLimit = result.limit;
+      }
+
       callback();
     });
 
@@ -131,7 +136,7 @@ function getBalances(request, response, next) {
     if (error) {
       next(error);
     } else {
-      respond.success(response, { marker: nextMarker, balances: balances });
+      respond.success(response, { marker: nextMarker, limit: responseLimit, balances: balances });
     }
   });
 };
