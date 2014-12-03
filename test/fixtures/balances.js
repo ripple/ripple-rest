@@ -1,3 +1,5 @@
+var addresses = require('./addresses');
+
 module.exports.requestPath = function(address, params) {
   return '/v1/accounts/' + address + '/balances' + ( params || '' );
 };
@@ -9,7 +11,7 @@ module.exports.accountInfoResponse = function(request) {
     type: 'response',
     result: {
       account_data: {
-        Account: 'r3GgMwvgvP8h4yVWvjH1dPZNvC37TjzBBE',
+        Account: addresses.VALID,
         Balance: '922913243',
         Domain: '6578616D706C652E636F6D',
         EmailHash: '23463B99B62A72F26ED677CC556C44E8',
@@ -34,13 +36,13 @@ module.exports.accountNotFoundResponse = function(request) {
     id: request.id,
     status: 'error',
     type: 'response',
-    account: 'r3GgMwvgvP8h4yVWvjH1dPZNvC37TjzBBE',
+    account: addresses.VALID,
     error: 'actNotFound',
     error_code: 15,
     error_message: 'Account not found.',
     ledger_current_index: 8861245,
     request: {
-      account: 'r3GgMwvgvP8h4yVWvjH1dPZNvC37TjzBBE',
+      account: addresses.VALID,
       command: 'account_info',
       id: request.id
     },
@@ -56,7 +58,7 @@ module.exports.accountLinesResponse = function(request, options) {
     status: 'success',
     type: 'response',
     result: {
-      account: 'r3GgMwvgvP8h4yVWvjH1dPZNvC37TjzBBE',
+      account: addresses.VALID,
       marker: options.marker,
       lines: [
         {
@@ -302,7 +304,7 @@ module.exports.accountLinesCounterpartyResponse = function(request) {
     status: 'success',
     type: 'response',
     result: {
-      account: 'r3GgMwvgvP8h4yVWvjH1dPZNvC37TjzBBE',
+      account: addresses.VALID,
       lines: [
       {
         account: 'rvYAfWj5gh67oV6fW32ZzP3Aw4Eubs59B',
@@ -362,7 +364,7 @@ module.exports.accountLinesNoCounterpartyResponse = function(request) {
     status: 'success',
     type: 'response',
     result: {
-      account: 'r3GgMwvgvP8h4yVWvjH1dPZNvC37TjzBBE',
+      account: addresses.VALID,
       lines: [ ]
     }
   });
