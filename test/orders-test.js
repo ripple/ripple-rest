@@ -343,6 +343,82 @@ suite('post orders', function() {
     .end(done);
   });
 
+  test('/orders -- with xrp taker gets', function(done) {
+    var lastLedger = self.app.remote._ledger_current_index;
+    var hash = testutils.generateHash();
+
+    self.wss.once('request_account_info', function(message, conn) {
+      assert.strictEqual(message.command, 'account_info');
+      assert.strictEqual(message.account, addresses.VALID);
+      conn.send(fixtures.accountInfoResponse(message));
+    });
+
+    self.wss.once('request_submit', function(message, conn) {
+      var so = new ripple.SerializedObject(message.tx_blob).to_json();
+      assert.strictEqual(message.command, 'submit');
+      assert.strictEqual(so.Account, addresses.VALID);
+      assert.strictEqual(so.TransactionType, 'OfferCreate');
+      assert.deepEqual(so.TakerGets, '100000');
+
+      conn.send(fixtures.requestSubmitResponse(message, {
+        hash: hash,
+        taker_gets: '100000'
+      }));
+    });
+
+    self.app
+    .post('/v1/accounts/' + addresses.VALID + '/orders')
+    .send(fixtures.order({
+      taker_gets: '100000'
+    }))
+    .expect(testutils.checkStatus(200))
+    .expect(testutils.checkHeaders)
+    .expect(testutils.checkBody(fixtures.RESTSubmitTransactionResponse({
+      hash: hash,
+      last_ledger: lastLedger,
+      taker_gets: '100000'
+    })))
+    .end(done);
+  });
+
+  test('/orders -- with xrp taker pays', function(done) {
+    var lastLedger = self.app.remote._ledger_current_index;
+    var hash = testutils.generateHash();
+
+    self.wss.once('request_account_info', function(message, conn) {
+      assert.strictEqual(message.command, 'account_info');
+      assert.strictEqual(message.account, addresses.VALID);
+      conn.send(fixtures.accountInfoResponse(message));
+    });
+
+    self.wss.once('request_submit', function(message, conn) {
+      var so = new ripple.SerializedObject(message.tx_blob).to_json();
+      assert.strictEqual(message.command, 'submit');
+      assert.strictEqual(so.Account, addresses.VALID);
+      assert.strictEqual(so.TransactionType, 'OfferCreate');
+      assert.deepEqual(so.TakerPays, '100000');
+
+      conn.send(fixtures.requestSubmitResponse(message, {
+        hash: hash,
+        taker_pays: '100000'
+      }));
+    });
+
+    self.app
+    .post('/v1/accounts/' + addresses.VALID + '/orders')
+    .send(fixtures.order({
+      taker_pays: '100000'
+    }))
+    .expect(testutils.checkStatus(200))
+    .expect(testutils.checkHeaders)
+    .expect(testutils.checkBody(fixtures.RESTSubmitTransactionResponse({
+      hash: hash,
+      last_ledger: lastLedger,
+      taker_pays: '100000'
+    })))
+    .end(done);
+  });
+
   test('/orders -- with unfunded offer error', function(done) {
     var hash = testutils.generateHash();
 

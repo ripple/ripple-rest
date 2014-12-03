@@ -50,13 +50,20 @@ function placeOrder(request, response, next) {
   });
   
   function validateParams(async_callback) {
+    var takerGetsJSON, takerPaysJSON;
+
+    if (_.isObject(params.order)) {
+      takerGetsJSON = ripple.Amount.from_json(params.order.taker_gets);
+      takerPaysJSON = ripple.Amount.from_json(params.order.taker_pays);
+    }
+
     if (!params.order) {
-      async_callback(new InvalidRequestError('Missing parameter: order. Submission must have order object in JSON form'));
+      return async_callback(new InvalidRequestError('Missing parameter: order. Submission must have order object in JSON form'));
     } else if (!/^buy|sell$/.test(params.order.type)) {
-      async_callback(new InvalidRequestError('Parameter must be "buy" or "sell": type'));
-    } else if (!ripple.Amount.is_valid_full(params.order.taker_gets)) {
+      return async_callback(new InvalidRequestError('Parameter must be "buy" or "sell": type'));
+    } else if (!takerGetsJSON._currency || !takerGetsJSON.is_valid() || (!takerGetsJSON._is_native && !takerGetsJSON.is_valid_full())) {
       async_callback(new InvalidRequestError('Parameter must be in the format "amount[/currency/issuer]": taker_gets'));
-    } else if (!ripple.Amount.is_valid_full(params.order.taker_pays)) {
+    } else if (!takerPaysJSON._currency || !takerPaysJSON.is_valid() || (!takerPaysJSON._is_native && !takerPaysJSON.is_valid_full())) {
       async_callback(new InvalidRequestError('Parameter must be in the format "amount[/currency/issuer]": taker_pays'));
     } else {
       async_callback();
