@@ -1,3 +1,4 @@
+var _ = require('lodash');
 var assert = require('assert');
 var ripple = require('ripple-lib');
 var testutils = require('./testutils');
@@ -17,6 +18,36 @@ suite('get trustlines', function() {
   //self.wss: rippled mock
   //self.app: supertest-enabled REST handler
 
+  // does a GET request to /v1/accounts/:account/trustlines
+  // with the specified query string and checks that the status code and
+  // response body are returned as expected
+  function testGetRequest(options, done) {
+    assert(done && options,
+      'Error in test code: must specify done function and options');
+    assert(options.account && (options.queryString !== void(0))
+      && options.expectedStatus,
+      'Error in test code: must specify account,'
+      + ' queryString and expectedStatus');
+    assert(!(options.expectedBody && options.expectFn),
+      'Error in test code: cannot specify both expectedBody and expectFn');
+    if(options.expectedBody) {
+      options.expectFn = testutils.checkBody(options.expectedBody);
+    }
+    testutils.loadArguments(options, {
+      account: null,
+      queryString: null,
+      expectedBody: null,
+      expectedStatus: null,
+      expectFn: function(res) {}
+    });
+    return self.app
+    .get(fixtures.requestPath(options.account, options.queryString))
+    .expect(options.expectFn)
+    .expect(testutils.checkStatus(options.expectedStatus))
+    .expect(testutils.checkHeaders)
+    .end(done);
+  }
+
   setup(testutils.setup.bind(self));
   teardown(testutils.teardown.bind(self));
 
@@ -27,12 +58,12 @@ suite('get trustlines', function() {
       conn.send(fixtures.accountLinesResponse(message));
     });
 
-    self.app
-    .get(fixtures.requestPath(addresses.VALID))
-    .expect(testutils.checkStatus(200))
-    .expect(testutils.checkHeaders)
-    .expect(testutils.checkBody(fixtures.RESTAccountTrustlinesResponse()))
-    .end(done);
+    testGetRequest({
+      account: addresses.VALID,
+      queryString: '',
+      expectedBody: fixtures.RESTAccountTrustlinesResponse(),
+      expectedStatus: 200
+    }, done);
   });
 
   test('/accounts/:account/trustlines -- with invalid ledger', function(done) {
@@ -49,12 +80,12 @@ suite('get trustlines', function() {
       conn.send(fixtures.accountLinesResponse(message));
     });
 
-    self.app
-    .get(fixtures.requestPath(addresses.VALID, '?ledger=foo'))
-    .expect(testutils.checkStatus(200))
-    .expect(testutils.checkHeaders)
-    .expect(testutils.checkBody(fixtures.RESTAccountTrustlinesResponse()))
-    .end(done);
+    testGetRequest({
+      account: addresses.VALID,
+      queryString: '?ledger=foo',
+      expectedBody: fixtures.RESTAccountTrustlinesResponse(),
+      expectedStatus: 200
+    }, done);
   });
 
   test('/accounts/:account/trustlines -- with ledger', function(done) {
@@ -73,14 +104,14 @@ suite('get trustlines', function() {
       }));
     });
 
-    self.app
-    .get(fixtures.requestPath(addresses.VALID, '?ledger=9592219'))
-    .expect(testutils.checkStatus(200))
-    .expect(testutils.checkHeaders)
-    .expect(testutils.checkBody(fixtures.RESTAccountTrustlinesResponse({
-      marker: NEXT_MARKER
-    })))
-    .end(done);
+    testGetRequest({
+      account: addresses.VALID,
+      queryString: '?ledger=9592219',
+      expectedBody: fixtures.RESTAccountTrustlinesResponse({
+        marker: NEXT_MARKER
+      }),
+      expectedStatus: 200
+    }, done);
   });
 
   test('/accounts/:account/trustlines -- with invalid marker', function(done) {
@@ -94,12 +125,12 @@ suite('get trustlines', function() {
       assert(false);
     });
 
-    self.app
-    .get(fixtures.requestPath(addresses.VALID, '?marker=abcd'))
-    .expect(testutils.checkStatus(500))
-    .expect(testutils.checkHeaders)
-    .expect(testutils.checkBody(errors.RESTLedgerMissingWithMarker))
-    .end(done);
+    testGetRequest({
+      account: addresses.VALID,
+      queryString: '?marker=abcd', 
+      expectedStatus: 500,
+      expectedBody: errors.RESTLedgerMissingWithMarker
+    }, done);
   });
 
   test('/accounts/:account/trustlines -- with valid marker and invalid limit', function(done) {
@@ -113,12 +144,12 @@ suite('get trustlines', function() {
       assert(false);
     });
 
-    self.app
-    .get(fixtures.requestPath(addresses.VALID, '?marker=' + MARKER + '&limit=foo'))
-    .expect(testutils.checkStatus(500))
-    .expect(testutils.checkHeaders)
-    .expect(testutils.checkBody(errors.RESTLedgerMissingWithMarker))
-    .end(done);
+    testGetRequest({
+      account: addresses.VALID,
+      queryString: '?marker=' + MARKER + '&limit=foo',
+      expectedStatus: 500,
+      expectedBody: errors.RESTLedgerMissingWithMarker
+    }, done);
   });
 
   test('/accounts/:account/trustlines -- with valid marker and valid limit', function(done) {
@@ -132,12 +163,12 @@ suite('get trustlines', function() {
       assert(false);
     });
 
-    self.app
-    .get(fixtures.requestPath(addresses.VALID, '?marker=' + MARKER + '&limit=' + LIMIT))
-    .expect(testutils.checkStatus(500))
-    .expect(testutils.checkHeaders)
-    .expect(testutils.checkBody(errors.RESTLedgerMissingWithMarker))
-    .end(done);
+    testGetRequest({
+      account: addresses.VALID,
+      queryString: '?marker=' + MARKER + '&limit=' + LIMIT,
+      expectedStatus: 500,
+      expectedBody: errors.RESTLedgerMissingWithMarker
+    }, done);
   });
 
   test('/accounts/:account/trustlines -- with valid marker and valid ledger', function(done) {
@@ -157,14 +188,14 @@ suite('get trustlines', function() {
       }));
     });
 
-    self.app
-    .get(fixtures.requestPath(addresses.VALID, '?marker=' + MARKER + '&ledger=9592219'))
-    .expect(testutils.checkStatus(200))
-    .expect(testutils.checkHeaders)
-    .expect(testutils.checkBody(fixtures.RESTAccountTrustlinesResponse({
-      marker: NEXT_MARKER
-    })))
-    .end(done);
+    testGetRequest({
+      account: addresses.VALID,
+      queryString: '?marker=' + MARKER + '&ledger=9592219',
+      expectedBody: fixtures.RESTAccountTrustlinesResponse({
+        marker: NEXT_MARKER
+      }),
+      expectedStatus: 200
+    }, done);
   });
 
   test('/accounts/:account/trustlines -- valid ledger and valid limit', function(done) {
@@ -184,15 +215,15 @@ suite('get trustlines', function() {
       }));
     });
 
-    self.app
-    .get(fixtures.requestPath(addresses.VALID, '?ledger=9592219&limit=5'))
-    .expect(testutils.checkStatus(200))
-    .expect(testutils.checkHeaders)
-    .expect(testutils.checkBody(fixtures.RESTAccountTrustlinesResponse({
-      marker: NEXT_MARKER,
-      limit: LIMIT
-    })))
-    .end(done);
+    testGetRequest({
+      account: addresses.VALID,
+      queryString: '?ledger=9592219&limit=5',
+      expectedBody: fixtures.RESTAccountTrustlinesResponse({
+        marker: NEXT_MARKER,
+        limit: LIMIT
+      }),
+      expectedStatus: 200
+    }, done);
   });
 
   test('/accounts/:account/trustlines -- with valid marker, valid limit, and invalid ledger', function(done) {
@@ -206,12 +237,12 @@ suite('get trustlines', function() {
       assert(false);
     });
 
-    self.app
-    .get(fixtures.requestPath(addresses.VALID, '?marker=' + MARKER + '&limit=' + LIMIT + '&ledger=foo'))
-    .expect(testutils.checkStatus(500))
-    .expect(testutils.checkHeaders)
-    .expect(testutils.checkBody(errors.RESTLedgerMissingWithMarker))
-    .end(done);
+    testGetRequest({
+      account: addresses.VALID,
+      queryString: '?marker=' + MARKER + '&limit=' + LIMIT + '&ledger=foo',
+      expectedStatus: 500,
+      expectedBody: errors.RESTLedgerMissingWithMarker
+    }, done);
   });
 
   test('/accounts/:account/trustlines -- with valid marker, valid limit, and valid ledger', function(done) {
@@ -233,15 +264,15 @@ suite('get trustlines', function() {
       }));
     });
 
-    self.app
-    .get(fixtures.requestPath(addresses.VALID, '?marker=' + MARKER + '&limit=' + LIMIT + '&ledger=9592219'))
-    .expect(testutils.checkStatus(200))
-    .expect(testutils.checkHeaders)
-    .expect(testutils.checkBody(fixtures.RESTAccountTrustlinesResponse({
-      marker: NEXT_MARKER,
-      limit: LIMIT
-    })))
-    .end(done);
+    testGetRequest({
+      account: addresses.VALID,
+      queryString: '?marker=' + MARKER + '&limit=' + LIMIT + '&ledger=9592219',
+      expectedBody: fixtures.RESTAccountTrustlinesResponse({
+        marker: NEXT_MARKER,
+        limit: LIMIT
+      }),
+      expectedStatus: 200
+    }, done);
   });
 
   test('/accounts/:account/trustlines -- invalid account', function(done) {
@@ -249,12 +280,12 @@ suite('get trustlines', function() {
       assert(false, 'Should not request account lines');
     });
 
-    self.app
-    .get(fixtures.requestPath(addresses.INVALID))
-    .expect(testutils.checkStatus(400))
-    .expect(testutils.checkHeaders)
-    .expect(testutils.checkBody(errors.RESTInvalidAccount))
-    .end(done);
+    testGetRequest({
+      account: addresses.INVALID,
+      queryString: '',
+      expectedStatus: 400,
+      expectedBody: errors.RESTInvalidAccount
+    }, done);
   });
 
   test('/accounts/:account/trustlines -- invalid counterparty', function(done) {
@@ -262,12 +293,12 @@ suite('get trustlines', function() {
       assert(false, 'Should not request account lines');
     });
 
-    self.app
-    .get(fixtures.requestPath(addresses.VALID, '?counterparty=' + addresses.INVALID))
-    .expect(testutils.checkStatus(400))
-    .expect(testutils.checkHeaders)
-    .expect(testutils.checkBody(errors.RESTInvalidCounterparty))
-    .end(done);
+    testGetRequest({
+      account: addresses.VALID,
+      queryString: '?counterparty=' + addresses.INVALID,
+      expectedStatus: 400,
+      expectedBody: errors.RESTInvalidCounterparty
+    }, done);
   });
 
   test('/accounts/:account/trustlines -- invalid currency', function(done) {
@@ -275,12 +306,12 @@ suite('get trustlines', function() {
       assert(false, 'Should not request account lines');
     });
 
-    self.app
-    .get(fixtures.requestPath(addresses.VALID, '?currency=invalid'))
-    .expect(testutils.checkStatus(400))
-    .expect(testutils.checkHeaders)
-    .expect(testutils.checkBody(errors.RESTInvalidCurrency))
-    .end(done);
+    testGetRequest({
+      account: addresses.VALID,
+      queryString: '?currency=invalid',
+      expectedStatus: 400,
+      expectedBody: errors.RESTInvalidCurrency
+    }, done);
   });
 
   test('/accounts/:account/trustlines -- non-existent account', function(done) {
@@ -290,20 +321,61 @@ suite('get trustlines', function() {
       conn.send(fixtures.accountNotFoundResponse(message));
     });
 
-    self.app
-    .get(fixtures.requestPath(addresses.VALID))
-    .expect(testutils.checkStatus(404))
-    .expect(testutils.checkHeaders)
-    .expect(testutils.checkBody(errors.RESTAccountNotFound))
-    .end(done);
+    testGetRequest({
+      account: addresses.VALID,
+      queryString: '',
+      expectedStatus: 404,
+      expectedBody: errors.RESTAccountNotFound
+    }, done);
   });
 });
 
 suite('post trustlines', function() {
   var self = this;
 
+  const defaultData = {
+    secret: addresses.SECRET,
+    trustline: {
+      limit: '1',
+      currency: 'USD',
+      counterparty: addresses.COUNTERPARTY
+    }
+  };
+
   //self.wss: rippled mock
   //self.app: supertest-enabled REST handler
+
+  // does a POST request to /v1/accounts/:account/trustlines
+  // with the specified query string & post data and checks that the status
+  // code and response body are returned as expected
+  function testPostRequest(options, done) {
+    assert(done && options,
+      'Error in test code: must specify done function and options');
+    assert(options.account && (options.queryString !== void(0))
+      && options.expectedStatus && options.data,
+      'Error in test code: must specify account,'
+      + ' queryString, data, and expectedStatus');
+    assert(!(options.expectedBody && options.expectFn),
+      'Error in test code: cannot specify both expectedBody and expectFn');
+    if(options.expectedBody) {
+      options.expectFn = testutils.checkBody(options.expectedBody);
+    }
+    testutils.loadArguments(options, {
+      account: null,
+      queryString: null,
+      data: null,
+      expectedStatus: null,
+      expectedBody: null,
+      expectFn: function(res) {}
+    });
+    self.app
+    .post(fixtures.requestPath(options.account, options.queryString))
+    .send(options.data)
+    .expect(options.expectFn)
+    .expect(testutils.checkStatus(options.expectedStatus))
+    .expect(testutils.checkHeaders)
+    .end(done);
+  }
 
   setup(testutils.setup.bind(self));
   teardown(testutils.teardown.bind(self));
@@ -326,25 +398,19 @@ suite('post trustlines', function() {
       });
     });
 
-    self.app
-    .post(fixtures.requestPath(addresses.VALID, '?validated=true'))
-    .send({
-      secret: addresses.SECRET,
-      trustline: {
-        limit: '1',
-        currency: 'USD',
-        counterparty: addresses.COUNTERPARTY
-      }
-    })
-    .expect(testutils.checkStatus(201))
-    .expect(testutils.checkHeaders)
-    .expect(function(res) {
+    var expectFn = function(res) {
       var body = res.body;
       assert.strictEqual(body.success, true);
       assert(body.hasOwnProperty('trustline'));
       assert.strictEqual(body.trustline.state, 'validated');
-    })
-    .end(done);
+    };
+    testPostRequest({
+      account: addresses.VALID,
+      queryString: '?validated=true',
+      data: defaultData,
+      expectedStatus: 201,
+      expectFn: expectFn
+    }, done);
   });
 
   test('/accounts/:account/trustlines -- complex currency', function(done) {
@@ -371,25 +437,21 @@ suite('post trustlines', function() {
       });
     });
 
-    self.app
-    .post(fixtures.requestPath(addresses.VALID, '?validated=true'))
-    .send({
-      secret: addresses.SECRET,
-      trustline: {
-        limit: '1',
-        currency: '015841551A748AD2C1F76FF6ECB0CCCD00000000',
-        counterparty: addresses.COUNTERPARTY
-      }
-    })
-    .expect(testutils.checkStatus(201))
-    .expect(testutils.checkHeaders)
-    .expect(function(res) {
+    var data = _.cloneDeep(defaultData);
+    data.trustline.currency = '015841551A748AD2C1F76FF6ECB0CCCD00000000';
+    var expectFn = function(res) {
       var body = res.body;
       assert.strictEqual(body.success, true);
       assert(body.hasOwnProperty('trustline'));
       assert.strictEqual(body.trustline.state, 'validated');
-    })
-    .end(done);
+    };
+    testPostRequest({
+      account: addresses.VALID,
+      queryString: '?validated=true',
+      data: defaultData,
+      expectedStatus: 201,
+      expectFn: expectFn
+    }, done);
   });
 
   test('/accounts/:account/trustlines -- complex currency, remove trustline', function(done) {
@@ -420,25 +482,22 @@ suite('post trustlines', function() {
       });
     });
 
-    self.app
-    .post(fixtures.requestPath(addresses.VALID, '?validated=true'))
-    .send({
-      secret: addresses.SECRET,
-      trustline: {
-        limit: '0',
-        currency: '015841551A748AD2C1F76FF6ECB0CCCD00000000',
-        counterparty: addresses.COUNTERPARTY
-      }
-    })
-    .expect(testutils.checkStatus(201))
-    .expect(testutils.checkHeaders)
-    .expect(function(res) {
+    var data = _.cloneDeep(defaultData);
+    data.trustline.limit = '0';
+    data.trustline.currency = '015841551A748AD2C1F76FF6ECB0CCCD00000000';
+    var expectFn = function(res) {
       var body = res.body;
       assert.strictEqual(body.success, true);
       assert(body.hasOwnProperty('trustline'));
       assert.strictEqual(body.trustline.state, 'validated');
-    })
-    .end(done);
+    };
+    testPostRequest({
+      account: addresses.VALID,
+      queryString: '?validated=true',
+      data: data,
+      expectedStatus: 201,
+      expectFn: expectFn
+    }, done);
   });
 
   test('/accounts/:account/trustlines -- with validated true and ledger sequence too high error', function(done) {
@@ -455,20 +514,13 @@ suite('post trustlines', function() {
       conn.send(fixtures.ledgerSequenceTooHighResponse(message));
     });
 
-    self.app
-    .post(fixtures.requestPath(addresses.VALID, '?validated=true'))
-    .send({
-      secret: addresses.SECRET,
-      trustline: {
-        limit: '1',
-        currency: 'USD',
-        counterparty: addresses.COUNTERPARTY
-      }
-    })
-    .expect(testutils.checkStatus(500))
-    .expect(testutils.checkHeaders)
-    .expect(testutils.checkBody(errors.RESTResponseLedgerSequenceTooHigh))
-    .end(done);
+    testPostRequest({
+      account: addresses.VALID,
+      queryString: '?validated=true',
+      data: defaultData,
+      expectedStatus: 500,
+      expectedBody: errors.RESTResponseLedgerSequenceTooHigh
+    }, done);
   });
 
   test('/accounts/:account/trustlines -- with validated true and invalid secret error', function(done) {
@@ -482,20 +534,15 @@ suite('post trustlines', function() {
       assert(false);
     });
 
-    self.app
-    .post(fixtures.requestPath(addresses.VALID, '?validated=true'))
-    .send({
-      secret: addresses.INVALID,
-      trustline: {
-        limit: '1',
-        currency: 'USD',
-        counterparty: addresses.COUNTERPARTY
-      }
-    })
-    .expect(testutils.checkStatus(500))
-    .expect(testutils.checkHeaders)
-    .expect(testutils.checkBody(errors.RESTInvalidSecret))
-    .end(done);
+    var data = _.cloneDeep(defaultData);
+    data.secret = addresses.INVALID;
+    testPostRequest({
+      account: addresses.VALID,
+      queryString: '?validated=true',
+      data: data,
+      expectedStatus: 500,
+      expectedBody: errors.RESTInvalidSecret
+    }, done);
   });
 
   test('/accounts/:account/trustlines -- with validated false and transaction verified response', function(done) {
@@ -512,25 +559,19 @@ suite('post trustlines', function() {
       conn.send(fixtures.submitTrustlineResponse(message));
     });
 
-    self.app
-    .post(fixtures.requestPath(addresses.VALID, '?validated=false'))
-    .send({
-      secret: addresses.SECRET,
-      trustline: {
-        limit: '1',
-        currency: 'USD',
-        counterparty: addresses.COUNTERPARTY
-      }
-    })
-    .expect(testutils.checkStatus(201))
-    .expect(testutils.checkHeaders)
-    .expect(function(res) {
+    var expectFn = function(res) {
       var body = res.body;
       assert.strictEqual(body.success, true);
       assert(body.hasOwnProperty('trustline'));
       assert.strictEqual(body.trustline.state, 'pending');
-    })
-    .end(done);
+    };
+    testPostRequest({
+      account: addresses.VALID,
+      queryString: '?validated=false',
+      data: defaultData,
+      expectedStatus: 201,
+      expectFn: expectFn
+    }, done);
   });
 
   test('/accounts/:account/trustlines -- with validated false and ledger sequence too high error', function(done) {
@@ -547,20 +588,13 @@ suite('post trustlines', function() {
       conn.send(fixtures.ledgerSequenceTooHighResponse(message));
     });
 
-    self.app
-    .post(fixtures.requestPath(addresses.VALID, '?validated=false'))
-    .send({
-      secret: addresses.SECRET,
-      trustline: {
-        limit: '1',
-        currency: 'USD',
-        counterparty: addresses.COUNTERPARTY
-      }
-    })
-    .expect(testutils.checkStatus(500))
-    .expect(testutils.checkHeaders)
-    .expect(testutils.checkBody(errors.RESTResponseLedgerSequenceTooHigh))
-    .end(done);
+    testPostRequest({
+      account: addresses.VALID,
+      queryString: '?validated=false',
+      data: defaultData,
+      expectedStatus: 500,
+      expectedBody: errors.RESTResponseLedgerSequenceTooHigh
+    }, done);
   });
 
   test('/accounts/:account/trustlines -- with validated false and invalid secret error', function(done) {
@@ -574,20 +608,15 @@ suite('post trustlines', function() {
       assert(false);
     });
 
-    self.app
-    .post(fixtures.requestPath(addresses.VALID, '?validated=false'))
-    .send({
-      secret: addresses.INVALID,
-      trustline: {
-        limit: '1',
-        currency: 'USD',
-        counterparty: addresses.COUNTERPARTY
-      }
-    })
-    .expect(testutils.checkStatus(500))
-    .expect(testutils.checkHeaders)
-    .expect(testutils.checkBody(errors.RESTInvalidSecret))
-    .end(done);
+    var data = _.cloneDeep(defaultData);
+    data.secret = addresses.INVALID;
+    testPostRequest({
+      account: addresses.VALID,
+      queryString: '?validated=false',
+      data: data,
+      expectedStatus: 500,
+      expectedBody: errors.RESTInvalidSecret
+    }, done);
   });
 
   test('/accounts/:account/trustlines', function(done) {
@@ -620,19 +649,7 @@ suite('post trustlines', function() {
       conn.send(fixtures.submitTrustlineResponse(message));
     });
 
-    self.app
-    .post(fixtures.requestPath(addresses.VALID))
-    .send({
-      secret: addresses.SECRET,
-      trustline: {
-        limit: '1',
-        currency: 'USD',
-        counterparty: addresses.COUNTERPARTY
-      }
-    })
-    .expect(testutils.checkStatus(201))
-    .expect(testutils.checkHeaders)
-    .expect(function(res) {
+    var expectFn = function(res) {
       var body = res.body;
       assert.strictEqual(body.success, true);
       assert(body.hasOwnProperty('trustline'));
@@ -644,8 +661,14 @@ suite('post trustlines', function() {
       assert.strictEqual(typeof body.trustline.ledger, 'string');
       assert.strictEqual(body.trustline.hash, '0F480D344CFC610DFA5CAC62CC1621C92953A05FE8C319281CA49C5C162AF40E');
       assert.strictEqual(body.trustline.state, 'pending');
-    })
-    .end(done);
+    };
+    testPostRequest({
+      account: addresses.VALID,
+      queryString: '',
+      data: defaultData,
+      expectedStatus: 201,
+      expectFn: expectFn
+    }, done);
   });
 
   test('/accounts/:account/trustlines -- no-rippling', function(done) {
@@ -680,20 +703,7 @@ suite('post trustlines', function() {
       }));
     });
 
-    self.app
-    .post(fixtures.requestPath(addresses.VALID))
-    .send({
-      secret: addresses.SECRET,
-      trustline: {
-        limit: '1',
-        currency: 'USD',
-        counterparty: addresses.COUNTERPARTY,
-        account_allows_rippling: false
-      }
-    })
-    .expect(testutils.checkStatus(201))
-    .expect(testutils.checkHeaders)
-    .expect(function(res) {
+    var expectFn = function(res) {
       var body = res.body;
       assert.strictEqual(body.success, true);
       assert(body.hasOwnProperty('trustline'));
@@ -702,8 +712,16 @@ suite('post trustlines', function() {
       assert.strictEqual(body.trustline.limit, '1');
       assert.strictEqual(body.trustline.currency, 'USD');
       assert.strictEqual(body.trustline.account_allows_rippling, false);
-    })
-    .end(done);
+    };
+    var data = _.cloneDeep(defaultData);
+    data.trustline.account_allows_rippling = false;
+    testPostRequest({
+      account: addresses.VALID,
+      queryString: '',
+      data: data,
+      expectedStatus: 201,
+      expectFn: expectFn
+    }, done);
   });
 
   test('/accounts/:account/trustlines -- frozen trustline', function(done) {
@@ -738,20 +756,9 @@ suite('post trustlines', function() {
       }));
     });
 
-    self.app
-    .post(fixtures.requestPath(addresses.VALID))
-    .send({
-      secret: addresses.SECRET,
-      trustline: {
-        limit: '1',
-        currency: 'USD',
-        counterparty: addresses.COUNTERPARTY,
-        account_trustline_frozen: true
-      }
-    })
-    .expect(testutils.checkStatus(201))
-    .expect(testutils.checkHeaders)
-    .expect(function(res) {
+    var data = _.cloneDeep(defaultData);
+    data.trustline.account_trustline_frozen = true;
+    var expectFn = function(res) {
       var body = res.body;
       assert.strictEqual(body.success, true);
       assert(body.hasOwnProperty('trustline'));
@@ -760,8 +767,14 @@ suite('post trustlines', function() {
       assert.strictEqual(body.trustline.limit, '1');
       assert.strictEqual(body.trustline.currency, 'USD');
       assert.strictEqual(body.trustline.account_trustline_frozen, true);
-    })
-    .end(done);
+    };
+    testPostRequest({
+      account: addresses.VALID,
+      queryString: '',
+      data: data,
+      expectedStatus: 201,
+      expectFn: expectFn
+    }, done);
   });
 
   test('/accounts/:account/trustlines -- invalid account', function(done) {
@@ -773,20 +786,13 @@ suite('post trustlines', function() {
       assert(false, 'Should not request submit');
     });
 
-    self.app
-    .post(fixtures.requestPath(addresses.INVALID))
-    .send({
-      secret: addresses.SECRET,
-      trustline: {
-        limit: '1',
-        currency: 'USD',
-        counterparty: addresses.COUNTERPARTY
-      }
-    })
-    .expect(testutils.checkStatus(400))
-    .expect(testutils.checkHeaders)
-    .expect(testutils.checkBody(errors.RESTInvalidAccount))
-    .end(done);
+    testPostRequest({
+      account: addresses.INVALID,
+      queryString: '',
+      data: defaultData,
+      expectedStatus: 400,
+      expectedBody: errors.RESTInvalidAccount
+    }, done);
   });
 
   test('/accounts/:account/trustlines -- missing secret', function(done) {
@@ -797,19 +803,13 @@ suite('post trustlines', function() {
     self.wss.once('request_submit', function(message, conn) {
       assert(false, 'Should not request submit');
     });
-
-    self.app
-    .post(fixtures.requestPath(addresses.VALID))
-    .send({
-      trustline: {
-        limit: '1',
-        currency: 'USD',
-        counterparty: addresses.COUNTERPARTY
-      }
-    })
-    .expect(testutils.checkStatus(400))
-    .expect(testutils.checkHeaders)
-    .end(done);
+    
+    testPostRequest({
+      account: addresses.VALID,
+      queryString: '',
+      data: _.omit(defaultData, 'secret'),
+      expectedStatus: 400
+    }, done);
   });
 
   test('/accounts/:account/trustlines -- missing trustline', function(done) {
@@ -821,14 +821,12 @@ suite('post trustlines', function() {
       assert(false, 'Should not request submit');
     });
 
-    self.app
-    .post(fixtures.requestPath(addresses.VALID))
-    .send({
-      secret: addresses.SECRET,
-    })
-    .expect(testutils.checkStatus(400))
-    .expect(testutils.checkHeaders)
-    .end(done);
+    testPostRequest({
+      account: addresses.VALID,
+      queryString: '',
+      data: {secret: addresses.SECRET},
+      expectedStatus: 400
+    }, done);
   });
 
   test('/accounts/:account/trustlines -- missing limit amount', function(done) {
@@ -840,19 +838,14 @@ suite('post trustlines', function() {
       assert(false, 'Should not request submit');
     });
 
-    self.app
-    .post(fixtures.requestPath(addresses.VALID))
-    .send({
-      secret: addresses.SECRET,
-      trustline: {
-        //limit: '1',
-        currency: 'USD',
-        counterparty: addresses.COUNTERPARTY
-      }
-    })
-    .expect(testutils.checkStatus(400))
-    .expect(testutils.checkHeaders)
-    .end(done);
+    var data = _.cloneDeep(defaultData);
+    delete data.trustline.limit;
+    testPostRequest({
+      account: addresses.VALID,
+      queryString: '',
+      data: data,
+      expectedStatus: 400
+    }, done);
   });
 
   test('/accounts/:account/trustlines -- missing limit currency', function(done) {
@@ -864,19 +857,14 @@ suite('post trustlines', function() {
       assert(false, 'Should not request submit');
     });
 
-    self.app
-    .post(fixtures.requestPath(addresses.VALID))
-    .send({
-      secret: addresses.SECRET,
-      trustline: {
-        //limit: '1',
-        currency: 'USD',
-        counterparty: addresses.COUNTERPARTY
-      }
-    })
-    .expect(testutils.checkStatus(400))
-    .expect(testutils.checkHeaders)
-    .end(done);
+    var data = _.cloneDeep(defaultData);
+    delete data.trustline.limit;
+    testPostRequest({
+      account: addresses.VALID,
+      queryString: '',
+      data: data,
+      expectedStatus: 400
+    }, done);
   });
 
   test('/accounts/:account/trustlines -- missing limit currency', function(done) {
@@ -888,19 +876,14 @@ suite('post trustlines', function() {
       assert(false, 'Should not request submit');
     });
 
-    self.app
-    .post(fixtures.requestPath(addresses.VALID))
-    .send({
-      secret: addresses.SECRET,
-      trustline: {
-        limit: '1',
-        //currency: 'USD',
-        counterparty: addresses.COUNTERPARTY
-      }
-    })
-    .expect(testutils.checkStatus(400))
-    .expect(testutils.checkHeaders)
-    .end(done);
+    var data = _.cloneDeep(defaultData);
+    delete data.trustline.currency;
+    testPostRequest({
+      account: addresses.VALID,
+      queryString: '',
+      data: data,
+      expectedStatus: 400
+    }, done);
   });
 
   test('/accounts/:account/trustlines -- missing limit counterparty', function(done) {
@@ -912,19 +895,14 @@ suite('post trustlines', function() {
       assert(false, 'Should not request submit');
     });
 
-    self.app
-    .post(fixtures.requestPath(addresses.VALID))
-    .send({
-      secret: addresses.SECRET,
-      trustline: {
-        limit: '1',
-        currency: 'USD',
-        //counterparty: addresses.COUNTERPARTY
-      }
-    })
-    .expect(testutils.checkStatus(400))
-    .expect(testutils.checkHeaders)
-    .end(done);
+    var data = _.cloneDeep(defaultData);
+    delete data.trustline.counterparty;
+    testPostRequest({
+      account: addresses.VALID,
+      queryString: '',
+      data: data,
+      expectedStatus: 400
+    }, done);
   });
 
   test('/accounts/:account/trustlines -- invalid limit amount', function(done) {
@@ -936,19 +914,14 @@ suite('post trustlines', function() {
       assert(false, 'Should not request submit');
     });
 
-    self.app
-    .post(fixtures.requestPath(addresses.VALID))
-    .send({
-      secret: addresses.SECRET,
-      trustline: {
-        limit: 'asdf',
-        currency: 'USD',
-        counterparty: addresses.COUNTERPARTY
-      }
-    })
-    .expect(testutils.checkStatus(400))
-    .expect(testutils.checkHeaders)
-    .end(done);
+    var data = _.cloneDeep(defaultData);
+    data.trustline.limit = 'asdf';
+    testPostRequest({
+      account: addresses.VALID,
+      queryString: '',
+      data: data,
+      expectedStatus: 400
+    }, done);
   });
 
   test('/accounts/:account/trustlines -- invalid limit currency', function(done) {
@@ -960,19 +933,14 @@ suite('post trustlines', function() {
       assert(false, 'Should not request submit');
     });
 
-    self.app
-    .post(fixtures.requestPath(addresses.VALID))
-    .send({
-      secret: addresses.SECRET,
-      trustline: {
-        limit: '1',
-        currency: 'usd2',
-        counterparty: addresses.COUNTERPARTY
-      }
-    })
-    .expect(testutils.checkStatus(400))
-    .expect(testutils.checkHeaders)
-    .end(done);
+    var data = _.cloneDeep(defaultData);
+    data.trustline.currency = 'usd2';
+    testPostRequest({
+      account: addresses.VALID,
+      queryString: '',
+      data: data,
+      expectedStatus: 400
+    }, done);
   });
 
   test('/accounts/:account/trustlines -- invalid limit counterparty', function(done) {
@@ -984,18 +952,13 @@ suite('post trustlines', function() {
       assert(false, 'Should not request submit');
     });
 
-    self.app
-    .post(fixtures.requestPath(addresses.VALID))
-    .send({
-      secret: addresses.SECRET,
-      trustline: {
-        limit: '1',
-        currency: 'USD',
-        counterparty: addresses.INVALID
-      }
-    })
-    .expect(testutils.checkStatus(400))
-    .expect(testutils.checkHeaders)
-    .end(done);
+    var data = _.cloneDeep(defaultData);
+    data.trustline.counterparty = addresses.INVALID;
+    testPostRequest({
+      account: addresses.VALID,
+      queryString: '',
+      data: data,
+      expectedStatus: 400
+    }, done);
   });
 });
