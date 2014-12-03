@@ -1,13 +1,14 @@
-var _                      = require('lodash');
-var Promise                = require('bluebird');
-var ripple                 = require('ripple-lib');
-var remote                 = require('./../lib/remote.js');
-var transactions           = require('./transactions');
-var SubmitTransactionHooks = require('./../lib/submit_transaction_hooks.js');
-var respond                = require('./../lib/response-handler.js');
-var utils                  = require('./../lib/utils');
-var errors                 = require('./../lib/errors.js');
-var validator             = require('./../lib/schema-validator.js');
+var _                       = require('lodash');
+var Promise                 = require('bluebird');
+var ripple                  = require('ripple-lib');
+var remote                  = require('./../lib/remote.js');
+var transactions            = require('./transactions');
+var SubmitTransactionHooks  = require('./../lib/submit_transaction_hooks.js');
+var respond                 = require('./../lib/response-handler.js');
+var utils                   = require('./../lib/utils');
+var errors                  = require('./../lib/errors.js');
+var TxToRestConverter       = require('./../lib/tx-to-rest-converter.js');
+var validator               = require('./../lib/schema-validator.js');
 
 const InvalidRequestError   = errors.InvalidRequestError;
 
@@ -121,7 +122,7 @@ function placeOrder(request, response, next) {
 
   var hooks = {
     validateParams: validateParams,
-    formatTransactionResponse: formatTransactionResponse,
+    formatTransactionResponse: TxToRestConverter.parseSubmitOrderFromTx,
     setTransactionParameters: setTransactionParameters
   };
 
@@ -158,22 +159,6 @@ function placeOrder(request, response, next) {
     } else {
       async_callback();
     }
-  };
-
-  function formatTransactionResponse(message, meta, async_callback) {
-    var result = {};
-    _.extend(meta, {
-      account: message.tx_json.Account,
-      taker_gets: message.tx_json.TakerGets,
-      taker_pays: message.tx_json.TakerPays,
-      fee: utils.dropsToXrp(message.tx_json.Fee),
-      type: (message.tx_json.Flags & ripple.Transaction.flags.OfferCreate.Sell) > 0 ? 'sell' : 'buy',
-      sequence: message.tx_json.Sequence
-    });
-
-    result.order = meta;
-
-    async_callback(null, result);
   };
 
   function setTransactionParameters(transaction) {
@@ -216,7 +201,7 @@ function cancelOrder(request, response, next) {
 
   var hooks = {
     validateParams: validateParams,
-    formatTransactionResponse: formatTransactionResponse,
+    formatTransactionResponse: TxToRestConverter.parseCancelOrderFromTx,
     setTransactionParameters: setTransactionParameters
   }
 
@@ -234,20 +219,6 @@ function cancelOrder(request, response, next) {
     } else {
       async_callback();
     }
-  };
-
-  function formatTransactionResponse(message, meta, async_callback) {
-    var result = {};
-    _.extend(meta, {
-      account: message.tx_json.Account,
-      fee: utils.dropsToXrp(message.tx_json.Fee),
-      offer_sequence: message.tx_json.OfferSequence,
-      sequence: message.tx_json.Sequence
-    });
-
-    result.order = meta;
-
-    async_callback(null, result);
   };
 
   function setTransactionParameters(transaction) {

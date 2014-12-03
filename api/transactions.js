@@ -24,7 +24,6 @@ var errors      = require('./../lib/errors.js');
  */
 
 function submitTransaction(options, hooks, callback) {
-  var meta = {};
 
   var steps = [
     // General options validation is performed here before passing the options to the caller to validate
@@ -113,6 +112,8 @@ function submitTransaction(options, hooks, callback) {
       });
     }
 
+    var meta = {};
+
     if (summary.result) {
       meta.hash = summary.result.transaction_hash;
       meta.ledger = String(summary.submitIndex)
@@ -145,25 +146,6 @@ function submitTransaction(options, hooks, callback) {
   };
 
   async.waterfall(steps, callback);
-};
-
-/**
- *  Helper that parses bit flags from ripple response
- *  
- *  @param {Number} responseFlags - Integer flag on the ripple response
- *  @param {Object} flags         - Object with parameter name and bit flag value pairs
- * 
- *  @returns {Object} parsedFlags - Object with parameter name and boolean flags depending on response flag
- */
-function parseFlagsFromResponse(responseFlags, flags) {
-  var parsedFlags = {};
-
-  for (var flagName in flags) {
-    var flag = flags[flagName];
-    parsedFlags[flag.name] = Boolean(responseFlags & flag.value);
-  }
-
-  return parsedFlags;
 };
 
 /**
@@ -667,6 +649,5 @@ module.exports = {
   get: getTransactionAndRespond,
   getTransaction: getTransaction,
   getAccountTransactions: getAccountTransactions,
-  setTransactionBitFlags: setTransactionBitFlags,
-  parseFlagsFromResponse: parseFlagsFromResponse
+  setTransactionBitFlags: setTransactionBitFlags
 };

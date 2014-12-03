@@ -1,23 +1,18 @@
-var _                      = require('lodash');
-var async                  = require('async');
-var ripple                 = require('ripple-lib');
-var transactions           = require('./transactions.js');
-var SubmitTransactionHooks = require('./../lib/submit_transaction_hooks.js');
-var remote                 = require('./../lib/remote.js');
-var respond                = require('./../lib/response-handler.js');
-var errors                 = require('./../lib/errors.js');
-var validator              = require('./../lib/schema-validator');
+var _                       = require('lodash');
+var async                   = require('async');
+var ripple                  = require('ripple-lib');
+var transactions            = require('./transactions.js');
+var SubmitTransactionHooks  = require('./../lib/submit_transaction_hooks.js');
+var remote                  = require('./../lib/remote.js');
+var respond                 = require('./../lib/response-handler.js');
+var errors                  = require('./../lib/errors.js');
+var validator               = require('./../lib/schema-validator');
+var TxToRestConverter       = require('./../lib/tx-to-rest-converter.js');
 
 const TrustSetFlags = {
   ClearNoRipple: { name: 'account_allows_rippling', set: 'ClearNoRipple', unset: 'NoRipple' },
   SetFreeze:     { name: 'account_trustline_frozen', set: 'SetFreeze', unset: 'ClearFreeze' }
 };
-
-const TrustSetResponseFlags = {
-  NoRipple:      { name: 'prevent_rippling', value: ripple.Transaction.flags.TrustSet.NoRipple },
-  SetFreeze:     { name: 'account_trustline_frozen', value: ripple.Transaction.flags.TrustSet.SetFreeze },
-  SetAuth:       { name: 'authorized', value: ripple.Transaction.flags.TrustSet.SetAuth }
-}
 
 /**
  *  Retrieves all trustlines for a given account
@@ -170,7 +165,7 @@ function addTrustLine(request, response, next) {
 
   var hooks = {
     validateParams: validateParams,
-    formatTransactionResponse: formatTransactionResponse,
+    formatTransactionResponse: TxToRestConverter.parseTrustResponseFromTx,
     setTransactionParameters: setTransactionParameters
   };
 
@@ -217,26 +212,6 @@ function addTrustLine(request, response, next) {
     }
 
     callback();
-  };
-
-  function formatTransactionResponse(message, meta, callback) {
-    var result = {};
-    var line = message.tx_json.LimitAmount;
-    var parsedFlags = transactions.parseFlagsFromResponse(message.tx_json.Flags, TrustSetResponseFlags);
-
-    _.extend(meta, {
-      account: message.tx_json.Account,
-      limit: line.value,
-      currency: line.currency,
-      counterparty: line.issuer,
-      account_allows_rippling: !parsedFlags.prevent_rippling,
-      account_trustline_frozen: parsedFlags.account_trustline_frozen,
-      authorized: parsedFlags.authorized ? parsedFlags.authorized : void(0)
-    });
-
-    result.trustline = meta;
-
-    callback(null, result);
   };
 
   function setTransactionParameters(transaction) {
