@@ -556,9 +556,11 @@ module.exports.accountInfoResponse = function(request) {
 module.exports.submitTrustlineResponse = function(request, options) {
   options = options || {};
   _.defaults(options, {
-    flags: 2147483648
+    flags: 2147483648,
+    hash: '0F480D344CFC610DFA5CAC62CC1621C92953A05FE8C319281CA49C5C162AF40E',
+    currency: 'USD',
+    limit: '1'
   });
-
   return JSON.stringify({
     id: request.id,
     result: {
@@ -572,15 +574,15 @@ module.exports.submitTrustlineResponse = function(request, options) {
         Flags: options.flags,
         LastLedgerSequence: 8819963,
         LimitAmount: {
-          currency: 'USD',
+          currency: options.currency,
           issuer: 'rvYAfWj5gh67oV6fW32ZzP3Aw4Eubs59B',
-          value: '1'
+          value: options.limit
         },
         Sequence: 3054,
         SigningPubKey: '0306E9F38DF11402953A5B030C1AE8A88C47E348170C3B8EC6C8D775E797168462',
         TransactionType: 'TrustSet',
         TxnSignature: '304402202604A313678AC3BEC1A3C46A556258A512422ACB5EB0034D9024DDB45316F1BD02207AD751BF27C937AD5001ADD551312933C67670086155FA0B8B8107452CD00E41',
-        hash: '0F480D344CFC610DFA5CAC62CC1621C92953A05FE8C319281CA49C5C162AF40E'
+        hash: options.hash
       }
     },
     status: 'success',
@@ -588,7 +590,11 @@ module.exports.submitTrustlineResponse = function(request, options) {
   });
 };
 
-module.exports.ledgerSequenceTooHighResponse = function(request) {
+module.exports.ledgerSequenceTooHighResponse = function(request, options) {
+  options = options || {};
+  _.defaults(options, {
+    hash: '0F480D344CFC610DFA5CAC62CC1621C92953A05FE8C319281CA49C5C162AF40E'
+  });
   return JSON.stringify({
     id: request.id,
     result: {
@@ -610,7 +616,7 @@ module.exports.ledgerSequenceTooHighResponse = function(request) {
         SigningPubKey: '0306E9F38DF11402953A5B030C1AE8A88C47E348170C3B8EC6C8D775E797168462',
         TransactionType: 'TrustSet',
         TxnSignature: '304402202604A313678AC3BEC1A3C46A556258A512422ACB5EB0034D9024DDB45316F1BD02207AD751BF27C937AD5001ADD551312933C67670086155FA0B8B8107452CD00E41',
-        hash: '0F480D344CFC610DFA5CAC62CC1621C92953A05FE8C319281CA49C5C162AF40E'
+        hash: options.hash
       }
     },
     status: 'success',
@@ -618,7 +624,12 @@ module.exports.ledgerSequenceTooHighResponse = function(request) {
   });
 };
 
-module.exports.setTrustValidatedResponse = function() {
+module.exports.setTrustValidatedResponse = function(options) {
+  options = options || {};
+  _.defaults(options, {
+    limit: '110',
+    hash: '0F480D344CFC610DFA5CAC62CC1621C92953A05FE8C319281CA49C5C162AF40E'
+  });
   return JSON.stringify({
     engine_result: 'tesSUCCESS',
     engine_result_code: 0,
@@ -664,7 +675,7 @@ module.exports.setTrustValidatedResponse = function() {
               LowLimit: {
                 currency: 'USD',
                 issuer: 'r3GgMwvgvP8h4yVWvjH1dPZNvC37TjzBBE',
-                value: '110'
+                value: options.limit
               },
               LowNode: '0000000000000000'
             },
@@ -690,14 +701,14 @@ module.exports.setTrustValidatedResponse = function() {
       LimitAmount: {
         currency: 'USD',
         issuer: 'rMwjYedjc7qqtKYVLiAccJSmCwih4LnE2q',
-        value: '110'
+        value: options.limit
       },
       Sequence: 11,
       SigningPubKey: '02AFA3692CC78A804ACC11DBA23DBB99943C6F8D61D3CB07BBE6D28356EB5B9C57',
       TransactionType: 'TrustSet',
       TxnSignature: '304402201178957B6ABB7673DB21F05C58E66061D5C753B9D63158032B0C1CC9CB68C94802203CEB99C8B72BB33EF63684B2A6BF77A232448ECACBB5FFC9FD8DCC8065948847',
       date: 468718190,
-      hash: '0F480D344CFC610DFA5CAC62CC1621C92953A05FE8C319281CA49C5C162AF40E'
+      hash: options.hash
     },
     type: 'transaction',
     validated: true

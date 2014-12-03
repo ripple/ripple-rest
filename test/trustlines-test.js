@@ -317,7 +317,8 @@ suite('post trustlines', function() {
 
     self.wss.once('request_submit', function(message, conn) {
       assert.strictEqual(message.command, 'submit');
-      assert(message.hasOwnProperty('tx_blob'));
+      assert(message.hasOwnProperty('tx_blob'),
+        'Missing signed transaction blob');
       conn.send(fixtures.submitTrustlineResponse(message));
 
       process.nextTick(function() {
@@ -326,12 +327,106 @@ suite('post trustlines', function() {
     });
 
     self.app
-    .post(fixtures.requestPath(addresses.VALID, "?validated=true"))
+    .post(fixtures.requestPath(addresses.VALID, '?validated=true'))
     .send({
       secret: addresses.SECRET,
       trustline: {
         limit: '1',
         currency: 'USD',
+        counterparty: addresses.COUNTERPARTY
+      }
+    })
+    .expect(testutils.checkStatus(201))
+    .expect(testutils.checkHeaders)
+    .expect(function(res) {
+      var body = res.body;
+      assert.strictEqual(body.success, true);
+      assert(body.hasOwnProperty('trustline'));
+      assert.strictEqual(body.trustline.state, 'validated');
+    })
+    .end(done);
+  });
+
+  test('/accounts/:account/trustlines -- complex currency', function(done) {
+    var hash = testutils.generateHash();
+
+    self.wss.once('request_account_info', function(message, conn) {
+      assert.strictEqual(message.command, 'account_info');
+      assert.strictEqual(message.account, addresses.VALID);
+      conn.send(fixtures.accountInfoResponse(message));
+    });
+
+    self.wss.once('request_submit', function(message, conn) {
+      assert.strictEqual(message.command, 'submit');
+      assert(message.hasOwnProperty('tx_blob'),
+        'Missing signed transaction blob');
+      var options = {
+        currency: '015841551A748AD2C1F76FF6ECB0CCCD00000000',
+        hash: hash
+      };
+      conn.send(fixtures.submitTrustlineResponse(message, options));
+
+      process.nextTick(function() {
+        conn.send(fixtures.setTrustValidatedResponse({hash: hash}));
+      });
+    });
+
+    self.app
+    .post(fixtures.requestPath(addresses.VALID, '?validated=true'))
+    .send({
+      secret: addresses.SECRET,
+      trustline: {
+        limit: '1',
+        currency: '015841551A748AD2C1F76FF6ECB0CCCD00000000',
+        counterparty: addresses.COUNTERPARTY
+      }
+    })
+    .expect(testutils.checkStatus(201))
+    .expect(testutils.checkHeaders)
+    .expect(function(res) {
+      var body = res.body;
+      assert.strictEqual(body.success, true);
+      assert(body.hasOwnProperty('trustline'));
+      assert.strictEqual(body.trustline.state, 'validated');
+    })
+    .end(done);
+  });
+
+  test('/accounts/:account/trustlines -- complex currency, remove trustline', function(done) {
+    var hash = testutils.generateHash();
+
+    self.wss.once('request_account_info', function(message, conn) {
+      assert.strictEqual(message.command, 'account_info');
+      assert.strictEqual(message.account, addresses.VALID);
+      conn.send(fixtures.accountInfoResponse(message));
+    });
+
+    self.wss.once('request_submit', function(message, conn) {
+      assert.strictEqual(message.command, 'submit');
+      assert(message.hasOwnProperty('tx_blob'),
+        'Missing signed transaction blob');
+      var options = {
+        currency: '015841551A748AD2C1F76FF6ECB0CCCD00000000',
+        limit: '0',
+        hash: hash
+      };
+      conn.send(fixtures.submitTrustlineResponse(message, options));
+
+      process.nextTick(function() {
+        conn.send(fixtures.setTrustValidatedResponse({
+          limit: '0',
+          hash: hash
+        }));
+      });
+    });
+
+    self.app
+    .post(fixtures.requestPath(addresses.VALID, '?validated=true'))
+    .send({
+      secret: addresses.SECRET,
+      trustline: {
+        limit: '0',
+        currency: '015841551A748AD2C1F76FF6ECB0CCCD00000000',
         counterparty: addresses.COUNTERPARTY
       }
     })
@@ -355,12 +450,13 @@ suite('post trustlines', function() {
 
     self.wss.once('request_submit', function(message, conn) {
       assert.strictEqual(message.command, 'submit');
-      assert(message.hasOwnProperty('tx_blob'));
+      assert(message.hasOwnProperty('tx_blob'),
+        'Missing signed transaction blob');
       conn.send(fixtures.ledgerSequenceTooHighResponse(message));
     });
 
     self.app
-    .post(fixtures.requestPath(addresses.VALID, "?validated=true"))
+    .post(fixtures.requestPath(addresses.VALID, '?validated=true'))
     .send({
       secret: addresses.SECRET,
       trustline: {
@@ -387,7 +483,7 @@ suite('post trustlines', function() {
     });
 
     self.app
-    .post(fixtures.requestPath(addresses.VALID, "?validated=true"))
+    .post(fixtures.requestPath(addresses.VALID, '?validated=true'))
     .send({
       secret: addresses.INVALID,
       trustline: {
@@ -411,13 +507,13 @@ suite('post trustlines', function() {
 
     self.wss.once('request_submit', function(message, conn) {
       assert.strictEqual(message.command, 'submit');
-      assert(message.hasOwnProperty('tx_blob'));
-
+      assert(message.hasOwnProperty('tx_blob'),
+        'Missing signed transaction blob');
       conn.send(fixtures.submitTrustlineResponse(message));
     });
 
     self.app
-    .post(fixtures.requestPath(addresses.VALID, "?validated=false"))
+    .post(fixtures.requestPath(addresses.VALID, '?validated=false'))
     .send({
       secret: addresses.SECRET,
       trustline: {
@@ -446,12 +542,13 @@ suite('post trustlines', function() {
 
     self.wss.once('request_submit', function(message, conn) {
       assert.strictEqual(message.command, 'submit');
-      assert(message.hasOwnProperty('tx_blob'));
+      assert(message.hasOwnProperty('tx_blob'),
+        'Missing signed transaction blob');
       conn.send(fixtures.ledgerSequenceTooHighResponse(message));
     });
 
     self.app
-    .post(fixtures.requestPath(addresses.VALID, "?validated=false"))
+    .post(fixtures.requestPath(addresses.VALID, '?validated=false'))
     .send({
       secret: addresses.SECRET,
       trustline: {
@@ -478,7 +575,7 @@ suite('post trustlines', function() {
     });
 
     self.app
-    .post(fixtures.requestPath(addresses.VALID, "?validated=false"))
+    .post(fixtures.requestPath(addresses.VALID, '?validated=false'))
     .send({
       secret: addresses.INVALID,
       trustline: {
@@ -502,7 +599,8 @@ suite('post trustlines', function() {
 
     self.wss.once('request_submit', function(message, conn) {
       assert.strictEqual(message.command, 'submit');
-      assert(message.hasOwnProperty('tx_blob'));
+      assert(message.hasOwnProperty('tx_blob'),
+        'Missing signed transaction blob');
 
       var so = new ripple.SerializedObject(message.tx_blob).to_json();
 
@@ -559,7 +657,8 @@ suite('post trustlines', function() {
 
     self.wss.once('request_submit', function(message, conn) {
       assert.strictEqual(message.command, 'submit');
-      assert(message.hasOwnProperty('tx_blob'));
+      assert(message.hasOwnProperty('tx_blob'),
+        'Missing signed transaction blob');
 
       var so = new ripple.SerializedObject(message.tx_blob).to_json();
 
@@ -616,7 +715,8 @@ suite('post trustlines', function() {
 
     self.wss.once('request_submit', function(message, conn) {
       assert.strictEqual(message.command, 'submit');
-      assert(message.hasOwnProperty('tx_blob'));
+      assert(message.hasOwnProperty('tx_blob'),
+        'Missing signed transaction blob');
 
       var so = new ripple.SerializedObject(message.tx_blob).to_json();
 
@@ -866,7 +966,7 @@ suite('post trustlines', function() {
       secret: addresses.SECRET,
       trustline: {
         limit: '1',
-        currency: 'usd',
+        currency: 'usd2',
         counterparty: addresses.COUNTERPARTY
       }
     })
