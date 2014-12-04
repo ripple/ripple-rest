@@ -104,5 +104,6 @@ module.exports = {
   checkHeaders: checkHeaders,
   checkBody: checkBody,
   generateHash: generateHash,
-  loadArguments: loadArguments
+  loadArguments: loadArguments,
+  generateHash: generateHash
 };

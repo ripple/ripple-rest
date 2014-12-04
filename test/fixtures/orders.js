@@ -46,8 +46,10 @@ module.exports.order = function(options) {
 
 module.exports.accountOrdersResponse = function(request, options) {
   options = options || {};
+
   _.defaults(options, {
-    account: addresses.VALID
+    account: addresses.VALID,
+    validated: true
   });
 
   return JSON.stringify({
@@ -55,7 +57,8 @@ module.exports.accountOrdersResponse = function(request, options) {
     "result": {
       "account": options.account,
       "marker": options.marker,
-      "ledger_index": 9941609,
+      "limit": options.limit,
+      "ledger_index": options.ledger,
       "offers": [
         {
           "flags": 0,
@@ -288,7 +291,7 @@ module.exports.accountOrdersResponse = function(request, options) {
           }
         }
       ],
-      "validated": false
+      "validated": options.validated
     },
     "status": "success",
     "type": "response"
@@ -693,9 +696,16 @@ module.exports.unfundedOrderFinalizedResponse = function(options) {
 module.exports.RESTAccountOrdersResponse = function(options) {
   options = options || {};
 
+  _.defaults(options, {
+    validated: true
+  });
+
   return JSON.stringify({
     success: true,
     marker: options.marker,
+    limit: options.limit,
+    ledger: options.ledger,
+    validated: options.validated,
     orders: [
       {
         "flags": 0,

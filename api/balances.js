@@ -4,6 +4,7 @@ var ripple    = require('ripple-lib');
 var remote    = require('./../lib/remote.js');
 var respond   = require('../lib/response-handler.js');
 var errors    = require('./../lib/errors.js');
+var validator = require('./../lib/schema-validator.js');
 
 module.exports = {
   get: getBalances
@@ -42,6 +43,8 @@ function getBalances(request, response, next) {
   var balances = [];
   var nextMarker;
   var responseLimit;
+  var responseLedger;
+  var responseValidated;
 
   function validateOptions(callback) {
     if (!ripple.UInt160.is_valid(options.account)) {
@@ -57,7 +60,12 @@ function getBalances(request, response, next) {
   };
 
   function getXRPBalance(callback) {
-    var accountInfoRequest = remote.requestAccountInfo({account: options.account});
+    var ledger = validator.isValid(request.query.ledger, 'UINT32') ? Number(request.query.ledger) : 'validated';
+
+    var accountInfoRequest = remote.requestAccountInfo({
+      account: options.account,
+      ledger: ledger
+    });
 
     accountInfoRequest.once('error', callback);
     accountInfoRequest.once('success', function(info) {
@@ -66,6 +74,9 @@ function getBalances(request, response, next) {
         currency: 'XRP',
         counterparty: ''
       });
+
+      responseLedger = info.ledger_index;
+      responseValidated = info.validated;
 
       callback();
     });
@@ -76,8 +87,8 @@ function getBalances(request, response, next) {
   function getLineBalances(callback) {
     var accountLinesRequest;
     var marker = request.query.marker;
-    var limit = /^[0-9]*$/.test(request.query.limit) ? Number(request.query.limit) : void(0);
-    var ledger = /^[0-9]*$/.test(request.query.ledger) ? Number(request.query.ledger) : void(0);
+    var limit = validator.isValid(request.query.limit, 'UINT32') ? Number(request.query.limit) : void(0);
+    var ledger = validator.isValid(request.query.ledger, 'UINT32') ? Number(request.query.ledger) : 'validated';
 
     try {
       accountLinesRequest = remote.requestAccountLines({
@@ -114,6 +125,9 @@ function getBalances(request, response, next) {
         responseLimit = result.limit;
       }
 
+      responseLedger = result.ledger_index;
+      responseValidated = result.validated;
+
       callback();
     });
 
@@ -136,7 +150,13 @@ function getBalances(request, response, next) {
     if (error) {
       next(error);
     } else {
-      respond.success(response, { marker: nextMarker, limit: responseLimit, balances: balances });
+      respond.success(response, {
+        marker: nextMarker,
+        limit: responseLimit,
+        ledger: responseLedger,
+        validated: responseValidated,
+        balances: balances
+      });
     }
   });
 };

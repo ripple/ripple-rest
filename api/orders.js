@@ -7,6 +7,7 @@ var SubmitTransactionHooks = require('./../lib/submit_transaction_hooks.js');
 var respond                = require('./../lib/response-handler.js');
 var utils                  = require('./../lib/utils');
 var errors                 = require('./../lib/errors.js');
+var validator             = require('./../lib/schema-validator.js');
 
 const InvalidRequestError   = errors.InvalidRequestError;
 
@@ -34,6 +35,16 @@ function getOrders(request, response, next) {
       orders.marker = result.marker;
     }
 
+    if (result.limit) {
+      orders.limit = result.limit;
+    }
+
+    if (result.ledger_index) {
+      orders.ledger = result.ledger_index;
+    }
+
+    orders.validated = result.validated;
+
     orders.orders = result.offers;
 
     respond.success(response, orders);
@@ -56,8 +67,8 @@ function getOrders(request, response, next) {
     var promise = new Promise(function(resolve, reject) {
       var accountOrdersRequest;
       var marker = request.query.marker;
-      var limit = /^[0-9]*$/.test(request.query.limit) ? Number(request.query.limit) : void(0);
-      var ledger = /^[0-9]*$/.test(request.query.ledger) ? Number(request.query.ledger) : void(0);
+      var limit = validator.isValid(request.query.limit, 'UINT32') ? Number(request.query.limit) : void(0);
+      var ledger = validator.isValid(request.query.ledger, 'UINT32') ? Number(request.query.ledger) : 'validated';
 
       accountOrdersRequest = remote.requestAccountOffers({
         account: options.account,

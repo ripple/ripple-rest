@@ -11,8 +11,11 @@ const HEX_CURRENCY = '0158415500000000C1F76FF6ECB0BAC600000000';
 const ISSUER = 'rvYAfWj5gh67oV6fW32ZzP3Aw4Eubs59B'
 const VALUE = '0.00000001'
 
+const LIMIT = 100;
+
 const MARKER = '29F992CC252056BF690107D1E8F2D9FBAFF29FF107B62B1D1F4E4E11ADF2CC73';
 const NEXT_MARKER = '0C812C919D343EAE789B29E8027C62C5792C22172D37EA2B2C0121D2381F80E1';
+const LEDGER = 9592219;
 
 suite('get orders', function() {
   var self = this;
@@ -21,40 +24,37 @@ suite('get orders', function() {
   teardown(testutils.teardown.bind(self));
 
   test('/accounts/:account/orders', function(done) {
-    self.wss.once('request_account_info', function(message, conn) {
-      assert.strictEqual(message.command, 'account_info');
-      assert.strictEqual(message.account, addresses.VALID);
-      conn.send(fixtures.accountInfoResponse(message));
-    });
-
     self.wss.once('request_account_offers', function(message, conn) {
       assert.strictEqual(message.command, 'account_offers');
       assert.strictEqual(message.account, addresses.VALID);
-      conn.send(fixtures.accountOrdersResponse(message));
+      assert.strictEqual(message.ledger_index, 'validated');
+      conn.send(fixtures.accountOrdersResponse(message,{
+        ledger: LEDGER,
+        marker: NEXT_MARKER,
+        limit: LIMIT
+      }));
     });
 
     self.app
     .get('/v1/accounts/' + addresses.VALID + '/orders')
     .expect(testutils.checkStatus(200))
     .expect(testutils.checkHeaders)
-    .expect(testutils.checkBody(fixtures.RESTAccountOrdersResponse()))
+    .expect(testutils.checkBody(fixtures.RESTAccountOrdersResponse({
+        ledger: LEDGER,
+        marker: NEXT_MARKER,
+        limit: LIMIT
+    })))
     .end(done);
   });
 
   test('/accounts/:account/orders -- with invalid ledger', function(done) {
-    self.wss.once('request_account_info', function(message, conn) {
-      assert.strictEqual(message.command, 'account_info');
-      assert.strictEqual(message.account, addresses.VALID);
-      conn.send(fixtures.accountInfoResponse(message));
-    });
-
     self.wss.once('request_account_offers', function(message, conn) {
       assert.strictEqual(message.command, 'account_offers');
       assert.strictEqual(message.account, addresses.VALID);
-      assert.strictEqual(message.ledger, void(0));
+      assert.strictEqual(message.ledger_index, 'validated');
       conn.send(fixtures.accountOrdersResponse(message));
     });
-    
+
     self.app
     .get('/v1/accounts/' + addresses.VALID + '/orders?ledger=foo')
     .expect(testutils.checkStatus(200))
@@ -64,38 +64,28 @@ suite('get orders', function() {
   });
 
   test('/accounts/:account/orders -- with ledger', function(done) {
-    self.wss.once('request_account_info', function(message, conn) {
-      assert.strictEqual(message.command, 'account_info');
-      assert.strictEqual(message.account, addresses.VALID);
-      conn.send(fixtures.accountInfoResponse(message));
-    });
-
     self.wss.once('request_account_offers', function(message, conn) {
       assert.strictEqual(message.command, 'account_offers');
       assert.strictEqual(message.account, addresses.VALID);
-      assert.strictEqual(message.ledger_index, 9592219);
+      assert.strictEqual(message.ledger_index, LEDGER);
       conn.send(fixtures.accountOrdersResponse(message, {
-        marker: NEXT_MARKER
+        marker: NEXT_MARKER,
+        ledger: LEDGER
       }));
     });
 
     self.app
-    .get('/v1/accounts/' + addresses.VALID + '/orders?ledger=9592219')
+    .get('/v1/accounts/' + addresses.VALID + '/orders?ledger=' + LEDGER)
     .expect(testutils.checkStatus(200))
     .expect(testutils.checkHeaders)
     .expect(testutils.checkBody(fixtures.RESTAccountOrdersResponse({
-      marker: NEXT_MARKER
+      marker: NEXT_MARKER,
+      ledger: LEDGER
     })))
     .end(done);
   });
 
   test('/accounts/:account/orders -- with invalid marker', function(done) {
-    self.wss.once('request_account_info', function(message, conn) {
-      assert.strictEqual(message.command, 'account_info');
-      assert.strictEqual(message.account, addresses.VALID);
-      conn.send(fixtures.accountInfoResponse(message));
-    });
-
     self.wss.once('request_account_offers', function(message, conn) {
       assert(false);
     });
@@ -109,12 +99,6 @@ suite('get orders', function() {
   });
 
   test('/accounts/:account/orders -- with valid marker and invalid limit', function(done) {
-    self.wss.once('request_account_info', function(message, conn) {
-      assert.strictEqual(message.command, 'account_info');
-      assert.strictEqual(message.account, addresses.VALID);
-      conn.send(fixtures.accountInfoResponse(message));
-    });
-
     self.wss.once('request_account_offers', function(message, conn) {
       assert(false);
     });
@@ -128,18 +112,12 @@ suite('get orders', function() {
   });
 
   test('/accounts/:account/orders -- with valid marker and valid limit', function(done) {
-    self.wss.once('request_account_info', function(message, conn) {
-      assert.strictEqual(message.command, 'account_info');
-      assert.strictEqual(message.account, addresses.VALID);
-      conn.send(fixtures.accountInfoResponse(message));
-    });
-
     self.wss.once('request_account_offers', function(message, conn) {
       assert(false);
     });
 
     self.app
-    .get('/v1/accounts/' + addresses.VALID + '/orders?marker=' + MARKER + '&limit=100')
+    .get('/v1/accounts/' + addresses.VALID + '/orders?marker=' + MARKER + '&limit=' + LIMIT)
     .expect(testutils.checkStatus(500))
     .expect(testutils.checkHeaders)
     .expect(testutils.checkBody(errors.RESTLedgerMissingWithMarker))
@@ -147,72 +125,58 @@ suite('get orders', function() {
   });
 
   test('/accounts/:account/orders -- with valid marker and valid ledger', function(done) {
-    self.wss.once('request_account_info', function(message, conn) {
-      assert.strictEqual(message.command, 'account_info');
-      assert.strictEqual(message.account, addresses.VALID);
-      conn.send(fixtures.accountInfoResponse(message));
-    });
-
     self.wss.once('request_account_offers', function(message, conn) {
       assert.strictEqual(message.command, 'account_offers');
       assert.strictEqual(message.account, addresses.VALID);
-      assert.strictEqual(message.ledger_index, 9592219);
+      assert.strictEqual(message.ledger_index, LEDGER);
       assert.strictEqual(message.marker, MARKER);
       conn.send(fixtures.accountOrdersResponse(message, {
-        marker: NEXT_MARKER
+        marker: NEXT_MARKER,
+        ledger: LEDGER
       }));
     });
 
     self.app
-    .get('/v1/accounts/' + addresses.VALID + '/orders?marker=' + MARKER + '&ledger=9592219')
+    .get('/v1/accounts/' + addresses.VALID + '/orders?marker=' + MARKER + '&ledger=' + LEDGER)
     .expect(testutils.checkStatus(200))
     .expect(testutils.checkHeaders)
     .expect(testutils.checkBody(fixtures.RESTAccountOrdersResponse({
-      marker: NEXT_MARKER
+      marker: NEXT_MARKER,
+      ledger: LEDGER
     })))
     .end(done);
   });
 
   test('/accounts/:account/orders -- valid ledger and valid limit', function(done) {
-    self.wss.once('request_account_info', function(message, conn) {
-      assert.strictEqual(message.command, 'account_info');
-      assert.strictEqual(message.account, addresses.VALID);
-      conn.send(fixtures.accountInfoResponse(message));
-    });
-
     self.wss.once('request_account_offers', function(message, conn) {
       assert.strictEqual(message.command, 'account_offers');
       assert.strictEqual(message.account, addresses.VALID);
       assert.strictEqual(message.ledger_index, 9592219);
-      assert.strictEqual(message.limit, 5);
+      assert.strictEqual(message.limit, LIMIT);
       conn.send(fixtures.accountOrdersResponse(message, {
-        marker: NEXT_MARKER
+        marker: NEXT_MARKER,
+        ledger: LEDGER
       }));
     });
 
     self.app
-    .get('/v1/accounts/' + addresses.VALID + '/orders?ledger=9592219&limit=5')
+    .get('/v1/accounts/' + addresses.VALID + '/orders?ledger=' + LEDGER + '&limit=' + LIMIT)
     .expect(testutils.checkStatus(200))
     .expect(testutils.checkHeaders)
     .expect(testutils.checkBody(fixtures.RESTAccountOrdersResponse({
-      marker: NEXT_MARKER
+      marker: NEXT_MARKER,
+      ledger: LEDGER
     })))
     .end(done);
   });
 
   test('/accounts/:account/orders -- with valid marker, valid limit, and invalid ledger', function(done) {
-    self.wss.once('request_account_info', function(message, conn) {
-      assert.strictEqual(message.command, 'account_info');
-      assert.strictEqual(message.account, addresses.VALID);
-      conn.send(fixtures.accountInfoResponse(message));
-    });
-
     self.wss.once('request_account_offers', function(message, conn) {
       assert(false);
     });
 
     self.app
-    .get('/v1/accounts/' + addresses.VALID + '/orders?marker=' + MARKER + '&limit=100&ledger=foo')
+    .get('/v1/accounts/' + addresses.VALID + '/orders?marker=' + MARKER + '&limit=' + LIMIT + '&ledger=foo')
     .expect(testutils.checkStatus(500))
     .expect(testutils.checkHeaders)
     .expect(testutils.checkBody(errors.RESTLedgerMissingWithMarker))
@@ -220,18 +184,11 @@ suite('get orders', function() {
   });
 
   test('/accounts/:account/orders -- with valid marker, valid limit, and valid ledger', function(done) {
-    self.wss.once('request_account_info', function(message, conn) {
-      assert.strictEqual(message.command, 'account_info');
-      assert.strictEqual(message.account, addresses.VALID);
-
-      conn.send(fixtures.accountInfoResponse(message));
-    });
-
     self.wss.once('request_account_offers', function(message, conn) {
       assert.strictEqual(message.command, 'account_offers');
       assert.strictEqual(message.account, addresses.VALID);
       assert.strictEqual(message.ledger_index, 9592219);
-      assert.strictEqual(message.limit, 1);
+      assert.strictEqual(message.limit, LIMIT);
       assert.strictEqual(message.marker, MARKER);
       conn.send(fixtures.accountOrdersResponse(message, {
         marker: NEXT_MARKER
@@ -239,7 +196,7 @@ suite('get orders', function() {
     });
 
     self.app
-    .get('/v1/accounts/' + addresses.VALID + '/orders?marker=' + MARKER + '&limit=1&ledger=9592219')
+    .get('/v1/accounts/' + addresses.VALID + '/orders?marker=' + MARKER + '&limit=' + LIMIT + '&ledger=' + LEDGER)
     .expect(testutils.checkStatus(200))
     .expect(testutils.checkHeaders)
     .expect(testutils.checkBody(fixtures.RESTAccountOrdersResponse({
@@ -249,10 +206,6 @@ suite('get orders', function() {
   });
 
   test('/accounts/:account/orders -- invalid account', function(done) {
-    self.wss.once('request_account_info', function(message, conn) {
-      assert(false, 'Should not request account info');
-    });
-
     self.wss.once('request_account_offers', function(message, conn) {
       assert(false, 'Should not request account lines');
     });
