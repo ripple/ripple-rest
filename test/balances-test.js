@@ -8,6 +8,7 @@ var requestPath = fixtures.requestPath;
 
 const MARKER = '29F992CC252056BF690107D1E8F2D9FBAFF29FF107B62B1D1F4E4E11ADF2CC73';
 const NEXT_MARKER = '0C812C919D343EAE789B29E8027C62C5792C22172D37EA2B2C0121D2381F80E1';
+const LIMIT = 5;
 
 suite('get balances', function() {
   var self = this;
@@ -137,7 +138,7 @@ suite('get balances', function() {
     });
 
     self.app
-    .get(requestPath(addresses.VALID, '?marker=' + MARKER + '&limit=100'))
+    .get(requestPath(addresses.VALID, '?marker=' + MARKER + '&limit' + LIMIT))
     .expect(testutils.checkStatus(500))
     .expect(testutils.checkHeaders)
     .expect(testutils.checkBody(errors.RESTLedgerMissingWithMarker))
@@ -189,11 +190,12 @@ suite('get balances', function() {
     });
 
     self.app
-    .get(requestPath(addresses.VALID, '?ledger=9592219&limit=5'))
+    .get(requestPath(addresses.VALID, '?ledger=9592219&limit=' + LIMIT))
     .expect(testutils.checkStatus(200))
     .expect(testutils.checkHeaders)
     .expect(testutils.checkBody(fixtures.RESTAccountBalancesResponse({
-      marker: NEXT_MARKER
+      marker: NEXT_MARKER,
+      limit: LIMIT
     })))
     .end(done);
   });
@@ -210,7 +212,7 @@ suite('get balances', function() {
     });
 
     self.app
-    .get(requestPath(addresses.VALID, '?marker=' + MARKER + '&limit=100&ledger=foo'))
+    .get(requestPath(addresses.VALID, '?marker=' + MARKER + '&limit=' + LIMIT + '&ledger=foo'))
     .expect(testutils.checkStatus(500))
     .expect(testutils.checkHeaders)
     .expect(testutils.checkBody(errors.RESTLedgerMissingWithMarker))
@@ -229,7 +231,7 @@ suite('get balances', function() {
       assert.strictEqual(message.command, 'account_lines');
       assert.strictEqual(message.account, addresses.VALID);
       assert.strictEqual(message.ledger_index, 9592219);
-      assert.strictEqual(message.limit, 1);
+      assert.strictEqual(message.limit, LIMIT);
       assert.strictEqual(message.marker, MARKER);
       conn.send(fixtures.accountLinesResponse(message, {
         marker: NEXT_MARKER
@@ -237,11 +239,12 @@ suite('get balances', function() {
     });
 
     self.app
-    .get(requestPath(addresses.VALID, '?marker=' + MARKER + '&limit=1&ledger=9592219'))
+    .get(requestPath(addresses.VALID, '?marker=' + MARKER + '&limit=' + LIMIT + '&ledger=9592219'))
     .expect(testutils.checkStatus(200))
     .expect(testutils.checkHeaders)
     .expect(testutils.checkBody(fixtures.RESTAccountBalancesResponse({
-      marker: NEXT_MARKER
+      marker: NEXT_MARKER,
+      limit: LIMIT
     })))
     .end(done);
   });
