@@ -138,7 +138,7 @@ suite('get balances', function() {
     });
 
     self.app
-    .get(requestPath(addresses.VALID, '?marker=' + MARKER + '&limit' + LIMIT))
+    .get(requestPath(addresses.VALID, '?marker=' + MARKER + '&limit=' + LIMIT))
     .expect(testutils.checkStatus(500))
     .expect(testutils.checkHeaders)
     .expect(testutils.checkBody(errors.RESTLedgerMissingWithMarker))
