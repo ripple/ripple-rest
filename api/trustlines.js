@@ -5,6 +5,7 @@ var transactions = require('./transactions.js');
 var remote       = require('./../lib/remote.js');
 var respond      = require('./../lib/response-handler.js');
 var errors       = require('./../lib/errors.js');
+var validator    = require('./../lib/schema-validator');
 
 const TrustSetFlags = {
   ClearNoRipple: { name: 'account_allows_rippling', set: 'ClearNoRipple', unset: 'NoRipple' },
@@ -69,7 +70,7 @@ function getTrustLines(request, response, next) {
     if (options.counterparty && !ripple.UInt160.is_valid(options.counterparty)) {
       return callback(new errors.InvalidRequestError('Parameter is not a valid Ripple address: counterparty'));
     }
-    if (options.currency && !/^[A-Z0-9]{3}$/.test(options.currency)) {
+    if (options.currency && !validator.isValid(options.currency, 'Currency')) {
       return callback(new errors.InvalidRequestError('Parameter is not a valid currency: currency'));
     }
 
@@ -170,7 +171,6 @@ function addTrustLine(request, response, next) {
     if (err) {
       return next(err);
     }
-
     respond.created(response, trustline);
   });
 
@@ -190,7 +190,7 @@ function addTrustLine(request, response, next) {
     if (!params.trustline.currency) {
       return callback(new errors.InvalidRequestError('Parameter missing: trustline.currency'));
     }
-    if (!/^[A-Z0-9]{3}$/.test(params.trustline.currency)) {
+    if (!validator.isValid(params.trustline.currency, 'Currency')) {
       return callback(new errors.InvalidRequestError('Parameter is not a valid currency: trustline.currency'));
     }
     if (!params.trustline.counterparty) {
