@@ -355,7 +355,6 @@ suite('post orders', function() {
     });
   });
 
-
   test('/orders -- with taker_pays hex currency', function(done) {
     var lastLedger = self.app.remote._ledger_current_index;
     var hash = testutils.generateHash();
@@ -594,6 +593,313 @@ suite('post orders', function() {
     .expect(testutils.checkBody(fixtures.RESTSubmitTransactionResponse({
       hash: hash,
       last_ledger: lastLedger
+    })))
+    .end(done);
+  });
+
+  test('/orders -- with type sell', function(done) {
+    var lastLedger = self.app.remote._ledger_current_index;
+    var hash = testutils.generateHash();
+
+    self.wss.once('request_account_info', function(message, conn) {
+      assert.strictEqual(message.command, 'account_info');
+      assert.strictEqual(message.account, addresses.VALID);
+      conn.send(fixtures.accountInfoResponse(message));
+    });
+
+    self.wss.once('request_submit', function(message, conn) {
+      var so = new ripple.SerializedObject(message.tx_blob).to_json();
+      assert.strictEqual(message.command, 'submit');
+      assert((so.Flags & ripple.Transaction.flags.OfferCreate.Sell) > 0);
+
+      conn.send(fixtures.requestSubmitResponse(message, {
+        hash: hash
+      }));
+    });
+
+    self.app
+    .post('/v1/accounts/' + addresses.VALID + '/orders')
+    .send(fixtures.order({
+      type: 'sell'
+    }))
+    .expect(testutils.checkStatus(200))
+    .expect(testutils.checkHeaders)
+    .expect(testutils.checkBody(fixtures.RESTSubmitTransactionResponse({
+      hash: hash,
+      last_ledger: lastLedger
+    })))
+    .end(done);
+  });
+
+  test('/orders -- with passive true', function(done) {
+    var lastLedger = self.app.remote._ledger_current_index;
+    var hash = testutils.generateHash();
+
+    self.wss.once('request_account_info', function(message, conn) {
+      assert.strictEqual(message.command, 'account_info');
+      assert.strictEqual(message.account, addresses.VALID);
+      conn.send(fixtures.accountInfoResponse(message));
+    });
+
+    self.wss.once('request_submit', function(message, conn) {
+      var so = new ripple.SerializedObject(message.tx_blob).to_json();
+      assert.strictEqual(message.command, 'submit');
+      assert((so.Flags & ripple.Transaction.flags.OfferCreate.Passive) > 0);
+
+      conn.send(fixtures.requestSubmitResponse(message, {
+        hash: hash
+      }));
+    });
+
+    self.app
+    .post('/v1/accounts/' + addresses.VALID + '/orders')
+    .send(fixtures.order({
+      passive: true
+    }))
+    .expect(testutils.checkStatus(200))
+    .expect(testutils.checkHeaders)
+    .expect(testutils.checkBody(fixtures.RESTSubmitTransactionResponse({
+      hash: hash,
+      last_ledger: lastLedger
+    })))
+    .end(done);
+  });
+
+  test('/orders -- with fill_or_kill true', function(done) {
+    var lastLedger = self.app.remote._ledger_current_index;
+    var hash = testutils.generateHash();
+
+    self.wss.once('request_account_info', function(message, conn) {
+      assert.strictEqual(message.command, 'account_info');
+      assert.strictEqual(message.account, addresses.VALID);
+      conn.send(fixtures.accountInfoResponse(message));
+    });
+
+    self.wss.once('request_submit', function(message, conn) {
+      var so = new ripple.SerializedObject(message.tx_blob).to_json();
+      assert.strictEqual(message.command, 'submit');
+      assert((so.Flags & ripple.Transaction.flags.OfferCreate.FillOrKill) > 0);
+
+      conn.send(fixtures.requestSubmitResponse(message, {
+        hash: hash
+      }));
+    });
+
+    self.app
+    .post('/v1/accounts/' + addresses.VALID + '/orders')
+    .send(fixtures.order({
+      fill_or_kill: true
+    }))
+    .expect(testutils.checkStatus(200))
+    .expect(testutils.checkHeaders)
+    .expect(testutils.checkBody(fixtures.RESTSubmitTransactionResponse({
+      hash: hash,
+      last_ledger: lastLedger
+    })))
+    .end(done);
+  });
+
+  test('/orders -- with immediate_or_cancel true', function(done) {
+    var lastLedger = self.app.remote._ledger_current_index;
+    var hash = testutils.generateHash();
+
+    self.wss.once('request_account_info', function(message, conn) {
+      assert.strictEqual(message.command, 'account_info');
+      assert.strictEqual(message.account, addresses.VALID);
+      conn.send(fixtures.accountInfoResponse(message));
+    });
+
+    self.wss.once('request_submit', function(message, conn) {
+      var so = new ripple.SerializedObject(message.tx_blob).to_json();
+      assert.strictEqual(message.command, 'submit');
+      assert((so.Flags & ripple.Transaction.flags.OfferCreate.ImmediateOrCancel) > 0);
+
+      conn.send(fixtures.requestSubmitResponse(message, {
+        hash: hash
+      }));
+    });
+
+    self.app
+    .post('/v1/accounts/' + addresses.VALID + '/orders')
+    .send(fixtures.order({
+      immediate_or_cancel: true
+    }))
+    .expect(testutils.checkStatus(200))
+    .expect(testutils.checkHeaders)
+    .expect(testutils.checkBody(fixtures.RESTSubmitTransactionResponse({
+      hash: hash,
+      last_ledger: lastLedger
+    })))
+    .end(done);
+  });
+
+  test('/orders -- with passive false', function(done) {
+    var lastLedger = self.app.remote._ledger_current_index;
+    var hash = testutils.generateHash();
+
+    self.wss.once('request_account_info', function(message, conn) {
+      assert.strictEqual(message.command, 'account_info');
+      assert.strictEqual(message.account, addresses.VALID);
+      conn.send(fixtures.accountInfoResponse(message));
+    });
+
+    self.wss.once('request_submit', function(message, conn) {
+      var so = new ripple.SerializedObject(message.tx_blob).to_json();
+      assert.strictEqual(message.command, 'submit');
+      assert.strictEqual(so.Flags & ripple.Transaction.flags.OfferCreate.Passive, 0);
+
+      conn.send(fixtures.requestSubmitResponse(message, {
+        hash: hash
+      }));
+    });
+
+    self.app
+    .post('/v1/accounts/' + addresses.VALID + '/orders')
+    .send(fixtures.order({
+      passive: false
+    }))
+    .expect(testutils.checkStatus(200))
+    .expect(testutils.checkHeaders)
+    .expect(testutils.checkBody(fixtures.RESTSubmitTransactionResponse({
+      hash: hash,
+      last_ledger: lastLedger
+    })))
+    .end(done);
+  });
+
+  test('/orders -- with fill_or_kill false', function(done) {
+    var lastLedger = self.app.remote._ledger_current_index;
+    var hash = testutils.generateHash();
+
+    self.wss.once('request_account_info', function(message, conn) {
+      assert.strictEqual(message.command, 'account_info');
+      assert.strictEqual(message.account, addresses.VALID);
+      conn.send(fixtures.accountInfoResponse(message));
+    });
+
+    self.wss.once('request_submit', function(message, conn) {
+      var so = new ripple.SerializedObject(message.tx_blob).to_json();
+      assert.strictEqual(message.command, 'submit');
+      assert.strictEqual(so.Flags & ripple.Transaction.flags.OfferCreate.FillOrKill, 0);
+
+      conn.send(fixtures.requestSubmitResponse(message, {
+        hash: hash
+      }));
+    });
+
+    self.app
+    .post('/v1/accounts/' + addresses.VALID + '/orders')
+    .send(fixtures.order({
+      fill_or_kill: false
+    }))
+    .expect(testutils.checkStatus(200))
+    .expect(testutils.checkHeaders)
+    .expect(testutils.checkBody(fixtures.RESTSubmitTransactionResponse({
+      hash: hash,
+      last_ledger: lastLedger
+    })))
+    .end(done);
+  });
+
+  test('/orders -- with immediate_or_cancel false', function(done) {
+    var lastLedger = self.app.remote._ledger_current_index;
+    var hash = testutils.generateHash();
+
+    self.wss.once('request_account_info', function(message, conn) {
+      assert.strictEqual(message.command, 'account_info');
+      assert.strictEqual(message.account, addresses.VALID);
+      conn.send(fixtures.accountInfoResponse(message));
+    });
+
+    self.wss.once('request_submit', function(message, conn) {
+      var so = new ripple.SerializedObject(message.tx_blob).to_json();
+      assert.strictEqual(message.command, 'submit');
+      assert.strictEqual(so.Flags & ripple.Transaction.flags.OfferCreate.ImmediateOrCancel, 0);
+
+      conn.send(fixtures.requestSubmitResponse(message, {
+        hash: hash
+      }));
+    });
+
+    self.app
+    .post('/v1/accounts/' + addresses.VALID + '/orders')
+    .send(fixtures.order({
+      immediate_or_cancel: false
+    }))
+    .expect(testutils.checkStatus(200))
+    .expect(testutils.checkHeaders)
+    .expect(testutils.checkBody(fixtures.RESTSubmitTransactionResponse({
+      hash: hash,
+      last_ledger: lastLedger
+    })))
+    .end(done);
+  });
+
+  test('/orders -- with invalid passive', function(done) {
+    self.wss.once('request_account_info', function(message, conn) {
+      assert(false, 'should not request account info');
+    });
+
+    self.wss.once('request_submit', function(message, conn) {
+      assert(false, 'should not submit request');
+    });
+
+    self.app
+    .post('/v1/accounts/' + addresses.VALID + '/orders')
+    .send(fixtures.order({
+      passive: 'test'
+    }))
+    .expect(testutils.checkStatus(400))
+    .expect(testutils.checkHeaders)
+    .expect(testutils.checkBody(errors.RESTErrorResponse({
+      type: 'invalid_request',
+      error: 'Parameter must be a boolean: passive'
+    })))
+    .end(done);
+  });
+
+  test('/orders -- with invalid immediate_or_cancel', function(done) {
+    self.wss.once('request_account_info', function(message, conn) {
+      assert(false, 'should not request account info');
+    });
+
+    self.wss.once('request_submit', function(message, conn) {
+      assert(false, 'should not submit request');
+    });
+
+    self.app
+    .post('/v1/accounts/' + addresses.VALID + '/orders')
+    .send(fixtures.order({
+      immediate_or_cancel: 'test'
+    }))
+    .expect(testutils.checkStatus(400))
+    .expect(testutils.checkHeaders)
+    .expect(testutils.checkBody(errors.RESTErrorResponse({
+      type: 'invalid_request',
+      error: 'Parameter must be a boolean: immediate_or_cancel'
+    })))
+    .end(done);
+  });
+
+  test('/orders -- with invalid fill_or_kill', function(done) {
+    self.wss.once('request_account_info', function(message, conn) {
+      assert(false, 'should not request account info');
+    });
+
+    self.wss.once('request_submit', function(message, conn) {
+      assert(false, 'should not submit request');
+    });
+
+    self.app
+    .post('/v1/accounts/' + addresses.VALID + '/orders')
+    .send(fixtures.order({
+      fill_or_kill: 'test'
+    }))
+    .expect(testutils.checkStatus(400))
+    .expect(testutils.checkHeaders)
+    .expect(testutils.checkBody(errors.RESTErrorResponse({
+      type: 'invalid_request',
+      error: 'Parameter must be a boolean: fill_or_kill'
     })))
     .end(done);
   });

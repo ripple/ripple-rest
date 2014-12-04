@@ -7,7 +7,13 @@ var respond               = require('./../lib/response-handler.js');
 var utils                 = require('./../lib/utils');
 var errors                = require('./../lib/errors.js');
 
-var InvalidRequestError   = errors.InvalidRequestError;
+const InvalidRequestError   = errors.InvalidRequestError;
+
+const OfferCreateFlags = {
+  Passive:            { name: 'passive', set: 'Passive' },
+  ImmediateOrCancel:  { name: 'immediate_or_cancel', set: 'ImmediateOrCancel' },
+  FillOrKill:         { name: 'fill_or_kill', set: 'FillOrKill' } 
+};
 
 function getOrders(request, response, next) {
   var options = request.params;
@@ -42,7 +48,7 @@ function getOrders(request, response, next) {
       resolve(options);
     });
 
-    return promise
+    return promise;
   };
 
   function getAccountOrders(options) {
@@ -71,15 +77,20 @@ function getOrders(request, response, next) {
 /**
  *  Submit an order to the ripple network
  *
+ *  More information about order flags can be found at https://ripple.com/build/transactions/#offercreate-flags
+ *
  *  @body
- *  @param {Order} request.body.order - object that holds information about the order
- *  @param {String "buy"|"sell"} request.body.order.type - choose whether to submit a buy or sell order
- *  @param {String} request.body.order.taker_gets - the amount of a currency the taker receives for consuming this order
- *  @param {String} request.body.order.taker_pays - the amount of a currency the taker must pay for consuming this order
- *  @param {String} request.body.secret - YOUR secret key. Do NOT submit to an unknown ripple-rest server
+ *  @param {Order} request.body.order                         - Object that holds information about the order
+ *  @param {String "buy"|"sell"} request.body.order.type      - Choose whether to submit a buy or sell order
+ *  @param {Boolean} [request.body.order.passive]             - Set whether order is passive
+ *  @param {Boolean} [request.body.order.immediate_or_cancel] - Set whether order is immediate or cancel
+ *  @param {Boolean} [request.body.order.fill_or_kill]        - Set whether order is fill or kill
+ *  @param {String} request.body.order.taker_gets             - Amount of a currency the taker receives for consuming this order
+ *  @param {String} request.body.order.taker_pays             - Amount of a currency the taker must pay for consuming this order
+ *  @param {String} request.body.secret                       - YOUR secret key. Do NOT submit to an unknown ripple-rest server
  *  
  *  @query
- *  @param {String "true"|"false"} request.query.validated - used to force request to wait until rippled has finished validating the submitted transaction
+ *  @param {String "true"|"false"} request.query.validated    - used to force request to wait until rippled has finished validating the submitted transaction
  *
  *  @param {Express.js Response} response
  *  @param {Express.js Next} next
@@ -100,7 +111,7 @@ function placeOrder(request, response, next) {
     validateParams: validateParams,
     formatTransactionResponse: formatTransactionResponse,
     setTransactionParameters: setTransactionParameters
-  }
+  };
 
   transactions.submit(options, hooks, function(err, placedOrder) {
     if (err) {
@@ -122,6 +133,12 @@ function placeOrder(request, response, next) {
       return async_callback(new InvalidRequestError('Missing parameter: order. Submission must have order object in JSON form'));
     } else if (!/^buy|sell$/.test(params.order.type)) {
       return async_callback(new InvalidRequestError('Parameter must be "buy" or "sell": type'));
+    } else if (!_.isUndefined(params.order.passive) && !_.isBoolean(params.order.passive)) {
+      return async_callback(new InvalidRequestError('Parameter must be a boolean: passive'));
+    } else if (!_.isUndefined(params.order.immediate_or_cancel) && !_.isBoolean(params.order.immediate_or_cancel)) {
+      return async_callback(new InvalidRequestError('Parameter must be a boolean: immediate_or_cancel'));
+    } else if (!_.isUndefined(params.order.fill_or_kill) && !_.isBoolean(params.order.fill_or_kill)) {
+      return async_callback(new InvalidRequestError('Parameter must be a boolean: fill_or_kill'));
     } else if (!takerGetsJSON._currency || !takerGetsJSON.is_valid() || (!takerGetsJSON._is_native && !takerGetsJSON.is_valid_full())) {
       async_callback(new InvalidRequestError('Parameter must be in the format "amount[/currency/issuer]": taker_gets'));
     } else if (!takerPaysJSON._currency || !takerPaysJSON.is_valid() || (!takerPaysJSON._is_native && !takerPaysJSON.is_valid_full())) {
@@ -149,6 +166,11 @@ function placeOrder(request, response, next) {
 
   function setTransactionParameters(transaction) {
     transaction.offerCreate(params.account, ripple.Amount.from_json(params.order.taker_pays), ripple.Amount.from_json(params.order.taker_gets));
+
+    transactions.setTransactionBitFlags(transaction, {
+      input: params.order,
+      flags: OfferCreateFlags
+    });
 
     if (params.order.type === 'sell') {
       transaction.set_flags('Sell');
