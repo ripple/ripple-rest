@@ -1,11 +1,12 @@
-var _            = require('lodash');
-var async        = require('async');
-var ripple       = require('ripple-lib');
-var transactions = require('./transactions.js');
-var remote       = require('./../lib/remote.js');
-var respond      = require('./../lib/response-handler.js');
-var errors       = require('./../lib/errors.js');
-var validator    = require('./../lib/schema-validator');
+var _                      = require('lodash');
+var async                  = require('async');
+var ripple                 = require('ripple-lib');
+var transactions           = require('./transactions.js');
+var SubmitTransactionHooks = require('./../lib/submit_transaction_hooks.js');
+var remote                 = require('./../lib/remote.js');
+var respond                = require('./../lib/response-handler.js');
+var errors                 = require('./../lib/errors.js');
+var validator              = require('./../lib/schema-validator');
 
 const TrustSetFlags = {
   ClearNoRipple: { name: 'account_allows_rippling', set: 'ClearNoRipple', unset: 'NoRipple' },
@@ -167,7 +168,7 @@ function addTrustLine(request, response, next) {
     setTransactionParameters: setTransactionParameters
   };
 
-  transactions.submit(options, hooks, function(err, trustline) {
+  transactions.submit(options, new SubmitTransactionHooks(hooks), function(err, trustline) {
     if (err) {
       return next(err);
     }

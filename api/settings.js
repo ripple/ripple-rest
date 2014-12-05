@@ -1,11 +1,12 @@
-var _ = require('lodash');
-var assert  = require('assert');
-var async   = require('async');
-var ripple  = require('ripple-lib');
-var transactions = require('./transactions.js');
-var remote  = require('./../lib/remote.js');
-var respond = require('./../lib/response-handler.js');
-var errors  = require('./../lib/errors.js');
+var _                      = require('lodash');
+var assert                 = require('assert');
+var async                  = require('async');
+var ripple                 = require('ripple-lib');
+var transactions           = require('./transactions.js');
+var SubmitTransactionHooks = require('./../lib/submit_transaction_hooks.js');
+var remote                 = require('./../lib/remote.js');
+var respond                = require('./../lib/response-handler.js');
+var errors                 = require('./../lib/errors.js');
 
 const InvalidRequestError = errors.InvalidRequestError;
 
@@ -222,7 +223,7 @@ function changeSettings(request, response, next) {
     setTransactionParameters: setTransactionParameters
   };
 
-  transactions.submit(options, hooks, function(err, settings) {
+  transactions.submit(options, new SubmitTransactionHooks(hooks), function(err, settings) {
     if (err) {
       return next(err);
     }

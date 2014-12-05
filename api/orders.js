@@ -1,11 +1,12 @@
-var _                     = require('lodash');
-var Promise               = require('bluebird');
-var ripple                = require('ripple-lib');
-var remote                = require('./../lib/remote.js');
-var transactions          = require('./transactions');
-var respond               = require('./../lib/response-handler.js');
-var utils                 = require('./../lib/utils');
-var errors                = require('./../lib/errors.js');
+var _                      = require('lodash');
+var Promise                = require('bluebird');
+var ripple                 = require('ripple-lib');
+var remote                 = require('./../lib/remote.js');
+var transactions           = require('./transactions');
+var SubmitTransactionHooks = require('./../lib/submit_transaction_hooks.js');
+var respond                = require('./../lib/response-handler.js');
+var utils                  = require('./../lib/utils');
+var errors                 = require('./../lib/errors.js');
 
 const InvalidRequestError   = errors.InvalidRequestError;
 
@@ -113,7 +114,7 @@ function placeOrder(request, response, next) {
     setTransactionParameters: setTransactionParameters
   };
 
-  transactions.submit(options, hooks, function(err, placedOrder) {
+  transactions.submit(options, new SubmitTransactionHooks(hooks), function(err, placedOrder) {
     if (err) {
       return next(err);
     }
@@ -208,7 +209,7 @@ function cancelOrder(request, response, next) {
     setTransactionParameters: setTransactionParameters
   }
 
-  transactions.submit(options, hooks, function(err, canceledOrder) {
+  transactions.submit(options, new SubmitTransactionHooks(hooks), function(err, canceledOrder) {
     if (err) {
       return next(err);
     }

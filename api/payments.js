@@ -1,23 +1,25 @@
-var _                     = require('lodash');
-var async                 = require('async');
-var bignum                = require('bignumber.js');
-var ripple                = require('ripple-lib');
-var transactions          = require('./transactions');
-var validator             = require('./../lib/schema-validator');
-var remote                = require('./../lib/remote.js');
-var serverLib             = require('./../lib/server-lib');
-var utils                 = require('./../lib/utils');
-var remote                = require('./../lib/remote.js');
-var dbinterface           = require('./../lib/db-interface.js');
-var config                = require('./../lib/config-loader.js');
-var RestToLibTxConverter  = require('./../lib/rest_to_lib_transaction_converter.js');
-var respond               = require('./../lib/response-handler.js');
-var errors                = require('./../lib/errors.js');
+var _                      = require('lodash');
+var async                  = require('async');
+var bignum                 = require('bignumber.js');
+var ripple                 = require('ripple-lib');
+var transactions           = require('./transactions');
+var validator              = require('./../lib/schema-validator');
+var remote                 = require('./../lib/remote.js');
+var serverLib              = require('./../lib/server-lib');
+var utils                  = require('./../lib/utils');
+var remote                 = require('./../lib/remote.js');
+var dbinterface            = require('./../lib/db-interface.js');
+var config                 = require('./../lib/config-loader.js');
+var RestToLibTxConverter   = require('./../lib/rest_to_lib_transaction_converter.js');
+var SubmitTransactionHooks = require('./../lib/submit_transaction_hooks.js');
+var respond                = require('./../lib/response-handler.js');
+var errors                 = require('./../lib/errors.js');
 
-var InvalidRequestError   = errors.InvalidRequestError;
-var NetworkError          = errors.NetworkError;
-var NotFoundError         = errors.NotFoundError;
-var TimeOutError          = errors.TimeOutError;
+var InvalidRequestError    = errors.InvalidRequestError;
+var NetworkError           = errors.NetworkError;
+var NotFoundError          = errors.NotFoundError;
+var TimeOutError           = errors.TimeOutError;
+
 
 var DEFAULT_RESULTS_PER_PAGE = 10;
 
@@ -79,7 +81,7 @@ function submitPayment(request, response, next) {
     setTransactionParameters: setTransactionParameters
   };
 
-  transactions.submit(options, hooks, function(err, payment) {
+  transactions.submit(options, new SubmitTransactionHooks(hooks), function(err, payment) {
     if (err) {
       return next(err);
     }
