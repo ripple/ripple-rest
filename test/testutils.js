@@ -1,3 +1,4 @@
+var _ = require('lodash');
 var assert = require('assert');
 var async = require('async');
 var supertest = require('supertest');
@@ -85,11 +86,23 @@ function generateHash(bytes) {
   return hash;
 };
 
+// defaults must contain all possible arguments so that we can
+// check for misspelled arguments; for required arguments use
+// separate asserts
+function loadArguments(args, defaults) {
+  var unrecognizedArgs = _.difference(_.keys(args), _.keys(defaults));
+  assert(unrecognizedArgs.length === 0,
+    'Error in test code: unrecognized keyword argument(s): '
+    + unrecognizedArgs);
+  _.defaults(args, defaults);
+}
+
 module.exports = {
   setup: setup,
   teardown: teardown,
   checkStatus: checkStatus,
   checkHeaders: checkHeaders,
   checkBody: checkBody,
-  generateHash: generateHash
+  generateHash: generateHash,
+  loadArguments: loadArguments
 };
