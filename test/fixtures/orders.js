@@ -35,6 +35,9 @@ module.exports.order = function(options) {
     secret: options.secret,
     order: {
        type: options.type,
+       passive: options.passive,
+       immediate_or_cancel: options.immediate_or_cancel,
+       fill_or_kill: options.fill_or_kill,
        taker_gets: options.taker_gets,
        taker_pays: options.taker_pays
     }

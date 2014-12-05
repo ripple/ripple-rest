@@ -247,7 +247,11 @@ function setTransactionBitFlags(transaction, options) {
       value = false;
     }
 
-    transaction.setFlags(value ? flag.set : flag.unset);
+    if (flag.unset) {
+      transaction.setFlags(value ? flag.set : flag.unset);
+    } else if (flag.set && value) {
+      transaction.setFlags(flag.set);
+    }
   }
 };
 
