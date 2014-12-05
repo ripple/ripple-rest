@@ -81,8 +81,8 @@ function getTrustLines(request, response, next) {
   function getAccountLines(callback) {
     var accountLinesRequest;
     var marker = request.query.marker;
-    var limit = /^[0-9]*$/.test(request.query.limit) ? Number(request.query.limit) : void(0);
-    var ledger = /^[0-9]*$/.test(request.query.ledger) ? Number(request.query.ledger) : void(0);
+    var limit = validator.isValid(request.query.limit, 'UINT32') ? Number(request.query.limit) : void(0);
+    var ledger = validator.isValid(request.query.ledger, 'UINT32') ? Number(request.query.ledger) : 'validated';
 
     try {
       accountLinesRequest = remote.requestAccountLines({
@@ -126,6 +126,12 @@ function getTrustLines(request, response, next) {
       if (result.limit) {
         trustlines.limit = result.limit;
       }
+
+      if (result.ledger_index) {
+        trustlines.ledger = result.ledger_index;
+      }
+
+      trustlines.validated = result.validated
 
       trustlines.trustlines = lines;
 

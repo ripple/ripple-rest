@@ -7,6 +7,10 @@ module.exports.requestPath = function(address, params) {
 module.exports.accountLinesResponse = function(request, options) {
   options = options || {};
 
+  _.defaults(options, {
+    validated: true
+  });
+
   return JSON.stringify({
     id: request.id,
     status: 'success',
@@ -15,6 +19,8 @@ module.exports.accountLinesResponse = function(request, options) {
       account: 'r3GgMwvgvP8h4yVWvjH1dPZNvC37TjzBBE',
       marker: options.marker,
       limit: request.limit,
+      ledger_index: options.ledger,
+      validated: options.validated,
       lines: [
         {
         account: 'r3vi7mWxru9rJCxETCyA1CHvzL96eZWx5z',
@@ -258,10 +264,17 @@ module.exports.accountLinesResponse = function(request, options) {
 module.exports.RESTAccountTrustlinesResponse = function(options) {
   options = options || {};
 
+  _.defaults(options, {
+    validated: true
+  });
+
+
   return JSON.stringify({
     success: true,
     marker: options.marker,
     limit: options.limit,
+    ledger: options.ledger,
+    validated: options.validated,
     trustlines: [
       { account: 'r3GgMwvgvP8h4yVWvjH1dPZNvC37TjzBBE',
         counterparty: 'r3vi7mWxru9rJCxETCyA1CHvzL96eZWx5z',

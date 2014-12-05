@@ -1,10 +1,17 @@
+var _ = require('lodash');
 var addresses = require('./addresses');
 
 module.exports.requestPath = function(address, params) {
   return '/v1/accounts/' + address + '/balances' + ( params || '' );
 };
 
-module.exports.accountInfoResponse = function(request) {
+module.exports.accountInfoResponse = function(request, options) {
+  options = options || {};
+
+  _.defaults(options, {
+    validated: true
+  });
+
   return JSON.stringify({
     id: request.id,
     status: 'success',
@@ -26,7 +33,8 @@ module.exports.accountInfoResponse = function(request) {
         index: '396400950EA27EB5710C0D5BE1D2B4689139F168AC5D07C13B8140EC3F82AE71',
         urlgravatar: 'http://www.gravatar.com/avatar/23463b99b62a72f26ed677cc556c44e8'
       },
-      ledger_current_index: 6614628
+      ledger_index: options.ledger,
+      validated: options.validated
     }
   });
 };
@@ -53,6 +61,10 @@ module.exports.accountNotFoundResponse = function(request) {
 module.exports.accountLinesResponse = function(request, options) {
   var options = options || {};
 
+  _.defaults(options, {
+    validated: true
+  });
+
   return JSON.stringify({
     id: request.id,
     status: 'success',
@@ -61,6 +73,8 @@ module.exports.accountLinesResponse = function(request, options) {
       account: addresses.VALID,
       marker: options.marker,
       limit: request.limit,
+      ledger_index: options.ledger,
+      validated: options.validated,
       lines: [
         {
         account: 'r3vi7mWxru9rJCxETCyA1CHvzL96eZWx5z',
@@ -299,13 +313,23 @@ module.exports.accountLinesResponse = function(request, options) {
   });
 };
 
-module.exports.accountLinesCounterpartyResponse = function(request) {
+module.exports.accountLinesCounterpartyResponse = function(request, options) {
+  var options = options || {};
+
+  _.defaults(options, {
+    validated: true
+  });
+
   return JSON.stringify({
     id: request.id,
     status: 'success',
     type: 'response',
     result: {
       account: addresses.VALID,
+      marker: options.marker,
+      limit: request.limit,
+      ledger_index: options.ledger,
+      validated: options.validated,
       lines: [
       {
         account: 'rvYAfWj5gh67oV6fW32ZzP3Aw4Eubs59B',
@@ -374,10 +398,16 @@ module.exports.accountLinesNoCounterpartyResponse = function(request) {
 module.exports.RESTAccountBalancesResponse = function(options) {
   options = options || {};
 
+  _.defaults(options, {
+    validated: true
+  });
+
   return JSON.stringify({
     success: true,
     marker: options.marker,
     limit: options.limit,
+    ledger: options.ledger,
+    validated: options.validated,
     balances: [
       { value: '922.913243', currency: 'XRP', counterparty: '' },
       { value: '0', currency: 'ASP', counterparty: 'r3vi7mWxru9rJCxETCyA1CHvzL96eZWx5z' },
@@ -408,45 +438,93 @@ module.exports.RESTAccountBalancesResponse = function(options) {
   });
 };
 
-module.exports.RESTAccountBalancesUSDResponse = JSON.stringify({
-  success: true,
-  balances: [
-    { value: '2.497605752725159', currency: 'USD', counterparty: 'rMwjYedjc7qqtKYVLiAccJSmCwih4LnE2q' },
-    { value: '0', currency: 'USD', counterparty: 'rvYAfWj5gh67oV6fW32ZzP3Aw4Eubs59B' },
-    { value: '1', currency: 'USD', counterparty: 'rLEsXccBGNR3UPuPu2hUXPjziKC3qKSBun' },
-    { value: '0', currency: 'USD', counterparty: 'r9vbV3EHvXWjSkeQ6CAcYVPGeq7TuiXY2X' },
-    { value: '35', currency: 'USD', counterparty: 'rfF3PNkwkq1DygW2wum2HK3RGfgkJjdPVD' },
-    { value: '0', currency: 'USD', counterparty: 'rE6R3DWF9fBD7CyiQciePF9SqK58Ubp8o2' },
-    { value: '0', currency: 'USD', counterparty: 'rEhDDUUNxpXgEHVJtC2cjXAgyx5VCFxdMF' }
-  ]
-});
+module.exports.RESTAccountBalancesUSDResponse = function(options) {
+  options = options || {};
 
-module.exports.RESTAccountBalancesXRPResponse = JSON.stringify({
-  success: true,
-  balances: [
-    { value: '922.913243', currency: 'XRP', counterparty: '' }
-  ]
-});
+  _.defaults(options, {
+    validated: true
+  });
 
-module.exports.RESTAccountBalancesCounterpartyResponse = JSON.stringify({
-  success: true,
-  balances: [
-    { value: '0.3488146605801446', currency: 'CHF', counterparty: 'rvYAfWj5gh67oV6fW32ZzP3Aw4Eubs59B' },
-    { value: '2.114103174931847', currency: 'BTC', counterparty: 'rvYAfWj5gh67oV6fW32ZzP3Aw4Eubs59B' },
-    { value: '0', currency: 'USD', counterparty: 'rvYAfWj5gh67oV6fW32ZzP3Aw4Eubs59B' },
-    { value: '7.292695098901099', currency: 'JPY', counterparty: 'rvYAfWj5gh67oV6fW32ZzP3Aw4Eubs59B' },
-    { value: '12.41688780720394', currency: 'EUR', counterparty: 'rvYAfWj5gh67oV6fW32ZzP3Aw4Eubs59B' }
-  ]
-});
+  return JSON.stringify({
+
+    success: true,
+    marker: options.marker,
+    limit: options.limit,
+    ledger: options.ledger,
+    validated: options.validated,
+    balances: [
+      { value: '2.497605752725159', currency: 'USD', counterparty: 'rMwjYedjc7qqtKYVLiAccJSmCwih4LnE2q' },
+      { value: '0', currency: 'USD', counterparty: 'rvYAfWj5gh67oV6fW32ZzP3Aw4Eubs59B' },
+      { value: '1', currency: 'USD', counterparty: 'rLEsXccBGNR3UPuPu2hUXPjziKC3qKSBun' },
+      { value: '0', currency: 'USD', counterparty: 'r9vbV3EHvXWjSkeQ6CAcYVPGeq7TuiXY2X' },
+      { value: '35', currency: 'USD', counterparty: 'rfF3PNkwkq1DygW2wum2HK3RGfgkJjdPVD' },
+      { value: '0', currency: 'USD', counterparty: 'rE6R3DWF9fBD7CyiQciePF9SqK58Ubp8o2' },
+      { value: '0', currency: 'USD', counterparty: 'rEhDDUUNxpXgEHVJtC2cjXAgyx5VCFxdMF' }
+    ]
+  });
+};
+
+module.exports.RESTAccountBalancesXRPResponse = function(options) {
+  options = options || {};
+
+  _.defaults(options, {
+    validated: true
+  });
+
+  return JSON.stringify({
+    success: true,
+    limit: options.limit,
+    ledger: options.ledger,
+    validated: options.validated,
+    balances: [
+      { value: '922.913243', currency: 'XRP', counterparty: '' }
+    ]
+  });
+};
+
+module.exports.RESTAccountBalancesCounterpartyResponse = function(options) {
+  options = options || {};
+
+  _.defaults(options, {
+    validated: true
+  });
+
+  return JSON.stringify({
+    success: true,
+    marker: options.marker,
+    limit: options.limit,
+    ledger: options.ledger,
+    validated: options.validated,
+    balances: [
+      { value: '0.3488146605801446', currency: 'CHF', counterparty: 'rvYAfWj5gh67oV6fW32ZzP3Aw4Eubs59B' },
+      { value: '2.114103174931847', currency: 'BTC', counterparty: 'rvYAfWj5gh67oV6fW32ZzP3Aw4Eubs59B' },
+      { value: '0', currency: 'USD', counterparty: 'rvYAfWj5gh67oV6fW32ZzP3Aw4Eubs59B' },
+      { value: '7.292695098901099', currency: 'JPY', counterparty: 'rvYAfWj5gh67oV6fW32ZzP3Aw4Eubs59B' },
+      { value: '12.41688780720394', currency: 'EUR', counterparty: 'rvYAfWj5gh67oV6fW32ZzP3Aw4Eubs59B' }
+    ]
+  });
+};
 
 module.exports.RESTAccountBalancesNoCounterpartyResponse = JSON.stringify({
   success: true,
   balances: [ ]
 });
 
-module.exports.RESTAccountBalancesCounterpartyCurrencyResponse = JSON.stringify({
-  success: true,
-  balances: [
-    { value: '12.41688780720394', currency: 'EUR', counterparty: 'rvYAfWj5gh67oV6fW32ZzP3Aw4Eubs59B' }
-  ]
-});
+module.exports.RESTAccountBalancesCounterpartyCurrencyResponse = function(options) {
+  options = options || {};
+
+  _.defaults(options, {
+    validated: true
+  });
+
+  return JSON.stringify({
+    success: true,
+    marker: options.marker,
+    limit: options.limit,
+    ledger: options.ledger,
+    validated: options.validated,
+    balances: [
+      { value: '12.41688780720394', currency: 'EUR', counterparty: 'rvYAfWj5gh67oV6fW32ZzP3Aw4Eubs59B' }
+    ]
+  });
+};

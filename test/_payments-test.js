@@ -226,7 +226,8 @@ suite('payments', function() {
         delete data.id;
         assert.deepEqual(data, {
           command: 'account_info',
-          account: 'rJRLoJSErtNRFnbCyHEUYnRUKNwkVYDM7U'
+          account: 'rJRLoJSErtNRFnbCyHEUYnRUKNwkVYDM7U',
+          ledger_index: 'validated'
         });
         orderlist.mark('account_info');
     };
@@ -235,7 +236,8 @@ suite('payments', function() {
         delete data.id;
         assert.deepEqual(data, {
           command: 'account_lines',
-          account: 'rJRLoJSErtNRFnbCyHEUYnRUKNwkVYDM7U'
+          account: 'rJRLoJSErtNRFnbCyHEUYnRUKNwkVYDM7U',
+          ledger_index: 'validated'
         });
         orderlist.mark('account_lines');
     };
@@ -522,7 +524,8 @@ suite('payments', function() {
       delete data.id;
       assert.deepEqual(data, {
         command: 'account_info',
-        account: 'rwmityd4Ss34DBUsRy7Pacv6UA5n7yjfe5'
+        account: 'rwmityd4Ss34DBUsRy7Pacv6UA5n7yjfe5',
+        ledger_index: 'validated'
       });
       orderlist.mark('account_info');
     };
@@ -531,7 +534,8 @@ suite('payments', function() {
       delete data.id;
       assert.deepEqual(data, {
         command: 'account_lines',
-        account: 'rwmityd4Ss34DBUsRy7Pacv6UA5n7yjfe5'
+        account: 'rwmityd4Ss34DBUsRy7Pacv6UA5n7yjfe5',
+        ledger_index: 'validated'
       });
       orderlist.mark('account_lines');
     };
