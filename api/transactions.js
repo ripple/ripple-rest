@@ -16,57 +16,11 @@ var errors      = require('./../lib/errors.js');
  *  @param {Boolean} [options.blockDuplicates]  - Used to block duplicate transactions
  *  @param {String}  [options.clientResourceId] - Used in conjunction with blockDuplicates to identify duplicate transactions. Must be present if blockDuplicates is true
  *  @param {Boolean} [options.saveTransaction]  - Used to save transaction on state and postsubmit events
- *  @param {Object} hooks                       - Used to hold methods defined by caller to customize transaction submit
- *  @param {ValidateParamsHook} hooks.validateParams
- *  @param {FormatTransactionResponseHook} hooks.formatTransactionResponse
- *  @param {SetTransactionParametersHook} hooks.setTransactionParameters
- *  @param {InitializeTransactionHook} [hooks.initializeTransaction]
+ *  @param {SubmitTransactionHooks} hooks       - Used to hold methods defined by caller to customize transaction submit
  *  
  *  @callback
  *  @param {Error} error
  *  @param {Object} transaction - Transaction data received from ripple
- */
-
-/**
- *  Used to validate request parameters asyncronously
- *  @function ValidateParamsHook
- *  @param {Function} async_callback
- *
- *  @callback
- *  @param {Error} error
- */
-
-/**
- *  Used to format messages received from ripple-lib which will be returned to client
- *  @function FormatTransactionResponseHook
- *  @param {Object} message                              - Response object from ripple
- *  @param {Object} meta                                 - Object that holds metadata about the transaction
- *  @param {String} meta.hash                            - Hash of the transaction
- *  @param {String} meta.ledger                          - Ledger sequence that the transaction is being considered for
- *  @param {String "validated"|"pending"} meta.validated - String that holds whether transaction is validated
- *  @param {Function} async_callback
- *  
- *  @callback
- *  @param {Error} error
- *  @param {Object} result - Object that is returned to the client 
- */
-
-/**
- *  Used to set appropriate parameters on transaction
- *  @function SetTransactionParametersHook
- *  @param {Transaction} transaction - Transaction object that is used to submit requests to ripple
- *
- *  @returns undefined
- */
-
- /**
- *  Used to override default transaction initialization (Optional)
- *  @function InitializeTransactionHook
- *  @param {Function} async_callback
- *
- *  @callback
- *  @param {Error} error
- *  @param {Transaction} transaction - Transaction object that is used to submit requests to ripple
  */
 
 function submitTransaction(options, hooks, callback) {
@@ -81,16 +35,9 @@ function submitTransaction(options, hooks, callback) {
 
       hooks.validateParams(callback);
     },
-    // Transaction object initialization is performed here
+    // Transaction object is constructed here
     function(callback) {
-      // Transactions are normally constructed with remote.transaction().
-      // However, if the caller wants to override this behavior and provide their own transaction object,
-      // they can do so by passing in hooks.initializeTransaction and pass their transaction through the callback 
-      if (typeof hooks.initializeTransaction === 'function') {
-        return hooks.initializeTransaction(callback);
-      }
-        
-      callback(null, remote.transaction());
+      return hooks.initializeTransaction(callback);
     },
     // Duplicate blocking is performed here
     function(transaction, callback) {
@@ -140,7 +87,7 @@ function submitTransaction(options, hooks, callback) {
       });
 
       transaction.once('final', function(message) {
-        if (/^tes/.test(message.engine_result) && options.validated === true) {
+        if (message.engine_result === 'tesSUCCESS' && options.validated === true) {
           formatTransactionResponseWrapper(transaction, message, callback);
         }
       });
