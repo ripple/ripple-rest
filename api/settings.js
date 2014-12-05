@@ -220,7 +220,7 @@ function changeSettings(request, response, next) {
     validateParams: validateParams,
     formatTransactionResponse: formatTransactionResponse,
     setTransactionParameters: setTransactionParameters
-  }
+  };
 
   transactions.submit(options, hooks, function(err, settings) {
     if (err) {

@@ -140,7 +140,7 @@ function submitTransaction(options, hooks, callback) {
       });
 
       transaction.once('final', function(message) {
-        if (/^tes/.test(message.engine_result) && options.validated === true) {
+        if (message.engine_result === 'tesSUCCESS' && options.validated === true) {
           formatTransactionResponseWrapper(transaction, message, callback);
         }
       });
