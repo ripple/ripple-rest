@@ -481,4 +481,24 @@ suite('get balances', function() {
     })))
     .end(done);
   });
+
+  test('/accounts/:account/balances?frozen', function(done) {
+    self.wss.once('request_account_info', function(message, conn) {
+      assert(false, 'Should not request account_info');
+    });
+
+    self.wss.once('request_account_lines', function(message, conn) {
+      assert.strictEqual(message.command, 'account_lines');
+      assert.strictEqual(message.account, addresses.VALID);
+      assert.strictEqual(message.ledger_index, 'validated');
+      conn.send(fixtures.accountLinesResponse(message));
+    });
+
+    self.app
+    .get(requestPath(addresses.VALID, '?frozen=true'))
+    .expect(testutils.checkBody(fixtures.RESTAccountBalancesFrozenResponse()))
+    .expect(testutils.checkStatus(200))
+    .expect(testutils.checkHeaders)
+    .end(done);
+  });
 });

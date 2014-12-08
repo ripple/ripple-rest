@@ -94,7 +94,8 @@ module.exports.accountLinesResponse = function(request, options) {
         no_ripple: true,
         no_ripple_peer: true,
         quality_in: 0,
-        quality_out: 0
+        quality_out: 0,
+        freeze: true
       },
       {
         account: 'rMwjYedjc7qqtKYVLiAccJSmCwih4LnE2q',
@@ -104,7 +105,8 @@ module.exports.accountLinesResponse = function(request, options) {
         limit_peer: '0',
         no_ripple: true,
         quality_in: 0,
-        quality_out: 0
+        quality_out: 0,
+        freeze: true
       },
       {
         account: 'rHpXfibHgSb64n8kK9QWDpdbfqSpYbM9a4',
@@ -306,7 +308,8 @@ module.exports.accountLinesResponse = function(request, options) {
         limit: '0',
         limit_peer: '1',
         quality_in: 0,
-        quality_out: 0
+        quality_out: 0,
+        freeze: true
       }
       ]
     }
@@ -528,3 +531,25 @@ module.exports.RESTAccountBalancesCounterpartyCurrencyResponse = function(option
     ]
   });
 };
+
+module.exports.RESTAccountBalancesFrozenResponse = function(options) {
+  options = options || {};
+
+  _.defaults(options, {
+    validated: true
+  });
+
+  return JSON.stringify({
+    success: true,
+    marker: options.marker,
+    limit: options.limit,
+    ledger: options.ledger,
+    validated: options.validated,
+    balances: [
+      { value: '0', currency: 'XAU', counterparty: 'r3vi7mWxru9rJCxETCyA1CHvzL96eZWx5z' },
+      { value: '2.497605752725159', currency: 'USD', counterparty: 'rMwjYedjc7qqtKYVLiAccJSmCwih4LnE2q' },
+      { value: '0', currency: 'USD', counterparty: 'rEhDDUUNxpXgEHVJtC2cjXAgyx5VCFxdMF' }
+    ]
+  });
+};
+

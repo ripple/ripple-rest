@@ -6,10 +6,6 @@ var respond   = require('../lib/response-handler.js');
 var errors    = require('./../lib/errors.js');
 var validator = require('./../lib/schema-validator.js');
 
-module.exports = {
-  get: getBalances
-};
-
 var InvalidRequestError = errors.InvalidRequestError;
 
 /**
@@ -36,7 +32,8 @@ function getBalances(request, response, next) {
   var options = {
     account: request.params.account,
     currency: request.query.currency,
-    counterparty: request.query.counterparty
+    counterparty: request.query.counterparty,
+    frozen: request.query.frozen === 'true'
   };
 
   var currencyRE = new RegExp(options.currency ? ('^' + options.currency.toUpperCase() + '$') : /./);
@@ -60,6 +57,10 @@ function getBalances(request, response, next) {
   };
 
   function getXRPBalance(callback) {
+    if (options.frozen) {
+      return callback();
+    }
+
     var ledger = validator.isValid(request.query.ledger, 'UINT32') ? Number(request.query.ledger) : 'validated';
 
     var accountInfoRequest = remote.requestAccountInfo({
@@ -108,6 +109,10 @@ function getBalances(request, response, next) {
     accountLinesRequest.once('error', callback);
     accountLinesRequest.once('success', function(result) {
       result.lines.forEach(function(line) {
+        if (options.frozen && !line.freeze) {
+          return;
+        }
+
         if (currencyRE.test(line.currency)) {
           balances.push({
             value:         line.balance,
@@ -160,3 +165,6 @@ function getBalances(request, response, next) {
     }
   });
 };
+
+module.exports.get = getBalances;
+
