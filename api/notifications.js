@@ -2,7 +2,7 @@ var _                   = require('lodash');
 var async               = require('async');
 var ripple              = require('ripple-lib');
 var transactions        = require('./transactions');
-var server_lib          = require('../lib/server-lib');
+var serverLib           = require('../lib/server-lib');
 var remote              = require('./../lib/remote.js');
 var config              = require('./../lib/config-loader.js');
 var NotificationParser  = require('./../lib/notification_parser.js');
@@ -36,11 +36,11 @@ function getNotification(request, response, next) {
       notification: notification
     };
 
-    // Add url_base to each url in notification
-    var url_base = request.protocol + '://' + request.hostname + (config && config.get('port') ? ':' + config.get('port') : '');
+    // Add urlBase to each url in notification
+    var urlBase = request.protocol + '://' + request.hostname + (config && config.get('port') ? ':' + config.get('port') : '');
     Object.keys(responseBody.notification).forEach(function(key){
       if (/url/.test(key) && responseBody.notification[key]) {
-        responseBody.notification[key] = url_base + responseBody.notification[key];
+        responseBody.notification[key] = urlBase + responseBody.notification[key];
       }
     });
 
@@ -77,20 +77,20 @@ function getNotificationHelper(request, response, callback) {
   var identifier = request.params.identifier
 
   if (!account) {
-    return next(new errors.InvalidRequestError('Missing parameter: account. Must be a valid Ripple Address'));
+    return callback(new errors.InvalidRequestError('Missing parameter: account. Must be a valid Ripple Address'));
   }
 
   function getTransaction(async_callback) {
     transactions.getTransaction(request.params.account, request.params.identifier, async_callback);
   }
 
-  function checkLedger(base_transaction, async_callback) {
-    server_lib.remoteHasLedger(remote, base_transaction.ledger_index, function(error, remote_has_ledger) {
+  function checkLedger(baseTransaction, async_callback) {
+    serverLib.remoteHasLedger(remote, baseTransaction.ledger_index, function(error, remoteHasLedger) {
       if (error) {
         return async_callback(error);
       }
-      if (remote_has_ledger) {
-        async_callback(null, base_transaction);
+      if (remoteHasLedger) {
+        async_callback(null, baseTransaction);
       } else {
         async_callback(new errors.NotFoundError('Cannot Get Notification. ' +
           'This transaction is not in the ripple\'s complete ledger set. ' +
@@ -101,23 +101,23 @@ function getNotificationHelper(request, response, callback) {
     });
   }
 
-  function prepareNotificationDetails(base_transaction, async_callback) {
-    var notification_details = {
+  function prepareNotificationDetails(baseTransaction, async_callback) {
+    var notificationDetails = {
       account:         account,
       identifier:      identifier,
-      transaction:     base_transaction
+      transaction:     baseTransaction
     };
 
-    // Move client_resource_id to notification_details from transaction
-    if (base_transaction.client_resource_id) {
-      notification_details.client_resource_id = base_transaction.client_resource_id;
+    // Move client_resource_id to notificationDetails from transaction
+    if (baseTransaction.client_resource_id) {
+      notificationDetails.client_resource_id = baseTransaction.client_resource_id;
     }
-    attachPreviousAndNextTransactionIdentifiers(response, notification_details, async_callback);
+    attachPreviousAndNextTransactionIdentifiers(response, notificationDetails, async_callback);
   }
 
-  // Parse the Notification object from the notification_details
-  function parseNotificationDetails(notification_details, async_callback) {
-    async_callback(null, NotificationParser.parse(notification_details));
+  // Parse the Notification object from the notificationDetails
+  function parseNotificationDetails(notificationDetails, async_callback) {
+    async_callback(null, NotificationParser.parse(notificationDetails));
   }
 
   var steps = [
@@ -134,24 +134,24 @@ function getNotificationHelper(request, response, callback) {
  *  Find the previous and next transaction hashes or
  *  client_resource_ids using both the rippled and
  *  local database. Report errors to the client using res.json
- *  or pass the notification_details with the added fields
+ *  or pass the notificationDetails with the added fields
  *  back to the callback.
  *
  *  @param {Remote} $.remote
  *  @param {/lib/db-interface} $.dbinterface
  *  @param {Express.js Response} res
- *  @param {RippleAddress} notification_details.account
- *  @param {Ripple Transaction in JSON Format} notification_details.transaction
- *  @param {Hex-encoded String|ResourceId} notification_details.identifier
+ *  @param {RippleAddress} notificationDetails.account
+ *  @param {Ripple Transaction in JSON Format} notificationDetails.transaction
+ *  @param {Hex-encoded String|ResourceId} notificationDetails.identifier
  *  @param {Function} callback
  *
  *  @callback
  *  @param {Error} error
  *  @param {Object with fields "account", "transaction", 
  *    "next_transaction_identifier", "next_hash",
- *    "previous_transaction_identifier", "previous_hash"} notification_details
+ *    "previous_transaction_identifier", "previous_hash"} notificationDetails
  */
-function attachPreviousAndNextTransactionIdentifiers(response, notification_details, callback) {
+function attachPreviousAndNextTransactionIdentifiers(response, notificationDetails, callback) {
 
   // Get all of the transactions affecting the specified
   // account in the given ledger. This is done so that 
@@ -161,9 +161,9 @@ function attachPreviousAndNextTransactionIdentifiers(response, notification_deta
   // given account had in the same ledger
   function getAccountTransactionsInBaseTransactionLedger(async_callback) {
     var params = {
-      account: notification_details.account,
-      ledger_index_min: notification_details.transaction.ledger_index,
-      ledger_index_max: notification_details.transaction.ledger_index,
+      account: notificationDetails.account,
+      ledger_index_min: notificationDetails.transaction.ledger_index,
+      ledger_index_max: notificationDetails.transaction.ledger_index,
       exclude_failed: false,
       max: 99999999,
       limit: 200 // arbitrary, just checking number of transactions in ledger
@@ -177,26 +177,26 @@ function attachPreviousAndNextTransactionIdentifiers(response, notification_deta
     async_callback(null, transactions.length);
   }
 
-  // Query for one more than the num_transactions_in_ledger
+  // Query for one more than the numTransactionsInLedger
   // going forward and backwards to get a range of transactions
   // that will definitely include the next and previous transactions
-  function getNextAndPreviousTransactions(num_transactions_in_ledger, async_callback) {
-    async.concat([false, true], function(earliest_first, async_concat_callback){
+  function getNextAndPreviousTransactions(numTransactionsInLedger, async_callback) {
+    async.concat([false, true], function(earliestFirst, async_concat_callback){
       var params = {
-        account: notification_details.account,
-        max: num_transactions_in_ledger + 1,
-        min: num_transactions_in_ledger + 1,
-        limit: num_transactions_in_ledger + 1,
-        earliest_first: earliest_first
+        account: notificationDetails.account,
+        max: numTransactionsInLedger + 1,
+        min: numTransactionsInLedger + 1,
+        limit: numTransactionsInLedger + 1,
+        earliestFirst: earliestFirst
       };
 
       // In rippled -1 corresponds to the first or last ledger
       // in its database, depending on whether it is the min or max value
-      if (params.earliest_first) {
+      if (params.earliestFirst) {
         params.ledger_index_max = -1;
-        params.ledger_index_min = notification_details.transaction.ledger_index;
+        params.ledger_index_min = notificationDetails.transaction.ledger_index;
       } else {
-        params.ledger_index_max = notification_details.transaction.ledger_index;
+        params.ledger_index_max = notificationDetails.transaction.ledger_index;
         params.ledger_index_min = -1;
       }
 
@@ -207,14 +207,14 @@ function attachPreviousAndNextTransactionIdentifiers(response, notification_deta
   }
 
   // Sort the transactions returned by ledger_index and remove duplicates
-  function sortTransactions(all_possible_transactions, async_callback) {
-    all_possible_transactions.push(notification_details.transaction);
+  function sortTransactions(allTransactions, async_callback) {
+    allTransactions.push(notificationDetails.transaction);
 
-    var transactions = _.uniq(all_possible_transactions, function(tx) {
+    var transactions = _.uniq(allTransactions, function(tx) {
       return tx.hash;
     });
 
-    // Sort transactions in ascending order (earliest_first) by ledger_index
+    // Sort transactions in ascending order (earliestFirst) by ledger_index
     transactions.sort(function(a, b) {
       if (a.ledger_index === b.ledger_index) {
         return a.date <= b.date ? -1 : 1;
@@ -226,18 +226,18 @@ function attachPreviousAndNextTransactionIdentifiers(response, notification_deta
     async_callback(null, transactions);
   }
 
-  // Find the base_transaction amongst the results. Because the
+  // Find the baseTransaction amongst the results. Because the
   // transactions have been sorted, the next and previous transactions
   // will be the ones on either side of the base transaction
   function findPreviousAndNextTransactions(transactions, async_callback) {
 
-    // Find the index in the array of the base_transaction
-    var base_transaction_index = _.findIndex(transactions, function(possibility) {
-      if (possibility.hash === notification_details.transaction.hash) {
+    // Find the index in the array of the baseTransaction
+    var baseTransactionIndex = _.findIndex(transactions, function(possibility) {
+      if (possibility.hash === notificationDetails.transaction.hash) {
         return true;
       } else if (possibility.client_resource_id &&
-        (possibility.client_resource_id === notification_details.transaction.client_resource_id ||
-        possibility.client_resource_id === notification_details.identifier)) {
+        (possibility.client_resource_id === notificationDetails.transaction.client_resource_id ||
+        possibility.client_resource_id === notificationDetails.identifier)) {
         return true;
       } else {
         return false;
@@ -245,22 +245,22 @@ function attachPreviousAndNextTransactionIdentifiers(response, notification_deta
     });
 
     // The previous transaction is the one with an index in
-    // the array of base_transaction_index - 1
-    if (base_transaction_index > 0) {
-      var previous_transaction = transactions[base_transaction_index - 1];
-      notification_details.previous_transaction_identifier = (previous_transaction.from_local_db ? previous_transaction.client_resource_id : previous_transaction.hash);
-      notification_details.previous_hash = previous_transaction.hash;
+    // the array of baseTransactionIndex - 1
+    if (baseTransactionIndex > 0) {
+      var previous_transaction = transactions[baseTransactionIndex - 1];
+      notificationDetails.previous_transaction_identifier = (previous_transaction.from_local_db ? previous_transaction.client_resource_id : previous_transaction.hash);
+      notificationDetails.previous_hash = previous_transaction.hash;
     }
 
     // The next transaction is the one with an index in
-    // the array of base_transaction_index + 1
-    if (base_transaction_index + 1 < transactions.length) {
-      var next_transaction = transactions[base_transaction_index + 1];
-      notification_details.next_transaction_identifier = (next_transaction.from_local_db ? next_transaction.client_resource_id : next_transaction.hash);
-      notification_details.next_hash = next_transaction.hash;
+    // the array of baseTransactionIndex + 1
+    if (baseTransactionIndex + 1 < transactions.length) {
+      var next_transaction = transactions[baseTransactionIndex + 1];
+      notificationDetails.next_transaction_identifier = (next_transaction.from_local_db ? next_transaction.client_resource_id : next_transaction.hash);
+      notificationDetails.next_hash = next_transaction.hash;
     }
 
-    async_callback(null, notification_details);
+    async_callback(null, notificationDetails);
   };
 
   var steps = [

@@ -1,12 +1,13 @@
-var _                      = require('lodash');
-var assert                 = require('assert');
-var async                  = require('async');
-var ripple                 = require('ripple-lib');
-var transactions           = require('./transactions.js');
-var SubmitTransactionHooks = require('./../lib/submit_transaction_hooks.js');
-var remote                 = require('./../lib/remote.js');
-var respond                = require('./../lib/response-handler.js');
-var errors                 = require('./../lib/errors.js');
+var _                       = require('lodash');
+var assert                  = require('assert');
+var async                   = require('async');
+var ripple                  = require('ripple-lib');
+var transactions            = require('./transactions.js');
+var SubmitTransactionHooks  = require('./../lib/submit_transaction_hooks.js');
+var remote                  = require('./../lib/remote.js');
+var respond                 = require('./../lib/response-handler.js');
+var errors                  = require('./../lib/errors.js');
+var TxToRestConverter       = require('./../lib/tx-to-rest-converter.js');
 
 const InvalidRequestError = errors.InvalidRequestError;
 
@@ -29,12 +30,6 @@ const AccountRootFields = {
   Domain:         { name:  'domain', encoding: 'hex' },
   TransferRate:   { name:  'transfer_rate', defaults: 0 },
   Signers:        { name:  'signers' }
-};
-
-const AccountSetResponseFlags = {
-  RequireDestTag: { name:   'require_destination_tag', value: ripple.Transaction.flags.AccountSet.RequireDestTag },
-  RequireAuth:    { name:   'require_authorization', value: ripple.Transaction.flags.AccountSet.RequireAuth },
-  DisallowXRP:    { name:   'disallow_xrp', value: ripple.Transaction.flags.AccountSet.DisallowXRP }
 };
 
 const AccountSetIntFlags = {
@@ -181,7 +176,7 @@ function getSettings(request, response, next) {
     };
 
     // Attach account flags
-    _.extend(settings, transactions.parseFlagsFromResponse(data.Flags, AccountRootFlags));
+    _.extend(settings, TxToRestConverter.parseFlagsFromResponse(data.Flags, AccountRootFlags));
 
     // Attach account fields
     _.extend(settings, parseFieldsFromResponse(data, AccountRootFields));
@@ -219,7 +214,7 @@ function changeSettings(request, response, next) {
 
   var hooks = {
     validateParams: validateParams,
-    formatTransactionResponse: formatTransactionResponse,
+    formatTransactionResponse: TxToRestConverter.parseSettingResponseFromTx.bind(void(0), params),
     setTransactionParameters: setTransactionParameters
   };
 
@@ -308,29 +303,6 @@ function changeSettings(request, response, next) {
     callback();
   };
 
-  function formatTransactionResponse(message, meta, callback) {
-    var result = {
-      settings: {}
-    };
-
-    for (var flagName in AccountSetIntFlags) {
-      var flag = AccountSetIntFlags[flagName];
-  
-      result.settings[flag.name] = params.settings[flag.name];
-    }
-
-    for (var fieldName in AccountRootFields) {
-      var field = AccountRootFields[fieldName];
-
-      result.settings[field.name] = params.settings[field.name];
-    }
-
-    _.extend(meta, transactions.parseFlagsFromResponse(message.tx_json.Flags, AccountSetResponseFlags));
-    _.extend(result.settings, meta);
-
-    callback(null, result);
-  };
-
   function setTransactionParameters(transaction) {
     transaction.accountSet(params.account);
 
@@ -346,5 +318,7 @@ function changeSettings(request, response, next) {
 
 module.exports = {
   get: getSettings,
-  change: changeSettings
+  change: changeSettings,
+  AccountSetIntFlags: AccountSetIntFlags,
+  AccountRootFields: AccountRootFields
 };
