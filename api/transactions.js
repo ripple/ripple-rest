@@ -301,9 +301,9 @@ function getTransaction(account, identifier, callback) {
 
   function checkIfRelatedToAccount(transaction, async_callback) {
     if (options.account) {
-      var transaction_string = JSON.stringify(transaction);
+      var transactionString = JSON.stringify(transaction);
       var account_regex = new RegExp(options.account);
-      if (!account_regex.test(transaction_string)) {
+      if (!account_regex.test(transactionString)) {
         return async_callback(new errors.InvalidRequestError('Transaction specified did not affect the given account'));
       }
     }
@@ -323,13 +323,13 @@ function getTransaction(account, identifier, callback) {
       return async_callback(null, transaction);
     }
 
-    remote.requestLedger(transaction.ledger_index, function(error, ledger_res) {
+    remote.requestLedger(transaction.ledger_index, function(error, ledgerRequest) {
       if (error) {
         return async_callback(new errors.NotFoundError('Transaction ledger not found'));
       }
 
-      if (typeof ledger_res.ledger.close_time === 'number') {
-        transaction.date = ledger_res.ledger.close_time;
+      if (typeof ledgerRequest.ledger.close_time === 'number') {
+        transaction.date = ledgerRequest.ledger.close_time;
       }
 
       async_callback(null, transaction);
@@ -348,7 +348,7 @@ function getTransaction(account, identifier, callback) {
  *  @param {RippleAddress} options.account
  *  @param {Number} [-1] options.ledger_index_min
  *  @param {Number} [-1] options.ledger_index_max
- *  @param {Boolean} [false] options.earliest_first
+ *  @param {Boolean} [false] options.earliestFirst
  *  @param {Boolean} [false] options.binary
  *  @param {Boolean} [false] options.exclude_failed
  *  @param {Number} [DEFAULT_RESULTS_PER_PAGE] options.min
@@ -373,6 +373,7 @@ function getAccountTransactions(options, response, callback) {
   ];
 
   async.waterfall(steps, asyncWaterfallCallback);
+
   if (!options.min) {
     options.min = module.exports.DEFAULT_RESULTS_PER_PAGE;
   }
@@ -409,7 +410,7 @@ function getAccountTransactions(options, response, callback) {
 
   function sortTransactions(transactions, async_callback) {
     transactions.sort(function(first, second) {
-      return compareTransactions(first, second, options.earliest_first);
+      return compareTransactions(first, second, options.earliestFirst);
     });
     async_callback(null, transactions);
   };
@@ -453,7 +454,7 @@ function getAccountTransactions(options, response, callback) {
  *  @param {RippleAddress} options.account
  *  @param {Number} [-1] options.ledger_index_min
  *  @param {Number} [-1] options.ledger_index_max
- *  @param {Boolean} [false] options.earliest_first
+ *  @param {Boolean} [false] options.earliestFirst
  *  @param {Boolean} [false] options.binary
  *  @param {Boolean} [false] options.exclude_failed
  *  @param {opaque value} options.marker
@@ -487,16 +488,16 @@ function getLocalAndRemoteTransactions(options, callback) {
     }
   };
 
-  var transaction_sources = [ 
+  var transactionSources = [ 
     queryRippled, 
     queryDB
   ];
 
-  async.parallel(transaction_sources, function(error, source_results) {
+  async.parallel(transactionSources, function(error, sourceResults) {
     if (error) {
       return callback(error);
     }
-    var results = source_results[0].concat(source_results[1]);
+    var results = sourceResults[0].concat(sourceResults[1]);
     var transactions = _.uniq(results, function(tx) {
       return tx.hash;
     });
@@ -561,32 +562,32 @@ function transactionFilter(transactions, options) {
  *
  *  @param {transaction in JSON format} first
  *  @param {transaction in JSON format} second
- *  @param {Boolean} [false] earliest_first
+ *  @param {Boolean} [false] earliestFirst
  *  @returns {Number} comparison Returns -1 or 1
  */
-function compareTransactions(first, second, earliest_first) {
-  var first_index = first.ledger || first.ledger_index;
-  var second_index = second.ledger || second.ledger_index;
-  var first_less_than_second = true;
-  if (first_index === second_index) {
+function compareTransactions(first, second, earliestFirst) {
+  var firstIndex = first.ledger || first.ledger_index;
+  var secondIndex = second.ledger || second.ledger_index;
+  var firstLessThanSecond = true;
+  if (firstIndex === secondIndex) {
     if (first.hash <= second.hash) {
-      first_less_than_second = true;
+      firstLessThanSecond = true;
     } else {
-      first_less_than_second = false;
+      firstLessThanSecond = false;
     }
-  } else if (first_index < second_index) {
-    first_less_than_second = true;
+  } else if (firstIndex < secondIndex) {
+    firstLessThanSecond = true;
   } else {
-    first_less_than_second = false;
+    firstLessThanSecond = false;
   }
-  if (earliest_first) {
-    if (first_less_than_second) {
+  if (earliestFirst) {
+    if (firstLessThanSecond) {
       return -1;
     } else {
       return 1;
     }
   } else  {
-    if (first_less_than_second) {
+    if (firstLessThanSecond) {
       return 1;
     } else {
       return -1;
@@ -601,7 +602,7 @@ function compareTransactions(first, second, earliest_first) {
  *  @param {RippleAddress} options.account
  *  @param {Number} [-1] options.ledger_index_min
  *  @param {Number} [-1] options.ledger_index_max
- *  @param {Boolean} [false] options.earliest_first
+ *  @param {Boolean} [false] options.earliestFirst
  *  @param {Boolean} [false] options.binary
  *  @param {opaque value} options.marker
  *  @param {Function} callback
@@ -617,7 +618,7 @@ function getAccountTx(remote, options, callback) {
     ledger_index_min: options.ledger_index_min || options.ledger_index || -1,
     ledger_index_max: options.ledger_index_max || options.ledger_index || -1,
     limit: options.limit || DEFAULT_RESULTS_PER_PAGE,
-    forward: options.earliest_first,
+    forward: options.earliestFirst,
     marker: options.marker
   };
   if (options.binary) {

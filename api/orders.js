@@ -134,7 +134,7 @@ function placeOrder(request, response, next) {
     respond.success(response, placedOrder);
   });
   
-  function validateParams(async_callback) {
+  function validateParams(callback) {
     var takerGetsJSON, takerPaysJSON;
 
     if (_.isObject(params.order)) {
@@ -143,21 +143,21 @@ function placeOrder(request, response, next) {
     }
 
     if (!params.order) {
-      return async_callback(new InvalidRequestError('Missing parameter: order. Submission must have order object in JSON form'));
+      return callback(new InvalidRequestError('Missing parameter: order. Submission must have order object in JSON form'));
     } else if (!/^buy|sell$/.test(params.order.type)) {
-      return async_callback(new InvalidRequestError('Parameter must be "buy" or "sell": type'));
+      return callback(new InvalidRequestError('Parameter must be "buy" or "sell": type'));
     } else if (!_.isUndefined(params.order.passive) && !_.isBoolean(params.order.passive)) {
-      return async_callback(new InvalidRequestError('Parameter must be a boolean: passive'));
+      return callback(new InvalidRequestError('Parameter must be a boolean: passive'));
     } else if (!_.isUndefined(params.order.immediate_or_cancel) && !_.isBoolean(params.order.immediate_or_cancel)) {
-      return async_callback(new InvalidRequestError('Parameter must be a boolean: immediate_or_cancel'));
+      return callback(new InvalidRequestError('Parameter must be a boolean: immediate_or_cancel'));
     } else if (!_.isUndefined(params.order.fill_or_kill) && !_.isBoolean(params.order.fill_or_kill)) {
-      return async_callback(new InvalidRequestError('Parameter must be a boolean: fill_or_kill'));
+      return callback(new InvalidRequestError('Parameter must be a boolean: fill_or_kill'));
     } else if (!takerGetsJSON._currency || !takerGetsJSON.is_valid() || (!takerGetsJSON._is_native && !takerGetsJSON.is_valid_full())) {
-      async_callback(new InvalidRequestError('Parameter must be in the format "amount[/currency/issuer]": taker_gets'));
+      callback(new InvalidRequestError('Parameter must be in the format "amount[/currency/issuer]": taker_gets'));
     } else if (!takerPaysJSON._currency || !takerPaysJSON.is_valid() || (!takerPaysJSON._is_native && !takerPaysJSON.is_valid_full())) {
-      async_callback(new InvalidRequestError('Parameter must be in the format "amount[/currency/issuer]": taker_pays'));
+      callback(new InvalidRequestError('Parameter must be in the format "amount[/currency/issuer]": taker_pays'));
     } else {
-      async_callback();
+      callback();
     }
   };
 
@@ -170,7 +170,7 @@ function placeOrder(request, response, next) {
     });
 
     if (params.order.type === 'sell') {
-      transaction.set_flags('Sell');
+      transaction.setFlags('Sell');
     }
   };
 };
@@ -213,11 +213,11 @@ function cancelOrder(request, response, next) {
     respond.success(response, canceledOrder);
   });
 
-  function validateParams(async_callback) {
+  function validateParams(callback) {
     if (!(Number(params.sequence) >= 0)) {
-      async_callback(new InvalidRequestError('Invalid parameter: sequence. Sequence must be a positive number'));
+      callback(new InvalidRequestError('Invalid parameter: sequence. Sequence must be a positive number'));
     } else {
-      async_callback();
+      callback();
     }
   };
 
