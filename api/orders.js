@@ -69,7 +69,7 @@ function getOrders(request, response, next) {
       var accountOrdersRequest;
       var marker = request.query.marker;
       var limit = validator.isValid(request.query.limit, 'UINT32') ? Number(request.query.limit) : void(0);
-      var ledger = validator.isValid(request.query.ledger, 'UINT32') ? Number(request.query.ledger) : 'validated';
+      var ledger = utils.parseLedger(request.query.ledger);
 
       accountOrdersRequest = remote.requestAccountOffers({
         account: options.account,

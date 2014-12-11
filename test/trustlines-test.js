@@ -13,6 +13,7 @@ const LIMIT = 5;
 const MARKER = '29F992CC252056BF690107D1E8F2D9FBAFF29FF107B62B1D1F4E4E11ADF2CC73';
 const NEXT_MARKER = '0C812C919D343EAE789B29E8027C62C5792C22172D37EA2B2C0121D2381F80E1';
 const LEDGER = 9592219;
+const LEDGER_HASH = 'FD22E2A8D665A01711C0147173ECC0A32466BA976DE697E95197933311267BE8';
 
 suite('get trustlines', function() {
   var self = this;
@@ -85,7 +86,7 @@ suite('get trustlines', function() {
     }, done);
   });
 
-  test('/accounts/:account/trustlines -- with ledger', function(done) {
+  test('/accounts/:account/trustlines -- with ledger (sequence)', function(done) {
     self.wss.once('request_account_lines', function(message, conn) {
       assert.strictEqual(message.command, 'account_lines');
       assert.strictEqual(message.account, addresses.VALID);
@@ -97,6 +98,26 @@ suite('get trustlines', function() {
       account: addresses.VALID,
       queryString: '?ledger=' + LEDGER,
       expectedBody: fixtures.RESTAccountTrustlinesResponse(),
+      expectedStatus: 200
+    }, done);
+  });
+
+  test('/accounts/:account/trustlines -- with ledger (hash)', function(done) {
+    self.wss.once('request_account_lines', function(message, conn) {
+      assert.strictEqual(message.command, 'account_lines');
+      assert.strictEqual(message.account, addresses.VALID);
+      assert.strictEqual(message.ledger_hash, LEDGER_HASH);
+      conn.send(fixtures.accountLinesResponse(message, {
+        ledger: LEDGER
+      }));
+    });
+
+    testGetRequest({
+      account: addresses.VALID,
+      queryString: '?ledger=' + LEDGER_HASH,
+      expectedBody: fixtures.RESTAccountTrustlinesResponse({
+        ledger: LEDGER
+      }),
       expectedStatus: 200
     }, done);
   });
@@ -215,6 +236,45 @@ suite('get trustlines', function() {
     testGetRequest({
       account: addresses.VALID,
       queryString: '?marker=' + MARKER + '&limit=' + LIMIT + '&ledger=foo',
+      expectedStatus: 500,
+      expectedBody: errors.RESTLedgerMissingWithMarker
+    }, done);
+  });
+
+  test('/accounts/:account/trustlines -- with valid marker, valid limit, and ledger=validated', function(done) {
+    self.wss.once('request_account_lines', function(message, conn) {
+      assert(false);
+    });
+
+    testGetRequest({
+      account: addresses.VALID,
+      queryString: '?marker=' + MARKER + '&limit=' + LIMIT + '&ledger=validated',
+      expectedStatus: 500,
+      expectedBody: errors.RESTLedgerMissingWithMarker
+    }, done);
+  });
+
+  test('/accounts/:account/trustlines -- with valid marker, valid limit, and ledger=current', function(done) {
+    self.wss.once('request_account_lines', function(message, conn) {
+      assert(false);
+    });
+
+    testGetRequest({
+      account: addresses.VALID,
+      queryString: '?marker=' + MARKER + '&limit=' + LIMIT + '&ledger=current',
+      expectedStatus: 500,
+      expectedBody: errors.RESTLedgerMissingWithMarker
+    }, done);
+  });
+
+  test('/accounts/:account/trustlines -- with valid marker, valid limit, and ledger=closed', function(done) {
+    self.wss.once('request_account_lines', function(message, conn) {
+      assert(false);
+    });
+
+    testGetRequest({
+      account: addresses.VALID,
+      queryString: '?marker=' + MARKER + '&limit=' + LIMIT + '&ledger=closed',
       expectedStatus: 500,
       expectedBody: errors.RESTLedgerMissingWithMarker
     }, done);

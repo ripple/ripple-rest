@@ -3,6 +3,7 @@ var bignum    = require('bignumber.js');
 var ripple    = require('ripple-lib');
 var remote    = require('./../lib/remote.js');
 var respond   = require('../lib/response-handler.js');
+var utils     = require('./../lib/utils');
 var errors    = require('./../lib/errors.js');
 var validator = require('./../lib/schema-validator.js');
 
@@ -61,7 +62,7 @@ function getBalances(request, response, next) {
       return callback();
     }
 
-    var ledger = validator.isValid(request.query.ledger, 'UINT32') ? Number(request.query.ledger) : 'validated';
+    var ledger = utils.parseLedger(request.query.ledger);
 
     var accountInfoRequest = remote.requestAccountInfo({
       account: options.account,
@@ -89,7 +90,7 @@ function getBalances(request, response, next) {
     var accountLinesRequest;
     var marker = request.query.marker;
     var limit = validator.isValid(request.query.limit, 'UINT32') ? Number(request.query.limit) : void(0);
-    var ledger = validator.isValid(request.query.ledger, 'UINT32') ? Number(request.query.ledger) : 'validated';
+    var ledger = utils.parseLedger(request.query.ledger);
 
     try {
       accountLinesRequest = remote.requestAccountLines({
