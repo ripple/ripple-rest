@@ -9,7 +9,7 @@ var serverLib               = require('./../lib/server-lib');
 var utils                   = require('./../lib/utils');
 var remote                  = require('./../lib/remote.js');
 var dbinterface             = require('./../lib/db-interface.js');
-var config                  = require('./../lib/config-loader.js');
+var config                  = require('./../lib/config.js');
 var RestToTxConverter       = require('./../lib/rest-to-tx-converter.js');
 var TxToRestConverter       = require('./../lib/tx-to-rest-converter.js');
 var SubmitTransactionHooks  = require('./../lib/submit_transaction_hooks.js');
@@ -57,7 +57,6 @@ function submitPayment(request, response, next) {
   });
 
   params.max_fee = Number(request.body.max_fee) > 0 ? utils.xrpToDrops(request.body.max_fee) : void(0);
-  params.url_base = request.protocol + '://' + request.hostname + (config && config.get('port') ? ':' + config.get('port') : '');
 
   if (params.payment.destination_amount && params.payment.destination_amount.currency !== 'XRP' && _.isEmpty(params.payment.destination_amount.issuer)) {
     params.payment.destination_amount.issuer = params.payment.destination_account;
@@ -85,7 +84,7 @@ function submitPayment(request, response, next) {
 
     respond.success(response, payment);
   });
-  
+
   function validateParams(callback) {
     var payment = params.payment;
 
@@ -227,9 +226,10 @@ function submitPayment(request, response, next) {
       });
     }
 
+    var urlBase = utils.getUrlBase(request);
     callback(null, {
       client_resource_id: params.client_resource_id,
-      status_url: params.url_base + '/v1/accounts/' + params.payment.source_account + '/payments/' + params.client_resource_id
+      status_url: urlBase + '/v1/accounts/' + params.payment.source_account + '/payments/' + params.client_resource_id
     });
   };
 

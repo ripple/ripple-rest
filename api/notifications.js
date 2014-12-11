@@ -4,10 +4,11 @@ var ripple              = require('ripple-lib');
 var transactions        = require('./transactions');
 var serverLib           = require('../lib/server-lib');
 var remote              = require('./../lib/remote.js');
-var config              = require('./../lib/config-loader.js');
+var config              = require('./../lib/config.js');
 var NotificationParser  = require('./../lib/notification_parser.js');
 var respond             = require('./../lib/response-handler.js');
 var errors              = require('./../lib/errors.js');
+var utils               = require('./../lib/utils.js');
 
 module.exports = {
   getNotification: getNotification
@@ -37,8 +38,8 @@ function getNotification(request, response, next) {
     };
 
     // Add urlBase to each url in notification
-    var urlBase = request.protocol + '://' + request.hostname + (config && config.get('port') ? ':' + config.get('port') : '');
-    Object.keys(responseBody.notification).forEach(function(key){
+    var urlBase = utils.getUrlBase(request);
+    Object.keys(responseBody.notification).forEach(function(key) {
       if (/url/.test(key) && responseBody.notification[key]) {
         responseBody.notification[key] = urlBase + responseBody.notification[key];
       }
