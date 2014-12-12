@@ -22,7 +22,7 @@ module.exports.subscribeResponse = function(request) {
   });
 };
 
-module.exports.ledgerClose = function() {
+module.exports.ledgerClose = function(ledger) {
   return JSON.stringify({
     type: 'ledgerClosed',
     fee_base: 10,

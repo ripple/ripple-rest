@@ -1,11 +1,11 @@
-var assert        = require('assert');
-var ripple        = require('ripple-lib');
-var _             = require('lodash');
-var testutils     = require('./testutils');
-var fixtures      = require('./fixtures').orders;
-var errors        = require('./fixtures').errors;
-var addresses     = require('./fixtures').addresses;
-var utils         = require('./../lib/utils');
+var _         = require('lodash');
+var assert    = require('assert');
+var ripple    = require('ripple-lib');
+var testutils = require('./testutils');
+var fixtures  = require('./fixtures').orders;
+var errors    = require('./fixtures').errors;
+var addresses = require('./fixtures').addresses;
+var utils     = require('./../lib/utils');
 
 const HEX_CURRENCY = '0158415500000000C1F76FF6ECB0BAC600000000';
 const ISSUER = 'rvYAfWj5gh67oV6fW32ZzP3Aw4Eubs59B'
@@ -365,24 +365,16 @@ suite('post orders', function() {
 
     self.wss.once('request_submit', function(message, conn) {
       assert.strictEqual(message.command, 'submit');
-      conn.send(fixtures.rippledSubmitErrorResponse(message, {
-        engine_result: 'tefMAX_LEDGER',
-        engine_result_code: -186,
-        engine_result_message: 'Ledger sequence too high.',
-        hash: hash
-      }));
+      conn.send(fixtures.ledgerSequenceTooHighResponse(message));
+      testutils.closeLedgers(conn);
     });
 
     self.app
     .post('/v1/accounts/' + addresses.VALID + '/orders?validated=true')
     .send(fixtures.order())
+    .expect(testutils.checkBody(errors.RESTResponseLedgerSequenceTooHigh))
     .expect(testutils.checkStatus(500))
     .expect(testutils.checkHeaders)
-    .expect(testutils.checkBody(errors.RESTErrorResponse({
-      type: 'transaction',
-      error: 'tefMAX_LEDGER',
-      message: 'Ledger sequence too high.'
-    })))
     .end(done);
   });
 
@@ -406,10 +398,7 @@ suite('post orders', function() {
     }))
     .expect(testutils.checkStatus(500))
     .expect(testutils.checkHeaders)
-    .expect(testutils.checkBody(errors.RESTErrorResponse({
-      type: 'transaction',
-      error: 'Invalid secret'
-    })))
+    .expect(testutils.checkBody(errors.RESTInvalidSecret))
     .end(done);
   });
 
@@ -459,24 +448,16 @@ suite('post orders', function() {
 
     self.wss.once('request_submit', function(message, conn) {
       assert.strictEqual(message.command, 'submit');
-      conn.send(fixtures.rippledSubmitErrorResponse(message, {
-        engine_result: 'tefMAX_LEDGER',
-        engine_result_code: -186,
-        engine_result_message: 'Ledger sequence too high.',
-        hash: hash
-      }));
+      conn.send(fixtures.ledgerSequenceTooHighResponse(message));
+      testutils.closeLedgers(conn);
     });
 
     self.app
     .post('/v1/accounts/' + addresses.VALID + '/orders?validated=false')
     .send(fixtures.order())
+    .expect(testutils.checkBody(errors.RESTResponseLedgerSequenceTooHigh))
     .expect(testutils.checkStatus(500))
     .expect(testutils.checkHeaders)
-    .expect(testutils.checkBody(errors.RESTErrorResponse({
-      type: 'transaction',
-      error: 'tefMAX_LEDGER',
-      message: 'Ledger sequence too high.'
-    })))
     .end(done);
   });
 
@@ -500,10 +481,7 @@ suite('post orders', function() {
     }))
     .expect(testutils.checkStatus(500))
     .expect(testutils.checkHeaders)
-    .expect(testutils.checkBody(errors.RESTErrorResponse({
-      type: 'transaction',
-      error: 'Invalid secret'
-    })))
+    .expect(testutils.checkBody(errors.RESTInvalidSecret))
     .end(done);
   });
 
@@ -982,24 +960,16 @@ suite('post orders', function() {
 
     self.wss.once('request_submit', function(message, conn) {
       assert.strictEqual(message.command, 'submit');
-      conn.send(fixtures.rippledSubmitErrorResponse(message, {
-        engine_result: 'tefMAX_LEDGER',
-        engine_result_code: -186,
-        engine_result_message: 'Ledger sequence too high.',
-        hash: hash
-      }));
+      conn.send(fixtures.ledgerSequenceTooHighResponse(message));
+      testutils.closeLedgers(conn);
     });
 
     self.app
     .post('/v1/accounts/' + addresses.VALID + '/orders')
     .send(fixtures.order())
+    .expect(testutils.checkBody(errors.RESTResponseLedgerSequenceTooHigh))
     .expect(testutils.checkStatus(500))
     .expect(testutils.checkHeaders)
-    .expect(testutils.checkBody(errors.RESTErrorResponse({
-      type: 'transaction',
-      error: 'tefMAX_LEDGER',
-      message: 'Ledger sequence too high.'
-    })))
     .end(done);
   });
 
@@ -1042,10 +1012,7 @@ suite('post orders', function() {
     }))
     .expect(testutils.checkStatus(500))
     .expect(testutils.checkHeaders)
-    .expect(testutils.checkBody(errors.RESTErrorResponse({
-      type: 'transaction',
-      error: 'Invalid secret'
-    })))
+    .expect(testutils.checkBody(errors.RESTInvalidSecret))
     .end(done);
   });
 
@@ -1247,12 +1214,8 @@ suite('delete orders', function() {
 
     self.wss.once('request_submit', function(message, conn) {
       assert.strictEqual(message.command, 'submit');
-      conn.send(fixtures.rippledSubmitErrorResponse(message, {
-        engine_result: 'tefMAX_LEDGER',
-        engine_result_code: -186,
-        engine_result_message: 'Ledger sequence too high.',
-        hash: hash
-      }));
+      conn.send(fixtures.ledgerSequenceTooHighResponse(message));
+      testutils.closeLedgers(conn);
     });
 
     self.app
@@ -1260,13 +1223,9 @@ suite('delete orders', function() {
     .send({
       secret: addresses.SECRET
     })
+    .expect(testutils.checkBody(errors.RESTResponseLedgerSequenceTooHigh))
     .expect(testutils.checkStatus(500))
     .expect(testutils.checkHeaders)
-    .expect(testutils.checkBody(errors.RESTErrorResponse({
-      type: 'transaction',
-      error: 'tefMAX_LEDGER',
-      message: 'Ledger sequence too high.'
-    })))
     .end(done);
   });
 
@@ -1290,10 +1249,7 @@ suite('delete orders', function() {
     }))
     .expect(testutils.checkStatus(500))
     .expect(testutils.checkHeaders)
-    .expect(testutils.checkBody(errors.RESTErrorResponse({
-      type: 'transaction',
-      error: 'Invalid secret'
-    })))
+    .expect(testutils.checkBody(errors.RESTInvalidSecret))
     .end(done);
   });
 
@@ -1346,12 +1302,8 @@ suite('delete orders', function() {
 
     self.wss.once('request_submit', function(message, conn) {
       assert.strictEqual(message.command, 'submit');
-      conn.send(fixtures.rippledSubmitErrorResponse(message, {
-        engine_result: 'tefMAX_LEDGER',
-        engine_result_code: -186,
-        engine_result_message: 'Ledger sequence too high.',
-        hash: hash
-      }));
+      conn.send(fixtures.ledgerSequenceTooHighResponse(message));
+      testutils.closeLedgers(conn);
     });
 
     self.app
@@ -1359,13 +1311,9 @@ suite('delete orders', function() {
     .send({
       secret: addresses.SECRET
     })
+    .expect(testutils.checkBody(errors.RESTResponseLedgerSequenceTooHigh))
     .expect(testutils.checkStatus(500))
     .expect(testutils.checkHeaders)
-    .expect(testutils.checkBody(errors.RESTErrorResponse({
-      type: 'transaction',
-      error: 'tefMAX_LEDGER',
-      message: 'Ledger sequence too high.'
-    })))
     .end(done);
   });
 
@@ -1390,10 +1338,7 @@ suite('delete orders', function() {
     })
     .expect(testutils.checkStatus(500))
     .expect(testutils.checkHeaders)
-    .expect(testutils.checkBody(errors.RESTErrorResponse({
-      type: 'transaction',
-      error: 'Invalid secret'
-    })))
+    .expect(testutils.checkBody(errors.RESTInvalidSecret))
     .end(done);
   });
 
@@ -1482,12 +1427,10 @@ suite('delete orders', function() {
       assert.strictEqual(message.command, 'submit');
       assert.strictEqual(so.TransactionType, 'OfferCancel');
       assert.strictEqual(so.OfferSequence, 99);
-      conn.send(fixtures.rippledCancelErrorResponse(message, {
-        engine_result: 'tefMAX_LEDGER',
-        engine_result_code: -186,
-        engine_result_message: 'Ledger sequence too high.',
-        hash: hash
-      }));
+
+      conn.send(fixtures.ledgerSequenceTooHighResponse(message));
+
+      testutils.closeLedgers(conn);
     });
 
     self.app
@@ -1495,13 +1438,9 @@ suite('delete orders', function() {
     .send({
       secret: addresses.SECRET
     })
+    .expect(testutils.checkBody(errors.RESTResponseLedgerSequenceTooHigh))
     .expect(testutils.checkStatus(500))
     .expect(testutils.checkHeaders)
-    .expect(testutils.checkBody(errors.RESTErrorResponse({
-      type: 'transaction',
-      error: 'tefMAX_LEDGER',
-      message: 'Ledger sequence too high.'
-    })))
     .end(done);
   });
 
@@ -1568,10 +1507,7 @@ suite('delete orders', function() {
     })
     .expect(testutils.checkStatus(500))
     .expect(testutils.checkHeaders)
-    .expect(testutils.checkBody(errors.RESTErrorResponse({
-      type: 'transaction',
-      error: 'Invalid secret'
-    })))
+    .expect(testutils.checkBody(errors.RESTInvalidSecret))
     .end(done);
   });
 });
