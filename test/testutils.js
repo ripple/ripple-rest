@@ -5,16 +5,19 @@ var supertest = require('supertest');
 var WSS = require('ws').Server;
 var ripple = require('ripple-lib');
 var fixtures = require('./fixtures').startup;
+var addresses = require('./fixtures').addresses;
 var app = require('../lib/express_app');
 var dbinterface = require('../lib/db-interface');
 var crypto = require('crypto');
 var UInt256 = ripple.UInt256;
 
+const LEDGER_OFFSET = 3;
+
 function setup(done) {
   var self = this;
 
   self.app = supertest(app);
-  self.app.remote = app.get('remote');
+  self.app.remote =  app.get('remote');
 
   self.wss = new WSS({ port: 5995 });
 
@@ -42,7 +45,7 @@ function setup(done) {
   });
 
   //app.get('remote').trace = true;
-  app.get('remote')._servers = [ ];
+  app.get('remote')._servers = [ ] ;
   app.get('remote').addServer('ws://localhost:5995');
   app.get('remote').connect();
 };
@@ -51,6 +54,13 @@ function teardown(done) {
   var self = this;
 
   app.get('remote').once('disconnect', function() {
+    var submitAccount = app.get('remote').getAccount(addresses.VALID);
+
+    if (submitAccount) {
+      var pendingQueue = submitAccount._transactionManager._pending;
+      pendingQueue.forEach(pendingQueue.remove.bind(pendingQueue));
+    }
+
     self.wss.close();
     setImmediate(done);
   });
@@ -95,7 +105,17 @@ function loadArguments(args, defaults) {
     'Error in test code: unrecognized keyword argument(s): '
     + unrecognizedArgs);
   _.defaults(args, defaults);
-}
+};
+
+/**
+ * Close enough ledgers to fail a transaction
+ */
+
+function closeLedgers(conn) {
+  for (var i=0; i<LEDGER_OFFSET + 2; i++) {
+    conn.send(fixtures.ledgerClose());
+  }
+};
 
 module.exports = {
   setup: setup,
@@ -107,3 +127,6 @@ module.exports = {
   loadArguments: loadArguments,
   generateHash: generateHash
 };
+
+module.exports.closeLedgers = closeLedgers;
+module.exports.LEDGER_OFFSET = LEDGER_OFFSET;

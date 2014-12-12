@@ -693,6 +693,33 @@ module.exports.unfundedOrderFinalizedResponse = function(options) {
   });
 };
 
+module.exports.ledgerSequenceTooHighResponse = function(request) {
+  return JSON.stringify({
+    id: request.id,
+    result: {
+      engine_result: 'tefMAX_LEDGER',
+      engine_result_code: -186,
+      engine_result_message: "Ledger sequence too high.",
+      tx_blob: request.tx_blob,
+      tx_json: {
+        Account: 'r3GgMwvgvP8h4yVWvjH1dPZNvC37TjzBBE',
+        Fee: '12',
+        Flags: -2146107392,
+        clearFlag: 6,
+        SetFlag: 7,
+        LastLedgerSequence: 8819963,
+        Sequence: 2938,
+        SigningPubKey: '02F89EAEC7667B30F33D0687BBA86C3FE2A08CCA40A9186C5BDE2DAA6FA97A37D8',
+        TransactionType: 'AccountSet',
+        TxnSignature: '3044022013ED8E41507111736B4C5EC9E4C01A7B570B273B3DE21302F72D4D1B1F20C4EF0220180C1419108CA39A9FF89E12810EC7429E28468E8D0BA61F793E14DB8D9FEA72',
+        hash: 'AD922400CB1CE0876CA7203DBE0B1277D0D0EAC56A64F26CEC6C78D447EFEA5E'
+      }
+    },
+    status: 'success',
+    type: 'response'
+  });
+};
+
 module.exports.RESTAccountOrdersResponse = function(options) {
   options = options || {};
 
@@ -978,3 +1005,4 @@ module.exports.RESTCancelTransactionResponse = function(options) {
     }
   });
 };
+

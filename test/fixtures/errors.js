@@ -1,7 +1,8 @@
 module.exports.RESTInvalidSecret = JSON.stringify({ 
   success: false,
   error_type: 'transaction',
-  error: 'Invalid secret' 
+  error: 'tejSecretInvalid',
+  message: 'Invalid secret'
 });
 
 module.exports.RESTInvalidAccount = JSON.stringify({
@@ -62,22 +63,25 @@ module.exports.RESTCannotConnectToRippleD = JSON.stringify({
   error: 'Cannot connect to rippled'
 });
 
-module.exports.RESTResponseLedgerSequenceTooHigh = JSON.stringify(
-  {
-    "success": false,
-    "error_type": "transaction",
-    "error": "tefMAX_LEDGER",
-    "message": "Ledger sequence too high."
-  }
-);
+module.exports.RESTResponseLedgerSequenceTooHigh = JSON.stringify({
+  success: false,
+  error_type: 'transaction',
+  error: 'tejMaxLedger',
+  message: 'Transaction LastLedgerSequence exceeded'
+});
 
-module.exports.RESTLedgerMissingWithMarker = JSON.stringify(
-  { 
-    success: false,
-    error_type: 'transaction',
-    error: 'A ledger_index or ledger_hash must be provided when using a marker' 
-  }
-);
+module.exports.RESTLedgerMissingWithMarker = JSON.stringify({
+  success: false,
+  error_type: 'transaction',
+  error: 'A ledger_index or ledger_hash must be provided when using a marker' 
+});
+
+module.exports.RESTMaxFeeExceeded = JSON.stringify({
+  success: false,
+  error_type: 'transaction',
+  error: 'tejMaxFeeExceeded',
+  message: 'Max fee exceeded'
+});
 
 /**
  * Construct REST error response
@@ -89,12 +93,10 @@ module.exports.RESTLedgerMissingWithMarker = JSON.stringify(
  * @return {String} REST error response message
  */
 module.exports.RESTErrorResponse = function(options) {
-  return JSON.stringify(
-    {
-      "success": false,
-      "error_type": options.type,
-      "error": options.error,
-      "message": options.message
-    }
-  );
+  return JSON.stringify({
+    success: false,
+    error_type: options.type,
+    error: options.error,
+    message: options.message
+  });
 };

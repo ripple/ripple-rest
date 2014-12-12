@@ -5,9 +5,6 @@ var fixtures = require('./fixtures').settings;
 var errors = require('./fixtures').errors;
 var addresses = require('./fixtures').addresses;
 
-// Transaction LastLedgerSequence offset from current ledger sequence
-const LEDGER_OFFSET = 8;
-
 suite('get settings', function() {
   var self = this;
 
@@ -69,234 +66,9 @@ suite('post settings', function() {
   setup(testutils.setup.bind(self));
   teardown(testutils.teardown.bind(self));
 
-  test('/accounts/:account/settings -- with validated true, transaction verified response, and transaction validated response', function(done) {
-    var lastLedger = self.app.remote._ledger_current_index;
-
-    self.wss.once('request_account_info', function(message, conn) {
-      assert.strictEqual(message.command, 'account_info');
-      assert.strictEqual(message.account, addresses.VALID);
-      conn.send(fixtures.accountInfoResponse(message));
-    });
-
-    self.wss.once('request_submit', function(message, conn) {
-      assert.strictEqual(message.command, 'submit');
-      assert(message.hasOwnProperty('tx_blob'));
-
-      conn.send(fixtures.submitSettingsResponse(message, lastLedger + LEDGER_OFFSET));
-    
-      process.nextTick(function() {
-        conn.send(fixtures.settingsValidatedResponse());
-      });
-    });
-
-    self.app
-    .post(fixtures.requestPath(addresses.VALID, "?validated=true"))
-    .send({
-      secret: addresses.SECRET,
-      settings: {
-        require_destination_tag: true,
-        require_authorization: true,
-        disallow_xrp: true,
-        domain: 'example.com',
-        email_hash: '23463B99B62A72F26ED677CC556C44E8',
-        wallet_locator: 'DEADBEEF',
-        wallet_size: 1,
-        transfer_rate: 2,
-        no_freeze: false,
-        global_freeze: true
-      }})
-      .expect(testutils.checkStatus(200))
-      .expect(testutils.checkHeaders)
-      .expect(testutils.checkBody(fixtures.RESTAccountSettingsSubmitResponse(lastLedger, 'validated')))
-      .end(done);
-  });
-
-  test('/accounts/:account/settings -- with validated true and ledger sequence too high error', function(done) {
-    var lastLedger = self.app.remote._ledger_current_index;
-
-    self.wss.once('request_account_info', function(message, conn) {
-      assert.strictEqual(message.command, 'account_info');
-      assert.strictEqual(message.account, addresses.VALID);
-      conn.send(fixtures.accountInfoResponse(message));
-    });
-
-    self.wss.once('request_submit', function(message, conn) {
-      assert.strictEqual(message.command, 'submit');
-      assert(message.hasOwnProperty('tx_blob'));
-
-      conn.send(fixtures.ledgerSequenceTooHighResponse(message));
-    });
-
-    self.app
-    .post(fixtures.requestPath(addresses.VALID, "?validated=true"))
-    .send({
-      secret: addresses.SECRET,
-      settings: {
-        require_destination_tag: true,
-        require_authorization: true,
-        disallow_xrp: true,
-        domain: 'example.com',
-        email_hash: '23463B99B62A72F26ED677CC556C44E8',
-        wallet_locator: 'DEADBEEF',
-        wallet_size: 1,
-        transfer_rate: 2,
-        no_freeze: false,
-        global_freeze: true
-      }})
-      .expect(testutils.checkStatus(500))
-      .expect(testutils.checkHeaders)
-      .expect(testutils.checkBody(errors.RESTResponseLedgerSequenceTooHigh))
-      .end(done);
-  });
-
-  test('/accounts/:account/settings -- with validated true and invalid secret error', function(done) {
-    var lastLedger = self.app.remote._ledger_current_index;
-
-    self.wss.once('request_account_info', function(message, conn) {
-      assert.strictEqual(message.command, 'account_info');
-      assert.strictEqual(message.account, addresses.VALID);
-      conn.send(fixtures.accountInfoResponse(message));
-    });
-
-    self.wss.once('request_submit', function(message, conn) {
-      assert(false);
-    });
-
-    self.app
-    .post(fixtures.requestPath(addresses.VALID, "?validated=true"))
-    .send({
-      secret: addresses.SECRET + 'test',
-      settings: {
-        require_destination_tag: true,
-        require_authorization: true,
-        disallow_xrp: true,
-        domain: 'example.com',
-        email_hash: '23463B99B62A72F26ED677CC556C44E8',
-        wallet_locator: 'DEADBEEF',
-        wallet_size: 1,
-        transfer_rate: 2,
-        no_freeze: false,
-        global_freeze: true
-      }})
-      .expect(testutils.checkStatus(500))
-      .expect(testutils.checkHeaders)
-      .expect(testutils.checkBody(errors.RESTInvalidSecret))
-      .end(done);
-  });
-
-  test('/accounts/:account/settings -- with validated false and transaction verified response', function(done) {
-    var lastLedger = self.app.remote._ledger_current_index;
-
-    self.wss.once('request_account_info', function(message, conn) {
-      assert.strictEqual(message.command, 'account_info');
-      assert.strictEqual(message.account, addresses.VALID);
-      conn.send(fixtures.accountInfoResponse(message));
-    });
-
-    self.wss.once('request_submit', function(message, conn) {
-      assert.strictEqual(message.command, 'submit');
-      assert(message.hasOwnProperty('tx_blob'));
-
-      conn.send(fixtures.submitSettingsResponse(message, lastLedger + LEDGER_OFFSET));
-    });
-
-    self.app
-    .post(fixtures.requestPath(addresses.VALID, "?validated=false"))
-    .send({
-      secret: addresses.SECRET,
-      settings: {
-        require_destination_tag: true,
-        require_authorization: true,
-        disallow_xrp: true,
-        domain: 'example.com',
-        email_hash: '23463B99B62A72F26ED677CC556C44E8',
-        wallet_locator: 'DEADBEEF',
-        wallet_size: 1,
-        transfer_rate: 2,
-        no_freeze: false,
-        global_freeze: true
-      }})
-      .expect(testutils.checkStatus(200))
-      .expect(testutils.checkHeaders)
-      .expect(testutils.checkBody(fixtures.RESTAccountSettingsSubmitResponse(lastLedger, 'pending')))
-      .end(done);
-  });
-
-  test('/accounts/:account/settings -- with validated false and ledger sequence too high error', function(done) {
-    var lastLedger = self.app.remote._ledger_current_index;
-
-    self.wss.once('request_account_info', function(message, conn) {
-      assert.strictEqual(message.command, 'account_info');
-      assert.strictEqual(message.account, addresses.VALID);
-      conn.send(fixtures.accountInfoResponse(message));
-    });
-
-    self.wss.once('request_submit', function(message, conn) {
-      assert.strictEqual(message.command, 'submit');
-      assert(message.hasOwnProperty('tx_blob'));
-
-      conn.send(fixtures.ledgerSequenceTooHighResponse(message));
-    });
-
-    self.app
-    .post(fixtures.requestPath(addresses.VALID, "?validated=false"))
-    .send({
-      secret: addresses.SECRET,
-      settings: {
-        require_destination_tag: true,
-        require_authorization: true,
-        disallow_xrp: true,
-        domain: 'example.com',
-        email_hash: '23463B99B62A72F26ED677CC556C44E8',
-        wallet_locator: 'DEADBEEF',
-        wallet_size: 1,
-        transfer_rate: 2,
-        no_freeze: false,
-        global_freeze: true
-      }})
-      .expect(testutils.checkStatus(500))
-      .expect(testutils.checkHeaders)
-      .expect(testutils.checkBody(errors.RESTResponseLedgerSequenceTooHigh))
-      .end(done);
-  });
-
-  test('/accounts/:account/settings -- with validated false and invalid secret error', function(done) {
-    var lastLedger = self.app.remote._ledger_current_index;
-
-    self.wss.once('request_account_info', function(message, conn) {
-      assert.strictEqual(message.command, 'account_info');
-      assert.strictEqual(message.account, addresses.VALID);
-      conn.send(fixtures.accountInfoResponse(message));
-    });
-
-    self.wss.once('request_submit', function(message, conn) {
-      assert(false);
-    });
-
-    self.app
-    .post(fixtures.requestPath(addresses.VALID, "?validated=false"))
-    .send({
-      secret: addresses.SECRET + 'test',
-      settings: {
-        require_destination_tag: true,
-        require_authorization: true,
-        disallow_xrp: true,
-        domain: 'example.com',
-        email_hash: '23463B99B62A72F26ED677CC556C44E8',
-        wallet_locator: 'DEADBEEF',
-        wallet_size: 1,
-        transfer_rate: 2,
-        no_freeze: false,
-        global_freeze: true
-      }})
-      .expect(testutils.checkStatus(500))
-      .expect(testutils.checkHeaders)
-      .expect(testutils.checkBody(errors.RESTInvalidSecret))
-      .end(done);
-  });
-
   test('/accounts/:account/settings', function(done) {
-    var lastLedger = self.app.remote._ledger_current_index;
+    var currentLedger = self.app.remote._ledger_current_index;
+    var lastLedger = currentLedger + testutils.LEDGER_OFFSET;
 
     self.wss.once('request_account_info', function(message, conn) {
       assert.strictEqual(message.command, 'account_info');
@@ -315,11 +87,11 @@ suite('post settings', function() {
       assert.strictEqual(so.ClearFlag, 6);
       assert.strictEqual(so.SetFlag, 7);
       assert.strictEqual(typeof so.Sequence, 'number');
-      assert.strictEqual(so.LastLedgerSequence, lastLedger + LEDGER_OFFSET);
       assert.strictEqual(so.Fee, '12');
       assert.strictEqual(so.Account, 'r3GgMwvgvP8h4yVWvjH1dPZNvC37TjzBBE');
+      assert.strictEqual(so.LastLedgerSequence, lastLedger);
 
-      conn.send(fixtures.submitSettingsResponse(message, lastLedger + LEDGER_OFFSET));
+      conn.send(fixtures.submitSettingsResponse(message, lastLedger));
     });
 
     self.app
@@ -339,9 +111,9 @@ suite('post settings', function() {
         no_freeze: false,
         global_freeze: true
       }})
+      .expect(testutils.checkBody(fixtures.RESTAccountSettingsSubmitResponse(currentLedger, 'pending')))
       .expect(testutils.checkStatus(200))
       .expect(testutils.checkHeaders)
-      .expect(testutils.checkBody(fixtures.RESTAccountSettingsSubmitResponse(lastLedger, 'pending')))
       .end(done);
   });
 
@@ -773,6 +545,9 @@ suite('post settings', function() {
   });
 
   test('/accounts/:account/settings -- clear setting -- require_destination_tag', function(done) {
+    var currentLedger = self.app.remote._ledger_current_index;
+    var lastLedger = currentLedger + testutils.LEDGER_OFFSET;
+
     self.wss.once('request_account_info', function(message, conn) {
       assert.strictEqual(message.command, 'account_info');
       assert.strictEqual(message.account, addresses.VALID);
@@ -788,11 +563,11 @@ suite('post settings', function() {
       assert.strictEqual(so.TransactionType, 'AccountSet');
       assert.strictEqual(so.Flags, 2147614720);
       assert.strictEqual(typeof so.Sequence, 'number');
-      assert.strictEqual(so.LastLedgerSequence, self.app.remote._ledger_current_index + LEDGER_OFFSET);
       assert.strictEqual(so.Fee, '12');
       assert.strictEqual(so.Account, 'r3GgMwvgvP8h4yVWvjH1dPZNvC37TjzBBE');
+      assert.strictEqual(so.LastLedgerSequence, lastLedger);
 
-      conn.send(fixtures.submitSettingsResponse(message));
+      conn.send(fixtures.submitSettingsResponse(message, lastLedger));
     });
 
     self.app
@@ -808,6 +583,9 @@ suite('post settings', function() {
   });
 
   test('/accounts/:account/settings -- clear setting -- domain', function(done) {
+    var currentLedger = self.app.remote._ledger_current_index;
+    var lastLedger = currentLedger + testutils.LEDGER_OFFSET;
+
     self.wss.once('request_account_info', function(message, conn) {
       assert.strictEqual(message.command, 'account_info');
       assert.strictEqual(message.account, addresses.VALID);
@@ -823,10 +601,10 @@ suite('post settings', function() {
       assert.strictEqual(so.TransactionType, 'AccountSet');
       assert.strictEqual(so.Flags, 2147483648);
       assert.strictEqual(typeof so.Sequence, 'number');
-      assert.strictEqual(so.LastLedgerSequence, self.app.remote._ledger_current_index + LEDGER_OFFSET);
       assert.strictEqual(so.Domain, '');
       assert.strictEqual(so.Fee, '12');
       assert.strictEqual(so.Account, 'r3GgMwvgvP8h4yVWvjH1dPZNvC37TjzBBE');
+      assert.strictEqual(so.LastLedgerSequence, lastLedger);
 
       conn.send(fixtures.submitSettingsResponse(message));
     });
@@ -844,6 +622,9 @@ suite('post settings', function() {
   });
 
   test('/accounts/:account/settings -- clear setting -- email_hash', function(done) {
+    var currentLedger = self.app.remote._ledger_current_index;
+    var lastLedger = currentLedger + testutils.LEDGER_OFFSET;
+
     self.wss.once('request_account_info', function(message, conn) {
       assert.strictEqual(message.command, 'account_info');
       assert.strictEqual(message.account, addresses.VALID);
@@ -860,9 +641,9 @@ suite('post settings', function() {
       assert.strictEqual(so.Flags, 2147483648);
       assert.strictEqual(typeof so.Sequence, 'number');
       assert.strictEqual(so.EmailHash, new Array(32 + 1).join('0'));
-      assert.strictEqual(so.LastLedgerSequence, self.app.remote._ledger_current_index + LEDGER_OFFSET);
       assert.strictEqual(so.Fee, '12');
       assert.strictEqual(so.Account, 'r3GgMwvgvP8h4yVWvjH1dPZNvC37TjzBBE');
+      assert.strictEqual(so.LastLedgerSequence, lastLedger);
 
       conn.send(fixtures.submitSettingsResponse(message));
     });
@@ -880,6 +661,9 @@ suite('post settings', function() {
   });
 
   test('/accounts/:account/settings -- clear setting -- wallet_locator', function(done) {
+    var currentLedger = self.app.remote._ledger_current_index;
+    var lastLedger = currentLedger + testutils.LEDGER_OFFSET;
+
     self.wss.once('request_account_info', function(message, conn) {
       assert.strictEqual(message.command, 'account_info');
       assert.strictEqual(message.account, addresses.VALID);
@@ -896,9 +680,9 @@ suite('post settings', function() {
       assert.strictEqual(so.Flags, 2147483648);
       assert.strictEqual(typeof so.Sequence, 'number');
       assert.strictEqual(so.WalletLocator, new Array(64 + 1).join('0'));
-      assert.strictEqual(so.LastLedgerSequence, self.app.remote._ledger_current_index + LEDGER_OFFSET);
       assert.strictEqual(so.Fee, '12');
       assert.strictEqual(so.Account, 'r3GgMwvgvP8h4yVWvjH1dPZNvC37TjzBBE');
+      assert.strictEqual(so.LastLedgerSequence, lastLedger);
 
       conn.send(fixtures.submitSettingsResponse(message));
     });
@@ -916,6 +700,9 @@ suite('post settings', function() {
   });
 
   test('/accounts/:account/settings -- clear setting -- transfer_rate', function(done) {
+    var currentLedger = self.app.remote._ledger_current_index;
+    var lastLedger = currentLedger + testutils.LEDGER_OFFSET;
+
     self.wss.once('request_account_info', function(message, conn) {
       assert.strictEqual(message.command, 'account_info');
       assert.strictEqual(message.account, addresses.VALID);
@@ -932,9 +719,9 @@ suite('post settings', function() {
       assert.strictEqual(so.Flags, 2147483648);
       assert.strictEqual(typeof so.Sequence, 'number');
       assert.strictEqual(so.TransferRate, 0);
-      assert.strictEqual(so.LastLedgerSequence, self.app.remote._ledger_current_index + LEDGER_OFFSET);
       assert.strictEqual(so.Fee, '12');
       assert.strictEqual(so.Account, 'r3GgMwvgvP8h4yVWvjH1dPZNvC37TjzBBE');
+      assert.strictEqual(so.LastLedgerSequence, lastLedger);
 
       conn.send(fixtures.submitSettingsResponse(message));
     });
@@ -952,6 +739,9 @@ suite('post settings', function() {
   });
 
   test('/accounts/:account/settings -- clear setting -- no_freeze', function(done) {
+    var currentLedger = self.app.remote._ledger_current_index;
+    var lastLedger = currentLedger + testutils.LEDGER_OFFSET;
+
     self.wss.once('request_account_info', function(message, conn) {
       assert.strictEqual(message.command, 'account_info');
       assert.strictEqual(message.account, addresses.VALID);
@@ -967,9 +757,9 @@ suite('post settings', function() {
       assert.strictEqual(so.TransactionType, 'AccountSet');
       assert.strictEqual(typeof so.Sequence, 'number');
       assert.strictEqual(so.ClearFlag, 6);
-      assert.strictEqual(so.LastLedgerSequence, self.app.remote._ledger_current_index + LEDGER_OFFSET);
       assert.strictEqual(so.Fee, '12');
       assert.strictEqual(so.Account, 'r3GgMwvgvP8h4yVWvjH1dPZNvC37TjzBBE');
+      assert.strictEqual(so.LastLedgerSequence, lastLedger);
 
       conn.send(fixtures.submitSettingsResponse(message));
     });
@@ -1005,6 +795,233 @@ suite('post settings', function() {
       }})
       .expect(testutils.checkBody(fixtures.RESTInvalidFreezeResponse))
       .expect(testutils.checkStatus(400))
+      .expect(testutils.checkHeaders)
+      .end(done);
+  });
+
+  test('/accounts/:account/settings?validated=true -- validated', function(done) {
+    var currentLedger = self.app.remote._ledger_current_index;
+    var lastLedger = currentLedger + testutils.LEDGER_OFFSET;
+
+    self.wss.once('request_account_info', function(message, conn) {
+      assert.strictEqual(message.command, 'account_info');
+      assert.strictEqual(message.account, addresses.VALID);
+      conn.send(fixtures.accountInfoResponse(message));
+    });
+
+    self.wss.once('request_submit', function(message, conn) {
+      assert.strictEqual(message.command, 'submit');
+      assert(message.hasOwnProperty('tx_blob'));
+
+      conn.send(fixtures.submitSettingsResponse(message, lastLedger));
+
+      setImmediate(function() {
+        conn.send(fixtures.settingsValidatedResponse());
+      });
+    });
+
+    self.app
+    .post(fixtures.requestPath(addresses.VALID, '?validated=true'))
+    .send({
+      secret: addresses.SECRET,
+      settings: {
+        require_destination_tag: true,
+        require_authorization: true,
+        disallow_xrp: true,
+        domain: 'example.com',
+        email_hash: '23463B99B62A72F26ED677CC556C44E8',
+        wallet_locator: 'DEADBEEF',
+        wallet_size: 1,
+        transfer_rate: 2,
+        no_freeze: false,
+        global_freeze: true
+      }})
+      .expect(testutils.checkBody(fixtures.RESTAccountSettingsSubmitResponse(currentLedger, 'validated')))
+      .expect(testutils.checkStatus(200))
+      .expect(testutils.checkHeaders)
+      .end(done);
+  });
+
+  test('/accounts/:account/settings?validated=true -- submission failed', function(done) {
+    var lastLedger = self.app.remote._ledger_current_index;
+
+    self.wss.once('request_account_info', function(message, conn) {
+      assert.strictEqual(message.command, 'account_info');
+      assert.strictEqual(message.account, addresses.VALID);
+      conn.send(fixtures.accountInfoResponse(message));
+    });
+
+    self.wss.once('request_submit', function(message, conn) {
+      assert.strictEqual(message.command, 'submit');
+      assert(message.hasOwnProperty('tx_blob'));
+      conn.send(fixtures.ledgerSequenceTooHighResponse(message));
+      testutils.closeLedgers(conn);
+    });
+
+    self.app
+    .post(fixtures.requestPath(addresses.VALID, "?validated=true"))
+    .send({
+      secret: addresses.SECRET,
+      settings: {
+        require_destination_tag: true,
+        require_authorization: true,
+        disallow_xrp: true,
+        domain: 'example.com',
+        email_hash: '23463B99B62A72F26ED677CC556C44E8',
+        wallet_locator: 'DEADBEEF',
+        wallet_size: 1,
+        transfer_rate: 2,
+        no_freeze: false,
+        global_freeze: true
+      }})
+      .expect(testutils.checkBody(errors.RESTResponseLedgerSequenceTooHigh))
+      .expect(testutils.checkStatus(500))
+      .expect(testutils.checkHeaders)
+      .end(done);
+  });
+
+  test('/accounts/:account/settings?validated=true -- invalid secret', function(done) {
+    var lastLedger = self.app.remote._ledger_current_index;
+
+    self.wss.once('request_account_info', function(message, conn) {
+      assert.strictEqual(message.command, 'account_info');
+      assert.strictEqual(message.account, addresses.VALID);
+      conn.send(fixtures.accountInfoResponse(message));
+    });
+
+    self.wss.once('request_submit', function(message, conn) {
+      assert(false, 'Should not request submit');
+    });
+
+    self.app
+    .post(fixtures.requestPath(addresses.VALID, '?validated=true'))
+    .send({
+      secret: addresses.SECRET + 'test',
+      settings: {
+        require_destination_tag: true,
+        require_authorization: true,
+        disallow_xrp: true,
+        domain: 'example.com',
+        email_hash: '23463B99B62A72F26ED677CC556C44E8',
+        wallet_locator: 'DEADBEEF',
+        wallet_size: 1,
+        transfer_rate: 2,
+        no_freeze: false,
+        global_freeze: true
+      }})
+      .expect(testutils.checkBody(errors.RESTInvalidSecret))
+      .expect(testutils.checkStatus(500))
+      .expect(testutils.checkHeaders)
+      .end(done);
+  });
+
+  test('/accounts/:account/settings?validated=false -- submission success', function(done) {
+    var currentLedger = self.app.remote._ledger_current_index;
+    var lastLedger = currentLedger + testutils.LEDGER_OFFSET;
+
+    self.wss.once('request_account_info', function(message, conn) {
+      assert.strictEqual(message.command, 'account_info');
+      assert.strictEqual(message.account, addresses.VALID);
+      conn.send(fixtures.accountInfoResponse(message));
+    });
+
+    self.wss.once('request_submit', function(message, conn) {
+      assert.strictEqual(message.command, 'submit');
+      assert(message.hasOwnProperty('tx_blob'));
+      conn.send(fixtures.submitSettingsResponse(message, lastLedger));
+    });
+
+    self.app
+    .post(fixtures.requestPath(addresses.VALID, '?validated=false'))
+    .send({
+      secret: addresses.SECRET,
+      settings: {
+        require_destination_tag: true,
+        require_authorization: true,
+        disallow_xrp: true,
+        domain: 'example.com',
+        email_hash: '23463B99B62A72F26ED677CC556C44E8',
+        wallet_locator: 'DEADBEEF',
+        wallet_size: 1,
+        transfer_rate: 2,
+        no_freeze: false,
+        global_freeze: true
+      }})
+      .expect(testutils.checkBody(fixtures.RESTAccountSettingsSubmitResponse(currentLedger, 'pending')))
+      .expect(testutils.checkStatus(200))
+      .expect(testutils.checkHeaders)
+      .end(done);
+  });
+
+  test('/accounts/:account/settings?validated=false -- submission failed', function(done) {
+    var lastLedger = self.app.remote._ledger_current_index;
+
+    self.wss.once('request_account_info', function(message, conn) {
+      assert.strictEqual(message.command, 'account_info');
+      assert.strictEqual(message.account, addresses.VALID);
+      conn.send(fixtures.accountInfoResponse(message));
+    });
+
+    self.wss.once('request_submit', function(message, conn) {
+      assert.strictEqual(message.command, 'submit');
+      assert(message.hasOwnProperty('tx_blob'));
+      conn.send(fixtures.ledgerSequenceTooHighResponse(message));
+      testutils.closeLedgers(conn);
+    });
+
+    self.app
+    .post(fixtures.requestPath(addresses.VALID, '?validated=false'))
+    .send({
+      secret: addresses.SECRET,
+      settings: {
+        require_destination_tag: true,
+        require_authorization: true,
+        disallow_xrp: true,
+        domain: 'example.com',
+        email_hash: '23463B99B62A72F26ED677CC556C44E8',
+        wallet_locator: 'DEADBEEF',
+        wallet_size: 1,
+        transfer_rate: 2,
+        no_freeze: false,
+        global_freeze: true
+      }})
+      .expect(testutils.checkBody(errors.RESTResponseLedgerSequenceTooHigh))
+      .expect(testutils.checkStatus(500))
+      .expect(testutils.checkHeaders)
+      .end(done);
+  });
+
+  test('/accounts/:account/settings?validated=false -- invalid secret', function(done) {
+    var lastLedger = self.app.remote._ledger_current_index;
+
+    self.wss.once('request_account_info', function(message, conn) {
+      assert.strictEqual(message.command, 'account_info');
+      assert.strictEqual(message.account, addresses.VALID);
+      conn.send(fixtures.accountInfoResponse(message));
+    });
+
+    self.wss.once('request_submit', function(message, conn) {
+      assert(false, 'Should not request submit');
+    });
+
+    self.app
+    .post(fixtures.requestPath(addresses.VALID, '?validated=false'))
+    .send({
+      secret: addresses.SECRET + 'test',
+      settings: {
+        require_destination_tag: true,
+        require_authorization: true,
+        disallow_xrp: true,
+        domain: 'example.com',
+        email_hash: '23463B99B62A72F26ED677CC556C44E8',
+        wallet_locator: 'DEADBEEF',
+        wallet_size: 1,
+        transfer_rate: 2,
+        no_freeze: false,
+        global_freeze: true
+      }})
+      .expect(testutils.checkBody(errors.RESTInvalidSecret))
+      .expect(testutils.checkStatus(500))
       .expect(testutils.checkHeaders)
       .end(done);
   });

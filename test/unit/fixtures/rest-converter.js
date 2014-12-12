@@ -53,10 +53,8 @@ module.exports.paymentTx = {
     Destination: 'rvYAfWj5gh67oV6fW32ZzP3Aw4Eubs59B'
   },
   clientID: undefined,
-  submittedIDs: [
-
-  ],
-  submissionAttempts: undefined,
+  submittedIDs: [ ],
+  submissionAttempts: 0,
   submitIndex: undefined,
   initialSubmitIndex: undefined,
   lastLedgerSequence: undefined,
@@ -74,10 +72,8 @@ module.exports.paymentTxXRP = {
     Destination: 'rvYAfWj5gh67oV6fW32ZzP3Aw4Eubs59B'
   },
   clientID: undefined,
-  submittedIDs: [
-
-  ],
-  submissionAttempts: undefined,
+  submittedIDs: [ ],
+  submissionAttempts: 0,
   submitIndex: undefined,
   initialSubmitIndex: undefined,
   lastLedgerSequence: undefined,
@@ -99,10 +95,8 @@ module.exports.paymentTxComplex = {
     Destination: 'rsE6ZLDkXhSvfJHvSqFPhdazsoMgCEC52V'
   },
   clientID: undefined,
-  submittedIDs: [
-
-  ],
-  submissionAttempts: undefined,
+  submittedIDs: [ ],
+  submissionAttempts: 0,
   submitIndex: undefined,
   initialSubmitIndex: undefined,
   lastLedgerSequence: undefined,

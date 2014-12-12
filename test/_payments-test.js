@@ -654,7 +654,7 @@ suite('payments', function() {
       .end(done);
   });
 
-  test('grant a trustline of 10 usd towards alice', function(done) {
+  test.skip('grant a trustline of 10 usd towards alice', function(done) {
     orderlist.create([
       {command:'subscribe'},
       {command:'account_info'},
@@ -918,7 +918,7 @@ suite('payments', function() {
       .end(done);
   });
 
-  test('dan grants a trustline of 10 usd towards carol but uses carols address in the accounts setting', function(done) {
+  test.skip('dan grants a trustline of 10 usd towards carol but uses carols address in the accounts setting', function(done) {
     // mocha is NOT overriding the timeout contrary to documentation
     this.timeout(1000);
     app.post('/v1/accounts/'+fixtures.accounts.carol.address+'/trustlines')
@@ -962,7 +962,7 @@ suite('payments', function() {
       .end(done);
   });
 
-  test('dan grants a trustline of 10 usd towards carol and uses correct address in the accounts setting but incorrect secret', function(done) {
+  test.skip('dan grants a trustline of 10 usd towards carol and uses correct address in the accounts setting but incorrect secret', function(done) {
     app.post('/v1/accounts/'+fixtures.accounts.dan.address+'/trustlines')
       .send({
         "secret": fixtures.accounts.carol.secret,
@@ -1064,7 +1064,7 @@ suite('payments', function() {
       })
   });
 
-  test('Posting 10USD from carol to dan with valid client resource id but incorrect secret',function(done) {
+  test.skip('Posting 10USD from carol to dan with valid client resource id but incorrect secret',function(done) {
     app.post('/v1/accounts/' + fixtures.accounts.alice.address + '/payments')
       .send(store.paymentCarolToDan)
       .expect(function(resp) {

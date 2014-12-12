@@ -6,8 +6,6 @@ var fixtures = require('./fixtures').trustlines;
 var errors = require('./fixtures').errors;
 var addresses = require('./fixtures').addresses;
 
-// Transaction LastLedgerSequence offset from current ledger sequence
-const LEDGER_OFFSET = 8;
 const LIMIT = 5;
 
 const MARKER = '29F992CC252056BF690107D1E8F2D9FBAFF29FF107B62B1D1F4E4E11ADF2CC73';
@@ -542,6 +540,8 @@ suite('post trustlines', function() {
       assert(message.hasOwnProperty('tx_blob'),
         'Missing signed transaction blob');
       conn.send(fixtures.ledgerSequenceTooHighResponse(message));
+
+      testutils.closeLedgers(conn);
     });
 
     testPostRequest({
@@ -615,7 +615,10 @@ suite('post trustlines', function() {
       assert.strictEqual(message.command, 'submit');
       assert(message.hasOwnProperty('tx_blob'),
         'Missing signed transaction blob');
+
       conn.send(fixtures.ledgerSequenceTooHighResponse(message));
+
+      testutils.closeLedgers(conn);
     });
 
     testPostRequest({
@@ -650,6 +653,9 @@ suite('post trustlines', function() {
   });
 
   test('/accounts/:account/trustlines', function(done) {
+    var currentLedger = self.app.remote._ledger_current_index;
+    var lastLedger = currentLedger + testutils.LEDGER_OFFSET;
+
     self.wss.once('request_account_info', function(message, conn) {
       assert.strictEqual(message.command, 'account_info');
       assert.strictEqual(message.account, addresses.VALID);
@@ -666,8 +672,6 @@ suite('post trustlines', function() {
       assert.strictEqual(so.TransactionType, 'TrustSet');
       assert.strictEqual(so.Flags, 2147483648);
       assert.strictEqual(typeof so.Sequence, 'number');
-      assert.strictEqual(so.LastLedgerSequence, self.app.remote._ledger_current_index + LEDGER_OFFSET);
-
       assert.deepEqual(so.LimitAmount, {
         value: '1',
         currency: 'USD',
@@ -675,6 +679,7 @@ suite('post trustlines', function() {
       });
       assert.strictEqual(so.Fee, '12');
       assert.strictEqual(so.Account, addresses.VALID);
+      assert.strictEqual(so.LastLedgerSequence, lastLedger);
 
       conn.send(fixtures.submitTrustlineResponse(message));
     });
@@ -702,6 +707,9 @@ suite('post trustlines', function() {
   });
 
   test('/accounts/:account/trustlines -- no-rippling', function(done) {
+    var currentLedger = self.app.remote._ledger_current_index;
+    var lastLedger = currentLedger + testutils.LEDGER_OFFSET;
+
     self.wss.once('request_account_info', function(message, conn) {
       assert.strictEqual(message.command, 'account_info');
       assert.strictEqual(message.account, addresses.VALID);
@@ -718,8 +726,6 @@ suite('post trustlines', function() {
       assert.strictEqual(so.TransactionType, 'TrustSet');
       assert.strictEqual(so.Flags, 2147614720);
       assert.strictEqual(typeof so.Sequence, 'number');
-      assert.strictEqual(so.LastLedgerSequence, self.app.remote._ledger_current_index + LEDGER_OFFSET);
-
       assert.deepEqual(so.LimitAmount, {
         value: '1',
         currency: 'USD',
@@ -727,6 +733,7 @@ suite('post trustlines', function() {
       });
       assert.strictEqual(so.Fee, '12');
       assert.strictEqual(so.Account, addresses.VALID);
+      assert.strictEqual(so.LastLedgerSequence, lastLedger);
 
       conn.send(fixtures.submitTrustlineResponse(message, {
         flags: 2147614720
@@ -755,6 +762,9 @@ suite('post trustlines', function() {
   });
 
   test('/accounts/:account/trustlines -- frozen trustline', function(done) {
+    var currentLedger = self.app.remote._ledger_current_index;
+    var lastLedger = currentLedger + testutils.LEDGER_OFFSET;
+
     self.wss.once('request_account_info', function(message, conn) {
       assert.strictEqual(message.command, 'account_info');
       assert.strictEqual(message.account, addresses.VALID);
@@ -771,8 +781,6 @@ suite('post trustlines', function() {
       assert.strictEqual(so.TransactionType, 'TrustSet');
       assert.strictEqual(so.Flags, 2148532224);
       assert.strictEqual(typeof so.Sequence, 'number');
-      assert.strictEqual(so.LastLedgerSequence, self.app.remote._ledger_current_index + LEDGER_OFFSET);
-
       assert.deepEqual(so.LimitAmount, {
         value: '1',
         currency: 'USD',
@@ -780,6 +788,7 @@ suite('post trustlines', function() {
       });
       assert.strictEqual(so.Fee, '12');
       assert.strictEqual(so.Account, addresses.VALID);
+      assert.strictEqual(so.LastLedgerSequence, lastLedger);
 
       conn.send(fixtures.submitTrustlineResponse(message, {
         flags: 2148532224

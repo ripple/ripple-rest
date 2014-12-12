@@ -1,12 +1,12 @@
-var assert        = require('assert');
-var ripple        = require('ripple-lib');
-var _             = require('lodash');
-var testutils     = require('./testutils');
-var fixtures      = require('./fixtures').payments;
-var errors        = require('./fixtures').errors;
-var addresses     = require('./fixtures').addresses;
-var utils         = require('./../lib/utils');
-var requestPath   = fixtures.requestPath;
+var _           = require('lodash');
+var assert      = require('assert');
+var ripple      = require('ripple-lib');
+var testutils   = require('./testutils');
+var fixtures    = require('./fixtures').payments;
+var errors      = require('./fixtures').errors;
+var addresses   = require('./fixtures').addresses;
+var utils       = require('./../lib/utils');
+var requestPath = fixtures.requestPath;
 
 suite('get payments', function() {
   var self = this;
@@ -260,6 +260,7 @@ suite('post payments', function() {
     self.wss.once('request_submit', function(message, conn) {
       assert.strictEqual(message.command, 'submit');
       conn.send(fixtures.ledgerSequenceTooHighResponse(message));
+      testutils.closeLedgers(conn);
     });
 
     self.app
@@ -268,13 +269,9 @@ suite('post payments', function() {
       value: '0.001',
       currency: 'USD'
     }))
+    .expect(testutils.checkBody(errors.RESTResponseLedgerSequenceTooHigh))
     .expect(testutils.checkStatus(500))
     .expect(testutils.checkHeaders)
-    .expect(testutils.checkBody(errors.RESTErrorResponse({
-      type: 'transaction',
-      error: 'tefMAX_LEDGER',
-      message: 'Ledger sequence too high.'
-    })))
     .end(done);
   });
 
@@ -288,6 +285,7 @@ suite('post payments', function() {
     self.wss.once('request_submit', function(message, conn) {
       assert.strictEqual(message.command, 'submit');
       conn.send(fixtures.destinationTagNeededResponse(message));
+      testutils.closeLedgers(conn);
     });
 
     self.app
@@ -296,13 +294,9 @@ suite('post payments', function() {
       value: '0.001',
       currency: 'USD'
     }))
+    .expect(testutils.checkBody(errors.RESTResponseLedgerSequenceTooHigh))
     .expect(testutils.checkStatus(500))
     .expect(testutils.checkHeaders)
-    .expect(testutils.checkBody(errors.RESTErrorResponse({
-      type: 'transaction',
-      error: 'tefDST_TAG_NEEDED',
-      message: 'Destination tag required.'
-    })))
     .end(done);
   });
 
@@ -325,12 +319,9 @@ suite('post payments', function() {
       issuer: addresses.ISSUER,
       max_fee: utils.dropsToXrp(10)
     }))
+    .expect(testutils.checkBody(errors.RESTMaxFeeExceeded))
     .expect(testutils.checkStatus(500))
     .expect(testutils.checkHeaders)
-    .expect(testutils.checkBody(errors.RESTErrorResponse({
-      type: 'transaction',
-      error: 'Max fee exceeded'
-    })))
     .end(done);
   });
 
@@ -368,6 +359,7 @@ suite('post payments', function() {
     self.wss.once('request_submit', function(message, conn) {
       assert.strictEqual(message.command, 'submit');
       conn.send(fixtures.ledgerSequenceTooHighResponse(message));
+      testutils.closeLedgers(conn);
     });
 
     self.app
@@ -376,13 +368,9 @@ suite('post payments', function() {
       value: '0.001',
       currency: 'USD'
     }))
+    .expect(testutils.checkBody(errors.RESTResponseLedgerSequenceTooHigh))
     .expect(testutils.checkStatus(500))
     .expect(testutils.checkHeaders)
-    .expect(testutils.checkBody(errors.RESTErrorResponse({
-      type: 'transaction',
-      error: 'tefMAX_LEDGER',
-      message: 'Ledger sequence too high.'
-    })))
     .end(done);
   });
 
@@ -396,6 +384,7 @@ suite('post payments', function() {
     self.wss.once('request_submit', function(message, conn) {
       assert.strictEqual(message.command, 'submit');
       conn.send(fixtures.destinationTagNeededResponse(message));
+      testutils.closeLedgers(conn);
     });
 
     self.app
@@ -404,13 +393,9 @@ suite('post payments', function() {
       value: '0.001',
       currency: 'USD'
     }))
+    .expect(testutils.checkBody(errors.RESTResponseLedgerSequenceTooHigh))
     .expect(testutils.checkStatus(500))
     .expect(testutils.checkHeaders)
-    .expect(testutils.checkBody(errors.RESTErrorResponse({
-      type: 'transaction',
-      error: 'tefDST_TAG_NEEDED',
-      message: 'Destination tag required.'
-    })))
     .end(done);
   });
 
@@ -435,10 +420,7 @@ suite('post payments', function() {
     }))
     .expect(testutils.checkStatus(500))
     .expect(testutils.checkHeaders)
-    .expect(testutils.checkBody(errors.RESTErrorResponse({
-      type: 'transaction',
-      error: 'Max fee exceeded'
-    })))
+    .expect(testutils.checkBody(errors.RESTMaxFeeExceeded))
     .end(done);
   });
 
@@ -452,6 +434,7 @@ suite('post payments', function() {
     self.wss.once('request_submit', function(message, conn) {
       assert.strictEqual(message.command, 'submit');
       conn.send(fixtures.ledgerSequenceTooHighResponse(message));
+      testutils.closeLedgers(conn);
     });
 
     self.app
@@ -460,13 +443,9 @@ suite('post payments', function() {
       value: '0.001',
       currency: 'USD'
     }))
+    .expect(testutils.checkBody(errors.RESTResponseLedgerSequenceTooHigh))
     .expect(testutils.checkStatus(500))
     .expect(testutils.checkHeaders)
-    .expect(testutils.checkBody(errors.RESTErrorResponse({
-      type: 'transaction',
-      error: 'tefMAX_LEDGER',
-      message: 'Ledger sequence too high.'
-    })))
     .end(done);
   });
 
@@ -480,6 +459,7 @@ suite('post payments', function() {
     self.wss.once('request_submit', function(message, conn) {
       assert.strictEqual(message.command, 'submit');
       conn.send(fixtures.destinationTagNeededResponse(message));
+      testutils.closeLedgers(conn);
     });
 
     self.app
@@ -488,13 +468,9 @@ suite('post payments', function() {
       value: '0.001',
       currency: 'USD'
     }))
+    .expect(testutils.checkBody(errors.RESTResponseLedgerSequenceTooHigh))
     .expect(testutils.checkStatus(500))
     .expect(testutils.checkHeaders)
-    .expect(testutils.checkBody(errors.RESTErrorResponse({
-      type: 'transaction',
-      error: 'tefDST_TAG_NEEDED',
-      message: 'Destination tag required.'
-    })))
     .end(done);
   });
 
@@ -696,10 +672,7 @@ suite('post payments', function() {
     }))
     .expect(testutils.checkStatus(500))
     .expect(testutils.checkHeaders)
-    .expect(testutils.checkBody(errors.RESTErrorResponse({
-      type: 'transaction',
-      error: 'Invalid secret'
-    })))
+    .expect(testutils.checkBody(errors.RESTInvalidSecret))
     .end(done);
   });
 
@@ -713,6 +686,7 @@ suite('post payments', function() {
     self.wss.once('request_submit', function(message, conn) {
       assert.strictEqual(message.command, 'submit');
       conn.send(fixtures.ledgerSequenceTooHighResponse(message, 1));
+      testutils.closeLedgers(conn);
     });
 
     self.app
@@ -723,13 +697,9 @@ suite('post payments', function() {
       issuer: addresses.issuer,
       lastLedgerSequence: 1
     }))
+    .expect(testutils.checkBody(errors.RESTResponseLedgerSequenceTooHigh))
     .expect(testutils.checkStatus(500))
     .expect(testutils.checkHeaders)
-    .expect(testutils.checkBody(errors.RESTErrorResponse({
-      type: 'transaction',
-      error: 'tefMAX_LEDGER',
-      message: 'Ledger sequence too high.'
-    })))
     .end(done);
   });
 
@@ -772,12 +742,15 @@ suite('post payments', function() {
 
     self.wss.once('request_submit', function(message, conn) {
       assert.strictEqual(message.command, 'submit');
+
       conn.send(fixtures.rippledSubmitErrorResponse(message, {
         Fee: '15',
         engineResult: 'telINSUF_FEE_P',
         engineResultCode: '-394',
         engineResultMessage: 'Fee insufficient.'
       }));
+
+      testutils.closeLedgers(conn);
     });
 
     self.app
@@ -788,13 +761,9 @@ suite('post payments', function() {
       issuer: addresses.ISSUER,
       max_fee: 0.000015
     }))
+    .expect(testutils.checkBody(errors.RESTResponseLedgerSequenceTooHigh))
     .expect(testutils.checkStatus(500))
     .expect(testutils.checkHeaders)
-    .expect(testutils.checkBody(errors.RESTErrorResponse({
-        type: 'transaction',
-        error: 'telINSUF_FEE_P',
-        message: 'Fee insufficient. Please ensure that the source_address has sufficient XRP to pay the fee. If it does, please report this error, this service should handle setting the proper fee.'
-      })))
     .end(done);
   });
 
@@ -819,10 +788,7 @@ suite('post payments', function() {
     }))
     .expect(testutils.checkStatus(500))
     .expect(testutils.checkHeaders)
-    .expect(testutils.checkBody(errors.RESTErrorResponse({
-      type: 'transaction',
-      error: 'Max fee exceeded'
-    })))
+    .expect(testutils.checkBody(errors.RESTMaxFeeExceeded))
     .end(done);
   });
 
