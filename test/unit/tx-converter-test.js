@@ -6,7 +6,7 @@ var txToRestConverter = require('./../../lib/tx-to-rest-converter.js');
 suite('unit - converter - Tx to Rest', function() {
 
   test('parsePaymentFromTx()', function(done) {
-    var tx = fixtures.paymentTx;
+    var tx = fixtures.paymentTx();
     var options = {
       account: addresses.VALID
     };
@@ -17,6 +17,31 @@ suite('unit - converter - Tx to Rest', function() {
       done();
     });
 
+  });
+
+  test('parsePaymentFromTx() -- complicated meta', function(done) {
+    var tx = fixtures.paymentTx({
+      meta: fixtures.COMPLICATED_META
+    });
+    var options = {
+      account: addresses.VALID
+    };
+
+    txToRestConverter.parsePaymentFromTx(tx, options, function(err, payment) {
+      assert.strictEqual(err, null);
+
+      assert.deepEqual(payment.source_balance_changes, [
+        { value: '-0.834999999999999', currency: 'EUR', issuer: 'r3PDtZSa5LiYp1Ysn1vMuMzB59RzV3W9QH' },
+        { value: '-0.015', currency: 'XRP', issuer: '' }
+      ]);
+
+      assert.deepEqual(payment.destination_balance_changes, [
+        { value: '0.001666666666999', currency: 'EUR', issuer: 'r3PDtZSa5LiYp1Ysn1vMuMzB59RzV3W9QH' },
+        { value: '1', currency: 'USD', issuer: 'r3PDtZSa5LiYp1Ysn1vMuMzB59RzV3W9QH' }
+      ]);
+
+      done();
+    });
   });
 
   test('parsePaymentsFromPathFind()', function(done) {
