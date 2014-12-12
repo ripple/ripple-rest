@@ -18,38 +18,34 @@ const OfferCreateFlags = {
   FillOrKill:         { name: 'fill_or_kill', set: 'FillOrKill' } 
 };
 
+const DefaultPageLimit = 200;
+
+/**
+ * Get orders from the ripple network
+ *
+ *  @query
+ *  @param {String} [request.query.limit]    - Set a limit to the number of results returned
+ *  @param {String} [request.query.marker]   - Used to paginate results
+ *  @param {String} [request.query.ledger]   - The ledger index to query aginst (required if request.query.marker is present)
+ *
+ *  @url
+ *  @param {String} request.params.address  - The ripple address to query orders
+ *
+ *  @param {Express.js Response} response
+ *  @param {Express.js Next} next
+ */
 function getOrders(request, response, next) {
   var options = request.params;
+
+  options.isAggregate = request.param('limit') === 'all';
 
   Object.keys(request.query).forEach(function(param) {
     options[param] = request.query[param];
   });
 
-  options.limit = options.limit || request.body.limit;
-
   validateOptions(options)
   .then(getAccountOrders)
-  .then(function (result) {
-    var orders = {};
-
-    if (result.marker) {
-      orders.marker = result.marker;
-    }
-
-    if (result.limit) {
-      orders.limit = result.limit;
-    }
-
-    if (result.ledger_index) {
-      orders.ledger = result.ledger_index;
-    }
-
-    orders.validated = result.validated;
-
-    orders.orders = result.offers;
-
-    respond.success(response, orders);
-  })
+  .then(respondWithOrders)
   .catch(next);
 
   function validateOptions(options) {
@@ -64,12 +60,26 @@ function getOrders(request, response, next) {
     return promise;
   };
 
-  function getAccountOrders(options) {
+  function getAccountOrders(options, prevResult) {
+    if (prevResult && (!options.isAggregate || !prevResult.marker)) {
+      return Promise.resolve(prevResult);
+    }
+
     var promise = new Promise(function(resolve, reject) {
       var accountOrdersRequest;
-      var marker = request.query.marker;
-      var limit = validator.isValid(request.query.limit, 'UINT32') ? Number(request.query.limit) : void(0);
-      var ledger = utils.parseLedger(request.query.ledger);
+      var marker;
+      var ledger;
+      var limit;
+
+      if (prevResult) {
+        marker = prevResult.marker;
+        limit  = prevResult.limit;
+        ledger = prevResult.ledger_index;
+      } else {
+        marker = request.query.marker;
+        limit  = validator.isValid(request.query.limit, 'UINT32') ? Number(request.query.limit) : DefaultPageLimit;
+        ledger = utils.parseLedger(request.query.ledger);
+      }
 
       accountOrdersRequest = remote.requestAccountOffers({
         account: options.account,
@@ -79,12 +89,35 @@ function getOrders(request, response, next) {
       });
 
       accountOrdersRequest.once('error', reject);
-      accountOrdersRequest.once('success', resolve);
+      accountOrdersRequest.once('success', function(nextResult) {
+        nextResult.offers = prevResult ? nextResult.offers.concat(prevResult.offers) : nextResult.offers;
+        resolve([options, nextResult]);
+      });
       accountOrdersRequest.request();
     });
 
-    return promise;
+    return promise.spread(getAccountOrders);
   };
+
+  function respondWithOrders(result) {
+    var promise = new Promise(function (resolve, reject) {
+      var orders = {};
+
+      if (result.marker) {
+        orders.marker = result.marker;
+      }
+
+      orders.limit     = result.limit;
+      orders.ledger    = result.ledger_index;
+      orders.validated = result.validated;
+      orders.orders    = result.offers;
+
+      resolve(respond.success(response, orders));
+    });
+
+    return promise;
+  }
+
 };
 
 /**

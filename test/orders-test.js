@@ -11,6 +11,7 @@ const HEX_CURRENCY = '0158415500000000C1F76FF6ECB0BAC600000000';
 const ISSUER = 'rvYAfWj5gh67oV6fW32ZzP3Aw4Eubs59B'
 const VALUE = '0.00000001'
 
+const DEFAULT_LIMIT = 200;
 const LIMIT = 100;
 
 const MARKER = '29F992CC252056BF690107D1E8F2D9FBAFF29FF107B62B1D1F4E4E11ADF2CC73';
@@ -29,10 +30,11 @@ suite('get orders', function() {
       assert.strictEqual(message.command, 'account_offers');
       assert.strictEqual(message.account, addresses.VALID);
       assert.strictEqual(message.ledger_index, 'validated');
+      assert.strictEqual(message.limit, DEFAULT_LIMIT);
       conn.send(fixtures.accountOrdersResponse(message,{
         ledger: LEDGER,
         marker: NEXT_MARKER,
-        limit: LIMIT
+        limit: DEFAULT_LIMIT
       }));
     });
 
@@ -43,10 +45,54 @@ suite('get orders', function() {
     .expect(testutils.checkBody(fixtures.RESTAccountOrdersResponse({
         ledger: LEDGER,
         marker: NEXT_MARKER,
-        limit: LIMIT
+        limit: DEFAULT_LIMIT
     })))
     .end(done);
   });
+
+  test('/accounts/:account/orders -- with limit=all', function(done) {
+    self.wss.on('request_account_offers', function(message, conn) {
+      if (message.ledger_index === 'validated') {
+        assert.strictEqual(message.command, 'account_offers');
+        assert.strictEqual(message.account, addresses.VALID);
+        assert.strictEqual(message.ledger_index, 'validated');
+        assert.strictEqual(message.marker, void(0));
+        assert.notEqual(message.limit, 'all');
+        conn.send(fixtures.accountOrdersResponse(message,{
+          ledger: LEDGER,
+          marker: NEXT_MARKER
+        }));
+      } else {
+        assert.strictEqual(message.command, 'account_offers');
+        assert.strictEqual(message.account, addresses.VALID);
+        assert.strictEqual(message.ledger_index, LEDGER);
+        assert.strictEqual(message.marker, NEXT_MARKER);
+        assert.notEqual(message.limit, 'all');
+        conn.send(fixtures.accountOrdersResponse(message,{
+          ledger: LEDGER,
+          marker: void(0)
+        }));
+      }
+    });
+
+    self.app
+    .get('/v1/accounts/' + addresses.VALID + '/orders?limit=all')
+    .expect(testutils.checkStatus(200))
+    .expect(testutils.checkHeaders)
+    .end(function(err, res) {
+      if (err) return done(err);
+
+      assert.strictEqual(res.body.orders.length, 34);
+      assert.strictEqual(res.body.limit, void(0));
+      assert.strictEqual(res.body.marker, void(0));
+      assert.strictEqual(res.body.ledger, LEDGER);
+      assert.strictEqual(res.body.validated, true);
+
+      done();
+
+    });
+  });
+
 
   test('/accounts/:account/orders -- with invalid ledger', function(done) {
     self.wss.once('request_account_offers', function(message, conn) {
