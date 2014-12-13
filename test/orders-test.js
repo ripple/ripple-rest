@@ -463,8 +463,6 @@ suite('post orders', function() {
   });
 
   test('/orders -- with validated true and ledger sequence too high error', function(done) {
-    var hash = testutils.generateHash();
-
     self.wss.once('request_account_info', function(message, conn) {
       assert.strictEqual(message.command, 'account_info');
       assert.strictEqual(message.account, addresses.VALID);
@@ -487,8 +485,6 @@ suite('post orders', function() {
   });
 
   test('/orders -- with validated true and invalid secret', function(done) {
-    var hash = testutils.generateHash();
-
     self.wss.once('request_account_info', function(message, conn) {
       assert.strictEqual(message.command, 'account_info');
       assert.strictEqual(message.account, addresses.VALID);
@@ -546,8 +542,6 @@ suite('post orders', function() {
   });
 
   test('/orders -- with validated false and ledger sequence too high error', function(done) {
-    var hash = testutils.generateHash();
-
     self.wss.once('request_account_info', function(message, conn) {
       assert.strictEqual(message.command, 'account_info');
       assert.strictEqual(message.account, addresses.VALID);
@@ -570,8 +564,6 @@ suite('post orders', function() {
   });
 
   test('/orders -- with validated false and invalid secret', function(done) {
-    var hash = testutils.generateHash();
-
     self.wss.once('request_account_info', function(message, conn) {
       assert.strictEqual(message.command, 'account_info');
       assert.strictEqual(message.account, addresses.VALID);
@@ -1058,8 +1050,6 @@ suite('post orders', function() {
   });
 
   test('/orders -- with ledger sequence too high response', function(done) {
-    var hash = testutils.generateHash();
-
     self.wss.once('request_account_info', function(message, conn) {
       assert.strictEqual(message.command, 'account_info');
       assert.strictEqual(message.account, addresses.VALID);
@@ -1312,8 +1302,6 @@ suite('delete orders', function() {
   });
 
   test('/orders/:sequence -- with validated true and ledger sequence too high error', function(done) {
-    var hash = testutils.generateHash();
-
     self.wss.once('request_account_info', function(message, conn) {
       assert.strictEqual(message.command, 'account_info');
       assert.strictEqual(message.account, addresses.VALID);
@@ -1338,8 +1326,6 @@ suite('delete orders', function() {
   });
 
   test('/orders/:sequence -- with validated true and invalid secret', function(done) {
-    var hash = testutils.generateHash();
-
     self.wss.once('request_account_info', function(message, conn) {
       assert.strictEqual(message.command, 'account_info');
       assert.strictEqual(message.account, addresses.VALID);
@@ -1399,9 +1385,6 @@ suite('delete orders', function() {
   });
 
   test('/orders/:sequence -- with validated false and ledger sequence too high error', function(done) {
-    var lastLedger = self.app.remote._ledger_current_index;
-    var hash = testutils.generateHash();
-
     self.wss.once('request_account_info', function(message, conn) {
       assert.strictEqual(message.command, 'account_info');
       assert.strictEqual(message.account, addresses.VALID);
@@ -1426,9 +1409,6 @@ suite('delete orders', function() {
   });
 
   test('/orders/:sequence -- with validated false and invalid secret', function(done) {
-    var lastLedger = self.app.remote._ledger_current_index;
-    var hash = testutils.generateHash();
-
     self.wss.once('request_account_info', function(message, conn) {
       assert.strictEqual(message.command, 'account_info');
       assert.strictEqual(message.account, addresses.VALID);
@@ -1522,8 +1502,6 @@ suite('delete orders', function() {
   });
 
   test('/orders/:sequence -- with ledger sequence too high error', function(done) {
-    var hash = testutils.generateHash();
-
     self.wss.once('request_account_info', function(message, conn) {
       assert.strictEqual(message.command, 'account_info');
       assert.strictEqual(message.account, addresses.VALID);
