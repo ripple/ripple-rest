@@ -402,7 +402,9 @@ suite('post orders', function() {
 
     self.app
     .post('/v1/accounts/' + addresses.VALID + '/orders')
-    .send(fixtures.order({taker_gets: VALUE + '/' + HEX_CURRENCY + '/' + ISSUER}))
+    .send(fixtures.order({
+      taker_gets: options.taker_gets
+    }))
     .expect(testutils.checkStatus(200))
     .expect(testutils.checkHeaders)
     .end(function(err, res) {
@@ -448,7 +450,9 @@ suite('post orders', function() {
 
     self.app
     .post('/v1/accounts/' + addresses.VALID + '/orders')
-    .send(fixtures.order({taker_pays: VALUE + '/' + HEX_CURRENCY + '/' + ISSUER}))
+    .send(fixtures.order({ 
+      taker_pays: options.taker_pays
+    }))
     .expect(testutils.checkStatus(200))
     .expect(testutils.checkHeaders)
     .end(function(err, res) {
@@ -950,26 +954,34 @@ suite('post orders', function() {
       assert.strictEqual(message.command, 'submit');
       assert.strictEqual(so.Account, addresses.VALID);
       assert.strictEqual(so.TransactionType, 'OfferCreate');
-      assert.deepEqual(so.TakerGets, '100000');
+      assert.deepEqual(so.TakerGets, '100000000000');
 
       conn.send(fixtures.requestSubmitResponse(message, {
         hash: hash,
-        taker_gets: '100000'
+        taker_gets: '100000000000'
       }));
     });
 
     self.app
     .post('/v1/accounts/' + addresses.VALID + '/orders')
     .send(fixtures.order({
-      taker_gets: '100000'
+      taker_gets: {
+        currency: 'XRP',
+        value: '100000',
+        issuer: ''
+      }
     }))
-    .expect(testutils.checkStatus(200))
-    .expect(testutils.checkHeaders)
     .expect(testutils.checkBody(fixtures.RESTSubmitTransactionResponse({
       hash: hash,
       last_ledger: lastLedger,
-      taker_gets: '100000'
+      taker_gets: {
+        currency: 'XRP',
+        value: '100000',
+        issuer: ''
+      }
     })))
+    .expect(testutils.checkStatus(200))
+    .expect(testutils.checkHeaders)
     .end(done);
   });
 
@@ -988,25 +1000,32 @@ suite('post orders', function() {
       assert.strictEqual(message.command, 'submit');
       assert.strictEqual(so.Account, addresses.VALID);
       assert.strictEqual(so.TransactionType, 'OfferCreate');
-      assert.deepEqual(so.TakerPays, '100000');
+      assert.deepEqual(so.TakerPays, '100000000000');
 
       conn.send(fixtures.requestSubmitResponse(message, {
         hash: hash,
-        taker_pays: '100000'
+        taker_pays: '100000000000'
       }));
     });
 
     self.app
     .post('/v1/accounts/' + addresses.VALID + '/orders')
     .send(fixtures.order({
-      taker_pays: '100000'
+      taker_pays: {
+        currency: 'XRP',
+        value: '100000'
+      }
     }))
     .expect(testutils.checkStatus(200))
     .expect(testutils.checkHeaders)
     .expect(testutils.checkBody(fixtures.RESTSubmitTransactionResponse({
       hash: hash,
       last_ledger: lastLedger,
-      taker_pays: '100000'
+      taker_pays: {
+        currency: 'XRP',
+        value: '100000',
+        issuer: ''
+      }
     })))
     .end(done);
   });
@@ -1179,7 +1198,7 @@ suite('post orders', function() {
     .expect(testutils.checkHeaders)
     .expect(testutils.checkBody(errors.RESTErrorResponse({
       type: 'invalid_request',
-      error: 'Parameter must be in the format "amount[/currency/issuer]": taker_gets'
+      error: 'Parameter must be a valid Amount object: taker_gets'
     })))
     .end(done);
   });
@@ -1196,13 +1215,16 @@ suite('post orders', function() {
     self.app
     .post('/v1/accounts/' + addresses.VALID + '/orders')
     .send(fixtures.order({
-      taker_gets: '100/USD'
+      taker_gets: {
+        currency: 'USD',
+        value: '100'
+      }
     }))
     .expect(testutils.checkStatus(400))
     .expect(testutils.checkHeaders)
     .expect(testutils.checkBody(errors.RESTErrorResponse({
       type: 'invalid_request',
-      error: 'Parameter must be in the format "amount[/currency/issuer]": taker_gets'
+      error: 'Parameter must be a valid Amount object: taker_gets'
     })))
     .end(done);
   });
@@ -1225,7 +1247,7 @@ suite('post orders', function() {
     .expect(testutils.checkHeaders)
     .expect(testutils.checkBody(errors.RESTErrorResponse({
       type: 'invalid_request',
-      error: 'Parameter must be in the format "amount[/currency/issuer]": taker_pays'
+      error: 'Parameter must be a valid Amount object: taker_pays'
     })))
     .end(done);
   });
@@ -1242,13 +1264,16 @@ suite('post orders', function() {
     self.app
     .post('/v1/accounts/' + addresses.VALID + '/orders')
     .send(fixtures.order({
-      taker_pays: '100/USD'
+      taker_pays: {
+        currency: 'USD',
+        value: '100'
+      }
     }))
     .expect(testutils.checkStatus(400))
     .expect(testutils.checkHeaders)
     .expect(testutils.checkBody(errors.RESTErrorResponse({
       type: 'invalid_request',
-      error: 'Parameter must be in the format "amount[/currency/issuer]": taker_pays'
+      error: 'Parameter must be a valid Amount object: taker_pays'
     })))
     .end(done);
   });

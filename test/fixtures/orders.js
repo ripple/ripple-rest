@@ -27,8 +27,16 @@ module.exports.order = function(options) {
   _.defaults(options, {
     secret: addresses.SECRET,
     type: 'buy',
-    taker_gets: '100/USD/' + addresses.ISSUER,
-    taker_pays: '100/USD/' + addresses.ISSUER
+    taker_gets: {
+      currency: 'USD',
+      issuer: addresses.ISSUER,
+      value: '100'
+    },
+    taker_pays: {
+      currency: 'USD',
+      issuer: addresses.ISSUER,
+      value: '100'
+    }
   });
 
   return {
