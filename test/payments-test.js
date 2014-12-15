@@ -158,6 +158,39 @@ suite('post payments', function() {
       .end(done);
   });
 
+  test('/payments -- with fixed fee', function(done) {
+    var hash = testutils.generateHash();
+
+    self.wss.once('request_account_info', function(message, conn) {
+      assert.strictEqual(message.command, 'account_info');
+      assert.strictEqual(message.account, addresses.VALID);
+      conn.send(fixtures.accountInfoResponse(message));
+    });
+
+    self.wss.once('request_submit', function(message, conn) {
+      var so = new ripple.SerializedObject(message.tx_blob).to_json();
+      assert.strictEqual(message.command, 'submit');
+      assert.strictEqual(so.Fee, '5000000');
+      conn.send(fixtures.requestSubmitResponse(message, {
+        hash: hash,
+        fee: '5000000'
+      }));
+    });
+
+    self.app
+      .post('/v1/accounts/' + addresses.VALID + '/payments')
+      .send(fixtures.payment({
+        value: '0.001',
+        currency: 'USD',
+        hash: hash,
+        fixed_fee: '5'
+      }))
+      .expect(testutils.checkStatus(200))
+      .expect(testutils.checkHeaders)
+      .expect(testutils.checkBody(fixtures.RESTSuccessResponse()))
+      .end(done);
+  });
+
   test('/payments -- hex currency gold with issuer', function(done){
     var hash = testutils.generateHash();
 
@@ -214,6 +247,48 @@ suite('post payments', function() {
       hash: fixtures.VALID_SUBMITTED_TRANSACTION_HASH 
     })))
     .end(done);
+  });
+
+  test('/payments -- with validated true and fixed fee', function(done) {
+    var hash = testutils.generateHash();
+
+    self.wss.once('request_account_info', function(message, conn) {
+      assert.strictEqual(message.command, 'account_info');
+      assert.strictEqual(message.account, addresses.VALID);
+      conn.send(fixtures.accountInfoResponse(message));
+    });
+
+    self.wss.once('request_submit', function(message, conn) {
+      var so = new ripple.SerializedObject(message.tx_blob).to_json();
+      assert.strictEqual(message.command, 'submit');
+      assert.strictEqual(so.Fee, '5000000');
+      conn.send(fixtures.requestSubmitResponse(message, {
+        hash: hash,
+        fee: '5000000'
+      }));
+
+      process.nextTick(function () {
+        conn.send(fixtures.transactionVerifiedResponse({
+          hash: hash,
+          fee: '5000000'
+        }));
+      });
+    });
+
+    self.app
+      .post('/v1/accounts/' + addresses.VALID + '/payments?validated=true')
+      .send(fixtures.payment({
+        value: '0.001',
+        currency: 'USD',
+        fixed_fee: '5'
+      }))
+      .expect(testutils.checkStatus(200))
+      .expect(testutils.checkHeaders)
+      .expect(testutils.checkBody(fixtures.RESTTransactionResponse({ 
+        hash: hash,
+        fee: '5'
+      })))
+      .end(done);
   });
 
   test('/payments -- hex currency gold with validated true, valid submit response, and transaction verified response', function(done){

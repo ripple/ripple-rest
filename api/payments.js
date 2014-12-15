@@ -42,6 +42,7 @@ module.exports = {
  *  @param {String} request.body.client_resource_id
  *  @param {Number String} req.body.last_ledger_sequence - last ledger sequence that this payment can end up in
  *  @param {Number String} req.body.max_fee - maximum fee the payer is willing to pay
+ *  @param {Number String} req.body.fixed_fee - fixed fee the payer wants to pay the network for accepting this transaction
  *  
  *  @query
  *  @param {String "true"|"false"} request.query.validated Used to force request to wait until rippled has finished validating the submitted transaction
@@ -57,6 +58,7 @@ function submitPayment(request, response, next) {
   });
 
   params.max_fee = Number(request.body.max_fee) > 0 ? utils.xrpToDrops(request.body.max_fee) : void(0);
+  params.fixed_fee = Number(request.body.fixed_fee) > 0 ? utils.xrpToDrops(request.body.fixed_fee) : void(0);
 
   if (params.payment.destination_amount && params.payment.destination_amount.currency !== 'XRP' && _.isEmpty(params.payment.destination_amount.issuer)) {
     params.payment.destination_amount.issuer = params.payment.destination_account;
@@ -234,7 +236,9 @@ function submitPayment(request, response, next) {
   };
 
   function setTransactionParameters(transaction) {
-    var ledgerIndex, maxFee = Number(params.max_fee);
+    var ledgerIndex;
+    var maxFee = Number(params.max_fee);
+    var fixedFee = Number(params.fixed_fee);
 
     if (Number(params.last_ledger_sequence) > 0) {
       ledgerIndex = Number(params.last_ledger_sequence);
@@ -246,6 +250,10 @@ function submitPayment(request, response, next) {
 
     if (maxFee >= 0) {
       transaction.maxFee(maxFee);
+    }
+
+    if (fixedFee >= 0) {
+      transaction.setFixedFee(fixedFee);
     }
 
     transaction.clientID(params.client_resource_id);
