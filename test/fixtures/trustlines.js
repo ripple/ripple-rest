@@ -265,7 +265,8 @@ module.exports.RESTAccountTrustlinesResponse = function(options) {
   options = options || {};
 
   _.defaults(options, {
-    validated: true
+    validated: true,
+    limit: 200
   });
 
 

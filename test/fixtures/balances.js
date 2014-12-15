@@ -1,6 +1,8 @@
 var _ = require('lodash');
 var addresses = require('./addresses');
 
+const DEFAULT_LIMIT = 200;
+
 module.exports.requestPath = function(address, params) {
   return '/v1/accounts/' + address + '/balances' + ( params || '' );
 };
@@ -402,7 +404,8 @@ module.exports.RESTAccountBalancesResponse = function(options) {
   options = options || {};
 
   _.defaults(options, {
-    validated: true
+    validated: true,
+    limit: DEFAULT_LIMIT
   });
 
   return JSON.stringify({
@@ -445,7 +448,8 @@ module.exports.RESTAccountBalancesUSDResponse = function(options) {
   options = options || {};
 
   _.defaults(options, {
-    validated: true
+    validated: true,
+    limit: DEFAULT_LIMIT
   });
 
   return JSON.stringify({
@@ -489,7 +493,8 @@ module.exports.RESTAccountBalancesCounterpartyResponse = function(options) {
   options = options || {};
 
   _.defaults(options, {
-    validated: true
+    validated: true,
+    limit: DEFAULT_LIMIT
   });
 
   return JSON.stringify({
@@ -517,7 +522,8 @@ module.exports.RESTAccountBalancesCounterpartyCurrencyResponse = function(option
   options = options || {};
 
   _.defaults(options, {
-    validated: true
+    validated: true,
+    limit: DEFAULT_LIMIT
   });
 
   return JSON.stringify({
@@ -536,7 +542,8 @@ module.exports.RESTAccountBalancesFrozenResponse = function(options) {
   options = options || {};
 
   _.defaults(options, {
-    validated: true
+    validated: true,
+    limit: DEFAULT_LIMIT
   });
 
   return JSON.stringify({

@@ -1,3 +1,4 @@
+var Promise   = require('bluebird');
 var async     = require('async');
 var bignum    = require('bignumber.js');
 var ripple    = require('ripple-lib');
@@ -8,6 +9,8 @@ var errors    = require('./../lib/errors.js');
 var validator = require('./../lib/schema-validator.js');
 
 var InvalidRequestError = errors.InvalidRequestError;
+const DefaultPageLimit = 200;
+
 
 /**
  *  Request the balances for a given account
@@ -34,137 +37,160 @@ function getBalances(request, response, next) {
     account: request.params.account,
     currency: request.query.currency,
     counterparty: request.query.counterparty,
-    frozen: request.query.frozen === 'true'
+    frozen: request.query.frozen === 'true',
+    isAggregate: request.param('limit') === 'all',
+    ledger: utils.parseLedger(request.param('ledger'))
   };
 
   var currencyRE = new RegExp(options.currency ? ('^' + options.currency.toUpperCase() + '$') : /./);
-  var balances = [];
-  var nextMarker;
-  var responseLimit;
-  var responseLedger;
-  var responseValidated;
 
-  function validateOptions(callback) {
+  validateOptions(options)
+  .then(getAccountBalances)
+  .then(respondWithBalances)
+  .catch(next)
+
+  function validateOptions(options) {
     if (!ripple.UInt160.is_valid(options.account)) {
-      return callback(new InvalidRequestError('Parameter is not a valid Ripple address: account'));
+      return Promise.reject(new InvalidRequestError('Parameter is not a valid Ripple address: account'));
     }
     if (options.counterparty && !ripple.UInt160.is_valid(options.counterparty)) {
-      return callback(new InvalidRequestError('Parameter is not a valid Ripple address: counterparty'));
+      return Promise.reject(new InvalidRequestError('Parameter is not a valid Ripple address: counterparty'));
     }
     if (options.currency && !/^[A-Z0-9]{3}$/.test(options.currency)) {
-      return callback(new InvalidRequestError('Parameter is not a valid currency: currency'));
+      return Promise.reject(new InvalidRequestError('Parameter is not a valid currency: currency'));
     }
-    callback();
+
+    return Promise.resolve(options);
   };
 
-  function getXRPBalance(callback) {
-    if (options.frozen) {
-      return callback();
+  function getAccountBalances(options) {
+    if (options.counterparty || options.frozen) {
+      return getLineBalances(options);
     }
 
-    var ledger = utils.parseLedger(request.query.ledger);
+    if (options.currency) {
+      if (options.currency === 'XRP') {
+        return getXRPBalance(options);
+      } else {
+        return getLineBalances(options);
+      }
+    }
 
-    var accountInfoRequest = remote.requestAccountInfo({
-      account: options.account,
-      ledger: ledger
+    return getXRPBalance(options)
+    .then(function(XRPResult) {
+      options.XRPLines = XRPResult.lines;
+      return Promise.resolve(options);
+    })
+    .then(getLineBalances)
+    .then(function(lineBalances) {
+      lineBalances.lines.unshift(options.XRPLines[0]);
+      return Promise.resolve(lineBalances);
     });
+  }
 
-    accountInfoRequest.once('error', callback);
-    accountInfoRequest.once('success', function(info) {
-      balances.push({
-        value: bignum(info.account_data.Balance).dividedBy('1000000').toString(),
-        currency: 'XRP',
-        counterparty: ''
+  function getXRPBalance(options) {
+    var promise = new Promise(function(resolve, reject) {
+      var accountInfoRequest = remote.requestAccountInfo({
+        account: options.account,
+        ledger: options.ledger
       });
 
-      responseLedger = info.ledger_index;
-      responseValidated = info.validated;
+      var lines = [];
+      accountInfoRequest.once('error', reject);
+      accountInfoRequest.once('success', function(result) {
+        lines.push({
+          value: utils.dropsToXrp(result.account_data.Balance),
+          currency: 'XRP',
+          counterparty: ''
+        });
 
-      callback();
+        result.lines = lines;
+        resolve(result);
+      });
+
+      accountInfoRequest.request();
     });
 
-    accountInfoRequest.request();
+    return promise;
   };
 
-  function getLineBalances(callback) {
-    var accountLinesRequest;
-    var marker = request.query.marker;
-    var limit = validator.isValid(request.query.limit, 'UINT32') ? Number(request.query.limit) : void(0);
-    var ledger = utils.parseLedger(request.query.ledger);
+  function getLineBalances(options, prevResult) {
+    if (prevResult && (!options.isAggregate || !prevResult.marker)) {
+      return Promise.resolve(prevResult)
+    }
 
-    try {
+    var promise = new Promise(function(resolve, reject) {
+      var accountLinesRequest;
+      var marker;
+      var ledger;
+      var limit;
+
+      if (prevResult) {
+        marker = prevResult.marker;
+        limit  = prevResult.limit;
+        ledger = prevResult.ledger_index;
+      } else {
+        marker = request.query.marker;
+        limit  = validator.isValid(request.query.limit, 'UINT32') ? Number(request.query.limit) : DefaultPageLimit;
+        ledger = utils.parseLedger(request.query.ledger);
+      }
+
       accountLinesRequest = remote.requestAccountLines({
         account: options.account,
         marker: marker,
         limit: limit,
         ledger: ledger
       });
-    } catch (error) {
-      return callback(error);
-    }
 
-    if (options.counterparty) {
-      accountLinesRequest.message.peer = options.counterparty;
-    }
+      if (options.counterparty) {
+        accountLinesRequest.message.peer = options.counterparty;
+      }
 
-    accountLinesRequest.once('error', callback);
-    accountLinesRequest.once('success', function(result) {
-      result.lines.forEach(function(line) {
-        if (options.frozen && !line.freeze) {
-          return;
-        }
+      accountLinesRequest.once('error', reject);
+      accountLinesRequest.once('success', function(nextResult) {
 
-        if (currencyRE.test(line.currency)) {
-          balances.push({
-            value:         line.balance,
-            currency:      line.currency,
-            counterparty:  line.account
-          });
-        }
+        var lines = [];
+        nextResult.lines.forEach(function(line) {
+          if (options.frozen && !line.freeze) {
+            return;
+          }
+
+          if (currencyRE.test(line.currency)) {
+            lines.push({
+              value:         line.balance,
+              currency:      line.currency,
+              counterparty:  line.account
+            });
+          }
+        });
+
+        nextResult.lines = prevResult ? prevResult.lines.concat(lines) : lines;
+        resolve([options, nextResult]);
       });
-
-      if (result.marker) {
-        nextMarker = result.marker;
-      }
-
-      if (result.limit) {
-        responseLimit = result.limit;
-      }
-
-      responseLedger = result.ledger_index;
-      responseValidated = result.validated;
-
-      callback();
+      accountLinesRequest.request();
     });
 
-    accountLinesRequest.request();
+    return promise.spread(getLineBalances);
   };
 
-  var steps = [
-    validateOptions
-  ];
+  function respondWithBalances(result) {
+    var promise = new Promise(function (resolve, reject) {
+      var balances = {};
 
-  if (options.currency) {
-    steps.push(options.currency === 'XRP' ? getXRPBalance : getLineBalances);
-  } else if (options.counterparty) {
-    steps.push(getLineBalances);
-  } else {
-    steps.push(getXRPBalance, getLineBalances);
+      if (result.marker) {
+        balances.marker = result.marker;
+      }
+
+      balances.limit     = result.limit;
+      balances.ledger    = result.ledger_index;
+      balances.validated = result.validated;
+      balances.balances  = result.lines;
+
+      resolve(respond.success(response, balances));
+    });
+
+    return promise;
   }
-
-  async.series(steps, function(error) {
-    if (error) {
-      next(error);
-    } else {
-      respond.success(response, {
-        marker: nextMarker,
-        limit: responseLimit,
-        ledger: responseLedger,
-        validated: responseValidated,
-        balances: balances
-      });
-    }
-  });
 };
 
 module.exports.get = getBalances;

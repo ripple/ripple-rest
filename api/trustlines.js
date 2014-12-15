@@ -1,4 +1,5 @@
 var _                       = require('lodash');
+var Promise                 = require('bluebird');
 var async                   = require('async');
 var ripple                  = require('ripple-lib');
 var transactions            = require('./transactions.js');
@@ -14,6 +15,8 @@ const TrustSetFlags = {
   ClearNoRipple: { name: 'account_allows_rippling', set: 'ClearNoRipple', unset: 'NoRipple' },
   SetFreeze:     { name: 'account_trustline_frozen', set: 'SetFreeze', unset: 'ClearFreeze' }
 };
+
+const DefaultPageLimit = 200;
 
 /**
  *  Retrieves all trustlines for a given account
@@ -37,105 +40,113 @@ const TrustSetFlags = {
  */
 
 function getTrustLines(request, response, next) {
-  var steps = [
-    validateOptions,
-    getAccountLines
-  ];
-
-  async.waterfall(steps, function(err, trustlines) {
-    if (err) {
-      next(err);
-    } else {
-      respond.success(response, trustlines);
-    }
-  });
-
   var options = request.params;
+  options.isAggregate = request.param('limit') === 'all';
 
   Object.keys(request.query).forEach(function(param) {
     options[param] = request.query[param];
   });
 
-  options.limit = options.limit || request.body.limit;
+  validateOptions(options)
+  .then(getAccountLines)
+  .then(respondWithTrustlines)
+  .catch(next);
 
   var currencyRE = new RegExp(options.currency ? ('^' + options.currency.toUpperCase() + '$') : /./);
 
-  function validateOptions(callback) {
+  function validateOptions(options) {
     if (!ripple.UInt160.is_valid(options.account)) {
-      return callback(new errors.InvalidRequestError('Parameter is not a valid Ripple address: account'));
+      return Promise.reject(new errors.InvalidRequestError('Parameter is not a valid Ripple address: account'));
     }
     if (options.counterparty && !ripple.UInt160.is_valid(options.counterparty)) {
-      return callback(new errors.InvalidRequestError('Parameter is not a valid Ripple address: counterparty'));
+      return Promise.reject(new errors.InvalidRequestError('Parameter is not a valid Ripple address: counterparty'));
     }
     if (options.currency && !validator.isValid(options.currency, 'Currency')) {
-      return callback(new errors.InvalidRequestError('Parameter is not a valid currency: currency'));
+      return Promise.reject(new errors.InvalidRequestError('Parameter is not a valid currency: currency'));
     }
 
-    callback();
+    return Promise.resolve(options);
   };
 
-  function getAccountLines(callback) {
-    var accountLinesRequest;
-    var marker = request.query.marker;
-    var limit = validator.isValid(request.query.limit, 'UINT32') ? Number(request.query.limit) : void(0);
-    var ledger = utils.parseLedger(request.query.ledger);
+  function getAccountLines(options, prevResult) {
+    if (prevResult && (!options.isAggregate || !prevResult.marker)) {
+      return Promise.resolve(prevResult);
+    }
 
-    try {
+    var promise = new Promise(function(resolve, reject) {
+      var accountLinesRequest;
+      var marker;
+      var ledger;
+      var limit;
+
+      if (prevResult) {
+        marker = prevResult.marker;
+        limit  = prevResult.limit;
+        ledger = prevResult.ledger_index;
+      } else {
+        marker = request.query.marker;
+        limit  = validator.isValid(request.query.limit, 'UINT32') ? Number(request.query.limit) : DefaultPageLimit;
+        ledger = utils.parseLedger(request.query.ledger);
+      }
+
       accountLinesRequest = remote.requestAccountLines({
         account: options.account,
         marker: marker,
         limit: limit,
         ledger: ledger
       });
-    } catch (error) {
-      return callback(error);
-    }
 
-    if (options.counterparty) {
-      accountLinesRequest.message.peer = options.counterparty;
-    }
+      if (options.counterparty) {
+        accountLinesRequest.message.peer = options.counterparty;
+      }
 
-    accountLinesRequest.once('error', callback);
-    accountLinesRequest.once('success', function(result) {
-      var trustlines = {};
+      accountLinesRequest.once('error', reject);
+      accountLinesRequest.once('success', function(nextResult) {
 
-      var lines = [ ];
-      result.lines.forEach(function(line) {
-        if (!currencyRE.test(line.currency)) return;
-        lines.push({
-          account: options.account,
-          counterparty: line.account,
-          currency: line.currency,
-          limit: line.limit,
-          reciprocated_limit: line.limit_peer,
-          account_allows_rippling: line.no_ripple ? !line.no_ripple : true,
-          counterparty_allows_rippling: line.no_ripple_peer ? !line.no_ripple_peer : true,
-          account_trustline_frozen: line.freeze ? line.freeze : false,
-          counterparty_trustline_frozen: line.freeze_peer ? line.freeze_peer : false
+        var lines = [ ];
+        nextResult.lines.forEach(function(line) {
+          if (!currencyRE.test(line.currency)) return;
+          lines.push({
+            account: options.account,
+            counterparty: line.account,
+            currency: line.currency,
+            limit: line.limit,
+            reciprocated_limit: line.limit_peer,
+            account_allows_rippling: line.no_ripple ? !line.no_ripple : true,
+            counterparty_allows_rippling: line.no_ripple_peer ? !line.no_ripple_peer : true,
+            account_trustline_frozen: line.freeze ? line.freeze : false,
+            counterparty_trustline_frozen: line.freeze_peer ? line.freeze_peer : false
+          });
         });
+
+        nextResult.lines = prevResult ? prevResult.lines.concat(lines) : lines;
+        resolve([options, nextResult]);
       });
+      accountLinesRequest.request();
+    });
+
+    return promise.spread(getAccountLines);
+  }
+
+  function respondWithTrustlines(result) {
+    var promise = new Promise(function (resolve, reject) {
+      var trustlines = {};
 
       if (result.marker) {
         trustlines.marker = result.marker;
       }
 
-      if (result.limit) {
-        trustlines.limit = result.limit;
-      }
+      trustlines.limit      = result.limit;
+      trustlines.ledger     = result.ledger_index;
+      trustlines.validated  = result.validated;
+      trustlines.trustlines = result.lines;
 
-      if (result.ledger_index) {
-        trustlines.ledger = result.ledger_index;
-      }
-
-      trustlines.validated = result.validated
-
-      trustlines.trustlines = lines;
-
-      callback(null, trustlines);
+      resolve(respond.success(response, trustlines));
     });
 
-    accountLinesRequest.request();
-  };
+    return promise;
+  }
+
 };
 
 /**
