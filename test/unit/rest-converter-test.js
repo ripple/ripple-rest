@@ -19,7 +19,6 @@ suite('unit - converter - Rest to Tx', function() {
       assert.deepEqual(transaction.summary(), fixtures.paymentTxXRP);
       done();
     });
-
   });
 
   test('convert() -- payment with additional flags', function(done) {
@@ -28,7 +27,49 @@ suite('unit - converter - Rest to Tx', function() {
       assert.deepEqual(transaction.summary(), fixtures.paymentTxComplex);
       done();
     });
+  });
 
+  test('convert() -- payment with currency that has same issuer for source and destination amount', function(done) {
+    restToTxConverter.convert(fixtures.exportsPaymentRestIssuers({
+      sourceIssuer:  addresses.VALID,
+      destinationIssuer: addresses.VALID
+    }), function(err, transaction) {
+      assert.strictEqual(err, null);
+      assert.strictEqual(transaction.tx_json.SendMax, void(0));
+      done();
+    });
+  });
+
+  test('convert() -- payment with currency that has different issuers for source and destination amount', function(done) {
+    restToTxConverter.convert(fixtures.exportsPaymentRestIssuers({
+      sourceIssuer:  addresses.VALID,
+      destinationIssuer: addresses.COUNTERPARTY
+    }), function(err, transaction) {
+      assert.strictEqual(err, null);
+      assert.deepEqual(transaction.tx_json.SendMax, {
+        value: '10',
+        currency: 'USD',
+        issuer: addresses.VALID
+      });
+      done();
+    });
+  });
+
+  test('convert() -- payment with currency that has different issuers for source and destination amount and a source_slippage of 0.1', function(done) {
+    restToTxConverter.convert(fixtures.exportsPaymentRestIssuers({
+      sourceIssuer:  addresses.VALID,
+      destinationIssuer: addresses.COUNTERPARTY,
+      sourceSlippage: '0.1',
+      sourceAmount: '10'
+    }), function(err, transaction) {
+      assert.strictEqual(err, null);
+      assert.deepEqual(transaction.tx_json.SendMax, {
+        value: '10.1',
+        currency: 'USD',
+        issuer: addresses.VALID
+      });
+      done();
+    });
   });
 
 });
