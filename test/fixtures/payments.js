@@ -248,7 +248,8 @@ module.exports.RESTTransactionResponse = function(options) {
     memos: undefined,
     hash: module.exports.VALID_TRANSACTION_HASH,
     fromAccount: fromAccount,
-    toAccount: issuerAccount
+    toAccount: issuerAccount,
+    fee: '0.00001'
   });
 
   return JSON.stringify({
@@ -279,7 +280,7 @@ module.exports.RESTTransactionResponse = function(options) {
       "ledger": '348860',
       "hash": options.hash,
       "timestamp": '2013-03-12T23:56:50.000Z',
-      "fee": '0.00001',
+      "fee": options.fee,
       "source_balance_changes": [
         {
           "value": '-1.101208',
@@ -371,6 +372,7 @@ module.exports.payment = function(options) {
   return { 
     secret: options.secret,
     client_resource_id: options.clientResourceId,
+    fixed_fee: options.fixed_fee ? String(options.fixed_fee) : undefined,
     max_fee: options.max_fee ? String(options.max_fee) : undefined,
     last_ledger_sequence: options.lastLedgerSequence,
     payment: {
@@ -415,7 +417,7 @@ module.exports.requestSubmitResponse = function(request, options) {
   options = options || {};
   _.defaults(options, {
     LastLedgerSequence: 9036180,
-    Fee: '12',
+    fee: '12',
     hash: module.exports.VALID_SUBMITTED_TRANSACTION_HASH
   });
 
@@ -433,7 +435,7 @@ module.exports.requestSubmitResponse = function(request, options) {
           "Account": fromAccount,
           "Amount": "100",
           "Destination": toAccount,
-          "Fee": options.Fee,
+          "Fee": options.fee,
           "Flags": 0,
           "LastLedgerSequence": options.LastLedgerSequence,
           "Sequence": 23,
@@ -768,7 +770,13 @@ module.exports.destinationTagNeededResponse = function(request) {
   });
 };
 
-module.exports.transactionVerifiedResponse = function() {
+module.exports.transactionVerifiedResponse = function(options) {
+  options = options || {};
+  _.defaults(options, {
+    fee: '10',
+    hash: module.exports.VALID_SUBMITTED_TRANSACTION_HASH
+  });
+
   return JSON.stringify(
     {
       "engine_result": "tesSUCCESS",
@@ -928,7 +936,7 @@ module.exports.transactionVerifiedResponse = function() {
           "value": '0.001'
         },
         "Destination": addresses.ISSUER,
-        "Fee": "10",
+        "Fee": options.fee,
         "Flags": 0,
         "LastLedgerSequence": 9036180,
         "Paths": [
@@ -954,7 +962,7 @@ module.exports.transactionVerifiedResponse = function() {
         "TransactionType": "Payment",
         "TxnSignature": "304502204EE3E9D1B01D8959B08450FCA9E22025AF503DEF310E34A93863A85CAB3C0BC5022100B61F5B567F77026E8DEED89EED0B7CAF0E6C96C228A2A65216F0DC2D04D52083",
         "date": 416447810,
-        "hash": module.exports.VALID_SUBMITTED_TRANSACTION_HASH
+        "hash": options.hash
       },
       "type": "transaction",
       "validated": true
