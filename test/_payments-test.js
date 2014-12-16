@@ -237,7 +237,8 @@ suite('payments', function() {
         assert.deepEqual(data, {
           command: 'account_lines',
           account: 'rJRLoJSErtNRFnbCyHEUYnRUKNwkVYDM7U',
-          ledger_index: 'validated'
+          ledger_index: 'validated',
+          limit: 200
         });
         orderlist.mark('account_lines');
     };
@@ -535,7 +536,8 @@ suite('payments', function() {
       assert.deepEqual(data, {
         command: 'account_lines',
         account: 'rwmityd4Ss34DBUsRy7Pacv6UA5n7yjfe5',
-        ledger_index: 'validated'
+        ledger_index: 'validated',
+        limit: 200
       });
       orderlist.mark('account_lines');
     };

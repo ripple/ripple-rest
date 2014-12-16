@@ -11,6 +11,7 @@ const NEXT_MARKER = '0C812C919D343EAE789B29E8027C62C5792C22172D37EA2B2C0121D2381
 const LEDGER = 9592219;
 const LEDGER_HASH = 'FD22E2A8D665A01711C0147173ECC0A32466BA976DE697E95197933311267BE8';
 const LIMIT = 5;
+const DEFAULT_LIMIT = 200;
 
 suite('get balances', function() {
   var self = this;
@@ -32,15 +33,71 @@ suite('get balances', function() {
       assert.strictEqual(message.command, 'account_lines');
       assert.strictEqual(message.account, addresses.VALID);
       assert.strictEqual(message.ledger_index, 'validated');
-      conn.send(fixtures.accountLinesResponse(message));
+      assert.strictEqual(message.limit, DEFAULT_LIMIT);
+      conn.send(fixtures.accountLinesResponse(message,{
+        ledger: LEDGER,
+        marker: NEXT_MARKER,
+        limit: DEFAULT_LIMIT
+      }));
     });
 
     self.app
     .get(requestPath(addresses.VALID))
     .expect(testutils.checkStatus(200))
     .expect(testutils.checkHeaders)
-    .expect(testutils.checkBody(fixtures.RESTAccountBalancesResponse()))
+    .expect(testutils.checkBody(fixtures.RESTAccountBalancesResponse({
+      ledger: LEDGER,
+      marker: NEXT_MARKER,
+      limit: DEFAULT_LIMIT
+    })))
     .end(done);
+  });
+
+  test('/accounts/:account/balances -- with limit=all', function(done) {
+    self.wss.once('request_account_info', function(message, conn) {
+      assert.strictEqual(message.command, 'account_info');
+      assert.strictEqual(message.account, addresses.VALID);
+      conn.send(fixtures.accountInfoResponse(message));
+    });
+
+    self.wss.on('request_account_lines', function(message, conn) {
+      if (message.ledger_index === 'validated') {
+        assert.strictEqual(message.command, 'account_lines');
+        assert.strictEqual(message.account, addresses.VALID);
+        assert.strictEqual(message.ledger_index, 'validated');
+        assert.strictEqual(message.marker, void(0));
+        assert.strictEqual(message.limit, DEFAULT_LIMIT);
+        conn.send(fixtures.accountLinesResponse(message,{
+          ledger: LEDGER,
+          marker: NEXT_MARKER
+        }));
+      } else {
+        assert.strictEqual(message.command, 'account_lines');
+        assert.strictEqual(message.account, addresses.VALID);
+        assert.strictEqual(message.ledger_index, LEDGER);
+        assert.strictEqual(message.marker, NEXT_MARKER);
+        assert.notEqual(message.limit, 'all');
+        conn.send(fixtures.accountLinesResponse(message,{
+          ledger: LEDGER,
+          marker: void(0)
+        }));
+      }
+    });
+
+    self.app
+    .get(requestPath(addresses.VALID, '?limit=all'))
+    .expect(testutils.checkStatus(200))
+    .expect(testutils.checkHeaders)
+    .end(function(err, res) {
+      if (err) return done(err);
+
+      assert.strictEqual(res.body.balances.length, 49);
+      assert.strictEqual(res.body.marker, void(0));
+      assert.strictEqual(res.body.ledger, LEDGER);
+      assert.strictEqual(res.body.validated, true);
+
+      done();
+    });
   });
 
   test('/accounts/:account/balances -- with invalid ledger', function(done) {

@@ -6,6 +6,7 @@ var fixtures = require('./fixtures').trustlines;
 var errors = require('./fixtures').errors;
 var addresses = require('./fixtures').addresses;
 
+const DEFAULT_LIMIT = 200;
 const LIMIT = 5;
 
 const MARKER = '29F992CC252056BF690107D1E8F2D9FBAFF29FF107B62B1D1F4E4E11ADF2CC73';
@@ -57,15 +58,64 @@ suite('get trustlines', function() {
       assert.strictEqual(message.command, 'account_lines');
       assert.strictEqual(message.account, addresses.VALID);
       assert.strictEqual(message.ledger_index, 'validated');
-      conn.send(fixtures.accountLinesResponse(message));
+      assert.strictEqual(message.limit, DEFAULT_LIMIT);
+      conn.send(fixtures.accountLinesResponse(message,{
+        ledger: LEDGER,
+        marker: NEXT_MARKER
+      }));
     });
 
     testGetRequest({
       account: addresses.VALID,
       queryString: '',
-      expectedBody: fixtures.RESTAccountTrustlinesResponse(),
+      expectedBody: fixtures.RESTAccountTrustlinesResponse({
+        ledger: LEDGER,
+        marker: NEXT_MARKER,
+        limit: DEFAULT_LIMIT
+      }),
       expectedStatus: 200
     }, done);
+  });
+
+  test('/accounts/:account/trustlines -- with limit=all', function(done) {
+    self.wss.on('request_account_lines', function(message, conn) {
+      if (message.ledger_index === 'validated') {
+        assert.strictEqual(message.command, 'account_lines');
+        assert.strictEqual(message.account, addresses.VALID);
+        assert.strictEqual(message.ledger_index, 'validated');
+        assert.strictEqual(message.marker, void(0));
+        assert.notEqual(message.limit, 'all');
+        conn.send(fixtures.accountLinesResponse(message,{
+          ledger: LEDGER,
+          marker: NEXT_MARKER
+        }));
+      } else {
+        assert.strictEqual(message.command, 'account_lines');
+        assert.strictEqual(message.account, addresses.VALID);
+        assert.strictEqual(message.ledger_index, LEDGER);
+        assert.strictEqual(message.marker, NEXT_MARKER);
+        assert.notEqual(message.limit, 'all');
+        conn.send(fixtures.accountLinesResponse(message,{
+          ledger: LEDGER,
+          marker: void(0)
+        }));
+      }
+    });
+
+    self.app
+    .get('/v1/accounts/' + addresses.VALID + '/trustlines?limit=all')
+    .expect(testutils.checkStatus(200))
+    .expect(testutils.checkHeaders)
+    .end(function(err, res) {
+      if (err) return done(err);
+
+      assert.strictEqual(res.body.trustlines.length, 48);
+      assert.strictEqual(res.body.marker, void(0));
+      assert.strictEqual(res.body.ledger, LEDGER);
+      assert.strictEqual(res.body.validated, true);
+
+      done();
+    });
   });
 
   test('/accounts/:account/trustlines -- with invalid ledger', function(done) {
