@@ -168,13 +168,6 @@ function placeOrder(request, response, next) {
   });
   
   function validateParams(callback) {
-    var takerGetsJSON, takerPaysJSON;
-
-    if (_.isObject(params.order)) {
-      takerGetsJSON = ripple.Amount.from_json(params.order.taker_gets);
-      takerPaysJSON = ripple.Amount.from_json(params.order.taker_pays);
-    }
-
     if (!params.order) {
       return callback(new InvalidRequestError('Missing parameter: order. Submission must have order object in JSON form'));
     } else if (!/^buy|sell$/.test(params.order.type)) {
@@ -185,17 +178,20 @@ function placeOrder(request, response, next) {
       return callback(new InvalidRequestError('Parameter must be a boolean: immediate_or_cancel'));
     } else if (!_.isUndefined(params.order.fill_or_kill) && !_.isBoolean(params.order.fill_or_kill)) {
       return callback(new InvalidRequestError('Parameter must be a boolean: fill_or_kill'));
-    } else if (!takerGetsJSON._currency || !takerGetsJSON.is_valid() || (!takerGetsJSON._is_native && !takerGetsJSON.is_valid_full())) {
-      callback(new InvalidRequestError('Parameter must be in the format "amount[/currency/issuer]": taker_gets'));
-    } else if (!takerPaysJSON._currency || !takerPaysJSON.is_valid() || (!takerPaysJSON._is_native && !takerPaysJSON.is_valid_full())) {
-      callback(new InvalidRequestError('Parameter must be in the format "amount[/currency/issuer]": taker_pays'));
+    } else if (!params.order.taker_gets || (!validator.isValid(params.order.taker_gets, 'Amount')) || (!params.order.taker_gets.issuer && params.order.taker_gets.currency !== 'XRP')) {
+      callback(new InvalidRequestError('Parameter must be a valid Amount object: taker_gets'));
+    } else if (!params.order.taker_pays || (!validator.isValid(params.order.taker_pays, 'Amount')) || (!params.order.taker_pays.issuer && params.order.taker_pays.currency !== 'XRP')) {
+      callback(new InvalidRequestError('Parameter must be a valid Amount object: taker_pays'));
     } else {
       callback();
     }
   };
 
   function setTransactionParameters(transaction) {
-    transaction.offerCreate(params.account, ripple.Amount.from_json(params.order.taker_pays), ripple.Amount.from_json(params.order.taker_gets));
+    var takerPays = params.order.taker_pays.currency !== 'XRP' ? params.order.taker_pays : utils.xrpToDrops(params.order.taker_pays.value);
+    var takerGets = params.order.taker_gets.currency !== 'XRP' ? params.order.taker_gets : utils.xrpToDrops(params.order.taker_gets.value);
+
+    transaction.offerCreate(params.account, ripple.Amount.from_json(takerPays), ripple.Amount.from_json(takerGets));
 
     transactions.setTransactionBitFlags(transaction, {
       input: params.order,

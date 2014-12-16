@@ -1,6 +1,5 @@
 var Promise   = require('bluebird');
 var async     = require('async');
-var bignum    = require('bignumber.js');
 var ripple    = require('ripple-lib');
 var remote    = require('./../lib/remote.js');
 var respond   = require('../lib/response-handler.js');
