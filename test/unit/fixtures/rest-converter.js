@@ -1,16 +1,19 @@
+var _         = require('lodash');
+var addresses = require('./../../fixtures').addresses;
+
 module.exports.paymentRest = {
-  "source_account": "r3GgMwvgvP8h4yVWvjH1dPZNvC37TjzBBE",
-  "destination_account": "rvYAfWj5gh67oV6fW32ZzP3Aw4Eubs59B",
+  "source_account": addresses.VALID,
+  "destination_account": addresses.COUNTERPARTY,
   "destination_amount": {
     "value": "0.001",
     "currency": "USD",
-    "issuer": "rvYAfWj5gh67oV6fW32ZzP3Aw4Eubs59B"
+    "issuer": addresses.COUNTERPARTY
   }
 };
 
 module.exports.paymentRestXRP = {
-  "source_account": "r3GgMwvgvP8h4yVWvjH1dPZNvC37TjzBBE",
-  "destination_account": "rvYAfWj5gh67oV6fW32ZzP3Aw4Eubs59B",
+  "source_account": addresses.VALID,
+  "destination_account": addresses.COUNTERPARTY,
   "destination_amount": {
     "value": "1",
     "currency": "XRP",
@@ -19,20 +22,20 @@ module.exports.paymentRestXRP = {
 };
 
 module.exports.paymentRestComplex = {
-  "source_account": "r3YHFNkQRJDPc9aCkRojPLwKVwok3ihgBJ",
+  "source_account": addresses.VALID,
   "source_tag": "",
   "source_amount": {
     "value": "10",
     "currency": "USD",
-    "issuer": "r3YHFNkQRJDPc9aCkRojPLwKVwok3ihgBJ"
+    "issuer": addresses.VALID
   },
   "source_slippage": "0",
-  "destination_account": "rsE6ZLDkXhSvfJHvSqFPhdazsoMgCEC52V",
+  "destination_account": addresses.COUNTERPARTY,
   "destination_tag": "",
   "destination_amount": {
     "value": "10",
     "currency": "USD",
-    "issuer": "r3YHFNkQRJDPc9aCkRojPLwKVwok3ihgBJ"
+    "issuer": addresses.VALID
   },
   "invoice_id": "",
   "paths": "[]",
@@ -44,13 +47,13 @@ module.exports.paymentTx = {
   tx_json: {
     Flags: 0,
     TransactionType: 'Payment',
-    Account: 'r3GgMwvgvP8h4yVWvjH1dPZNvC37TjzBBE',
+    Account: addresses.VALID,
     Amount: {
       value: '0.001',
       currency: 'USD',
-      issuer: 'rvYAfWj5gh67oV6fW32ZzP3Aw4Eubs59B'
+      issuer: addresses.COUNTERPARTY
     },
-    Destination: 'rvYAfWj5gh67oV6fW32ZzP3Aw4Eubs59B'
+    Destination: addresses.COUNTERPARTY
   },
   clientID: undefined,
   submittedIDs: [ ],
@@ -67,9 +70,9 @@ module.exports.paymentTxXRP = {
   tx_json: {
     Flags: 0,
     TransactionType: 'Payment',
-    Account: 'r3GgMwvgvP8h4yVWvjH1dPZNvC37TjzBBE',
+    Account: addresses.VALID,
     Amount: '1000000',
-    Destination: 'rvYAfWj5gh67oV6fW32ZzP3Aw4Eubs59B'
+    Destination: addresses.COUNTERPARTY
   },
   clientID: undefined,
   submittedIDs: [ ],
@@ -86,13 +89,13 @@ module.exports.paymentTxComplex = {
   tx_json: {
     Flags: 0,
     TransactionType: 'Payment',
-    Account: 'r3YHFNkQRJDPc9aCkRojPLwKVwok3ihgBJ',
+    Account: addresses.VALID,
     Amount: {
       value: '10',
       currency: 'USD',
-      issuer: 'r3YHFNkQRJDPc9aCkRojPLwKVwok3ihgBJ'
+      issuer: addresses.VALID
     },
-    Destination: 'rsE6ZLDkXhSvfJHvSqFPhdazsoMgCEC52V'
+    Destination: addresses.COUNTERPARTY
   },
   clientID: undefined,
   submittedIDs: [ ],
@@ -103,4 +106,40 @@ module.exports.paymentTxComplex = {
   state: 'unsubmitted',
   server: undefined,
   finalized: false
+};
+
+module.exports.exportsPaymentRestIssuers = function(options) {
+
+  options = options || {};
+  _.defaults(options, {
+    sourceAccount: addresses.VALID,
+    destinationAccount: addresses.COUNTERPARTY,
+    sourceIssuer: addresses.VALID,
+    destinationIssuer: addresses.COUNTERPARTY,
+    sourceSlippage: '0',
+    sourceValue: '10'
+  });
+
+  return {
+    source_account: options.sourceAccount,
+    source_tag: '',
+    source_amount: {
+      value: options.sourceValue,
+        currency: 'USD',
+        issuer: options.sourceIssuer
+    },
+    source_slippage: options.sourceSlippage,
+      destination_account: options.destinationAccount,
+      destination_tag: '',
+      destination_amount: {
+      value: '10',
+        currency: 'USD',
+        issuer: options.destinationIssuer
+    },
+    invoice_id: '',
+      paths: '[]',
+      partial_payment: false,
+      no_direct_ripple: false
+  }
+
 };
