@@ -401,6 +401,6 @@ module.exports.RESTNotificationNoNextResponse = JSON.stringify({
 module.exports.RESTMissingLedgerResponse = JSON.stringify({
   success: false,
   error_type: 'invalid_request',
-  error: 'Cannot Get Notification',
-  message: 'This transaction is not in the ripple\'s complete ledger set. Because there is a gap in the rippled\'s historical database it is not possible to determine the transactions that precede this one'
+  error: 'restNOT_FOUND',
+  message: 'Cannot Get Notification. This transaction is not in the ripple\'s complete ledger set. Because there is a gap in the rippled\'s historical database it is not possible to determine the transactions that precede this one'
 });

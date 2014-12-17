@@ -888,7 +888,8 @@ suite('post orders', function() {
     .expect(testutils.checkHeaders)
     .expect(testutils.checkBody(errors.RESTErrorResponse({
       type: 'invalid_request',
-      error: 'Parameter must be a boolean: passive'
+      error: 'restINVALID_PARAMETER',
+      message: 'Parameter must be a boolean: passive'
     })))
     .end(done);
   });
@@ -911,7 +912,8 @@ suite('post orders', function() {
     .expect(testutils.checkHeaders)
     .expect(testutils.checkBody(errors.RESTErrorResponse({
       type: 'invalid_request',
-      error: 'Parameter must be a boolean: immediate_or_cancel'
+      error: 'restINVALID_PARAMETER',
+      message: 'Parameter must be a boolean: immediate_or_cancel'
     })))
     .end(done);
   });
@@ -934,7 +936,8 @@ suite('post orders', function() {
     .expect(testutils.checkHeaders)
     .expect(testutils.checkBody(errors.RESTErrorResponse({
       type: 'invalid_request',
-      error: 'Parameter must be a boolean: fill_or_kill'
+      error: 'restINVALID_PARAMETER',
+      message: 'Parameter must be a boolean: fill_or_kill'
     })))
     .end(done);
   });
@@ -1104,10 +1107,7 @@ suite('post orders', function() {
     .send({})
     .expect(testutils.checkStatus(400))
     .expect(testutils.checkHeaders)
-    .expect(testutils.checkBody(errors.RESTErrorResponse({
-      type: 'invalid_request',
-      error: 'Parameter missing: secret'
-    })))
+    .expect(testutils.checkBody(errors.RESTMissingSecret))
     .end(done);
   });
 
@@ -1151,8 +1151,8 @@ suite('post orders', function() {
     .expect(testutils.checkHeaders)
     .expect(testutils.checkBody(errors.RESTErrorResponse({
       type: 'invalid_request',
-      error: 'Missing parameter: order',
-      message: 'Submission must have order object in JSON form'
+      error: 'restINVALID_PARAMETER',
+      message: 'Missing parameter: order. Submission must have order object in JSON form'
     })))
     .end(done);
   });
@@ -1175,7 +1175,8 @@ suite('post orders', function() {
     .expect(testutils.checkHeaders)
     .expect(testutils.checkBody(errors.RESTErrorResponse({
       type: 'invalid_request',
-      error: 'Parameter must be "buy" or "sell": type'
+      error: 'restINVALID_PARAMETER',
+      message: 'Parameter must be "buy" or "sell": type'
     })))
     .end(done);
   });
@@ -1198,7 +1199,8 @@ suite('post orders', function() {
     .expect(testutils.checkHeaders)
     .expect(testutils.checkBody(errors.RESTErrorResponse({
       type: 'invalid_request',
-      error: 'Parameter must be a valid Amount object: taker_gets'
+      error: 'restINVALID_PARAMETER',
+      message: 'Parameter must be a valid Amount object: taker_gets'
     })))
     .end(done);
   });
@@ -1224,7 +1226,8 @@ suite('post orders', function() {
     .expect(testutils.checkHeaders)
     .expect(testutils.checkBody(errors.RESTErrorResponse({
       type: 'invalid_request',
-      error: 'Parameter must be a valid Amount object: taker_gets'
+      error: 'restINVALID_PARAMETER',
+      message: 'Parameter must be a valid Amount object: taker_gets'
     })))
     .end(done);
   });
@@ -1247,7 +1250,8 @@ suite('post orders', function() {
     .expect(testutils.checkHeaders)
     .expect(testutils.checkBody(errors.RESTErrorResponse({
       type: 'invalid_request',
-      error: 'Parameter must be a valid Amount object: taker_pays'
+      error: 'restINVALID_PARAMETER',
+      message: 'Parameter must be a valid Amount object: taker_pays'
     })))
     .end(done);
   });
@@ -1273,7 +1277,8 @@ suite('post orders', function() {
     .expect(testutils.checkHeaders)
     .expect(testutils.checkBody(errors.RESTErrorResponse({
       type: 'invalid_request',
-      error: 'Parameter must be a valid Amount object: taker_pays'
+      error: 'restINVALID_PARAMETER',
+      message: 'Parameter must be a valid Amount object: taker_pays'
     })))
     .end(done);
   });
@@ -1573,8 +1578,8 @@ suite('delete orders', function() {
     .expect(testutils.checkHeaders)
     .expect(testutils.checkBody(errors.RESTErrorResponse({
       type: 'invalid_request',
-      error: 'Invalid parameter: sequence',
-      message: 'Sequence must be a positive number'
+      error: 'restINVALID_PARAMETER',
+      message: 'Invalid parameter: sequence. Sequence must be a positive number'
     })))
     .end(done);
   });
@@ -1593,10 +1598,7 @@ suite('delete orders', function() {
     .send({})
     .expect(testutils.checkStatus(400))
     .expect(testutils.checkHeaders)
-    .expect(testutils.checkBody(errors.RESTErrorResponse({
-      type: 'invalid_request',
-      error: 'Parameter missing: secret'
-    })))
+    .expect(testutils.checkBody(errors.RESTMissingSecret))
     .end(done);
   });
 

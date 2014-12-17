@@ -162,7 +162,11 @@ suite('post settings', function() {
     })
     .expect(testutils.checkStatus(400))
     .expect(testutils.checkHeaders)
-    .expect(testutils.checkBody(fixtures.RESTMissingSettingsResponse))
+    .expect(testutils.checkBody(errors.RESTErrorResponse({
+      type: 'invalid_request',
+      error: 'restINVALID_PARAMETER',
+      message: 'Parameter missing: settings'
+    })))
     .end(done);
   });
 
@@ -191,7 +195,7 @@ suite('post settings', function() {
       }})
       .expect(testutils.checkStatus(400))
       .expect(testutils.checkHeaders)
-      .expect(testutils.checkBody(fixtures.RESTMissingSecretResponse))
+      .expect(testutils.checkBody(errors.RESTMissingSecret))
       .end(done);
   });
 
@@ -251,7 +255,11 @@ suite('post settings', function() {
       }})
       .expect(testutils.checkStatus(400))
       .expect(testutils.checkHeaders)
-      .expect(testutils.checkBody(fixtures.RESTInvalidDestTagResponse))
+      .expect(testutils.checkBody(errors.RESTErrorResponse({
+        type: 'invalid_request',
+        error: 'restINVALID_PARAMETER',
+        message: 'Parameter must be a boolean: require_destination_tag'
+      })))
       .end(done);
   });
 
@@ -282,7 +290,8 @@ suite('post settings', function() {
       .expect(testutils.checkHeaders)
       .expect(testutils.checkBody(errors.RESTErrorResponse({
         type: 'invalid_request',
-        error: 'Parameter must be a boolean: require_authorization'
+        error: 'restINVALID_PARAMETER',
+        message: 'Parameter must be a boolean: require_authorization'
       })))
       .end(done);
   });
@@ -314,7 +323,8 @@ suite('post settings', function() {
       .expect(testutils.checkHeaders)
       .expect(testutils.checkBody(errors.RESTErrorResponse({
         type: 'invalid_request',
-        error: 'Parameter must be a boolean: disallow_xrp'
+        error: 'restINVALID_PARAMETER',
+        message: 'Parameter must be a boolean: disallow_xrp'
       })))
       .end(done);
   });
@@ -344,7 +354,11 @@ suite('post settings', function() {
       }})
       .expect(testutils.checkStatus(400))
       .expect(testutils.checkHeaders)
-      .expect(testutils.checkBody(fixtures.RESTInvalidDomainResponse))
+      .expect(testutils.checkBody(errors.RESTErrorResponse({
+        type: 'invalid_request',
+        error: 'restINVALID_PARAMETER',
+        message: 'Parameter must be a string: domain'
+      })))
       .end(done);
   });
 
@@ -373,7 +387,11 @@ suite('post settings', function() {
       }})
       .expect(testutils.checkStatus(400))
       .expect(testutils.checkHeaders)
-      .expect(testutils.checkBody(fixtures.RESTInvalidTransferRateResponse))
+      .expect(testutils.checkBody(errors.RESTErrorResponse({
+        type: 'invalid_request',
+        error: 'restINVALID_PARAMETER',
+        message: 'Parameter must be a number: transfer_rate'
+      })))
       .end(done);
   });
 
@@ -394,7 +412,11 @@ suite('post settings', function() {
         no_freeze: true,
         global_freeze: true
       }})
-      .expect(testutils.checkBody(fixtures.RESTInvalidFreezeResponse))
+      .expect(testutils.checkBody(errors.RESTErrorResponse({
+        type: 'invalid_request',
+        error: 'restINVALID_PARAMETER',
+        message: 'Unable to set/clear no_freeze and global_freeze'
+      })))
       .expect(testutils.checkStatus(400))
       .expect(testutils.checkHeaders)
       .end(done);
@@ -417,7 +439,11 @@ suite('post settings', function() {
         no_freeze: false,
         global_freeze: false
       }})
-      .expect(testutils.checkBody(fixtures.RESTInvalidFreezeResponse))
+      .expect(testutils.checkBody(errors.RESTErrorResponse({
+        type: 'invalid_request',
+        error: 'restINVALID_PARAMETER',
+        message: 'Unable to set/clear no_freeze and global_freeze'
+      })))
       .expect(testutils.checkStatus(400))
       .expect(testutils.checkHeaders)
       .end(done);
@@ -448,7 +474,11 @@ suite('post settings', function() {
         }})
       .expect(testutils.checkStatus(400))
       .expect(testutils.checkHeaders)
-      .expect(testutils.checkBody(fixtures.RESTInvalidPasswordSpentResponse))
+      .expect(testutils.checkBody(errors.RESTErrorResponse({
+        type: 'invalid_request',
+        error: 'restINVALID_PARAMETER',
+        message: 'Parameter must be a boolean: password_spent'
+      })))
       .end(done);
   });
 
@@ -477,7 +507,11 @@ suite('post settings', function() {
         }})
       .expect(testutils.checkStatus(400))
       .expect(testutils.checkHeaders)
-      .expect(testutils.checkBody(fixtures.RESTInvalidDisableMasterResponse))
+      .expect(testutils.checkBody(errors.RESTErrorResponse({
+        type: 'invalid_request',
+        error: 'restINVALID_PARAMETER',
+        message: 'Parameter must be a boolean: disable_master'
+      })))
       .end(done);
   });
 
@@ -508,7 +542,8 @@ suite('post settings', function() {
       .expect(testutils.checkHeaders)
       .expect(testutils.checkBody(errors.RESTErrorResponse({
         type: 'invalid_request',
-        error: 'Parameter length exceeded: EmailHash'
+        error: 'restINVALID_PARAMETER',
+        message: 'Parameter length exceeded: EmailHash'
       })))
       .end(done);
   });
@@ -793,7 +828,11 @@ suite('post settings', function() {
         no_freeze: false,
         global_freeze: false
       }})
-      .expect(testutils.checkBody(fixtures.RESTInvalidFreezeResponse))
+      .expect(testutils.checkBody(errors.RESTErrorResponse({
+        type: 'invalid_request',
+        error: 'restINVALID_PARAMETER',
+        message: 'Unable to set/clear no_freeze and global_freeze'
+      })))
       .expect(testutils.checkStatus(400))
       .expect(testutils.checkHeaders)
       .end(done);

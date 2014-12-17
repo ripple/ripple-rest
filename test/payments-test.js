@@ -87,8 +87,8 @@ suite('get payments', function() {
     .expect(testutils.checkHeaders)
     .expect(testutils.checkBody(errors.RESTErrorResponse({
       type: 'invalid_request',
-      error: 'Transaction not found',
-      message: 'A transaction hash was not supplied and there were no entries matching the client_resource_id.'
+      error: 'restINVALID_PARAMETER',
+      message: 'Transaction not found. A transaction hash was not supplied and there were no entries matching the client_resource_id.'
     })))
     .end(done);
   });
@@ -570,8 +570,8 @@ suite('post payments', function() {
     .expect(testutils.checkHeaders)
     .expect(testutils.checkBody(errors.RESTErrorResponse({
       type: 'invalid_request',
-      error: 'Invalid parameter: memos',
-      message: 'Must be an array with memo objects'
+      error: 'restINVALID_PARAMETER',
+      message: 'Invalid parameter: memos. Must be an array with memo objects'
     })))
     .end(done);
   });
@@ -597,8 +597,8 @@ suite('post payments', function() {
     .expect(testutils.checkHeaders)
     .expect(testutils.checkBody(errors.RESTErrorResponse({
       type: 'invalid_request',
-      error: 'Invalid parameter: memos',
-      message: 'Must contain at least one Memo object, otherwise omit the memos property'
+      error: 'restINVALID_PARAMETER',
+      message: 'Invalid parameter: memos. Must contain at least one Memo object, otherwise omit the memos property'
     })))
     .end(done);
   });
@@ -632,8 +632,8 @@ suite('post payments', function() {
     .expect(testutils.checkHeaders)
     .expect(testutils.checkBody(errors.RESTErrorResponse({
       type: 'invalid_request',
-      error: 'Invalid parameter: MemoType',
-      message: 'MemoType must be a string'
+      error: 'restINVALID_PARAMETER',
+      message: 'Invalid parameter: MemoType. MemoType must be a string'
     })))
     .end(done);
   });
@@ -667,8 +667,8 @@ suite('post payments', function() {
     .expect(testutils.checkHeaders)
     .expect(testutils.checkBody(errors.RESTErrorResponse({
       type: 'invalid_request',
-      error: 'Invalid parameter: MemoData',
-      message: 'MemoData must be a string'
+      error: 'restINVALID_PARAMETER',
+      message: 'Invalid parameter: MemoData. MemoData must be a string'
     })))
     .end(done);
   });
@@ -1054,8 +1054,8 @@ suite('post payments', function() {
         .expect(testutils.checkHeaders)
         .expect(testutils.checkBody(errors.RESTErrorResponse({
           type: 'server',
-          error: 'Duplicate Transaction',
-          message: 'A record already exists in the database for a transaction of this type with the same client_resource_id. If this was not an accidental resubmission please submit the transaction again with a unique client_resource_id'
+          error: 'restDUPLICATE_TRANSACTION',
+          message: 'Duplicate Transaction. A record already exists in the database for a transaction of this type with the same client_resource_id. If this was not an accidental resubmission please submit the transaction again with a unique client_resource_id'
         })))
         .end(done);
     };

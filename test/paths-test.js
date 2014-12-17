@@ -33,7 +33,8 @@ suite('get payment paths', function() {
     .expect(testutils.checkHeaders)
     .expect(testutils.checkBody(errors.RESTErrorResponse({
       type: 'invalid_request',
-      error: 'Parameter is not a valid Ripple address: account'
+      error: 'restINVALID_PARAMETER',
+      message: 'Parameter is not a valid Ripple address: account'
     })))
     .end(done);
   });
@@ -53,7 +54,8 @@ suite('get payment paths', function() {
     .expect(testutils.checkHeaders)
     .expect(testutils.checkBody(errors.RESTErrorResponse({
       type: 'invalid_request',
-      error: 'Parameter is not a valid Ripple address: destination_account'
+      error: 'restINVALID_PARAMETER',
+      message: 'Parameter is not a valid Ripple address: destination_account'
     })))
     .end(done);
   });
@@ -73,8 +75,8 @@ suite('get payment paths', function() {
     .expect(testutils.checkHeaders)
     .expect(testutils.checkBody(errors.RESTErrorResponse({
       type: 'invalid_request',
-      error: 'Invalid parameter: destination_amount',
-      message: 'Must be an amount string in the form value+currency+issuer'
+      error: 'restINVALID_PARAMETER',
+      message: 'Invalid parameter: destination_amount. Must be an amount string in the form value+currency+issuer'
     })))
     .end(done);
   });
@@ -94,8 +96,8 @@ suite('get payment paths', function() {
     .expect(testutils.checkHeaders)
     .expect(testutils.checkBody(errors.RESTErrorResponse({
       type: 'invalid_request',
-      error: 'Invalid parameter: destination_amount',
-      message: 'Must be an amount string in the form value+currency+issuer'
+      error: 'restINVALID_PARAMETER',
+      message: 'Invalid parameter: destination_amount. Must be an amount string in the form value+currency+issuer'
     })))
     .end(done);
   });
@@ -115,8 +117,8 @@ suite('get payment paths', function() {
     .expect(testutils.checkHeaders)
     .expect(testutils.checkBody(errors.RESTErrorResponse({
       type: 'invalid_request',
-      error: 'Invalid parameter: destination_amount',
-      message: 'Must be an amount string in the form value+currency+issuer'
+      error: 'restINVALID_PARAMETER',
+      message: 'Invalid parameter: destination_amount. Must be an amount string in the form value+currency+issuer'
     })))
     .end(done);
   });
@@ -136,8 +138,8 @@ suite('get payment paths', function() {
     .expect(testutils.checkHeaders)
     .expect(testutils.checkBody(errors.RESTErrorResponse({
       type: 'invalid_request',
-      error: 'Invalid parameter: source_currencies',
-      message: 'Must be a list of valid currencies'
+      error: 'restINVALID_PARAMETER',
+      message: 'Invalid parameter: source_currencies. Must be a list of valid currencies'
     })))
     .end(done);
   });
@@ -157,8 +159,8 @@ suite('get payment paths', function() {
     .expect(testutils.checkHeaders)
     .expect(testutils.checkBody(errors.RESTErrorResponse({
       type: 'invalid_request',
-      error: 'Invalid parameter: source_currencies',
-      message: 'Must be a list of valid currencies'
+      error: 'restINVALID_PARAMETER',
+      message: 'Invalid parameter: source_currencies. Must be a list of valid currencies'
     })))
     .end(done);
   });
@@ -236,8 +238,8 @@ suite('get payment paths', function() {
     .expect(testutils.checkHeaders)
     .expect(testutils.checkBody(errors.RESTErrorResponse({
       type: 'invalid_request',
-      error: 'Invalid parameter: source_currencies',
-      message: 'Must be a list of valid currencies'
+      error: 'restINVALID_PARAMETER',
+      message: 'Invalid parameter: source_currencies. Must be a list of valid currencies'
     })))
     .end(done);
   });
@@ -257,8 +259,8 @@ suite('get payment paths', function() {
     .expect(testutils.checkHeaders)
     .expect(testutils.checkBody(errors.RESTErrorResponse({
       type: 'invalid_request',
-      error: 'Invalid parameter: source_currencies',
-      message: 'Must be a list of valid currencies'
+      error: 'restINVALID_PARAMETER',
+      message: 'Invalid parameter: source_currencies. Must be a list of valid currencies'
     })))
     .end(done);
   });

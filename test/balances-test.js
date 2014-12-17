@@ -207,6 +207,7 @@ suite('get balances', function() {
     })))
     .end(done);
   });
+
   test('/accounts/:account/balances -- with invalid marker', function(done) {
     self.wss.once('request_account_info', function(message, conn) {
       assert.strictEqual(message.command, 'account_info');
@@ -399,7 +400,6 @@ suite('get balances', function() {
     .end(done);
   });
 
-
   test('/accounts/:account/balances -- with valid marker, valid limit, and valid ledger', function(done) {
     self.wss.once('request_account_info', function(message, conn) {
       assert.strictEqual(message.command, 'account_info');
@@ -458,9 +458,6 @@ suite('get balances', function() {
 
     self.wss.once('request_account_lines', function(message, conn) {
       assert(false, 'Should not request account lines');
-      assert.strictEqual(message.command, 'account_lines');
-      assert.strictEqual(message.account, addresses.VALID);
-      conn.send(fixtures.accountNotFoundResponse(message));
     });
 
     self.app
