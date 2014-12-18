@@ -49,15 +49,11 @@ function getOrders(request, response, next) {
   .catch(next);
 
   function validateOptions(options) {
-    var promise = new Promise(function(resolve) {
       if (!ripple.UInt160.is_valid(options.account)) {
-        throw new errors.InvalidRequestError('Parameter is not a valid Ripple address: account');
+        return Promise.reject(new errors.InvalidRequestError('Parameter is not a valid Ripple address: account'));
       }
 
-      resolve(options);
-    });
-
-    return promise;
+    return Promise.resolve(options);
   };
 
   function getAccountOrders(options, prevResult) {
