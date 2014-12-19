@@ -348,7 +348,7 @@ suite('get payment paths', function() {
     .end(function(err, res) {
       if (err) return done(err);
 
-      assert.strictEqual(res.body.payments[0].source_amount.issuer, addresses.COUNTERPARTY);
+      assert.strictEqual(res.body.payments[0].source_amount.issuer, '');
       assert.strictEqual(res.body.payments[1].source_amount.issuer, addresses.VALID);
       assert.strictEqual(res.body.payments[2].source_amount.issuer, '');
 

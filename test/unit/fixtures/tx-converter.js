@@ -709,7 +709,7 @@ module.exports.pathPaymentsRest = [
     "source_amount": {
       "value": "0.1117218827811721",
       "currency": "JPY",
-      "issuer": addresses.VALID
+      "issuer": ""
     },
     "source_slippage": "0",
     "destination_account": addresses.VALID,
@@ -730,7 +730,7 @@ module.exports.pathPaymentsRest = [
     "source_amount": {
       "value": "0.001002",
       "currency": "USD",
-      "issuer": addresses.VALID
+      "issuer": ""
     },
     "source_slippage": "0",
     "destination_account": addresses.VALID,

@@ -774,7 +774,7 @@ suite('payments', function() {
               source_amount: {
                 value: '10',
                 currency: 'USD',
-                issuer: 'rJRLoJSErtNRFnbCyHEUYnRUKNwkVYDM7U'
+                issuer: ''
               },
               source_slippage: '0',
               destination_account: 'rwmityd4Ss34DBUsRy7Pacv6UA5n7yjfe5',
