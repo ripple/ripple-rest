@@ -774,19 +774,11 @@ suite('post trustlines', function() {
       var so = new ripple.SerializedObject(message.tx_blob).to_json();
 
       assert.strictEqual(so.TransactionType, 'TrustSet');
-      assert.strictEqual(so.Flags, 2147614720);
-      assert.strictEqual(typeof so.Sequence, 'number');
-      assert.deepEqual(so.LimitAmount, {
-        value: '1',
-        currency: 'USD',
-        issuer: addresses.COUNTERPARTY
-      });
-      assert.strictEqual(so.Fee, '12');
-      assert.strictEqual(so.Account, addresses.VALID);
+      assert((so.Flags & ripple.Transaction.flags.TrustSet.NoRipple) > 0);
       assert.strictEqual(so.LastLedgerSequence, lastLedger);
 
       conn.send(fixtures.submitTrustlineResponse(message, {
-        flags: 2147614720
+        flags: so.Flags
       }));
     });
 
@@ -794,14 +786,53 @@ suite('post trustlines', function() {
       var body = res.body;
       assert.strictEqual(body.success, true);
       assert(body.hasOwnProperty('trustline'));
-      assert.strictEqual(body.trustline.account, addresses.VALID);
-      assert.strictEqual(body.trustline.counterparty, addresses.COUNTERPARTY);
-      assert.strictEqual(body.trustline.limit, '1');
-      assert.strictEqual(body.trustline.currency, 'USD');
       assert.strictEqual(body.trustline.account_allows_rippling, false);
     };
     var data = _.cloneDeep(defaultData);
     data.trustline.account_allows_rippling = false;
+    testPostRequest({
+      account: addresses.VALID,
+      queryString: '',
+      data: data,
+      expectedStatus: 201,
+      expectFn: expectFn
+    }, done);
+  });
+
+  test('/accounts/:account/trustlines -- clear no-rippling', function(done) {
+    var currentLedger = self.app.remote._ledger_current_index;
+    var lastLedger = currentLedger + testutils.LEDGER_OFFSET;
+
+    self.wss.once('request_account_info', function(message, conn) {
+      assert.strictEqual(message.command, 'account_info');
+      assert.strictEqual(message.account, addresses.VALID);
+      conn.send(fixtures.accountInfoResponse(message));
+    });
+
+    self.wss.once('request_submit', function(message, conn) {
+      assert.strictEqual(message.command, 'submit');
+      assert(message.hasOwnProperty('tx_blob'),
+        'Missing signed transaction blob');
+
+      var so = new ripple.SerializedObject(message.tx_blob).to_json();
+
+      assert.strictEqual(so.TransactionType, 'TrustSet');
+      assert((so.Flags & ripple.Transaction.flags.TrustSet.ClearNoRipple) > 0);
+      assert.strictEqual(so.LastLedgerSequence, lastLedger);
+
+      conn.send(fixtures.submitTrustlineResponse(message, {
+        flags: so.Flags
+      }));
+    });
+
+    var expectFn = function(res) {
+      var body = res.body;
+      assert.strictEqual(body.success, true);
+      assert(body.hasOwnProperty('trustline'));
+      assert.strictEqual(body.trustline.account_allows_rippling, true);
+    };
+    var data = _.cloneDeep(defaultData);
+    data.trustline.account_allows_rippling = true;
     testPostRequest({
       account: addresses.VALID,
       queryString: '',
@@ -829,19 +860,10 @@ suite('post trustlines', function() {
       var so = new ripple.SerializedObject(message.tx_blob).to_json();
 
       assert.strictEqual(so.TransactionType, 'TrustSet');
-      assert.strictEqual(so.Flags, 2148532224);
-      assert.strictEqual(typeof so.Sequence, 'number');
-      assert.deepEqual(so.LimitAmount, {
-        value: '1',
-        currency: 'USD',
-        issuer: addresses.COUNTERPARTY
-      });
-      assert.strictEqual(so.Fee, '12');
-      assert.strictEqual(so.Account, addresses.VALID);
-      assert.strictEqual(so.LastLedgerSequence, lastLedger);
+      assert((so.Flags & ripple.Transaction.flags.TrustSet.SetFreeze) > 0);
 
       conn.send(fixtures.submitTrustlineResponse(message, {
-        flags: 2148532224
+        flags: so.Flags
       }));
     });
 
@@ -851,11 +873,91 @@ suite('post trustlines', function() {
       var body = res.body;
       assert.strictEqual(body.success, true);
       assert(body.hasOwnProperty('trustline'));
-      assert.strictEqual(body.trustline.account, addresses.VALID);
-      assert.strictEqual(body.trustline.counterparty, addresses.COUNTERPARTY);
-      assert.strictEqual(body.trustline.limit, '1');
-      assert.strictEqual(body.trustline.currency, 'USD');
       assert.strictEqual(body.trustline.account_trustline_frozen, true);
+    };
+    testPostRequest({
+      account: addresses.VALID,
+      queryString: '',
+      data: data,
+      expectedStatus: 201,
+      expectFn: expectFn
+    }, done);
+  });
+  
+  test('/accounts/:account/trustlines -- unfreeze trustline', function(done) {
+    var currentLedger = self.app.remote._ledger_current_index;
+    var lastLedger = currentLedger + testutils.LEDGER_OFFSET;
+
+    self.wss.once('request_account_info', function(message, conn) {
+      assert.strictEqual(message.command, 'account_info');
+      assert.strictEqual(message.account, addresses.VALID);
+      conn.send(fixtures.accountInfoResponse(message));
+    });
+
+    self.wss.once('request_submit', function(message, conn) {
+      assert.strictEqual(message.command, 'submit');
+      assert(message.hasOwnProperty('tx_blob'),
+        'Missing signed transaction blob');
+
+      var so = new ripple.SerializedObject(message.tx_blob).to_json();
+
+      assert.strictEqual(so.TransactionType, 'TrustSet');
+      assert((so.Flags & ripple.Transaction.flags.TrustSet.ClearFreeze) > 0);
+
+      conn.send(fixtures.submitTrustlineResponse(message, {
+        flags: so.Flags
+      }));
+    });
+
+    var data = _.cloneDeep(defaultData);
+    data.trustline.account_trustline_frozen = false;
+    var expectFn = function(res) {
+      var body = res.body;
+      assert.strictEqual(body.success, true);
+      assert(body.hasOwnProperty('trustline'));
+      assert.strictEqual(body.trustline.account_trustline_frozen, false);
+    };
+    testPostRequest({
+      account: addresses.VALID,
+      queryString: '',
+      data: data,
+      expectedStatus: 201,
+      expectFn: expectFn
+    }, done);
+  });
+
+  test('/accounts/:account/trustlines -- authorized', function(done) {
+    var currentLedger = self.app.remote._ledger_current_index;
+    var lastLedger = currentLedger + testutils.LEDGER_OFFSET;
+
+    self.wss.once('request_account_info', function(message, conn) {
+      assert.strictEqual(message.command, 'account_info');
+      assert.strictEqual(message.account, addresses.VALID);
+      conn.send(fixtures.accountInfoResponse(message));
+    });
+
+    self.wss.once('request_submit', function(message, conn) {
+      assert.strictEqual(message.command, 'submit');
+      assert(message.hasOwnProperty('tx_blob'),
+        'Missing signed transaction blob');
+
+      var so = new ripple.SerializedObject(message.tx_blob).to_json();
+
+      assert.strictEqual(so.TransactionType, 'TrustSet');
+      assert((so.Flags & ripple.Transaction.flags.TrustSet.SetAuth) > 0);
+
+      conn.send(fixtures.submitTrustlineResponse(message, {
+        flags: so.Flags
+      }));
+    });
+
+    var data = _.cloneDeep(defaultData);
+    data.trustline.authorized = true;
+    var expectFn = function(res) {
+      var body = res.body;
+      assert.strictEqual(body.success, true);
+      assert(body.hasOwnProperty('trustline'));
+      assert.strictEqual(body.trustline.authorized, true);
     };
     testPostRequest({
       account: addresses.VALID,
