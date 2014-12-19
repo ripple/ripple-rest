@@ -190,7 +190,7 @@ function addTrustLine(request, response, next) {
 
   function validateParams(callback) {
     if (!ripple.UInt160.is_valid(params.account)) {
-      return callback(new errors.InvalidRequestError('Parameter is not a Ripple address: account'));
+      return callback(new errors.InvalidRequestError('Parameter is not a valid Ripple address: account'));
     }
     if (typeof params.trustline !== 'object') {
       return callback(new errors.InvalidRequestError('Parameter missing: trustline'));

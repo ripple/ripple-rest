@@ -79,6 +79,8 @@ function getNotificationHelper(request, response, callback) {
 
   if (!account) {
     return callback(new errors.InvalidRequestError('Missing parameter: account. Must be a valid Ripple Address'));
+  } else if (!ripple.UInt160.is_valid(account)) {
+    return callback(new errors.InvalidRequestError('Parameter is not a valid Ripple address: account'));
   }
 
   function getTransaction(async_callback) {

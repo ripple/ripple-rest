@@ -92,6 +92,19 @@ suite('get payments', function() {
     })))
     .end(done);
   });
+
+  test('/accounts/:account/payments/:identifier -- invalid account', function(done) {
+    self.wss.once('request_tx', function(message, conn) {
+      assert(false, 'Should not request transaction');
+    });
+
+    self.app
+    .get(requestPath(addresses.INVALID) + '/' + fixtures.VALID_TRANSACTION_HASH)
+    .expect(testutils.checkStatus(400))
+    .expect(testutils.checkHeaders)
+    .expect(testutils.checkBody(errors.RESTInvalidAccount))
+    .end(done);
+  });
 });
 
 suite('post payments', function() {

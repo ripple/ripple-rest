@@ -49,15 +49,11 @@ function getOrders(request, response, next) {
   .catch(next);
 
   function validateOptions(options) {
-    var promise = new Promise(function(resolve) {
-      if (!ripple.UInt160.is_valid(options.account)) {
-        throw new errors.InvalidRequestError('Parameter is not a valid Ripple address: account');
-      }
+    if (!ripple.UInt160.is_valid(options.account)) {
+      return Promise.reject(new InvalidRequestError('Parameter is not a valid Ripple address: account'));
+    }
 
-      resolve(options);
-    });
-
-    return promise;
+    return Promise.resolve(options);
   };
 
   function getAccountOrders(options, prevResult) {
@@ -170,6 +166,8 @@ function placeOrder(request, response, next) {
   function validateParams(callback) {
     if (!params.order) {
       return callback(new InvalidRequestError('Missing parameter: order. Submission must have order object in JSON form'));
+    } else if (!ripple.UInt160.is_valid(params.account)) {
+      return callback(new errors.InvalidRequestError('Parameter is not a valid Ripple address: account'));
     } else if (!/^buy|sell$/.test(params.order.type)) {
       return callback(new InvalidRequestError('Parameter must be "buy" or "sell": type'));
     } else if (!_.isUndefined(params.order.passive) && !_.isBoolean(params.order.passive)) {
@@ -245,6 +243,8 @@ function cancelOrder(request, response, next) {
   function validateParams(callback) {
     if (!(Number(params.sequence) >= 0)) {
       callback(new InvalidRequestError('Invalid parameter: sequence. Sequence must be a positive number'));
+    } else if (!ripple.UInt160.is_valid(params.account)) {
+      callback(new InvalidRequestError('Parameter is not a valid Ripple address: account'));
     } else {
       callback();
     }
