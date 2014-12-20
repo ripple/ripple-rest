@@ -282,8 +282,8 @@ function getPayment(request, response, next) {
     if (!options.account) {
       invalid = 'Missing parameter: account. Must provide account to get payment details';
     }
-    if (!validator.isValid(options.account, 'RippleAddress')) {
-      invalid = 'Invalid parameter: account. Must be a valid Ripple address';
+    if (!ripple.UInt160.is_valid(options.account)) {
+      invalid = 'Parameter is not a valid Ripple address: account';
     }
     if (!options.identifier) {
       invalid = 'Missing parameter: hash or client_resource_id. '+
@@ -494,6 +494,14 @@ function getPathFind(request, response, next) {
   if (!params.destination_account) {
     next(new InvalidRequestError('Missing parameter: destination_account. Must be a valid Ripple address'));
     return;
+  }
+
+  if (!ripple.UInt160.is_valid(params.source_account)) {
+    return next(new errors.InvalidRequestError('Parameter is not a valid Ripple address: account'));
+  }
+
+  if (!ripple.UInt160.is_valid(params.destination_account)) {
+    return next(new errors.InvalidRequestError('Parameter is not a valid Ripple address: destination_account'));
   }
 
   // Parse destination amount

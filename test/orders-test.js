@@ -1282,6 +1282,25 @@ suite('post orders', function() {
     })))
     .end(done);
   });
+
+  test('/orders -- with invalid account', function(done) {
+    self.wss.once('request_account_info', function(message, conn) {
+      assert(false, 'should not request account info');
+    });
+
+    self.wss.once('request_submit', function(message, conn) {
+      assert(false, 'should not submit request');
+    });
+
+    self.app
+    .post('/v1/accounts/' + addresses.INVALID + '/orders?validated=true')
+    .send(fixtures.order())
+    .expect(testutils.checkStatus(400))
+    .expect(testutils.checkHeaders)
+    .expect(testutils.checkBody(errors.RESTInvalidAccount))
+    .end(done);
+  });
+
 });
 
 suite('delete orders', function() {
@@ -1621,6 +1640,26 @@ suite('delete orders', function() {
     .expect(testutils.checkStatus(500))
     .expect(testutils.checkHeaders)
     .expect(testutils.checkBody(errors.RESTInvalidSecret))
+    .end(done);
+  });
+
+  test('/orders/:sequence -- with invalid account', function(done) {
+    self.wss.once('request_account_info', function(message, conn) {
+      assert(false, 'should not request account info');
+    });
+
+    self.wss.once('request_submit', function(message, conn) {
+      assert(false, 'should not submit request');
+    });
+
+    self.app
+    .del('/v1/accounts/' + addresses.INVALID + '/orders/99?validated=true')
+    .send({
+      secret: addresses.SECRET
+    })
+    .expect(testutils.checkStatus(400))
+    .expect(testutils.checkHeaders)
+    .expect(testutils.checkBody(errors.RESTInvalidAccount))
     .end(done);
   });
 });
