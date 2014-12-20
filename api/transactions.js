@@ -134,7 +134,7 @@ function submitTransaction(options, hooks, callback) {
           return callback(error);
         }
         if (db_record && db_record.state !== 'failed') {
-          return callback(new errors.ApiError('Duplicate Transaction. ' +
+          return callback(new errors.DuplicateTransactionError('Duplicate Transaction. ' +
             'A record already exists in the database for a transaction of this type ' +
             'with the same client_resource_id. If this was not an accidental resubmission ' +
             'please submit the transaction again with a unique client_resource_id')

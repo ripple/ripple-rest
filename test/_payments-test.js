@@ -594,8 +594,8 @@ suite('payments', function() {
         assert.deepEqual(resp.body, {
           success: false,
           error_type: 'invalid_request',
-          error: 'No paths found',
-          message: 'Please ensure that the source_account has sufficient funds to execute the payment. If it does there may be insufficient liquidity in the network to execute this payment right now'
+          error: 'restNOT_FOUND',
+          message: 'No paths found. Please ensure that the source_account has sufficient funds to execute the payment. If it does there may be insufficient liquidity in the network to execute this payment right now'
         });
         assert.equal(orderlist.test(),true);
         orderlist.reset();
@@ -647,8 +647,8 @@ suite('payments', function() {
         assert.deepEqual(resp.body, {
           success: false,
           error_type: 'invalid_request',
-          error: 'No paths found',
-          message: 'The destination_account does not accept USD, they only accept: XRP'
+          error: 'restNOT_FOUND',
+          message: 'No paths found. The destination_account does not accept USD, they only accept: XRP'
         });
         assert.equal(orderlist.test(),true);
         orderlist.reset();
@@ -809,8 +809,8 @@ suite('payments', function() {
         assert.equal(resp.status,400);
         assert.deepEqual(resp.body,{ success: false,
           error_type: 'invalid_request',
-          error: 'Invalid parameter: destination_amount',
-          message: 'Must be an amount string in the form value+currency+issuer' })
+          error: 'restINVALID_PARAMETER',
+          message: 'Invalid parameter: destination_amount. Must be an amount string in the form value+currency+issuer' })
         done()
       })
   });
@@ -821,8 +821,8 @@ suite('payments', function() {
         assert.equal(resp.status,400);
         assert.deepEqual(resp.body,{ success: false,
           error_type: 'invalid_request',
-          error: 'Invalid parameter: destination_amount',
-          message: 'Must be an amount string in the form value+currency+issuer' })
+          error: 'restINVALID_PARAMETER',
+          message: 'Invalid parameter: destination_amount. Must be an amount string in the form value+currency+issuer' })
         done()
       })
   });
@@ -873,8 +873,8 @@ suite('payments', function() {
       .end(function(err,resp) {
         assert.deepEqual(resp.body,{ success: false,
           error_type: 'invalid_request',
-          error: 'Missing parameter: client_resource_id',
-          message: 'All payments must be submitted with a client_resource_id to prevent duplicate payments' })
+          error: 'restINVALID_PARAMETER',
+          message: 'Missing parameter: client_resource_id. All payments must be submitted with a client_resource_id to prevent duplicate payments' })
         done()
       })
   });
@@ -886,8 +886,8 @@ suite('payments', function() {
       .end(function(err,resp) {
         assert.deepEqual(resp.body, { success: false,
           error_type: 'invalid_request',
-          error: 'Missing parameter: client_resource_id',
-          message: 'All payments must be submitted with a client_resource_id to prevent duplicate payments' })
+          error: 'restINVALID_PARAMETER',
+          message: 'Missing parameter: client_resource_id. All payments must be submitted with a client_resource_id to prevent duplicate payments' })
         done()
       })
   });
@@ -913,8 +913,8 @@ suite('payments', function() {
         assert.deepEqual(resp.body, {
           "success": false,
           "error_type":"server",
-          "error": "Duplicate Transaction",
-          "message":"A record already exists in the database for a transaction of this type with the same client_resource_id. If this was not an accidental resubmission please submit the transaction again with a unique client_resource_id"
+          "error": "restDUPLICATE_TRANSACTION",
+          "message":"Duplicate Transaction. A record already exists in the database for a transaction of this type with the same client_resource_id. If this was not an accidental resubmission please submit the transaction again with a unique client_resource_id"
         })
       })
       .end(done);
@@ -959,7 +959,8 @@ suite('payments', function() {
         assert.equal(resp.status, 400)
         assert.deepEqual(resp.body,{ success: false,
           error_type: 'invalid_request',
-          error: 'Parameter missing: secret' })
+          error: 'restINVALID_PARAMETER',
+          message: 'Parameter missing: secret' })
       })
       .end(done);
   });
@@ -1091,8 +1092,8 @@ suite('payments', function() {
         assert.deepEqual(resp.body, {
           success: false,
           error_type: 'invalid_request',
-          error: 'Invalid parameter: destination_amount',
-          message: 'Must be a valid Amount object'
+          error: 'restINVALID_PARAMETER',
+          message: 'Invalid parameter: destination_amount. Must be a valid Amount object'
         });
       })
       .end(done);
