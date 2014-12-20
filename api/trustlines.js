@@ -12,6 +12,7 @@ var validator               = require('./../lib/schema-validator');
 var TxToRestConverter       = require('./../lib/tx-to-rest-converter.js');
 
 const TrustSetFlags = {
+  SetAuth:       { name: 'authorized', set: 'SetAuth' },
   ClearNoRipple: { name: 'account_allows_rippling', set: 'ClearNoRipple', unset: 'NoRipple' },
   SetFreeze:     { name: 'account_trustline_frozen', set: 'SetFreeze', unset: 'ClearFreeze' }
 };
