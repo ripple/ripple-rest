@@ -82,6 +82,7 @@ function checkHeaders(res) {
 
 function checkBody(expected) {
   return function(res, err) {
+    // console.log(require('util').inspect(res.body,false,null));
     assert.ifError(err);
     assert.deepEqual(res.body, JSON.parse(expected));
   };

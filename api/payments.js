@@ -531,12 +531,8 @@ function getPathFind(request, response, next) {
     next(new InvalidRequestError('Missing parameter: destination_amount. Must be an amount string in the form value+currency+issuer'));
     return;
   }
-  var destinationAmountArray = request.params.destination_amount_string.split('+');
-  params.destination_amount = {
-    value:    (destinationAmountArray.length >= 1 ? destinationAmountArray[0] : ''),
-    currency: (destinationAmountArray.length >= 2 ? destinationAmountArray[1] : ''),
-    issuer:   (destinationAmountArray.length >= 3 ? destinationAmountArray[2] : '')
-  };
+
+  params.destination_amount = utils.parseCurrencyQuery(request.params.destination_amount_string);
 
   if (!ripple.UInt160.is_valid(params.source_account)) {
     next(new InvalidRequestError('Invalid parameter: source_account. Must be a valid Ripple address'));
