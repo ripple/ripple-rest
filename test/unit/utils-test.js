@@ -1,9 +1,9 @@
 var assert = require('assert');
 var utils = require('./../../lib/utils.js');
 
-const DEFAULT_LEDGER = 'validated';
+suite('unit - utils.parseLedger()', function() {
+  const DEFAULT_LEDGER = 'validated';
 
-suite('unit - utils', function() {
   test('parseLedger() -- ledger (empty string)', function() {
     var ledger = '';
     assert.strictEqual(utils.parseLedger(ledger), DEFAULT_LEDGER);
@@ -63,5 +63,26 @@ suite('unit - utils', function() {
     var ledger = 'FD22E2A8D665A01711C0147173ECC0A32466BA976DE697E95197933311267BE';
     assert.strictEqual(ledger.length, 63);
     assert.strictEqual(utils.parseLedger(ledger), DEFAULT_LEDGER);
+  });
+});
+
+suite('unit - utils.parseCurrencyAmount()', function() {
+  const nativeAmount = '1000000';
+  const usdAmount = { currency: 'USD', issuer: 'rMwjYedjc7qqtKYVLiAccJSmCwih4LnE2q', amount: '100' };
+
+  test('parseCurrencyAmount() -- XRP', function() {
+    assert.deepEqual(utils.parseCurrencyAmount(nativeAmount), {
+      currency: 'XRP',
+      counterparty: '',
+      value: utils.dropsToXrp(nativeAmount)
+    });
+  });
+
+  test('parseCurrencyAmount() -- USD', function() {
+    assert.deepEqual(utils.parseCurrencyAmount(usdAmount), {
+      currency: usdAmount.currency,
+      counterparty: usdAmount.issuer,
+      value: usdAmount.value
+    });
   });
 });
