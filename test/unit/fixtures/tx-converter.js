@@ -1,6 +1,10 @@
 var _         = require('lodash');
 var addresses = require('./../../fixtures').addresses;
 
+// VALID's EUR balance with ISSUER goes down from 6.948 to 6.113
+// VALID's XRP balance goes down 15000 drops for the fee
+// rGAW's USD balance with ISSUER goes down from 615 to 614
+// rGAW's EUR balance with ISSUER goes up from 9988 to 9989
 module.exports.COMPLICATED_META = {
   AffectedNodes : [
     {

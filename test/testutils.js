@@ -1,5 +1,5 @@
 var _ = require('lodash');
-var assert = require('assert');
+var assert = require('assert-diff');
 var async = require('async');
 var supertest = require('supertest');
 var WSS = require('ws').Server;
@@ -83,7 +83,7 @@ function checkHeaders(res) {
 function checkBody(expected) {
   return function(res, err) {
     assert.ifError(err);
-    assert.strictEqual(JSON.stringify(res.body), expected);
+    assert.deepEqual(res.body, JSON.parse(expected));
   };
 };
 

@@ -344,7 +344,7 @@ module.exports.RESTTransactionResponseComplexCurrencies = function(options) {
         {
           "value": "-1e-8",
           "currency": "0158415500000000C1F76FF6ECB0BAC600000000",
-          "issuer": "r3GgMwvgvP8h4yVWvjH1dPZNvC37TjzBBE"
+          "issuer": "rvYAfWj5gh67oV6fW32ZzP3Aw4Eubs59B"
         }
       ],
       "destination_balance_changes": [

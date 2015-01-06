@@ -1,5 +1,5 @@
 var _           = require('lodash');
-var assert      = require('assert');
+var assert      = require('assert-diff');
 var ripple      = require('ripple-lib');
 var testutils   = require('./testutils');
 var fixtures    = require('./fixtures').payments;

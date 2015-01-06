@@ -36,11 +36,13 @@
     "nconf": "~0.6.9",
     "node-uuid": "~1.4.1",
     "ripple-lib": "^0.10.1-rc2",
+    "ripple-lib-transactionparser": "^0.1.0",
     "sqlite3": "~3.0.2",
     "supertest": "^0.13.0",
     "winston": "^0.7.3"
   },
   "devDependencies": {
+    "assert-diff": "*",
     "chai": "*",
     "coveralls": "~2.10.0",
     "istanbul": "^0.2.10",
