@@ -95,6 +95,20 @@ function getOrders(request, response, next) {
     return promise.spread(getAccountOrders);
   };
 
+  function getParsedOrders(offers) {
+    return _.reduce(offers, function(orders, off) {
+      var taker_gets = utils.parseCurrencyAmount(off.taker_gets);
+      var taker_pays = utils.parseCurrencyAmount(off.taker_pays);
+
+      orders.push({
+        taker_gets: taker_gets,
+        taker_pays: taker_pays
+      });
+
+      return orders;
+    },[]);
+  }
+
   function respondWithOrders(result) {
     var promise = new Promise(function (resolve, reject) {
       var orders = {};
@@ -106,7 +120,7 @@ function getOrders(request, response, next) {
       orders.limit     = result.limit;
       orders.ledger    = result.ledger_index;
       orders.validated = result.validated;
-      orders.orders    = result.offers;
+      orders.orders    = getParsedOrders(result.offers);
 
       resolve(respond.success(response, orders));
     });

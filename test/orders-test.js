@@ -93,7 +93,6 @@ suite('get orders', function() {
     });
   });
 
-
   test('/accounts/:account/orders -- with invalid ledger', function(done) {
     self.wss.once('request_account_offers', function(message, conn) {
       assert.strictEqual(message.command, 'account_offers');
