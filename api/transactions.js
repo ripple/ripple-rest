@@ -139,7 +139,7 @@ function submitTransaction(options, hooks, callback) {
             'with the same client_resource_id. If this was not an accidental resubmission ' +
             'please submit the transaction again with a unique client_resource_id')
           );
-        } 
+        }
 
         callback(null, transaction);
     });

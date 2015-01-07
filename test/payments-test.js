@@ -233,6 +233,8 @@ suite('post payments', function() {
   });
 
   test('/payments -- with validated true, valid submit response, and transaction verified response', function(done){
+    var currentLedger = self.app.remote._ledger_current_index;
+
     self.wss.once('request_account_info', function(message, conn) {
       assert.strictEqual(message.command, 'account_info');
       assert.strictEqual(message.account, addresses.VALID);
@@ -257,12 +259,14 @@ suite('post payments', function() {
     .expect(testutils.checkStatus(200))
     .expect(testutils.checkHeaders)
     .expect(testutils.checkBody(fixtures.RESTTransactionResponse({ 
-      hash: fixtures.VALID_SUBMITTED_TRANSACTION_HASH 
+      hash: fixtures.VALID_SUBMITTED_TRANSACTION_HASH,
+      ledger: currentLedger
     })))
     .end(done);
   });
 
   test('/payments -- with validated true and fixed fee', function(done) {
+    var currentLedger = self.app.remote._ledger_current_index;
     var hash = testutils.generateHash();
 
     self.wss.once('request_account_info', function(message, conn) {
@@ -299,13 +303,15 @@ suite('post payments', function() {
       .expect(testutils.checkHeaders)
       .expect(testutils.checkBody(fixtures.RESTTransactionResponse({ 
         hash: hash,
-        fee: '5'
+        fee: '5',
+        ledger: currentLedger
       })))
       .end(done);
   });
 
   test('/payments -- hex currency gold with validated true, valid submit response, and transaction verified response', function(done){
     var hash = testutils.generateHash();
+    var currentLedger = self.app.remote._ledger_current_index;
 
     self.wss.once('request_account_info', function(message, conn) {
       assert.strictEqual(message.command, 'account_info');
@@ -333,7 +339,8 @@ suite('post payments', function() {
       .expect(testutils.checkStatus(200))
       .expect(testutils.checkHeaders)
       .expect(testutils.checkBody(fixtures.RESTTransactionResponseComplexCurrencies({
-        hash: hash
+        hash: hash,
+        ledger: currentLedger
       })))
       .end(done);
   });

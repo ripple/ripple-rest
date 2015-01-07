@@ -224,7 +224,13 @@ function submitPayment(request, response, next) {
           return callback(error);
         }
 
-        callback(null, { payment: payment });
+        var result = {
+          payment: payment
+        };
+
+        _.extend(result, meta);
+
+        callback(null, result);
       });
     }
 
@@ -312,15 +318,31 @@ function getPayment(request, response, next) {
     validateOptions,
     getTransaction,
     function (transaction, callback) {
-      formatPaymentHelper(options.account, transaction, callback);
+      formatPaymentHelper(options.account, transaction, function (err, payment) {
+        if (err) {
+          return callback(err);
+        }
+
+        var result = {
+          payment: payment
+        };
+
+        _.extend(result, {
+          hash: transaction.hash || '',
+          ledger: !_.isUndefined(transaction.inLedger) ? String(transaction.inLedger) : String(transaction.ledger_index),
+          state: transaction.state || transaction.meta ? (transaction.meta.TransactionResult === 'tesSUCCESS' ? 'validated' : 'failed') : ''
+        });
+
+        callback(null, result);
+      });
     }
   ];
 
-  async.waterfall(steps, function(error, payment) {
+  async.waterfall(steps, function(error, result) {
     if (error) {
       next(error);
     } else {
-      respond.success(response, { payment: payment });
+      respond.success(response, result);
     }
   });
 };

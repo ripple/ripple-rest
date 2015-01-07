@@ -480,7 +480,7 @@ suite('post trustlines', function() {
       var body = res.body;
       assert.strictEqual(body.success, true);
       assert(body.hasOwnProperty('trustline'));
-      assert.strictEqual(body.trustline.state, 'validated');
+      assert.strictEqual(body.state, 'validated');
     };
     testPostRequest({
       account: addresses.VALID,
@@ -521,7 +521,7 @@ suite('post trustlines', function() {
       var body = res.body;
       assert.strictEqual(body.success, true);
       assert(body.hasOwnProperty('trustline'));
-      assert.strictEqual(body.trustline.state, 'validated');
+      assert.strictEqual(body.state, 'validated');
     };
     testPostRequest({
       account: addresses.VALID,
@@ -567,7 +567,7 @@ suite('post trustlines', function() {
       var body = res.body;
       assert.strictEqual(body.success, true);
       assert(body.hasOwnProperty('trustline'));
-      assert.strictEqual(body.trustline.state, 'validated');
+      assert.strictEqual(body.state, 'validated');
     };
     testPostRequest({
       account: addresses.VALID,
@@ -643,7 +643,7 @@ suite('post trustlines', function() {
       var body = res.body;
       assert.strictEqual(body.success, true);
       assert(body.hasOwnProperty('trustline'));
-      assert.strictEqual(body.trustline.state, 'pending');
+      assert.strictEqual(body.state, 'pending');
     };
     testPostRequest({
       account: addresses.VALID,
@@ -743,9 +743,9 @@ suite('post trustlines', function() {
       assert.strictEqual(body.trustline.limit, '1');
       assert.strictEqual(body.trustline.currency, 'USD');
       assert.strictEqual(body.trustline.account_allows_rippling, true);
-      assert.strictEqual(typeof body.trustline.ledger, 'string');
-      assert.strictEqual(body.trustline.hash, '0F480D344CFC610DFA5CAC62CC1621C92953A05FE8C319281CA49C5C162AF40E');
-      assert.strictEqual(body.trustline.state, 'pending');
+      assert.strictEqual(typeof body.ledger, 'string');
+      assert.strictEqual(body.hash, '0F480D344CFC610DFA5CAC62CC1621C92953A05FE8C319281CA49C5C162AF40E');
+      assert.strictEqual(body.state, 'pending');
     };
     testPostRequest({
       account: addresses.VALID,
