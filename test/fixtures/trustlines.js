@@ -269,7 +269,6 @@ module.exports.RESTAccountTrustlinesResponse = function(options) {
     limit: 200
   });
 
-
   return JSON.stringify({
     success: true,
     marker: options.marker,

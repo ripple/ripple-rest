@@ -377,8 +377,8 @@ suite('post orders', function() {
       last_ledger: lastLedger,
       taker_gets: {
         currency: HEX_CURRENCY,
-        issuer: ISSUER,
-        value: VALUE
+        value: VALUE,
+        issuer: ISSUER
       }
     };
 
@@ -398,11 +398,14 @@ suite('post orders', function() {
       conn.send(fixtures.requestSubmitResponse(message, options));
     });
 
-
     self.app
     .post('/v1/accounts/' + addresses.VALID + '/orders')
     .send(fixtures.order({
-      taker_gets: options.taker_gets
+      taker_gets: {
+        currency: HEX_CURRENCY,
+        value: VALUE,
+        counterparty: ISSUER
+      }
     }))
     .expect(testutils.checkStatus(200))
     .expect(testutils.checkHeaders)
@@ -411,7 +414,7 @@ suite('post orders', function() {
 
       assert.strictEqual(res.body.order.taker_gets.currency, HEX_CURRENCY);
       assert.strictEqual(res.body.order.taker_gets.value, VALUE);
-      assert.strictEqual(res.body.order.taker_gets.issuer, ISSUER);
+      assert.strictEqual(res.body.order.taker_gets.counterparty, ISSUER);
 
       done();
     });
@@ -426,8 +429,8 @@ suite('post orders', function() {
       last_ledger: lastLedger,
       taker_pays: {
         currency: HEX_CURRENCY,
-        issuer: ISSUER,
-        value: VALUE
+        value: VALUE,
+        issuer: ISSUER
       }
     };
 
@@ -450,7 +453,11 @@ suite('post orders', function() {
     self.app
     .post('/v1/accounts/' + addresses.VALID + '/orders')
     .send(fixtures.order({ 
-      taker_pays: options.taker_pays
+      taker_pays: {
+        currency: HEX_CURRENCY,
+        counterparty: ISSUER,
+        value: VALUE
+      }
     }))
     .expect(testutils.checkStatus(200))
     .expect(testutils.checkHeaders)
@@ -459,7 +466,7 @@ suite('post orders', function() {
 
       assert.strictEqual(res.body.order.taker_pays.currency, HEX_CURRENCY);
       assert.strictEqual(res.body.order.taker_pays.value, VALUE);
-      assert.strictEqual(res.body.order.taker_pays.issuer, ISSUER);
+      assert.strictEqual(res.body.order.taker_pays.counterparty, ISSUER);
 
       done();
     });
@@ -970,7 +977,7 @@ suite('post orders', function() {
       taker_gets: {
         currency: 'XRP',
         value: '100000',
-        issuer: ''
+        counterparty: ''
       }
     }))
     .expect(testutils.checkBody(fixtures.RESTSubmitTransactionResponse({
@@ -978,8 +985,8 @@ suite('post orders', function() {
       last_ledger: lastLedger,
       taker_gets: {
         currency: 'XRP',
-        value: '100000',
-        issuer: ''
+        counterparty: '',
+        value: '100000'
       }
     })))
     .expect(testutils.checkStatus(200))
@@ -1025,8 +1032,8 @@ suite('post orders', function() {
       last_ledger: lastLedger,
       taker_pays: {
         currency: 'XRP',
-        value: '100000',
-        issuer: ''
+        counterparty: '',
+        value: '100000'
       }
     })))
     .end(done);

@@ -5,22 +5,38 @@ var paths = require('./paths');
 const ORDER_HASH = '71AE74B03DE3B9A06C559AD4D173A362D96B7D2A5AA35F56B9EF21543D627F34';
 const DEFAULTS = {
   account: addresses.VALID,
-  taker_gets: {
-    currency: 'USD',
-    issuer: addresses.ISSUER,
-    value: '100'
-  },
-  taker_pays: {
-    currency: 'JPY',
-    issuer: addresses.ISSUER,
-    value: '10000'
-  },
   flags: 2148007936,
   hash: ORDER_HASH,
   type: 'sell',
   state: 'pending',
   sequence: 99
 };
+
+const LIB_DEFAULTS = _.extend(_.cloneDeep(DEFAULTS), {
+  taker_gets: {
+    currency: 'USD',
+    value: '100',
+    issuer: addresses.ISSUER
+  },
+  taker_pays: {
+    currency: 'JPY',
+    value: '10000',
+    issuer: addresses.ISSUER
+  },
+});
+
+const REST_DEFAULTS = _.extend(_.cloneDeep(DEFAULTS), {
+  taker_gets: {
+    currency: 'USD',
+    counterparty: addresses.ISSUER,
+    value: '100'
+  },
+  taker_pays: {
+    currency: 'JPY',
+    counterparty: addresses.ISSUER,
+    value: '10000'
+  }
+});
 
 module.exports.order = function(options) {
   options = options || {};
@@ -29,13 +45,13 @@ module.exports.order = function(options) {
     type: 'buy',
     taker_gets: {
       currency: 'USD',
-      issuer: addresses.ISSUER,
-      value: '100'
+      value: '100',
+      counterparty: addresses.ISSUER
     },
     taker_pays: {
       currency: 'USD',
-      issuer: addresses.ISSUER,
-      value: '100'
+      value: '100',
+      counterparty: addresses.ISSUER
     }
   });
 
@@ -333,7 +349,7 @@ module.exports.accountInfoResponse = function(request) {
 
 module.exports.requestSubmitResponse = function(request, options) {
   options = options || {};
-  _.defaults(options, DEFAULTS);
+  _.defaults(options, LIB_DEFAULTS);
 
   return JSON.stringify({
     "id": request.id,
@@ -363,7 +379,7 @@ module.exports.requestSubmitResponse = function(request, options) {
 
 module.exports.requestCancelResponse = function(request, options) {
   options = options || {};
-  _.defaults(options, DEFAULTS);
+  _.defaults(options, LIB_DEFAULTS);
 
   return JSON.stringify({
     "id": request.id,
@@ -392,7 +408,7 @@ module.exports.requestCancelResponse = function(request, options) {
 
 module.exports.rippledSubmitErrorResponse = function(request, options) {
   options = options || {};
-  _.defaults(options, DEFAULTS);
+  _.defaults(options, LIB_DEFAULTS);
 
   return JSON.stringify({
     id: request.id,
@@ -422,7 +438,7 @@ module.exports.rippledSubmitErrorResponse = function(request, options) {
 
 module.exports.rippledCancelErrorResponse = function(request, options) {
   options = options || {};
-  _.defaults(options, DEFAULTS);
+  _.defaults(options, LIB_DEFAULTS);
 
   return JSON.stringify({
     id: request.id,
@@ -451,7 +467,7 @@ module.exports.rippledCancelErrorResponse = function(request, options) {
 
 module.exports.submitTransactionVerifiedResponse = function(options) {
   options = options || {};
-  _.defaults(options, DEFAULTS);
+  _.defaults(options, LIB_DEFAULTS);
 
   return JSON.stringify({
     "engine_result": "tesSUCCESS",
@@ -548,7 +564,7 @@ module.exports.submitTransactionVerifiedResponse = function(options) {
 
 module.exports.cancelTransactionVerifiedResponse = function(options) {
   options = options || {};
-  _.defaults(options, DEFAULTS);
+  _.defaults(options, LIB_DEFAULTS);
 
   return JSON.stringify({
     "engine_result": "tesSUCCESS",
@@ -647,7 +663,7 @@ module.exports.cancelTransactionVerifiedResponse = function(options) {
 
 module.exports.unfundedOrderFinalizedResponse = function(options) {
   options = options || {};
-  _.defaults(options, DEFAULTS);
+  _.defaults(options, LIB_DEFAULTS);
 
   return JSON.stringify({
     "engine_result": "tecUNFUNDED_OFFER",
@@ -952,21 +968,21 @@ module.exports.RESTAccountOrdersResponse = function(options) {
 
 module.exports.RESTSubmitTransactionResponse = function(options) {
   options = options || {};
-  _.defaults(options, DEFAULTS);
+  _.defaults(options, REST_DEFAULTS);
 
   return JSON.stringify({
     success: true,
     order: {
-      hash: options.hash,
-      ledger: String(options.last_ledger),
-      state: options.state,
       account: options.account,
       taker_gets: options.taker_gets,
       taker_pays: options.taker_pays,
       fee: '0.012',
       type: options.type,
       sequence: options.sequence
-    }
+    },
+    hash: options.hash,
+    ledger: String(options.last_ledger),
+    state: options.state
   });
 };
 
@@ -977,14 +993,13 @@ module.exports.RESTCancelTransactionResponse = function(options) {
   return JSON.stringify({
     success: true,
     order: {
-      hash: options.hash,
-      ledger: String(options.last_ledger),
-      state: options.state,
       account: options.account,
       fee: '0.012',
       offer_sequence: options.sequence,
       sequence: options.sequence + 1
-    }
+    },
+    hash: options.hash,
+    ledger: String(options.last_ledger),
+    state: options.state
   });
 };
-

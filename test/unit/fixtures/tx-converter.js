@@ -386,10 +386,7 @@ module.exports.paymentRest = {
   no_direct_ripple: false,
   partial_payment: false,
   direction: 'outgoing',
-  state: 'validated',
   result: 'tesSUCCESS',
-  ledger: '348860',
-  hash: 'F4AB442A6D4CBB935D66E1DA7309A5FC71C7143ED4049053EC14E3875B0CF9BF',
   timestamp: '2013-03-12T23:56:50.000Z',
   fee: '0.00001',
   source_balance_changes: [ { value: '-1.101208', currency: 'XRP', issuer: '' } ],
@@ -872,14 +869,14 @@ module.exports.cancelOrderTx = {
 
 module.exports.cancelOrderResponseRest = {
   order: {
-    hash: '3fc6fe4050075aa3115f212b64d97565ccd8003412f6404478a256b2f48351f3',
-    ledger: '8819996',
-    state: 'validated',
     account: addresses.VALID,
     fee: '0.012',
     offer_sequence: 99,
     sequence: 100
-  }
+  },
+  hash: '3fc6fe4050075aa3115f212b64d97565ccd8003412f6404478a256b2f48351f3',
+  ledger: '8819996',
+  state: 'validated'
 };
 
 module.exports.submitOrderResponseTx = {
@@ -913,24 +910,24 @@ module.exports.submitOrderResponseTx = {
 
 module.exports.submitOrderResponseRest = {
   order: {
-    hash: '684fd723577624f4581fd35d3ada8ff9e536f0ce5ab2065a22adf81633be1f2c',
-    ledger: '8819982',
-    state: 'pending',
     account: addresses.VALID,
     taker_gets: {
       currency: 'USD',
-      issuer: addresses.ISSUER,
+      counterparty: addresses.ISSUER,
       value: '100'
     },
     taker_pays: {
       currency: 'JPY',
-      issuer: addresses.ISSUER,
+      counterparty: addresses.ISSUER,
       value: '10000'
     },
     fee: '0.012',
     type: 'sell',
     sequence: 99
-  }
+  },
+  hash: '684fd723577624f4581fd35d3ada8ff9e536f0ce5ab2065a22adf81633be1f2c',
+  ledger: '8819982',
+  state: 'pending',
 };
 
 module.exports.trustResponseTx = {
@@ -1019,9 +1016,6 @@ module.exports.trustResponseTx = {
 
 module.exports.trustResponseRest = {
   trustline: {
-    hash: '0F480D344CFC610DFA5CAC62CC1621C92953A05FE8C319281CA49C5C162AF40E',
-    ledger: '8820111',
-    state: 'validated',
     account: addresses.VALID,
     limit: '110',
     currency: 'USD',
@@ -1029,7 +1023,10 @@ module.exports.trustResponseRest = {
     account_allows_rippling: false,
     account_trustline_frozen: false,
     authorized: undefined
-  }
+  },
+  hash: '0F480D344CFC610DFA5CAC62CC1621C92953A05FE8C319281CA49C5C162AF40E',
+  ledger: '8820111',
+  state: 'validated'
 };
 
 module.exports.settingResponseTx = {
@@ -1065,9 +1062,11 @@ module.exports.settingResponseRest = {
     domain: 'example.com',
     transfer_rate: 2,
     signers: undefined,
-    account: addresses.VALID,
     require_destination_tag: true,
     require_authorization: true,
-    disallow_xrp: true
-  }
+    disallow_xrp: true,
+  },
+  hash: '0F480D344CFC610DFA5CAC62CC1621C92953A05FE8C319281CA49C5C162AF40E',
+  ledger: 8820076,
+  state: 'validated'
 };

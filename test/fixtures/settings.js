@@ -185,12 +185,12 @@ module.exports.RESTAccountSettingsSubmitResponse = function(lastLedger, state) {
       wallet_size: 1,
       domain: 'example.com',
       transfer_rate: 2,
-      hash: 'AD922400CB1CE0876CA7203DBE0B1277D0D0EAC56A64F26CEC6C78D447EFEA5E',
-      ledger: lastLedger.toString(),
-      state: state,
       require_destination_tag: true,
       require_authorization: true,
       disallow_xrp: true
-    }
+    },
+    hash: 'AD922400CB1CE0876CA7203DBE0B1277D0D0EAC56A64F26CEC6C78D447EFEA5E',
+    ledger: lastLedger.toString(),
+    state: state
   });
 };

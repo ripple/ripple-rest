@@ -411,10 +411,8 @@ suite('payments', function() {
       .end(done);
   });
 
-
   // confirm payment via client resource ID
   test('check status url of the reserve_base_xrp transfer from alice to bob', function(done) {
-
     orderlist.create([{command:'tx'}])
     var _tx = function(data,ws) {
       delete data.id;
@@ -443,28 +441,27 @@ suite('payments', function() {
         no_direct_ripple: false,
         partial_payment: false,
         direction: 'outgoing',
-        state: '',
         result: '',
-        ledger: 'undefined',
-        hash: payment.hash,
         timestamp: '',
         fee: '0.000012',
         source_balance_changes: [],
         destination_balance_changes: []
       };
 
-      store.hash = payment.hash;
+      store.hash = resp.body.hash;
       var keys = Object.keys(statusPayment);
       for (var i = 0; i < keys.length; i++) {
         var key = keys[i];
         assert.deepEqual(payment[key], statusPayment[key]);
       }
+      assert.equal(resp.body.hash, '8EA3CF4D854669007058EB45E9860611CC24FEB655895E418A5C8BC5EA901D01');
+      assert.equal(resp.body.ledger, 'undefined');
+      assert.equal(resp.body.state, '');
       assert.equal(orderlist.test(),true);
       orderlist.reset();
     })
     .end(done);
   });
-
 
   // confirm payment via transaction hash
   test('confirm payment via transaction hash', function(done) {
@@ -493,10 +490,7 @@ suite('payments', function() {
           no_direct_ripple: false,
           partial_payment: false,
           direction: 'outgoing',
-          state: '',
           result: '',
-          ledger: 'undefined',
-          hash: store.hash,
           timestamp: '',
           fee: '0.000012',
           source_balance_changes: [],
@@ -508,12 +502,14 @@ suite('payments', function() {
           var key = keys[i];
           assert.deepEqual(payment[key], statusPayment[key]);
         };
+        assert.equal(resp.body.hash, '8EA3CF4D854669007058EB45E9860611CC24FEB655895E418A5C8BC5EA901D01');
+        assert.equal(resp.body.ledger, 'undefined');
+        assert.equal(resp.body.state, '');
         assert.equal(orderlist.test(),true);
         orderlist.reset();
       })
       .end(done);
   });
-
 
   test('check amount bob has',function(done) {
     orderlist.create([
@@ -1000,11 +996,11 @@ suite('payments', function() {
       })
       .expect(function(resp) {
         assert.equal(resp.status,201);
-        assert.strictEqual(typeof resp.body.trustline.hash, 'string');
-        assert.strictEqual(typeof resp.body.trustline.hash, 'string');
+        assert.strictEqual(typeof resp.body.hash, 'string');
+        assert.strictEqual(typeof resp.body.ledger, 'string');
 
-        delete resp.body.trustline.hash;
-        delete resp.body.trustline.ledger;
+        delete resp.body.hash;
+        delete resp.body.ledger;
         assert.deepEqual(resp.body,{
           "success": true,
           "trustline": {
@@ -1013,9 +1009,9 @@ suite('payments', function() {
             "currency": "USD",
             "counterparty": "r3YHFNkQRJDPc9aCkRojPLwKVwok3ihgBJ",
             "account_allows_rippling": true,
-            "account_trustline_frozen": false,
-            "state": "pending"
-          }
+            "account_trustline_frozen": false
+          },
+          "state": "pending"
         });
       })
       .end(done);
@@ -1034,11 +1030,11 @@ suite('payments', function() {
       })
       .expect(function(resp) {
         assert.equal(resp.status,201);
-        assert.strictEqual(typeof resp.body.trustline.hash, 'string');
-        assert.strictEqual(typeof resp.body.trustline.hash, 'string');
+        assert.strictEqual(typeof resp.body.hash, 'string');
+        assert.strictEqual(typeof resp.body.ledger, 'string');
 
-        delete resp.body.trustline.hash;
-        delete resp.body.trustline.ledger;
+        delete resp.body.hash;
+        delete resp.body.ledger;
         assert.deepEqual(resp.body, {
           "success": true,
           "trustline": {
@@ -1047,9 +1043,9 @@ suite('payments', function() {
             "currency": "USD",
             "counterparty": "r3YHFNkQRJDPc9aCkRojPLwKVwok3ihgBJ",
             "account_allows_rippling": true,
-            "account_trustline_frozen": false,
-            "state": "pending"
-          }
+            "account_trustline_frozen": false
+          },
+          "state": "pending"
         });
       })
       .end(done);

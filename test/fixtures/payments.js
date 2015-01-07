@@ -249,7 +249,8 @@ module.exports.RESTTransactionResponse = function(options) {
     hash: module.exports.VALID_TRANSACTION_HASH,
     fromAccount: fromAccount,
     toAccount: issuerAccount,
-    fee: '0.00001'
+    fee: '0.00001',
+    ledger: '348860'
   });
 
   return JSON.stringify({
@@ -275,10 +276,7 @@ module.exports.RESTTransactionResponse = function(options) {
       "no_direct_ripple": false,
       "partial_payment": false,
       "direction": 'outgoing',
-      "state": 'validated',
       "result": 'tesSUCCESS',
-      "ledger": '348860',
-      "hash": options.hash,
       "timestamp": '2013-03-12T23:56:50.000Z',
       "fee": options.fee,
       "source_balance_changes": [
@@ -296,7 +294,10 @@ module.exports.RESTTransactionResponse = function(options) {
         }
       ],
       "memos": options.memos
-    }
+    },
+    "hash": options.hash,
+    "ledger": String(options.ledger),
+    "state": 'validated'
   });
 };
 
@@ -304,7 +305,8 @@ module.exports.RESTTransactionResponseComplexCurrencies = function(options) {
   options = options || {};
   _.defaults(options, {
     memos: undefined,
-    hash: module.exports.VALID_TRANSACTION_HASH
+    hash: module.exports.VALID_TRANSACTION_HASH,
+    ledger: '10151421'
   });
 
   return JSON.stringify({
@@ -330,10 +332,7 @@ module.exports.RESTTransactionResponseComplexCurrencies = function(options) {
       "no_direct_ripple": false,
       "partial_payment": false,
       "direction": "outgoing",
-      "state": "validated",
       "result": "tesSUCCESS",
-      "ledger": "10151421",
-      "hash": options.hash,
       "timestamp": "2014-11-25T21:03:00.000Z",
       "fee": "0.012",
       "source_balance_changes": [
@@ -355,7 +354,10 @@ module.exports.RESTTransactionResponseComplexCurrencies = function(options) {
           "issuer": "r3GgMwvgvP8h4yVWvjH1dPZNvC37TjzBBE"
         }
       ]
-    }
+    },
+    "hash": options.hash,
+    "ledger": String(options.ledger),
+    "state": "validated",
   });
 };
 

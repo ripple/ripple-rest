@@ -16,7 +16,6 @@ suite('unit - converter - Tx to Rest', function() {
       assert.deepEqual(payment, fixtures.paymentRest);
       done();
     });
-
   });
 
   test('parsePaymentFromTx() -- complicated meta', function(done) {
@@ -52,7 +51,6 @@ suite('unit - converter - Tx to Rest', function() {
       assert.deepEqual(payments, fixtures.pathPaymentsRest);
       done();
     });
-
   });
 
   test('parseCancelOrderFromTx()', function(done) {
@@ -68,7 +66,6 @@ suite('unit - converter - Tx to Rest', function() {
       assert.deepEqual(orderObj, fixtures.cancelOrderResponseRest);
       done();
     });
-
   });
 
   test('parseSubmitOrderFromTx()', function(done) {
@@ -84,7 +81,6 @@ suite('unit - converter - Tx to Rest', function() {
       assert.deepEqual(orderObj, fixtures.submitOrderResponseRest);
       done();
     });
-
   });
 
   test('parseTrustResponseFromTx()', function(done) {
@@ -100,7 +96,6 @@ suite('unit - converter - Tx to Rest', function() {
       assert.deepEqual(trustObj, fixtures.trustResponseRest);
       done();
     });
-
   });
 
   test('parseSettingResponseFromTx()', function(done) {
@@ -123,7 +118,9 @@ suite('unit - converter - Tx to Rest', function() {
 
     var txMessage = fixtures.settingResponseTx;
     var meta = {
-      account: addresses.VALID
+      hash: '0F480D344CFC610DFA5CAC62CC1621C92953A05FE8C319281CA49C5C162AF40E',
+      ledger: 8820076,
+      state: 'validated'
     };
 
     txToRestConverter.parseSettingResponseFromTx(params, txMessage, meta, function(err, settingObj) {
@@ -131,7 +128,6 @@ suite('unit - converter - Tx to Rest', function() {
       assert.deepEqual(settingObj, fixtures.settingResponseRest);
       done();
     });
-
   });
 
   test('parseFlagsFromResponse()', function(done) {
@@ -161,5 +157,4 @@ suite('unit - converter - Tx to Rest', function() {
 
     done();
   });
-
 });

@@ -180,7 +180,19 @@ function placeOrder(request, response, next) {
   function validateParams(callback) {
     if (!params.order) {
       return callback(new InvalidRequestError('Missing parameter: order. Submission must have order object in JSON form'));
-    } else if (!ripple.UInt160.is_valid(params.account)) {
+    } else {
+      if (params.order.taker_gets && params.order.taker_gets.currency !== 'XRP') {
+        params.order.taker_gets.issuer = params.order.taker_gets.counterparty;
+        delete params.order.taker_gets.counterparty;
+      }
+
+      if (params.order.taker_pays && params.order.taker_pays.currency !== 'XRP') {
+        params.order.taker_pays.issuer = params.order.taker_pays.counterparty;
+        delete params.order.taker_pays.counterparty;
+      }
+    }
+
+    if (!ripple.UInt160.is_valid(params.account)) {
       return callback(new errors.InvalidRequestError('Parameter is not a valid Ripple address: account'));
     } else if (!/^buy|sell$/.test(params.order.type)) {
       return callback(new InvalidRequestError('Parameter must be "buy" or "sell": type'));
