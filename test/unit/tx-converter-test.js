@@ -1,4 +1,4 @@
-var assert            = require('assert');
+var assert            = require('assert-diff');
 var fixtures          = require('./fixtures').txConverter;
 var addresses         = require('./../fixtures').addresses;
 var txToRestConverter = require('./../../lib/tx-to-rest-converter.js');
@@ -22,6 +22,7 @@ suite('unit - converter - Tx to Rest', function() {
     var tx = fixtures.paymentTx({
       meta: fixtures.COMPLICATED_META
     });
+    tx.Destination = 'rGAWXLxpsy77vWxgYriPZE5ktUfqa6prbG';
     var options = {
       account: addresses.VALID
     };
@@ -35,8 +36,8 @@ suite('unit - converter - Tx to Rest', function() {
       ]);
 
       assert.deepEqual(payment.destination_balance_changes, [
-        { value: '0.001666666666999', currency: 'EUR', issuer: 'r3PDtZSa5LiYp1Ysn1vMuMzB59RzV3W9QH' },
-        { value: '1', currency: 'USD', issuer: 'r3PDtZSa5LiYp1Ysn1vMuMzB59RzV3W9QH' }
+        { value: '-1', currency: 'USD', issuer: 'r3PDtZSa5LiYp1Ysn1vMuMzB59RzV3W9QH' },
+        { value: '0.833333333333', currency: 'EUR', issuer: 'r3PDtZSa5LiYp1Ysn1vMuMzB59RzV3W9QH' }
       ]);
 
       done();
