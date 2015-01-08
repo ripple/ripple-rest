@@ -26,8 +26,7 @@ suite('get trustlines', function() {
   function testGetRequest(options, done) {
     assert(done && options,
       'Error in test code: must specify done function and options');
-    assert(options.account && (options.queryString !== void(0))
-      && options.expectedStatus,
+    assert(options.account && options.expectedStatus,
       'Error in test code: must specify account,'
       + ' queryString and expectedStatus');
     assert(!(options.expectedBody && options.expectFn),
@@ -37,13 +36,13 @@ suite('get trustlines', function() {
     }
     testutils.loadArguments(options, {
       account: null,
-      queryString: null,
+      queryString: '',
       expectedBody: null,
       expectedStatus: null,
       expectFn: function(res) {}
     });
     return self.app
-    .get(fixtures.requestPath(options.account, options.queryString))
+    .get(fixtures.requestPath(options.account, options.queryString || ''))
     .expect(options.expectFn)
     .expect(testutils.checkStatus(options.expectedStatus))
     .expect(testutils.checkHeaders)
@@ -429,8 +428,7 @@ suite('post trustlines', function() {
   function testPostRequest(options, done) {
     assert(done && options,
       'Error in test code: must specify done function and options');
-    assert(options.account && (options.queryString !== void(0))
-      && options.expectedStatus && options.data,
+    assert(options.account && options.expectedStatus && options.data,
       'Error in test code: must specify account,'
       + ' queryString, data, and expectedStatus');
     assert(!(options.expectedBody && options.expectFn),
@@ -440,14 +438,14 @@ suite('post trustlines', function() {
     }
     testutils.loadArguments(options, {
       account: null,
-      queryString: null,
+      queryString: '',
       data: null,
       expectedStatus: null,
       expectedBody: null,
       expectFn: function(res) {}
     });
     self.app
-    .post(fixtures.requestPath(options.account, options.queryString))
+    .post(fixtures.requestPath(options.account, options.queryString || ''))
     .send(options.data)
     .expect(options.expectFn)
     .expect(testutils.checkStatus(options.expectedStatus))
@@ -458,7 +456,7 @@ suite('post trustlines', function() {
   setup(testutils.setup.bind(self));
   teardown(testutils.teardown.bind(self));
 
-  test('/accounts/:account/trustlines -- with validated true, transaction verified response, and transaction validated response', function(done) {
+  test('/accounts/:account/trustlines?validated=true', function(done) {
     self.wss.once('request_account_info', function(message, conn) {
       assert.strictEqual(message.command, 'account_info');
       assert.strictEqual(message.account, addresses.VALID);
@@ -467,8 +465,7 @@ suite('post trustlines', function() {
 
     self.wss.once('request_submit', function(message, conn) {
       assert.strictEqual(message.command, 'submit');
-      assert(message.hasOwnProperty('tx_blob'),
-        'Missing signed transaction blob');
+      assert(message.hasOwnProperty('tx_blob'), 'Missing signed transaction blob');
       conn.send(fixtures.submitTrustlineResponse(message));
 
       process.nextTick(function() {
@@ -502,8 +499,7 @@ suite('post trustlines', function() {
 
     self.wss.once('request_submit', function(message, conn) {
       assert.strictEqual(message.command, 'submit');
-      assert(message.hasOwnProperty('tx_blob'),
-        'Missing signed transaction blob');
+      assert(message.hasOwnProperty('tx_blob'), 'Missing signed transaction blob');
       var options = {
         currency: '015841551A748AD2C1F76FF6ECB0CCCD00000000',
         hash: hash
@@ -521,11 +517,10 @@ suite('post trustlines', function() {
       var body = res.body;
       assert.strictEqual(body.success, true);
       assert(body.hasOwnProperty('trustline'));
-      assert.strictEqual(body.state, 'validated');
+      assert.strictEqual(body.state, 'pending');
     };
     testPostRequest({
       account: addresses.VALID,
-      queryString: '?validated=true',
       data: defaultData,
       expectedStatus: 201,
       expectFn: expectFn
@@ -543,21 +538,13 @@ suite('post trustlines', function() {
 
     self.wss.once('request_submit', function(message, conn) {
       assert.strictEqual(message.command, 'submit');
-      assert(message.hasOwnProperty('tx_blob'),
-        'Missing signed transaction blob');
+      assert(message.hasOwnProperty('tx_blob'), 'Missing signed transaction blob');
       var options = {
         currency: '015841551A748AD2C1F76FF6ECB0CCCD00000000',
         limit: '0',
         hash: hash
       };
       conn.send(fixtures.submitTrustlineResponse(message, options));
-
-      process.nextTick(function() {
-        conn.send(fixtures.setTrustValidatedResponse({
-          limit: '0',
-          hash: hash
-        }));
-      });
     });
 
     var data = _.cloneDeep(defaultData);
@@ -567,61 +554,13 @@ suite('post trustlines', function() {
       var body = res.body;
       assert.strictEqual(body.success, true);
       assert(body.hasOwnProperty('trustline'));
-      assert.strictEqual(body.state, 'validated');
+      assert.strictEqual(body.state, 'pending');
     };
     testPostRequest({
       account: addresses.VALID,
-      queryString: '?validated=true',
       data: data,
       expectedStatus: 201,
       expectFn: expectFn
-    }, done);
-  });
-
-  test('/accounts/:account/trustlines -- with validated true and ledger sequence too high error', function(done) {
-    self.wss.once('request_account_info', function(message, conn) {
-      assert.strictEqual(message.command, 'account_info');
-      assert.strictEqual(message.account, addresses.VALID);
-      conn.send(fixtures.accountInfoResponse(message));
-    });
-
-    self.wss.once('request_submit', function(message, conn) {
-      assert.strictEqual(message.command, 'submit');
-      assert(message.hasOwnProperty('tx_blob'),
-        'Missing signed transaction blob');
-      conn.send(fixtures.ledgerSequenceTooHighResponse(message));
-
-      testutils.closeLedgers(conn);
-    });
-
-    testPostRequest({
-      account: addresses.VALID,
-      queryString: '?validated=true',
-      data: defaultData,
-      expectedStatus: 500,
-      expectedBody: errors.RESTResponseLedgerSequenceTooHigh
-    }, done);
-  });
-
-  test('/accounts/:account/trustlines -- with validated true and invalid secret error', function(done) {
-    self.wss.once('request_account_info', function(message, conn) {
-      assert.strictEqual(message.command, 'account_info');
-      assert.strictEqual(message.account, addresses.VALID);
-      conn.send(fixtures.accountInfoResponse(message));
-    });
-
-    self.wss.once('request_submit', function(message, conn) {
-      assert(false);
-    });
-
-    var data = _.cloneDeep(defaultData);
-    data.secret = addresses.INVALID;
-    testPostRequest({
-      account: addresses.VALID,
-      queryString: '?validated=true',
-      data: data,
-      expectedStatus: 500,
-      expectedBody: errors.RESTInvalidSecret
     }, done);
   });
 
@@ -634,8 +573,7 @@ suite('post trustlines', function() {
 
     self.wss.once('request_submit', function(message, conn) {
       assert.strictEqual(message.command, 'submit');
-      assert(message.hasOwnProperty('tx_blob'),
-        'Missing signed transaction blob');
+      assert(message.hasOwnProperty('tx_blob'), 'Missing signed transaction blob');
       conn.send(fixtures.submitTrustlineResponse(message));
     });
 
@@ -654,7 +592,7 @@ suite('post trustlines', function() {
     }, done);
   });
 
-  test('/accounts/:account/trustlines -- with validated false and ledger sequence too high error', function(done) {
+  test('/accounts/:account/trustlines -- ledger sequence too high error', function(done) {
     self.wss.once('request_account_info', function(message, conn) {
       assert.strictEqual(message.command, 'account_info');
       assert.strictEqual(message.account, addresses.VALID);
@@ -663,9 +601,7 @@ suite('post trustlines', function() {
 
     self.wss.once('request_submit', function(message, conn) {
       assert.strictEqual(message.command, 'submit');
-      assert(message.hasOwnProperty('tx_blob'),
-        'Missing signed transaction blob');
-
+      assert(message.hasOwnProperty('tx_blob'), 'Missing signed transaction blob');
       conn.send(fixtures.ledgerSequenceTooHighResponse(message));
 
       testutils.closeLedgers(conn);
@@ -673,14 +609,13 @@ suite('post trustlines', function() {
 
     testPostRequest({
       account: addresses.VALID,
-      queryString: '?validated=false',
       data: defaultData,
       expectedStatus: 500,
       expectedBody: errors.RESTResponseLedgerSequenceTooHigh
     }, done);
   });
 
-  test('/accounts/:account/trustlines -- with validated false and invalid secret error', function(done) {
+  test('/accounts/:account/trustlines -- invalid secret error', function(done) {
     self.wss.once('request_account_info', function(message, conn) {
       assert.strictEqual(message.command, 'account_info');
       assert.strictEqual(message.account, addresses.VALID);
@@ -695,7 +630,6 @@ suite('post trustlines', function() {
     data.secret = addresses.INVALID;
     testPostRequest({
       account: addresses.VALID,
-      queryString: '?validated=false',
       data: data,
       expectedStatus: 500,
       expectedBody: errors.RESTInvalidSecret
@@ -703,6 +637,7 @@ suite('post trustlines', function() {
   });
 
   test('/accounts/:account/trustlines', function(done) {
+    var hash = testutils.generateHash();
     var currentLedger = self.app.remote._ledger_current_index;
     var lastLedger = currentLedger + testutils.LEDGER_OFFSET;
 
@@ -714,8 +649,7 @@ suite('post trustlines', function() {
 
     self.wss.once('request_submit', function(message, conn) {
       assert.strictEqual(message.command, 'submit');
-      assert(message.hasOwnProperty('tx_blob'),
-        'Missing signed transaction blob');
+      assert(message.hasOwnProperty('tx_blob'), 'Missing signed transaction blob');
 
       var so = new ripple.SerializedObject(message.tx_blob).to_json();
 
@@ -731,7 +665,9 @@ suite('post trustlines', function() {
       assert.strictEqual(so.Account, addresses.VALID);
       assert.strictEqual(so.LastLedgerSequence, lastLedger);
 
-      conn.send(fixtures.submitTrustlineResponse(message));
+      conn.send(fixtures.submitTrustlineResponse(message, {
+        hash: hash
+      }));
     });
 
     var expectFn = function(res) {
@@ -744,12 +680,11 @@ suite('post trustlines', function() {
       assert.strictEqual(body.trustline.currency, 'USD');
       assert.strictEqual(body.trustline.account_allows_rippling, true);
       assert.strictEqual(typeof body.ledger, 'string');
-      assert.strictEqual(body.hash, '0F480D344CFC610DFA5CAC62CC1621C92953A05FE8C319281CA49C5C162AF40E');
+      assert.strictEqual(body.hash, hash);
       assert.strictEqual(body.state, 'pending');
     };
     testPostRequest({
       account: addresses.VALID,
-      queryString: '',
       data: defaultData,
       expectedStatus: 201,
       expectFn: expectFn
@@ -757,8 +692,7 @@ suite('post trustlines', function() {
   });
 
   test('/accounts/:account/trustlines -- no-rippling', function(done) {
-    var currentLedger = self.app.remote._ledger_current_index;
-    var lastLedger = currentLedger + testutils.LEDGER_OFFSET;
+    var hash = testutils.generateHash();
 
     self.wss.once('request_account_info', function(message, conn) {
       assert.strictEqual(message.command, 'account_info');
@@ -768,16 +702,15 @@ suite('post trustlines', function() {
 
     self.wss.once('request_submit', function(message, conn) {
       assert.strictEqual(message.command, 'submit');
-      assert(message.hasOwnProperty('tx_blob'),
-        'Missing signed transaction blob');
+      assert(message.hasOwnProperty('tx_blob'), 'Missing signed transaction blob');
 
       var so = new ripple.SerializedObject(message.tx_blob).to_json();
 
       assert.strictEqual(so.TransactionType, 'TrustSet');
       assert((so.Flags & ripple.Transaction.flags.TrustSet.NoRipple) > 0);
-      assert.strictEqual(so.LastLedgerSequence, lastLedger);
 
       conn.send(fixtures.submitTrustlineResponse(message, {
+        hash: hash,
         flags: so.Flags
       }));
     });
@@ -792,50 +725,6 @@ suite('post trustlines', function() {
     data.trustline.account_allows_rippling = false;
     testPostRequest({
       account: addresses.VALID,
-      queryString: '',
-      data: data,
-      expectedStatus: 201,
-      expectFn: expectFn
-    }, done);
-  });
-
-  test('/accounts/:account/trustlines -- clear no-rippling', function(done) {
-    var currentLedger = self.app.remote._ledger_current_index;
-    var lastLedger = currentLedger + testutils.LEDGER_OFFSET;
-
-    self.wss.once('request_account_info', function(message, conn) {
-      assert.strictEqual(message.command, 'account_info');
-      assert.strictEqual(message.account, addresses.VALID);
-      conn.send(fixtures.accountInfoResponse(message));
-    });
-
-    self.wss.once('request_submit', function(message, conn) {
-      assert.strictEqual(message.command, 'submit');
-      assert(message.hasOwnProperty('tx_blob'),
-        'Missing signed transaction blob');
-
-      var so = new ripple.SerializedObject(message.tx_blob).to_json();
-
-      assert.strictEqual(so.TransactionType, 'TrustSet');
-      assert((so.Flags & ripple.Transaction.flags.TrustSet.ClearNoRipple) > 0);
-      assert.strictEqual(so.LastLedgerSequence, lastLedger);
-
-      conn.send(fixtures.submitTrustlineResponse(message, {
-        flags: so.Flags
-      }));
-    });
-
-    var expectFn = function(res) {
-      var body = res.body;
-      assert.strictEqual(body.success, true);
-      assert(body.hasOwnProperty('trustline'));
-      assert.strictEqual(body.trustline.account_allows_rippling, true);
-    };
-    var data = _.cloneDeep(defaultData);
-    data.trustline.account_allows_rippling = true;
-    testPostRequest({
-      account: addresses.VALID,
-      queryString: '',
       data: data,
       expectedStatus: 201,
       expectFn: expectFn
@@ -843,8 +732,7 @@ suite('post trustlines', function() {
   });
 
   test('/accounts/:account/trustlines -- frozen trustline', function(done) {
-    var currentLedger = self.app.remote._ledger_current_index;
-    var lastLedger = currentLedger + testutils.LEDGER_OFFSET;
+    var hash = testutils.generateHash();
 
     self.wss.once('request_account_info', function(message, conn) {
       assert.strictEqual(message.command, 'account_info');
@@ -854,8 +742,7 @@ suite('post trustlines', function() {
 
     self.wss.once('request_submit', function(message, conn) {
       assert.strictEqual(message.command, 'submit');
-      assert(message.hasOwnProperty('tx_blob'),
-        'Missing signed transaction blob');
+      assert(message.hasOwnProperty('tx_blob'), 'Missing signed transaction blob');
 
       var so = new ripple.SerializedObject(message.tx_blob).to_json();
 
@@ -863,21 +750,21 @@ suite('post trustlines', function() {
       assert((so.Flags & ripple.Transaction.flags.TrustSet.SetFreeze) > 0);
 
       conn.send(fixtures.submitTrustlineResponse(message, {
+        hash: hash,
         flags: so.Flags
       }));
     });
 
-    var data = _.cloneDeep(defaultData);
-    data.trustline.account_trustline_frozen = true;
     var expectFn = function(res) {
       var body = res.body;
       assert.strictEqual(body.success, true);
       assert(body.hasOwnProperty('trustline'));
       assert.strictEqual(body.trustline.account_trustline_frozen, true);
     };
+    var data = _.cloneDeep(defaultData);
+    data.trustline.account_trustline_frozen = true;
     testPostRequest({
       account: addresses.VALID,
-      queryString: '',
       data: data,
       expectedStatus: 201,
       expectFn: expectFn
@@ -885,8 +772,7 @@ suite('post trustlines', function() {
   });
   
   test('/accounts/:account/trustlines -- unfreeze trustline', function(done) {
-    var currentLedger = self.app.remote._ledger_current_index;
-    var lastLedger = currentLedger + testutils.LEDGER_OFFSET;
+    var hash = testutils.generateHash();
 
     self.wss.once('request_account_info', function(message, conn) {
       assert.strictEqual(message.command, 'account_info');
@@ -896,8 +782,7 @@ suite('post trustlines', function() {
 
     self.wss.once('request_submit', function(message, conn) {
       assert.strictEqual(message.command, 'submit');
-      assert(message.hasOwnProperty('tx_blob'),
-        'Missing signed transaction blob');
+      assert(message.hasOwnProperty('tx_blob'), 'Missing signed transaction blob');
 
       var so = new ripple.SerializedObject(message.tx_blob).to_json();
 
@@ -905,6 +790,7 @@ suite('post trustlines', function() {
       assert((so.Flags & ripple.Transaction.flags.TrustSet.ClearFreeze) > 0);
 
       conn.send(fixtures.submitTrustlineResponse(message, {
+        hash: hash,
         flags: so.Flags
       }));
     });
@@ -919,7 +805,6 @@ suite('post trustlines', function() {
     };
     testPostRequest({
       account: addresses.VALID,
-      queryString: '',
       data: data,
       expectedStatus: 201,
       expectFn: expectFn
@@ -927,8 +812,7 @@ suite('post trustlines', function() {
   });
 
   test('/accounts/:account/trustlines -- authorized', function(done) {
-    var currentLedger = self.app.remote._ledger_current_index;
-    var lastLedger = currentLedger + testutils.LEDGER_OFFSET;
+    var hash = testutils.generateHash();
 
     self.wss.once('request_account_info', function(message, conn) {
       assert.strictEqual(message.command, 'account_info');
@@ -938,8 +822,7 @@ suite('post trustlines', function() {
 
     self.wss.once('request_submit', function(message, conn) {
       assert.strictEqual(message.command, 'submit');
-      assert(message.hasOwnProperty('tx_blob'),
-        'Missing signed transaction blob');
+      assert(message.hasOwnProperty('tx_blob'), 'Missing signed transaction blob');
 
       var so = new ripple.SerializedObject(message.tx_blob).to_json();
 
@@ -947,6 +830,7 @@ suite('post trustlines', function() {
       assert((so.Flags & ripple.Transaction.flags.TrustSet.SetAuth) > 0);
 
       conn.send(fixtures.submitTrustlineResponse(message, {
+        hash: hash,
         flags: so.Flags
       }));
     });
@@ -961,7 +845,6 @@ suite('post trustlines', function() {
     };
     testPostRequest({
       account: addresses.VALID,
-      queryString: '',
       data: data,
       expectedStatus: 201,
       expectFn: expectFn
@@ -979,7 +862,6 @@ suite('post trustlines', function() {
 
     testPostRequest({
       account: addresses.INVALID,
-      queryString: '',
       data: defaultData,
       expectedStatus: 400,
       expectedBody: errors.RESTInvalidAccount
@@ -997,7 +879,6 @@ suite('post trustlines', function() {
     
     testPostRequest({
       account: addresses.VALID,
-      queryString: '',
       data: _.omit(defaultData, 'secret'),
       expectedStatus: 400
     }, done);
@@ -1014,7 +895,6 @@ suite('post trustlines', function() {
 
     testPostRequest({
       account: addresses.VALID,
-      queryString: '',
       data: {secret: addresses.SECRET},
       expectedStatus: 400
     }, done);
@@ -1033,7 +913,6 @@ suite('post trustlines', function() {
     delete data.trustline.limit;
     testPostRequest({
       account: addresses.VALID,
-      queryString: '',
       data: data,
       expectedStatus: 400
     }, done);
@@ -1052,7 +931,6 @@ suite('post trustlines', function() {
     delete data.trustline.limit;
     testPostRequest({
       account: addresses.VALID,
-      queryString: '',
       data: data,
       expectedStatus: 400
     }, done);
@@ -1071,7 +949,6 @@ suite('post trustlines', function() {
     delete data.trustline.currency;
     testPostRequest({
       account: addresses.VALID,
-      queryString: '',
       data: data,
       expectedStatus: 400
     }, done);
@@ -1090,7 +967,6 @@ suite('post trustlines', function() {
     delete data.trustline.counterparty;
     testPostRequest({
       account: addresses.VALID,
-      queryString: '',
       data: data,
       expectedStatus: 400
     }, done);
@@ -1109,7 +985,6 @@ suite('post trustlines', function() {
     data.trustline.limit = 'asdf';
     testPostRequest({
       account: addresses.VALID,
-      queryString: '',
       data: data,
       expectedStatus: 400
     }, done);
@@ -1128,7 +1003,6 @@ suite('post trustlines', function() {
     data.trustline.currency = 'usd2';
     testPostRequest({
       account: addresses.VALID,
-      queryString: '',
       data: data,
       expectedStatus: 400
     }, done);
@@ -1147,7 +1021,6 @@ suite('post trustlines', function() {
     data.trustline.counterparty = addresses.INVALID;
     testPostRequest({
       account: addresses.VALID,
-      queryString: '',
       data: data,
       expectedStatus: 400
     }, done);

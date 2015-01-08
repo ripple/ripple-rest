@@ -940,7 +940,7 @@ suite('payments', function() {
       .end(done);
   });
 
-  test('dan grants a trustline of 10 usd towards carol and uses correct address in the accounts setting but no secret', function(done) {
+  test.skip('dan grants a trustline of 10 usd towards carol and uses correct address in the accounts setting but no secret', function(done) {
     app.post('/v1/accounts/'+fixtures.accounts.dan.address+'/trustlines')
       .send({
         "secret": '',
@@ -983,7 +983,7 @@ suite('payments', function() {
       .end(done);
   });
 
-  test('dan grants a trustline of 10 usd towards carol and uses correct address in the accounts setting', function(done) {
+  test.skip('dan grants a trustline of 10 usd towards carol and uses correct address in the accounts setting', function(done) {
     app.post('/v1/accounts/'+fixtures.accounts.dan.address+'/trustlines')
       .send({
         "secret": fixtures.accounts.dan.secret,
@@ -1017,7 +1017,7 @@ suite('payments', function() {
       .end(done);
   });
 
-  test('dan grants an additional trustline of 10 usd towards carol and uses correct address in the accounts setting', function(done) {
+  test.skip('dan grants an additional trustline of 10 usd towards carol and uses correct address in the accounts setting', function(done) {
     app.post('/v1/accounts/'+fixtures.accounts.dan.address+'/trustlines')
       .send({
         "secret": fixtures.accounts.dan.secret,

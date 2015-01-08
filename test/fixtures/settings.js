@@ -1,5 +1,30 @@
+var _ = require('lodash');
+
+const DEFAULTS = {
+  require_destination_tag: true,
+  require_authorization: true,
+  disallow_xrp: true,
+  domain: 'example.com',
+  email_hash: '23463B99B62A72F26ED677CC556C44E8',
+  wallet_locator: 'DEADBEEF',
+  wallet_size: 1,
+  transfer_rate: 2,
+  no_freeze: false,
+  global_freeze: true,
+  last_ledger: 9903915,
+  flags: -2146107392,
+  hash: 'AD922400CB1CE0876CA7203DBE0B1277D0D0EAC56A64F26CEC6C78D447EFEA5E'
+};
+
 module.exports.requestPath = function(address, params) {
   return '/v1/accounts/' + address + '/settings' + ( params || '' );
+};
+
+module.exports.settings = function(options) {
+  options = options || {};
+  _.defaults(options, DEFAULTS);
+
+  return options;
 };
 
 module.exports.accountInfoResponse = function(request) {
@@ -48,7 +73,10 @@ module.exports.accountNotFoundResponse = function(request) {
   });
 };
 
-module.exports.submitSettingsResponse = function(request, lastLedger) {
+module.exports.submitSettingsResponse = function(request, options) {
+  options = options || {};
+  _.defaults(options, DEFAULTS);
+
   return JSON.stringify({
     id: request.id,
     status: 'success',
@@ -61,21 +89,24 @@ module.exports.submitSettingsResponse = function(request, lastLedger) {
       tx_json: {
         Account: 'r3GgMwvgvP8h4yVWvjH1dPZNvC37TjzBBE',
         Fee: '12',
-        Flags: -2146107392,
+        Flags: options.flags,
         clearFlag: 6,
         SetFlag: 7,
-        LastLedgerSequence: lastLedger,
+        LastLedgerSequence: options.last_ledger,
         Sequence: 2938,
         SigningPubKey: '02F89EAEC7667B30F33D0687BBA86C3FE2A08CCA40A9186C5BDE2DAA6FA97A37D8',
         TransactionType: 'AccountSet',
         TxnSignature: '3044022013ED8E41507111736B4C5EC9E4C01A7B570B273B3DE21302F72D4D1B1F20C4EF0220180C1419108CA39A9FF89E12810EC7429E28468E8D0BA61F793E14DB8D9FEA72',
-        hash: 'AD922400CB1CE0876CA7203DBE0B1277D0D0EAC56A64F26CEC6C78D447EFEA5E'
+        hash: options.hash
       }
     }
   });
 };
 
-module.exports.settingsValidatedResponse = function() {
+module.exports.settingsValidatedResponse = function(options) {
+  options = options || {};
+  _.defaults(options, DEFAULTS);
+
   return JSON.stringify({
     engine_result: 'tesSUCCESS',
     engine_result_code: 0,
@@ -111,13 +142,13 @@ module.exports.settingsValidatedResponse = function() {
     transaction: {
       Account: 'r3GgMwvgvP8h4yVWvjH1dPZNvC37TjzBBE',
       Fee: '12',
-      Flags: -2146107392,
-      LastLedgerSequence: 9903915,
+      Flags: options.flags,
+      LastLedgerSequence: options.last_ledger,
       Sequence: 18,
       SigningPubKey: '02F89EAEC7667B30F33D0687BBA86C3FE2A08CCA40A9186C5BDE2DAA6FA97A37D8',
       TransactionType: 'AccountSet',
       TxnSignature: '3044022013ED8E41507111736B4C5EC9E4C01A7B570B273B3DE21302F72D4D1B1F20C4EF0220180C1419108CA39A9FF89E12810EC7429E28468E8D0BA61F793E14DB8D9FEA72',
-      hash: 'AD922400CB1CE0876CA7203DBE0B1277D0D0EAC56A64F26CEC6C78D447EFEA5E',
+      hash: options.hash,
       date: 469144180
     },
     type: 'transaction',
@@ -174,7 +205,10 @@ module.exports.RESTAccountSettingsResponse = JSON.stringify({
   }
 });
 
-module.exports.RESTAccountSettingsSubmitResponse = function(lastLedger, state) {
+module.exports.RESTAccountSettingsSubmitResponse = function(options) {
+  options = options || {};
+  _.defaults(options, DEFAULTS);
+
   return JSON.stringify({
     success: true,
     settings: {
@@ -190,7 +224,7 @@ module.exports.RESTAccountSettingsSubmitResponse = function(lastLedger, state) {
       disallow_xrp: true
     },
     hash: 'AD922400CB1CE0876CA7203DBE0B1277D0D0EAC56A64F26CEC6C78D447EFEA5E',
-    ledger: lastLedger.toString(),
-    state: state
+    ledger: options.current_ledger.toString(),
+    state: options.state
   });
 };

@@ -1,4 +1,13 @@
-var _ = require('lodash');
+var _         = require('lodash');
+var addresses = require('./../fixtures').addresses;
+
+const DEFAULTS = {
+  account: 'r3GgMwvgvP8h4yVWvjH1dPZNvC37TjzBBE',
+  flags: 2147483648,
+  hash: '0F480D344CFC610DFA5CAC62CC1621C92953A05FE8C319281CA49C5C162AF40E',
+  currency: 'USD',
+  limit: '1'
+};
 
 module.exports.requestPath = function(address, params) {
   return '/v1/accounts/' + address + '/trustlines' + ( params || '' );
@@ -43,7 +52,7 @@ module.exports.accountLinesResponse = function(request, options) {
         quality_out: 0
       },
       {
-        account: 'rMwjYedjc7qqtKYVLiAccJSmCwih4LnE2q',
+        account: addresses.COUNTERPARTY,
         balance: '2.497605752725159',
         currency: 'USD',
         limit: '5',
@@ -297,7 +306,7 @@ module.exports.RESTAccountTrustlinesResponse = function(options) {
       counterparty_trustline_frozen: false
     },
     { account: 'r3GgMwvgvP8h4yVWvjH1dPZNvC37TjzBBE',
-      counterparty: 'rMwjYedjc7qqtKYVLiAccJSmCwih4LnE2q',
+      counterparty: addresses.COUNTERPARTY,
       currency: 'USD',
       limit: '5',
       reciprocated_limit: '0',
@@ -568,12 +577,8 @@ module.exports.accountInfoResponse = function(request) {
 
 module.exports.submitTrustlineResponse = function(request, options) {
   options = options || {};
-  _.defaults(options, {
-    flags: 2147483648,
-    hash: '0F480D344CFC610DFA5CAC62CC1621C92953A05FE8C319281CA49C5C162AF40E',
-    currency: 'USD',
-    limit: '1'
-  });
+  _.defaults(options, DEFAULTS);
+
   return JSON.stringify({
     id: request.id,
     result: {
@@ -582,7 +587,7 @@ module.exports.submitTrustlineResponse = function(request, options) {
       engine_result_message: 'The transaction was applied.',
       tx_blob: request.tx_blob,
       tx_json: {
-        Account: 'r3GgMwvgvP8h4yVWvjH1dPZNvC37TjzBBE',
+        Account: options.account,
         Fee: '12',
         Flags: options.flags,
         LastLedgerSequence: 8819963,
@@ -639,10 +644,8 @@ module.exports.ledgerSequenceTooHighResponse = function(request, options) {
 
 module.exports.setTrustValidatedResponse = function(options) {
   options = options || {};
-  _.defaults(options, {
-    limit: '110',
-    hash: '0F480D344CFC610DFA5CAC62CC1621C92953A05FE8C319281CA49C5C162AF40E'
-  });
+  _.defaults(options, DEFAULTS);
+
   return JSON.stringify({
     engine_result: 'tesSUCCESS',
     engine_result_code: 0,
@@ -681,7 +684,7 @@ module.exports.setTrustValidatedResponse = function(options) {
               Flags: 1114112,
               HighLimit: {
                 currency: 'USD',
-                issuer: 'rMwjYedjc7qqtKYVLiAccJSmCwih4LnE2q',
+                issuer: addresses.COUNTERPARTY,
                 value: '0'
               },
               HighNode: '0000000000000163',
@@ -707,13 +710,13 @@ module.exports.setTrustValidatedResponse = function(options) {
     },
     status: 'closed',
     transaction: {
-      Account: 'r3GgMwvgvP8h4yVWvjH1dPZNvC37TjzBBE',
+      Account: options.account,
       Fee: '12',
-      Flags: 2147614720,
+      Flags: options.flags,
       LastLedgerSequence: 9810409,
       LimitAmount: {
         currency: 'USD',
-        issuer: 'rMwjYedjc7qqtKYVLiAccJSmCwih4LnE2q',
+        issuer: addresses.COUNTERPARTY,
         value: options.limit
       },
       Sequence: 11,

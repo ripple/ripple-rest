@@ -332,7 +332,7 @@ suite('post orders', function() {
   setup(testutils.setup.bind(self));
   teardown(testutils.teardown.bind(self));
 
-  test('/orders -- with validated true, validated submit response, and transaction verified response', function(done) {
+  test('/orders?validated=true', function(done) {
     var lastLedger = self.app.remote._ledger_current_index;
     var hash = testutils.generateHash();
 
@@ -368,7 +368,88 @@ suite('post orders', function() {
     .end(done);
   });
 
-  test('/orders -- with taker_gets hex currency', function(done) {
+  test('/orders?validated=true -- unfunded offer', function(done) {
+    var hash = testutils.generateHash();
+
+    self.wss.once('request_account_info', function(message, conn) {
+      assert.strictEqual(message.command, 'account_info');
+      assert.strictEqual(message.account, addresses.VALID);
+      conn.send(fixtures.accountInfoResponse(message));
+    });
+
+    self.wss.once('request_submit', function(message, conn) {
+      assert.strictEqual(message.command, 'submit');
+      conn.send(fixtures.rippledSubmitErrorResponse(message, {
+        engine_result: 'tecUNFUNDED_OFFER',
+        engine_result_code: 103,
+        engine_result_message: 'Insufficient balance to fund created offer.',
+        hash: hash
+      }));
+
+      process.nextTick(function() {
+        conn.send(fixtures.unfundedOrderFinalizedResponse({
+          hash: hash
+        }));
+      });
+    });
+
+    self.app
+    .post('/v1/accounts/' + addresses.VALID + '/orders?validated=true')
+    .send(fixtures.order())
+    .expect(testutils.checkStatus(500))
+    .expect(testutils.checkHeaders)
+    .expect(testutils.checkBody(errors.RESTErrorResponse({
+      type: 'transaction',
+      error: 'tecUNFUNDED_OFFER',
+      message: 'Insufficient balance to fund created offer.'
+    })))
+    .end(done);
+  });
+
+  test('/orders', function(done) {
+    var lastLedger = self.app.remote._ledger_current_index;
+    var hash = testutils.generateHash();
+
+    self.wss.once('request_account_info', function(message, conn) {
+      assert.strictEqual(message.command, 'account_info');
+      assert.strictEqual(message.account, addresses.VALID);
+      conn.send(fixtures.accountInfoResponse(message));
+    });
+
+    self.wss.once('request_submit', function(message, conn) {
+      var so = new ripple.SerializedObject(message.tx_blob).to_json();
+      assert.strictEqual(message.command, 'submit');
+      assert.strictEqual(so.Account, addresses.VALID);
+      assert.strictEqual(so.TransactionType, 'OfferCreate');
+      assert.deepEqual(so.TakerPays, {
+        value: '100',
+        currency: 'USD',
+        issuer: addresses.ISSUER
+      });
+      assert.deepEqual(so.TakerGets, {
+        value: '100',
+        currency: 'USD',
+        issuer: addresses.ISSUER
+      });
+
+      conn.send(fixtures.requestSubmitResponse(message, {
+        hash: hash
+      }));
+    });
+
+    self.app
+    .post('/v1/accounts/' + addresses.VALID + '/orders')
+    .send(fixtures.order())
+    .expect(testutils.checkStatus(200))
+    .expect(testutils.checkHeaders)
+    .expect(testutils.checkBody(fixtures.RESTSubmitTransactionResponse({
+      hash: hash,
+      last_ledger: lastLedger
+    })))
+    .end(done);
+  });
+
+  test('/orders -- taker_gets -- hex currency', function(done) {
     var lastLedger = self.app.remote._ledger_current_index;
     var hash = testutils.generateHash();
 
@@ -420,7 +501,7 @@ suite('post orders', function() {
     });
   });
 
-  test('/orders -- with taker_pays hex currency', function(done) {
+  test('/orders -- taker_pays -- hex currency', function(done) {
     var lastLedger = self.app.remote._ledger_current_index;
     var hash = testutils.generateHash();
 
@@ -472,7 +553,7 @@ suite('post orders', function() {
     });
   });
 
-  test('/orders -- with validated true and ledger sequence too high error', function(done) {
+  test('/orders -- ledger sequence too high', function(done) {
     self.wss.once('request_account_info', function(message, conn) {
       assert.strictEqual(message.command, 'account_info');
       assert.strictEqual(message.account, addresses.VALID);
@@ -486,7 +567,7 @@ suite('post orders', function() {
     });
 
     self.app
-    .post('/v1/accounts/' + addresses.VALID + '/orders?validated=true')
+    .post('/v1/accounts/' + addresses.VALID + '/orders')
     .send(fixtures.order())
     .expect(testutils.checkBody(errors.RESTResponseLedgerSequenceTooHigh))
     .expect(testutils.checkStatus(500))
@@ -494,7 +575,7 @@ suite('post orders', function() {
     .end(done);
   });
 
-  test('/orders -- with validated true and invalid secret', function(done) {
+  test('/orders -- secret invalid', function(done) {
     self.wss.once('request_account_info', function(message, conn) {
       assert.strictEqual(message.command, 'account_info');
       assert.strictEqual(message.account, addresses.VALID);
@@ -506,139 +587,17 @@ suite('post orders', function() {
     });
 
     self.app
-    .post('/v1/accounts/' + addresses.VALID + '/orders?validated=true')
-    .send(fixtures.order({
-      secret: 'foo'
-    }))
-    .expect(testutils.checkStatus(500))
-    .expect(testutils.checkHeaders)
-    .expect(testutils.checkBody(errors.RESTInvalidSecret))
-    .end(done);
-  });
-
-  test('/orders -- with validated false and valid submit response', function(done) {
-    var lastLedger = self.app.remote._ledger_current_index;
-    var hash = testutils.generateHash();
-
-    self.wss.once('request_account_info', function(message, conn) {
-      assert.strictEqual(message.command, 'account_info');
-      assert.strictEqual(message.account, addresses.VALID);
-      conn.send(fixtures.accountInfoResponse(message));
-    });
-
-    self.wss.once('request_submit', function(message, conn) {
-      assert.strictEqual(message.command, 'submit');
-      conn.send(fixtures.requestSubmitResponse(message, {
-        hash: hash
-      }));
-
-      process.nextTick(function () {
-        conn.send(fixtures.submitTransactionVerifiedResponse({
-          hash: hash
-        }));
-      });
-    });
-
-    self.app
-    .post('/v1/accounts/' + addresses.VALID + '/orders?validated=false')
-    .send(fixtures.order())
-    .expect(testutils.checkStatus(200))
-    .expect(testutils.checkHeaders)
-    .expect(testutils.checkBody(fixtures.RESTSubmitTransactionResponse({
-      hash: hash,
-      last_ledger: lastLedger
-    })))
-    .end(done);
-  });
-
-  test('/orders -- with validated false and ledger sequence too high error', function(done) {
-    self.wss.once('request_account_info', function(message, conn) {
-      assert.strictEqual(message.command, 'account_info');
-      assert.strictEqual(message.account, addresses.VALID);
-      conn.send(fixtures.accountInfoResponse(message));
-    });
-
-    self.wss.once('request_submit', function(message, conn) {
-      assert.strictEqual(message.command, 'submit');
-      conn.send(fixtures.ledgerSequenceTooHighResponse(message));
-      testutils.closeLedgers(conn);
-    });
-
-    self.app
-    .post('/v1/accounts/' + addresses.VALID + '/orders?validated=false')
-    .send(fixtures.order())
-    .expect(testutils.checkBody(errors.RESTResponseLedgerSequenceTooHigh))
-    .expect(testutils.checkStatus(500))
-    .expect(testutils.checkHeaders)
-    .end(done);
-  });
-
-  test('/orders -- with validated false and invalid secret', function(done) {
-    self.wss.once('request_account_info', function(message, conn) {
-      assert.strictEqual(message.command, 'account_info');
-      assert.strictEqual(message.account, addresses.VALID);
-      conn.send(fixtures.accountInfoResponse(message));
-    });
-
-    self.wss.once('request_submit', function(message, conn) {
-      assert(false, 'should not submit request');
-    });
-
-    self.app
-    .post('/v1/accounts/' + addresses.VALID + '/orders?validated=false')
-    .send(fixtures.order({
-      secret: 'foo'
-    }))
-    .expect(testutils.checkStatus(500))
-    .expect(testutils.checkHeaders)
-    .expect(testutils.checkBody(errors.RESTInvalidSecret))
-    .end(done);
-  });
-
-  test('/orders -- with valid parameters', function(done) {
-    var lastLedger = self.app.remote._ledger_current_index;
-    var hash = testutils.generateHash();
-
-    self.wss.once('request_account_info', function(message, conn) {
-      assert.strictEqual(message.command, 'account_info');
-      assert.strictEqual(message.account, addresses.VALID);
-      conn.send(fixtures.accountInfoResponse(message));
-    });
-
-    self.wss.once('request_submit', function(message, conn) {
-      var so = new ripple.SerializedObject(message.tx_blob).to_json();
-      assert.strictEqual(message.command, 'submit');
-      assert.strictEqual(so.Account, addresses.VALID);
-      assert.strictEqual(so.TransactionType, 'OfferCreate');
-      assert.deepEqual(so.TakerPays, {
-        value: '100',
-        currency: 'USD',
-        issuer: addresses.ISSUER
-      });
-      assert.deepEqual(so.TakerGets, {
-        value: '100',
-        currency: 'USD',
-        issuer: addresses.ISSUER
-      });
-
-      conn.send(fixtures.requestSubmitResponse(message, {
-        hash: hash
-      }));
-    });
-
-    self.app
     .post('/v1/accounts/' + addresses.VALID + '/orders')
-    .send(fixtures.order())
-    .expect(testutils.checkStatus(200))
+    .send(fixtures.order({
+      secret: 'foo'
+    }))
+    .expect(testutils.checkStatus(500))
     .expect(testutils.checkHeaders)
-    .expect(testutils.checkBody(fixtures.RESTSubmitTransactionResponse({
-      hash: hash,
-      last_ledger: lastLedger
-    })))
+    .expect(testutils.checkBody(errors.RESTInvalidSecret))
     .end(done);
   });
 
-  test('/orders -- with type sell', function(done) {
+  test('/orders -- type sell', function(done) {
     var lastLedger = self.app.remote._ledger_current_index;
     var hash = testutils.generateHash();
 
@@ -672,7 +631,7 @@ suite('post orders', function() {
     .end(done);
   });
 
-  test('/orders -- with passive true', function(done) {
+  test('/orders -- passive true', function(done) {
     var lastLedger = self.app.remote._ledger_current_index;
     var hash = testutils.generateHash();
 
@@ -706,7 +665,7 @@ suite('post orders', function() {
     .end(done);
   });
 
-  test('/orders -- with fill_or_kill true', function(done) {
+  test('/orders -- fill_or_kill true', function(done) {
     var lastLedger = self.app.remote._ledger_current_index;
     var hash = testutils.generateHash();
 
@@ -740,7 +699,7 @@ suite('post orders', function() {
     .end(done);
   });
 
-  test('/orders -- with immediate_or_cancel true', function(done) {
+  test('/orders -- immediate_or_cancel true', function(done) {
     var lastLedger = self.app.remote._ledger_current_index;
     var hash = testutils.generateHash();
 
@@ -774,7 +733,7 @@ suite('post orders', function() {
     .end(done);
   });
 
-  test('/orders -- with passive false', function(done) {
+  test('/orders -- passive false', function(done) {
     var lastLedger = self.app.remote._ledger_current_index;
     var hash = testutils.generateHash();
 
@@ -808,7 +767,7 @@ suite('post orders', function() {
     .end(done);
   });
 
-  test('/orders -- with fill_or_kill false', function(done) {
+  test('/orders -- fill_or_kill false', function(done) {
     var lastLedger = self.app.remote._ledger_current_index;
     var hash = testutils.generateHash();
 
@@ -842,7 +801,7 @@ suite('post orders', function() {
     .end(done);
   });
 
-  test('/orders -- with immediate_or_cancel false', function(done) {
+  test('/orders -- immediate_or_cancel false', function(done) {
     var lastLedger = self.app.remote._ledger_current_index;
     var hash = testutils.generateHash();
 
@@ -876,7 +835,7 @@ suite('post orders', function() {
     .end(done);
   });
 
-  test('/orders -- with invalid passive', function(done) {
+  test('/orders -- passive invalid', function(done) {
     self.wss.once('request_account_info', function(message, conn) {
       assert(false, 'should not request account info');
     });
@@ -900,7 +859,7 @@ suite('post orders', function() {
     .end(done);
   });
 
-  test('/orders -- with invalid immediate_or_cancel', function(done) {
+  test('/orders -- immediate_or_cancel invalid', function(done) {
     self.wss.once('request_account_info', function(message, conn) {
       assert(false, 'should not request account info');
     });
@@ -924,7 +883,7 @@ suite('post orders', function() {
     .end(done);
   });
 
-  test('/orders -- with invalid fill_or_kill', function(done) {
+  test('/orders -- fill_or_kill invalid', function(done) {
     self.wss.once('request_account_info', function(message, conn) {
       assert(false, 'should not request account info');
     });
@@ -948,9 +907,14 @@ suite('post orders', function() {
     .end(done);
   });
 
-  test('/orders -- with xrp taker gets', function(done) {
+  test('/orders -- taker_gets -- xrp', function(done) {
     var lastLedger = self.app.remote._ledger_current_index;
     var hash = testutils.generateHash();
+
+    var options = {
+      hash: hash,
+      taker_gets: '100000000000'
+    };
 
     self.wss.once('request_account_info', function(message, conn) {
       assert.strictEqual(message.command, 'account_info');
@@ -963,12 +927,9 @@ suite('post orders', function() {
       assert.strictEqual(message.command, 'submit');
       assert.strictEqual(so.Account, addresses.VALID);
       assert.strictEqual(so.TransactionType, 'OfferCreate');
-      assert.deepEqual(so.TakerGets, '100000000000');
+      assert.deepEqual(so.TakerGets, options.taker_gets);
 
-      conn.send(fixtures.requestSubmitResponse(message, {
-        hash: hash,
-        taker_gets: '100000000000'
-      }));
+      conn.send(fixtures.requestSubmitResponse(message, options));
     });
 
     self.app
@@ -994,9 +955,14 @@ suite('post orders', function() {
     .end(done);
   });
 
-  test('/orders -- with xrp taker pays', function(done) {
+  test('/orders -- taker_pays -- xrp', function(done) {
     var lastLedger = self.app.remote._ledger_current_index;
     var hash = testutils.generateHash();
+
+    var options = {
+      hash: hash,
+      taker_pays: '100000000000'
+    };
 
     self.wss.once('request_account_info', function(message, conn) {
       assert.strictEqual(message.command, 'account_info');
@@ -1009,12 +975,9 @@ suite('post orders', function() {
       assert.strictEqual(message.command, 'submit');
       assert.strictEqual(so.Account, addresses.VALID);
       assert.strictEqual(so.TransactionType, 'OfferCreate');
-      assert.deepEqual(so.TakerPays, '100000000000');
+      assert.deepEqual(so.TakerPays, options.taker_pays);
 
-      conn.send(fixtures.requestSubmitResponse(message, {
-        hash: hash,
-        taker_pays: '100000000000'
-      }));
+      conn.send(fixtures.requestSubmitResponse(message, options));
     });
 
     self.app
@@ -1039,7 +1002,7 @@ suite('post orders', function() {
     .end(done);
   });
 
-  test('/orders -- with unfunded offer error', function(done) {
+  test('/orders -- unfunded offer', function(done) {
     var hash = testutils.generateHash();
 
     self.wss.once('request_account_info', function(message, conn) {
@@ -1056,12 +1019,6 @@ suite('post orders', function() {
         engine_result_message: 'Insufficient balance to fund created offer.',
         hash: hash
       }));
-
-      process.nextTick(function() {
-        conn.send(fixtures.unfundedOrderFinalizedResponse({
-          hash: hash
-        }))
-      });
     });
 
     self.app
@@ -1077,29 +1034,7 @@ suite('post orders', function() {
     .end(done);
   });
 
-  test('/orders -- with ledger sequence too high response', function(done) {
-    self.wss.once('request_account_info', function(message, conn) {
-      assert.strictEqual(message.command, 'account_info');
-      assert.strictEqual(message.account, addresses.VALID);
-      conn.send(fixtures.accountInfoResponse(message));
-    });
-
-    self.wss.once('request_submit', function(message, conn) {
-      assert.strictEqual(message.command, 'submit');
-      conn.send(fixtures.ledgerSequenceTooHighResponse(message));
-      testutils.closeLedgers(conn);
-    });
-
-    self.app
-    .post('/v1/accounts/' + addresses.VALID + '/orders')
-    .send(fixtures.order())
-    .expect(testutils.checkBody(errors.RESTResponseLedgerSequenceTooHigh))
-    .expect(testutils.checkStatus(500))
-    .expect(testutils.checkHeaders)
-    .end(done);
-  });
-
-  test('/orders -- with missing secret', function(done) {
+  test('/orders -- secret missing', function(done) {
     self.wss.once('request_account_info', function(message, conn) {
       assert(false, 'should not request account info');
     });
@@ -1117,7 +1052,7 @@ suite('post orders', function() {
     .end(done);
   });
 
-  test('/orders -- with invalid secret', function(done) {
+  test('/orders -- secret invalid', function(done) {
     self.wss.once('request_account_info', function(message, conn) {
       assert.strictEqual(message.command, 'account_info');
       assert.strictEqual(message.account, addresses.VALID);
@@ -1139,7 +1074,7 @@ suite('post orders', function() {
     .end(done);
   });
 
-  test('/orders -- with missing order object', function(done) {
+  test('/orders -- order missing', function(done) {
     self.wss.once('request_account_info', function(message, conn) {
       assert(false, 'should not request account info');
     });
@@ -1163,7 +1098,7 @@ suite('post orders', function() {
     .end(done);
   });
 
-  test('/orders -- with invalid order type', function(done) {
+  test('/orders -- type missing', function(done) {
     self.wss.once('request_account_info', function(message, conn) {
       assert(false, 'should not request account info');
     });
@@ -1187,7 +1122,7 @@ suite('post orders', function() {
     .end(done);
   });
 
-  test('/orders -- with invalid taker_gets', function(done) {
+  test('/orders -- taker_gets invalid', function(done) {
     self.wss.once('request_account_info', function(message, conn) {
       assert(false, 'should not request account info');
     });
@@ -1211,7 +1146,7 @@ suite('post orders', function() {
     .end(done);
   });
 
-  test('/orders -- with taker_gets with currency but no issuer', function(done) {
+  test('/orders -- taker_gets -- currency without issuer', function(done) {
     self.wss.once('request_account_info', function(message, conn) {
       assert(false, 'should not request account info');
     });
@@ -1238,7 +1173,7 @@ suite('post orders', function() {
     .end(done);
   });
 
-  test('/orders -- with invalid taker_pays', function(done) {
+  test('/orders -- taker_pays invalid', function(done) {
     self.wss.once('request_account_info', function(message, conn) {
       assert(false, 'should not request account info');
     });
@@ -1262,7 +1197,7 @@ suite('post orders', function() {
     .end(done);
   });
 
-  test('/orders -- with taker_pays with currency but no issuer', function(done) {
+  test('/orders -- taker_pays -- currency without issuer', function(done) {
     self.wss.once('request_account_info', function(message, conn) {
       assert(false, 'should not request account info');
     });
@@ -1289,7 +1224,7 @@ suite('post orders', function() {
     .end(done);
   });
 
-  test('/orders -- with invalid account', function(done) {
+  test('/orders -- account invalid', function(done) {
     self.wss.once('request_account_info', function(message, conn) {
       assert(false, 'should not request account info');
     });
@@ -1306,7 +1241,6 @@ suite('post orders', function() {
     .expect(testutils.checkBody(errors.RESTInvalidAccount))
     .end(done);
   });
-
 });
 
 suite('delete orders', function() {
@@ -1315,7 +1249,7 @@ suite('delete orders', function() {
   setup(testutils.setup.bind(self));
   teardown(testutils.teardown.bind(self));
 
-  test('/orders/:sequence -- with validated true, validated submit response, and transaction verified response', function(done) {
+  test('/orders/:sequence?validated=true', function(done) {
     var lastLedger = self.app.remote._ledger_current_index;
     var hash = testutils.generateHash();
 
@@ -1349,14 +1283,14 @@ suite('delete orders', function() {
     .expect(testutils.checkStatus(200))
     .expect(testutils.checkHeaders)
     .expect(testutils.checkBody(fixtures.RESTCancelTransactionResponse({
+      state: 'validated',
       hash: hash,
-      last_ledger: lastLedger,
-      state: 'validated'
+      last_ledger: lastLedger
     })))
     .end(done);
   });
 
-  test('/orders/:sequence -- with validated true and ledger sequence too high error', function(done) {
+  test('/orders/:sequence -- ledger sequence too high', function(done) {
     self.wss.once('request_account_info', function(message, conn) {
       assert.strictEqual(message.command, 'account_info');
       assert.strictEqual(message.account, addresses.VALID);
@@ -1370,7 +1304,7 @@ suite('delete orders', function() {
     });
 
     self.app
-    .del('/v1/accounts/' + addresses.VALID + '/orders/99?validated=true')
+    .del('/v1/accounts/' + addresses.VALID + '/orders/99')
     .send({
       secret: addresses.SECRET
     })
@@ -1380,7 +1314,7 @@ suite('delete orders', function() {
     .end(done);
   });
 
-  test('/orders/:sequence -- with validated true and invalid secret', function(done) {
+  test('/orders/:sequence -- secret invalid', function(done) {
     self.wss.once('request_account_info', function(message, conn) {
       assert.strictEqual(message.command, 'account_info');
       assert.strictEqual(message.account, addresses.VALID);
@@ -1392,7 +1326,7 @@ suite('delete orders', function() {
     });
 
     self.app
-    .del('/v1/accounts/' + addresses.VALID + '/orders/99?validated=true')
+    .del('/v1/accounts/' + addresses.VALID + '/orders/99')
     .send(fixtures.order({
       secret: 'foo'
     }))
@@ -1402,90 +1336,7 @@ suite('delete orders', function() {
     .end(done);
   });
 
-  test('/orders/:sequence -- with validated false and valid submit response', function(done) {
-    var lastLedger = self.app.remote._ledger_current_index;
-    var hash = testutils.generateHash();
-
-    self.wss.once('request_account_info', function(message, conn) {
-      assert.strictEqual(message.command, 'account_info');
-      assert.strictEqual(message.account, addresses.VALID);
-      conn.send(fixtures.accountInfoResponse(message));
-    });
-
-    self.wss.once('request_submit', function(message, conn) {
-      assert.strictEqual(message.command, 'submit');
-      conn.send(fixtures.requestCancelResponse(message, {
-        hash: hash
-      }));
-
-      process.nextTick(function () {
-        conn.send(fixtures.cancelTransactionVerifiedResponse({
-          hash: hash
-        }));
-      });
-    });
-
-    self.app
-    .del('/v1/accounts/' + addresses.VALID + '/orders/99?validated=false')
-    .send({
-      secret: addresses.SECRET
-    })
-    .expect(testutils.checkStatus(200))
-    .expect(testutils.checkHeaders)
-    .expect(testutils.checkBody(fixtures.RESTCancelTransactionResponse({
-      hash: hash,
-      last_ledger: lastLedger
-    })))
-    .end(done);
-  });
-
-  test('/orders/:sequence -- with validated false and ledger sequence too high error', function(done) {
-    self.wss.once('request_account_info', function(message, conn) {
-      assert.strictEqual(message.command, 'account_info');
-      assert.strictEqual(message.account, addresses.VALID);
-      conn.send(fixtures.accountInfoResponse(message));
-    });
-
-    self.wss.once('request_submit', function(message, conn) {
-      assert.strictEqual(message.command, 'submit');
-      conn.send(fixtures.ledgerSequenceTooHighResponse(message));
-      testutils.closeLedgers(conn);
-    });
-
-    self.app
-    .del('/v1/accounts/' + addresses.VALID + '/orders/99?validated=false')
-    .send({
-      secret: addresses.SECRET
-    })
-    .expect(testutils.checkBody(errors.RESTResponseLedgerSequenceTooHigh))
-    .expect(testutils.checkStatus(500))
-    .expect(testutils.checkHeaders)
-    .end(done);
-  });
-
-  test('/orders/:sequence -- with validated false and invalid secret', function(done) {
-    self.wss.once('request_account_info', function(message, conn) {
-      assert.strictEqual(message.command, 'account_info');
-      assert.strictEqual(message.account, addresses.VALID);
-      conn.send(fixtures.accountInfoResponse(message));
-    });
-
-    self.wss.once('request_submit', function(message, conn) {
-      assert(false, 'should not submit request');
-    });
-
-    self.app
-    .del('/v1/accounts/' + addresses.VALID + '/orders/99?validated=false')
-    .send({
-      secret: 'foo'
-    })
-    .expect(testutils.checkStatus(500))
-    .expect(testutils.checkHeaders)
-    .expect(testutils.checkBody(errors.RESTInvalidSecret))
-    .end(done);
-  });
-
-  test('/orders/:sequence -- with valid parameters', function(done) {
+  test('/orders/:sequence', function(done) {
     var lastLedger = self.app.remote._ledger_current_index;
     var hash = testutils.generateHash();
 
@@ -1519,7 +1370,7 @@ suite('delete orders', function() {
     .end(done);
   });
 
-  test('/orders/:sequence -- with bad sequence error', function(done) {
+  test('/orders/:sequence -- bad sequence', function(done) {
     var hash = testutils.generateHash();
 
     self.wss.once('request_account_info', function(message, conn) {
@@ -1556,36 +1407,7 @@ suite('delete orders', function() {
     .end(done);
   });
 
-  test('/orders/:sequence -- with ledger sequence too high error', function(done) {
-    self.wss.once('request_account_info', function(message, conn) {
-      assert.strictEqual(message.command, 'account_info');
-      assert.strictEqual(message.account, addresses.VALID);
-      conn.send(fixtures.accountInfoResponse(message));
-    });
-
-    self.wss.once('request_submit', function(message, conn) {
-      var so = new ripple.SerializedObject(message.tx_blob).to_json();
-      assert.strictEqual(message.command, 'submit');
-      assert.strictEqual(so.TransactionType, 'OfferCancel');
-      assert.strictEqual(so.OfferSequence, 99);
-
-      conn.send(fixtures.ledgerSequenceTooHighResponse(message));
-
-      testutils.closeLedgers(conn);
-    });
-
-    self.app
-    .del('/v1/accounts/' + addresses.VALID + '/orders/99')
-    .send({
-      secret: addresses.SECRET
-    })
-    .expect(testutils.checkBody(errors.RESTResponseLedgerSequenceTooHigh))
-    .expect(testutils.checkStatus(500))
-    .expect(testutils.checkHeaders)
-    .end(done);
-  });
-
-  test('/orders/:sequence -- with invalid sequence', function(done) {
+  test('/orders/:sequence -- sequence invalid', function(done) {
     self.wss.once('request_account_info', function(message, conn) {
       assert(false, 'should not request account info');
     });
@@ -1609,7 +1431,7 @@ suite('delete orders', function() {
     .end(done);
   });
 
-  test('/orders/:sequence -- with missing secret', function(done) {
+  test('/orders/:sequence -- secret missing', function(done) {
     self.wss.once('request_account_info', function(message, conn) {
       assert(false, 'should not request account info');
     });
@@ -1627,7 +1449,7 @@ suite('delete orders', function() {
     .end(done);
   });
 
-  test('/orders/:sequence -- with invalid secret', function(done) {
+  test('/orders/:sequence -- secret invalid', function(done) {
     self.wss.once('request_account_info', function(message, conn) {
       assert.strictEqual(message.command, 'account_info');
       assert.strictEqual(message.account, addresses.VALID);
@@ -1649,7 +1471,7 @@ suite('delete orders', function() {
     .end(done);
   });
 
-  test('/orders/:sequence -- with invalid account', function(done) {
+  test('/orders/:sequence -- account invalid', function(done) {
     self.wss.once('request_account_info', function(message, conn) {
       assert(false, 'should not request account info');
     });
