@@ -235,7 +235,7 @@ function getTransaction(account, identifier, callback) {
   async.waterfall(steps, callback);
 
   function validateOptions(async_callback) {
-    if (account && !validator.isValid(account, 'RippleAddress')) {
+    if (account && !ripple.UInt160.is_valid(account)) {
       return callback(new errors.InvalidRequestError('Invalid parameter: account. Must be a valid Ripple Address'));
     }
 
@@ -390,7 +390,7 @@ function getAccountTransactions(options, response, callback) {
       );
     }
 
-    if (!validator.isValid(options.account, 'RippleAddress')) {
+    if (!ripple.UInt160.is_valid(options.account)) {
       return async_callback(new errors.InvalidRequestError('Invalid parameter: account. ' +
         'Must supply a valid Ripple Address to query account transactions')
       );

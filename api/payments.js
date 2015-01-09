@@ -100,11 +100,11 @@ function submitPayment(request, response, next) {
       return callback(new InvalidRequestError('Invalid parameter: client_resource_id. Must be a string of ASCII-printable characters. Note that 256-bit hex strings are disallowed because of the potential confusion with transaction hashes.'));
     }
 
-    if (!validator.isValid(payment.source_account, 'RippleAddress')) {
+    if (!ripple.UInt160.is_valid(payment.source_account)) {
       return callback(new InvalidRequestError('Invalid parameter: source_account. Must be a valid Ripple address'));
     }
 
-    if (!validator.isValid(payment.destination_account, 'RippleAddress')) {
+    if (!ripple.UInt160.is_valid(payment.destination_account)) {
       return callback(new InvalidRequestError('Invalid parameter: destination_account. Must be a valid Ripple address'));
     }
     // Tags
@@ -538,12 +538,12 @@ function getPathFind(request, response, next) {
     issuer:   (destinationAmountArray.length >= 3 ? destinationAmountArray[2] : '')
   };
 
-  if (!validator.isValid(params.source_account, 'RippleAddress')) {
+  if (!ripple.UInt160.is_valid(params.source_account)) {
     next(new InvalidRequestError('Invalid parameter: source_account. Must be a valid Ripple address'));
     return;
   }
 
-  if (!validator.isValid(params.destination_account, 'RippleAddress')) {
+  if (!ripple.UInt160.is_valid(params.destination_account)){
     next(new InvalidRequestError('Invalid parameter: destination_account. Must be a valid Ripple address'));
     return;
   }
@@ -569,7 +569,7 @@ function getPathFind(request, response, next) {
           currency: currencyIssuerArray[0],
           issuer: currencyIssuerArray[1]
         };
-        if (validator.isValid(currencyObject.currency, 'Currency') && validator.isValid(currencyObject.issuer, 'RippleAddress')) {
+        if (validator.isValid(currencyObject.currency, 'Currency') && ripple.UInt160.is_valid(currencyObject.issuer)) {
           params.source_currencies.push(currencyObject);
         } else {
           next(new InvalidRequestError('Invalid parameter: source_currencies. Must be a list of valid currencies'));
