@@ -24,7 +24,6 @@ var errors      = require('./../lib/errors.js');
  */
 
 function submitTransaction(options, hooks, callback) {
-
   var steps = [
     // General options validation is performed here before passing the options to the caller to validate
     function(callback) {

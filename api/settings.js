@@ -8,6 +8,7 @@ var remote                  = require('./../lib/remote.js');
 var respond                 = require('./../lib/response-handler.js');
 var errors                  = require('./../lib/errors.js');
 var TxToRestConverter       = require('./../lib/tx-to-rest-converter.js');
+var RestToTxConverter       = require('./../lib/rest-to-tx-converter.js');
 
 const InvalidRequestError = errors.InvalidRequestError;
 
@@ -317,6 +318,8 @@ function changeSettings(request, response, next) {
     });
     setTransactionIntFlags(transaction, params.settings, AccountSetIntFlags);
     setTransactionFields(transaction, params.settings, AccountRootFields);
+
+    transaction.tx_json.TransferRate = RestToTxConverter.convertTransferRate(transaction.tx_json.TransferRate);
   };
 };
 
