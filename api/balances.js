@@ -55,7 +55,7 @@ function getBalances(request, response, next) {
     if (options.counterparty && !ripple.UInt160.is_valid(options.counterparty)) {
       return Promise.reject(new InvalidRequestError('Parameter is not a valid Ripple address: counterparty'));
     }
-    if (options.currency && !/^[A-Z0-9]{3}$/.test(options.currency)) {
+    if (options.currency && !validator.isValid(options.currency, 'Currency')) {
       return Promise.reject(new InvalidRequestError('Parameter is not a valid currency: currency'));
     }
 
