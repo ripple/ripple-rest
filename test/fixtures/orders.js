@@ -66,6 +66,7 @@ module.exports.order = function(options) {
        taker_pays: options.taker_pays
     }
   };
+
 };
 
 module.exports.accountOrdersResponse = function(request, options) {
@@ -474,7 +475,7 @@ module.exports.submitTransactionVerifiedResponse = function(options) {
     "engine_result_code": 0,
     "engine_result_message": "The transaction was applied.",
     "ledger_hash": "F1822659E6C0F1E1169F1AEFC4A07F8BCE124BF8A6CEEE30AFB4DDBDAFF2776A",
-    "ledger_index": 8819952,
+    "ledger_index": options.last_ledger,
     "meta": {
       "AffectedNodes": [
         {

@@ -60,37 +60,50 @@ function submitTransaction(options, hooks, callback) {
       transaction.once('error', callback);
 
       transaction.once('submitted', function(message) {
-        if (message.engine_result === 'tesSUCCESS' && options.validated === false) {
-          formatTransactionResponseWrapper(transaction, message, callback);
-        } else {
-          // Handle erred transactions that should not make it into ledger (all
-          // errors that aren't tec-class). This function is called before the
-          // transaction `error` listener.
+        if (message.result.slice(0, 3) === 'tec' && options.validated !== true) {
+          transaction.removeListener('error', callback);
+          return callback(message);
+        }
 
-          switch (message.engine_result) {
-            case 'terNO_ACCOUNT':
-            case 'terNO_AUTH':
-            case 'terNO_LINE':
-            case 'terINSUF_FEE_B':
-              // The transaction needs to be aborted. Preserve the original ter-
-              // class error for presentation to the client
-              transaction.removeListener('error', callback);
-              transaction.once('error', function() {
-                callback(message);
-              });
-              transaction.abort();
-              break;
-          }
+        // Handle erred transactions that should not make it into ledger (all
+        // errors that aren't tec-class). This function is called before the
+        // transaction `error` listener.
+        switch (message.engine_result) {
+          case 'terNO_ACCOUNT':
+          case 'terNO_AUTH':
+          case 'terNO_LINE':
+          case 'terINSUF_FEE_B':
+            // The transaction needs to be aborted. Preserve the original ter-
+            // class error for presentation to the client
+            transaction.removeListener('error', callback);
+            transaction.once('error', function() {
+              callback(message);
+            });
+            transaction.abort();
+            break;
         }
       });
 
-      transaction.once('final', function(message) {
-        if (message.engine_result === 'tesSUCCESS' && options.validated === true) {
-          formatTransactionResponseWrapper(transaction, message, callback);
+      transaction.once('proposed', function(message) {
+        if (options.validated !== true) {
+          formatTransactionResponseWrapper(transaction, message, options.validated, callback);
+        }
+      });
+
+      transaction.once('success', function(message) {
+        if (options.validated === true) {
+          formatTransactionResponseWrapper(transaction, message, options.validated, callback);
         }
       });
 
       if (options.saveTransaction === true) {
+        transaction.on('state', function() {
+          var transactionSummary = transaction.summary();
+          if (transactionSummary.submitIndex !== void(0)) {
+            dbinterface.saveTransaction(transactionSummary);
+          }
+        });
+
         transaction.on('postsubmit', function() {
           dbinterface.saveTransaction(transaction.summary());
         });
@@ -100,16 +113,10 @@ function submitTransaction(options, hooks, callback) {
     }
   ];
 
-  function formatTransactionResponseWrapper(transaction, message, callback) {
+  function formatTransactionResponseWrapper(transaction, message, waitForValidated, callback) {
     var summary = transaction.summary();
 
     transaction.removeListener('error', callback);
-
-    if (options.saveTransaction === true) {
-      transaction.on('state', function() {
-        dbinterface.saveTransaction(transaction.summary());
-      });
-    }
 
     var meta = {};
 
@@ -120,7 +127,7 @@ function submitTransaction(options, hooks, callback) {
 
     meta.state = message.validated === true ? 'validated' : 'pending';
 
-    hooks.formatTransactionResponse(message, meta, callback);
+    hooks.formatTransactionResponse(message, meta, callback, waitForValidated);
   };
 
   function blockDuplicates(transaction, options, callback) {
