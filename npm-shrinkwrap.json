@@ -1,6 +1,6 @@
 {
   "name": "ripple-rest",
-  "version": "1.3.2-rc1",
+  "version": "1.3.2-rc2",
   "dependencies": {
     "async": {
       "version": "0.2.10",
@@ -271,9 +271,9 @@
           "resolved": "https://registry.npmjs.org/path-to-regexp/-/path-to-regexp-0.1.3.tgz"
         },
         "proxy-addr": {
-          "version": "1.0.4",
+          "version": "1.0.5",
           "from": "proxy-addr@>=1.0.4 <1.1.0",
-          "resolved": "https://registry.npmjs.org/proxy-addr/-/proxy-addr-1.0.4.tgz",
+          "resolved": "https://registry.npmjs.org/proxy-addr/-/proxy-addr-1.0.5.tgz",
           "dependencies": {
             "forwarded": {
               "version": "0.1.0",
@@ -281,9 +281,9 @@
               "resolved": "https://registry.npmjs.org/forwarded/-/forwarded-0.1.0.tgz"
             },
             "ipaddr.js": {
-              "version": "0.1.5",
-              "from": "ipaddr.js@0.1.5",
-              "resolved": "https://registry.npmjs.org/ipaddr.js/-/ipaddr.js-0.1.5.tgz"
+              "version": "0.1.6",
+              "from": "ipaddr.js@0.1.6",
+              "resolved": "https://registry.npmjs.org/ipaddr.js/-/ipaddr.js-0.1.6.tgz"
             }
           }
         },
@@ -416,7 +416,7 @@
               "dependencies": {
                 "ansi-regex": {
                   "version": "0.2.1",
-                  "from": "ansi-regex@>=0.2.0 <0.3.0",
+                  "from": "ansi-regex@>=0.2.1 <0.3.0",
                   "resolved": "https://registry.npmjs.org/ansi-regex/-/ansi-regex-0.2.1.tgz"
                 }
               }
@@ -428,7 +428,7 @@
               "dependencies": {
                 "ansi-regex": {
                   "version": "0.2.1",
-                  "from": "ansi-regex@>=0.2.0 <0.3.0",
+                  "from": "ansi-regex@>=0.2.1 <0.3.0",
                   "resolved": "https://registry.npmjs.org/ansi-regex/-/ansi-regex-0.2.1.tgz"
                 }
               }
@@ -452,7 +452,7 @@
         },
         "inherits": {
           "version": "2.0.1",
-          "from": "inherits@2.0.1",
+          "from": "inherits@>=2.0.1 <2.1.0",
           "resolved": "https://registry.npmjs.org/inherits/-/inherits-2.0.1.tgz"
         },
         "interpret": {
@@ -1280,7 +1280,7 @@
                 },
                 "mime": {
                   "version": "1.2.11",
-                  "from": "mime@>=1.2.7 <1.3.0",
+                  "from": "mime@>=1.2.11 <1.3.0",
                   "resolved": "https://registry.npmjs.org/mime/-/mime-1.2.11.tgz"
                 }
               }
@@ -1307,7 +1307,7 @@
                 },
                 "inherits": {
                   "version": "2.0.1",
-                  "from": "inherits@>=2.0.0 <3.0.0",
+                  "from": "inherits@2.0.1",
                   "resolved": "https://registry.npmjs.org/inherits/-/inherits-2.0.1.tgz"
                 }
               }
@@ -1372,7 +1372,7 @@
             },
             "mime": {
               "version": "1.2.11",
-              "from": "mime@>=1.2.7 <1.3.0",
+              "from": "mime@>=1.2.11 <1.3.0",
               "resolved": "https://registry.npmjs.org/mime/-/mime-1.2.11.tgz"
             },
             "hawk": {
