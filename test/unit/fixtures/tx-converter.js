@@ -1,6 +1,8 @@
 var _         = require('lodash');
 var addresses = require('./../../fixtures').addresses;
 
+const VALID_TRANSACTION_HASH = 'F4AB442A6D4CBB935D66E1DA7309A5FC71C7143ED4049053EC14E3875B0CF9BF';
+
 // VALID's EUR balance with ISSUER goes down from 6.948 to 6.113
 // VALID's XRP balance goes down 15000 drops for the fee
 // rGAW's USD balance with ISSUER goes down from 615 to 614
@@ -318,6 +320,7 @@ module.exports.paymentTx = function(options) {
       "TransactionIndex": 0,
       "TransactionResult": "tesSUCCESS"
     },
+    hash: VALID_TRANSACTION_HASH
   });
 
   return {
@@ -366,7 +369,7 @@ module.exports.paymentTx = function(options) {
     "TransactionType": "Payment",
     "TxnSignature": "304502204EE3E9D1B01D8959B08450FCA9E22025AF503DEF310E34A93863A85CAB3C0BC5022100B61F5B567F77026E8DEED89EED0B7CAF0E6C96C228A2A65216F0DC2D04D52083",
     "date": 416447810,
-    "hash": "F4AB442A6D4CBB935D66E1DA7309A5FC71C7143ED4049053EC14E3875B0CF9BF",
+    "hash": options.hash,
     "inLedger": 348860,
     "ledger_index": 348860,
     "meta": options.meta,
@@ -375,6 +378,7 @@ module.exports.paymentTx = function(options) {
 };
 
 module.exports.paymentRest = {
+  hash: VALID_TRANSACTION_HASH,
   source_account: addresses.VALID,
   source_tag: '',
   source_amount: { value: '1.112209', currency: 'XRP', issuer: '' },
