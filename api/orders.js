@@ -9,6 +9,7 @@ var utils                   = require('./../lib/utils');
 var errors                  = require('./../lib/errors.js');
 var TxToRestConverter       = require('./../lib/tx-to-rest-converter.js');
 var validator               = require('./../lib/schema-validator.js');
+var bignum                  = require('bignumber.js');
 
 const InvalidRequestError   = errors.InvalidRequestError;
 
@@ -26,10 +27,10 @@ const DefaultPageLimit = 200;
  *  @query
  *  @param {String} [request.query.limit]    - Set a limit to the number of results returned
  *  @param {String} [request.query.marker]   - Used to paginate results
- *  @param {String} [request.query.ledger]   - The ledger index to query aginst (required if request.query.marker is present)
+ *  @param {String} [request.query.ledger]   - The ledger index to query against (required if request.query.marker is present)
  *
  *  @url
- *  @param {String} request.params.address  - The ripple address to query orders
+ *  @param {RippleAddress} request.params.account  - The ripple address to query orders
  *
  *  @param {Express.js Response} response
  *  @param {Express.js Next} next
@@ -134,7 +135,6 @@ function getOrders(request, response, next) {
 
     return promise;
   }
-
 };
 
 /**
@@ -288,8 +288,212 @@ function cancelOrder(request, response, next) {
   };
 };
 
+/**
+ *  Get the most recent spapshot of the order book for a currency pair
+ *
+ *  @url
+ *  @param {RippleAddress} request.params.account - The ripple address to use as point-of-view (returns unfunded orders for this account)
+ *  @param {String ISO 4217 Currency Code + RippleAddress} request.params.base    - Base currency as currency+issuer
+ *  @param {String ISO 4217 Currency Code + RippleAddress} request.params.counter - Counter currency as currency+issuer
+ *
+ *  @query
+ *  @param {String} [request.query.limit] - Set a limit to the number of results returned
+ *
+ *  @param {Express.js Request} request
+ *  @param {Express.js Response} response
+ *  @param {Express.js Next} next
+ */
+function getOrderBook(request, response, next) {
+  var options = request.params;
+
+  Object.keys(request.query).forEach(function(param) {
+    options[param] = request.query[param];
+  });
+
+  parseOptions(options)
+  .then(validateOptions)
+  .then(getLastValidatedLedger)
+  .then(getBidsAndAsks)
+  .spread(respondWithOrderBook)
+  .catch(next);
+
+  function parseOptions(options) {
+    options.validated  = true;
+    options.order_book = options.base + '/' + options.counter;
+    options.base       = utils.parseCurrencyQuery(options.base);
+    options.counter    = utils.parseCurrencyQuery(options.counter);
+
+    return Promise.resolve(options);
+  }
+
+  function validateOptions(options) {
+    return new Promise(function(resolve, reject) {
+      if (!ripple.UInt160.is_valid(options.account)) {
+        reject(new InvalidRequestError('Parameter is not a valid Ripple address: account'));
+      }
+
+      if (!options.base.currency) {
+        reject(new InvalidRequestError('Invalid parameter: base. Must be a currency string in the form currency+counterparty'));
+      }
+
+      if (!validator.isValid(options.base.currency, 'Currency')) {
+        reject(new InvalidRequestError('Invalid parameter: base. Must be a currency string in the form currency+counterparty'));
+      }
+
+      if (options.base.currency !== 'XRP' && (!options.base.issuer || !ripple.UInt160.is_valid(options.base.issuer))) {
+        reject(new InvalidRequestError('Invalid parameter: base. Must be a currency string in the form currency+counterparty'));
+      }
+
+      if (!options.counter.currency) {
+        reject(new InvalidRequestError('Invalid parameter: counter. Must be a currency string in the form currency+counterparty'));
+      }
+
+      if (!validator.isValid(options.counter.currency, 'Currency')) {
+        reject(new InvalidRequestError('Invalid parameter: counter. Must be a currency string in the form currency+counterparty'));
+      }
+
+      if (options.counter.currency !== 'XRP' && (!options.counter.issuer || !ripple.UInt160.is_valid(options.counter.issuer))) {
+        reject(new InvalidRequestError('Invalid parameter: counter. Must be a currency string in the form currency+counterparty'));
+      }
+
+      if (options.counter.currency === 'XRP' && options.counter.issuer) {
+        reject(new InvalidRequestError('Invalid parameter: counter. XRP cannot have counterparty'));
+      }
+
+      if (options.base.currency === 'XRP' && options.base.issuer) {
+        reject(new InvalidRequestError('Invalid parameter: base. XRP cannot have counterparty'));
+      }
+
+      resolve(options);
+    });
+  }
+
+  function getLastValidatedLedger(options) {
+    var promise = new Promise(function (resolve, reject) {
+      var ledgerRequest = remote.requestLedger('validated');
+
+      ledgerRequest.once('success', function(res) {
+        options.ledger = res.ledger.ledger_index;
+        resolve(options);
+      });
+
+      ledgerRequest.once('error', reject);
+      ledgerRequest.request();
+    });
+
+    return promise;
+  }
+
+  function getBookOffers(taker_gets, taker_pays, options) {
+    var promise = new Promise(function (resolve, reject) {
+      var bookOffersRequest = remote.requestBookOffers({
+        taker_gets: taker_gets,
+        taker_pays: taker_pays,
+        ledger: options.ledger,
+        limit: options.limit,
+        taker: options.account
+      });
+
+      bookOffersRequest.once('success', resolve);
+      bookOffersRequest.once('error', reject);
+      bookOffersRequest.request();
+    });
+
+    return promise;
+  }
+
+  function getBids(options) {
+    var taker_gets = options.counter;
+    var taker_pays = options.base;
+
+    return getBookOffers(taker_gets, taker_pays, options);
+  }
+
+  function getAsks(options) {
+    var taker_gets = options.base;
+    var taker_pays = options.counter;
+
+    return getBookOffers(taker_gets, taker_pays, options);
+  }
+
+  function getBidsAndAsks(options) {
+    return Promise.join(
+      getBids(options),
+      getAsks(options),
+      function(bids, asks) {
+        return [bids,asks, options];
+      }
+    );
+  }
+
+  function respondWithOrderBook(bids, asks, options) {
+    var promise = new Promise(function (resolve, reject) {
+      var orderBook = {
+        order_book: options.order_book,
+        ledger: options.ledger,
+        validated: options.validated,
+        bids:  getParsedBookOffers(bids.offers),
+        asks:  getParsedBookOffers(asks.offers, true)
+      };
+
+      resolve(respond.success(response, orderBook));
+    });
+
+    return promise;
+  }
+
+  function getParsedBookOffers(offers, isAsk) {
+    return offers.reduce(function(orderBook, off) {
+      var price;
+      var order_maker = off.Account;
+      var sequence = off.Sequence;
+
+      // Transaction Flags
+      var passive = off.Flags === ripple.Remote.flags.offer.Passive;
+      var sell = off.Flags === ripple.Remote.flags.offer.Sell;
+
+      var taker_gets_total =  utils.parseCurrencyAmount(off.TakerGets);
+      var taker_gets_funded = off.taker_gets_funded ? utils.parseCurrencyAmount(off.taker_gets_funded) : taker_gets_total;
+
+      var taker_pays_total =  utils.parseCurrencyAmount(off.TakerPays);
+      var taker_pays_funded = off.taker_pays_funded ? utils.parseCurrencyAmount(off.taker_pays_funded) : taker_pays_total;
+
+      if (isAsk) {
+        price = {
+          currency: taker_pays_total.currency,
+          counterparty: taker_pays_total.counterparty,
+          value: bignum(taker_pays_total.value).div(bignum(taker_gets_total.value))
+        };
+      } else {
+        price = {
+          currency: taker_gets_total.currency,
+          counterparty: taker_gets_total.counterparty,
+          value: bignum(taker_gets_total.value).div(bignum(taker_pays_total.value))
+        };
+      }
+
+      price.value = price.value.toString();
+
+      orderBook.push({
+        price: price,
+        taker_gets_funded: taker_gets_funded,
+        taker_gets_total: taker_gets_total,
+        taker_pays_funded: taker_pays_funded,
+        taker_pays_total: taker_pays_total,
+        order_maker: order_maker,
+        sequence: sequence,
+        passive: passive,
+        sell: sell
+      });
+
+      return orderBook;
+    }, []);
+  }
+}
+
 module.exports = {
   getOrders: getOrders,
   placeOrder: placeOrder,
-  cancelOrder: cancelOrder
+  cancelOrder: cancelOrder,
+  getOrderBook: getOrderBook
 };

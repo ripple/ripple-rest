@@ -47,6 +47,34 @@ module.exports.RESTInvalidCurrency = JSON.stringify({
   message: 'Parameter is not a valid currency: currency'
 });
 
+module.exports.RESTInvalidBase = JSON.stringify({
+  success: false,
+  error_type: 'invalid_request',
+  error: 'restINVALID_PARAMETER',
+  message: 'Invalid parameter: base. Must be a currency string in the form currency+counterparty'
+});
+
+module.exports.RESTInvalidCounter = JSON.stringify({
+  success: false,
+  error_type: 'invalid_request',
+  error: 'restINVALID_PARAMETER',
+  message: 'Invalid parameter: counter. Must be a currency string in the form currency+counterparty'
+});
+
+module.exports.RESTInvalidXRPBase = JSON.stringify({
+  success: false,
+  error_type: 'invalid_request',
+  error: 'restINVALID_PARAMETER',
+  message: 'Invalid parameter: base. XRP cannot have counterparty'
+});
+
+module.exports.RESTInvalidXRPCounter = JSON.stringify({
+  success: false,
+  error_type: 'invalid_request',
+  error: 'restINVALID_PARAMETER',
+  message: 'Invalid parameter: counter. XRP cannot have counterparty'
+});
+
 module.exports.RESTAccountNotFound = JSON.stringify({
   success: false,
   error_type: 'transaction',

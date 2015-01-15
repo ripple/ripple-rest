@@ -6,10 +6,11 @@ var fixtures  = require('./fixtures').orders;
 var errors    = require('./fixtures').errors;
 var addresses = require('./fixtures').addresses;
 var utils     = require('./../lib/utils');
+var Currency  = require('ripple-lib').Currency;
 
 const HEX_CURRENCY = '0158415500000000C1F76FF6ECB0BAC600000000';
-const ISSUER = 'rvYAfWj5gh67oV6fW32ZzP3Aw4Eubs59B'
-const VALUE = '0.00000001'
+const ISSUER = 'rvYAfWj5gh67oV6fW32ZzP3Aw4Eubs59B';
+const VALUE = '0.00000001';
 
 const DEFAULT_LIMIT = 200;
 const LIMIT = 100;
@@ -1485,6 +1486,317 @@ suite('delete orders', function() {
     .send({
       secret: addresses.SECRET
     })
+    .expect(testutils.checkStatus(400))
+    .expect(testutils.checkHeaders)
+    .expect(testutils.checkBody(errors.RESTInvalidAccount))
+    .end(done);
+  });
+});
+
+suite('get order book', function() {
+  var self = this;
+
+  setup(testutils.setup.bind(self));
+  teardown(testutils.teardown.bind(self));
+
+  test('v1/accounts/:account/order_book/:base/:counter', function(done) {
+    self.wss.on('request_ledger', function(message, conn) {
+      assert.strictEqual(message.ledger_index, 'validated');
+      conn.send(fixtures.requestLedgerResponse(message, {
+        ledger: LEDGER
+      }));
+    });
+
+    self.wss.on('request_book_offers', function(message, conn) {
+      assert.strictEqual(message.command, 'book_offers');
+      assert.strictEqual(message.ledger_index, LEDGER);
+      assert.strictEqual(message.taker, addresses.VALID);
+
+      if (message.taker_gets.currency === Currency.from_human('USD').to_hex()) {
+        // Bids
+        conn.send(fixtures.requestBookOffersBidsResponse(message));
+      } else {
+        // Asks
+        conn.send(fixtures.requestBookOffersAsksResponse(message));
+      }
+    });
+
+    self.app
+    .get('/v1/accounts/' + addresses.VALID + '/order_book/BTC+' + addresses.ISSUER + '/USD+' + addresses.ISSUER)
+    .expect(testutils.checkStatus(200))
+    .expect(testutils.checkHeaders)
+    .expect(testutils.checkBody(fixtures.RESTOrderBookResponse({
+      ledger: LEDGER
+    })))
+    .end(done);
+  });
+
+  test('v1/accounts/:account/order_book/:base/:counter -- with partially funded ask', function(done) {
+    self.wss.on('request_ledger', function(message, conn) {
+      assert.strictEqual(message.ledger_index, 'validated');
+      conn.send(fixtures.requestLedgerResponse(message, {
+        ledger: LEDGER
+      }));
+    });
+
+    self.wss.on('request_book_offers', function(message, conn) {
+      assert.strictEqual(message.command, 'book_offers');
+      assert.strictEqual(message.ledger_index, LEDGER);
+
+      if (message.taker_gets.currency === Currency.from_human('USD').to_hex()) {
+        // Bids
+        conn.send(fixtures.requestBookOffersBidsResponse(message));
+      } else {
+        // Asks
+        conn.send(fixtures.requestBookOffersAsksPartialFundedResponse(message));
+      }
+    });
+
+    self.app
+    .get('/v1/accounts/' + addresses.VALID + '/order_book/BTC+' + addresses.ISSUER + '/USD+' + addresses.ISSUER)
+    .expect(testutils.checkStatus(200))
+    .expect(testutils.checkHeaders)
+    .expect(testutils.checkBody(fixtures.RESTOrderBookPartialAskResponse()))
+    .end(done);
+  });
+
+  test('v1/accounts/:account/order_book/:base/:counter -- with partially funded bid', function(done) {
+    self.wss.on('request_ledger', function(message, conn) {
+      assert.strictEqual(message.ledger_index, 'validated');
+      conn.send(fixtures.requestLedgerResponse(message, {
+        ledger: LEDGER
+      }));
+    });
+
+    self.wss.on('request_book_offers', function(message, conn) {
+      assert.strictEqual(message.command, 'book_offers');
+      assert.strictEqual(message.ledger_index, LEDGER);
+
+      if (message.taker_gets.currency === Currency.from_human('USD').to_hex()) {
+        // Bids
+        conn.send(fixtures.requestBookOffersBidsPartialFundedResponse(message));
+      } else {
+        // Asks
+        conn.send(fixtures.requestBookOffersAsksResponse(message));
+      }
+    });
+
+    self.app
+    .get('/v1/accounts/' + addresses.VALID + '/order_book/BTC+' + addresses.ISSUER + '/USD+' + addresses.ISSUER)
+    .expect(testutils.checkStatus(200))
+    .expect(testutils.checkHeaders)
+    .expect(testutils.checkBody(fixtures.RESTOrderBookPartialBidResponse()))
+    .end(done);
+  });
+
+  test('v1/accounts/:account/order_book/:base/:counter -- with limit', function(done) {
+    self.wss.on('request_ledger', function(message, conn) {
+      assert.strictEqual(message.ledger_index, 'validated');
+      conn.send(fixtures.requestLedgerResponse(message, {
+        ledger: LEDGER
+      }));
+    });
+
+    self.wss.on('request_book_offers', function(message, conn) {
+      assert.strictEqual(message.command, 'book_offers');
+      assert.strictEqual(message.ledger_index, LEDGER);
+
+      if (message.taker_gets.currency === Currency.from_human('USD').to_hex()) {
+        // Bids
+        assert.strictEqual(message.limit, LIMIT);
+        conn.send(fixtures.requestBookOffersBidsResponse(message));
+      } else {
+        // Asks
+        assert.strictEqual(message.limit, LIMIT);
+        conn.send(fixtures.requestBookOffersAsksResponse(message));
+      }
+    });
+
+    self.app
+    .get('/v1/accounts/' + addresses.VALID + '/order_book/BTC+' + addresses.ISSUER + '/USD+' + addresses.ISSUER + '?limit=' + LIMIT)
+    .expect(testutils.checkStatus(200))
+    .expect(testutils.checkHeaders)
+    .expect(testutils.checkBody(fixtures.RESTOrderBookResponse()))
+    .end(done);
+  });
+
+  test('v1/accounts/:account/order_book/:base/:counter -- with XRP as base', function(done) {
+    self.wss.on('request_ledger', function(message, conn) {
+      assert.strictEqual(message.ledger_index, 'validated');
+      conn.send(fixtures.requestLedgerResponse(message, {
+        ledger: LEDGER
+      }));
+    });
+
+    self.wss.on('request_book_offers', function(message, conn) {
+      assert.strictEqual(message.command, 'book_offers');
+      assert.strictEqual(message.ledger_index, LEDGER);
+      assert.strictEqual(message.taker, addresses.VALID);
+
+      if (message.taker_gets.currency === Currency.from_human('USD').to_hex()) {
+        // Bids
+        conn.send(fixtures.requestBookOffersXRPBaseResponse(message));
+      } else {
+        // Asks
+        conn.send(fixtures.requestBookOffersXRPCounterResponse(message));
+      }
+    });
+
+    self.app
+    .get('/v1/accounts/' + addresses.VALID + '/order_book/XRP/USD+' + addresses.COUNTERPARTY)
+    .expect(testutils.checkStatus(200))
+    .expect(testutils.checkHeaders)
+    .expect(testutils.checkBody(fixtures.RESTOrderBookXRPBaseResponse({
+      ledger: LEDGER
+    })))
+    .end(done);
+  });
+
+  test('v1/accounts/:account/order_book/:base/:counter -- with XRP as counter', function(done) {
+    self.wss.on('request_ledger', function(message, conn) {
+      assert.strictEqual(message.ledger_index, 'validated');
+      conn.send(fixtures.requestLedgerResponse(message, {
+        ledger: LEDGER
+      }));
+    });
+
+    self.wss.on('request_book_offers', function(message, conn) {
+      assert.strictEqual(message.command, 'book_offers');
+      assert.strictEqual(message.ledger_index, LEDGER);
+      assert.strictEqual(message.taker, addresses.VALID);
+
+      if (message.taker_gets.currency === Currency.from_human('XRP').to_hex()) {
+        // Bids
+        conn.send(fixtures.requestBookOffersXRPCounterResponse(message));
+      } else {
+        // Asks
+        conn.send(fixtures.requestBookOffersXRPBaseResponse(message));
+      }
+    });
+
+    self.app
+    .get('/v1/accounts/' + addresses.VALID + '/order_book/USD+' + addresses.COUNTERPARTY + '/XRP')
+    .expect(testutils.checkStatus(200))
+    .expect(testutils.checkHeaders)
+    .expect(testutils.checkBody(fixtures.RESTOrderBookXRPCounterResponse({
+      ledger: LEDGER
+    })))
+    .end(done);
+  });
+
+  test('v1/accounts/:account/order_book/:base/:counter -- with invalid currency as base', function(done) {
+    self.wss.on('request_ledger', function(message, conn) {
+      assert(false, 'Should not request ledger info');
+    });
+
+    self.wss.on('request_book_offers', function(message, conn) {
+      assert(false, 'Should not request book offers');
+    });
+
+    self.app
+    .get('/v1/accounts/' + addresses.VALID + '/order_book/' + 'AAAA+' + addresses.ISSUER + '/BTC+' + addresses.ISSUER)
+    .expect(testutils.checkStatus(400))
+    .expect(testutils.checkHeaders)
+    .expect(testutils.checkBody(errors.RESTInvalidBase))
+    .end(done);
+  });
+
+  test('v1/accounts/:account/order_book/:base/:counter -- with invalid currency as counter', function(done) {
+    self.wss.on('request_ledger', function(message, conn) {
+      assert(false, 'Should not request ledger info');
+    });
+
+    self.wss.on('request_book_offers', function(message, conn) {
+      assert(false, 'Should not request book offers');
+    });
+
+    self.app
+    .get('/v1/accounts/' + addresses.VALID + '/order_book/' + 'BTC+' + addresses.ISSUER + '/AAAA+' + addresses.ISSUER)
+    .expect(testutils.checkStatus(400))
+    .expect(testutils.checkHeaders)
+    .expect(testutils.checkBody(errors.RESTInvalidCounter))
+    .end(done);
+  });
+
+  test('v1/accounts/:account/order_book/:base/:counter -- with invalid base counterparty', function(done) {
+    self.wss.on('request_ledger', function(message, conn) {
+      assert(false, 'Should not request ledger info');
+    });
+
+    self.wss.on('request_book_offers', function(message, conn) {
+      assert(false, 'Should not request book offers');
+    });
+
+    self.app
+    .get('/v1/accounts/' + addresses.VALID + '/order_book/' + 'BTC+' + addresses.INVALID + '/USD+' + addresses.ISSUER)
+    .expect(testutils.checkStatus(400))
+    .expect(testutils.checkHeaders)
+    .expect(testutils.checkBody(errors.RESTInvalidBase))
+    .end(done);
+  });
+
+  test('v1/accounts/:account/order_book/:base/:counter -- with invalid counter counterparty', function(done) {
+    self.wss.on('request_ledger', function(message, conn) {
+      assert(false, 'Should not request ledger info');
+    });
+
+    self.wss.on('request_book_offers', function(message, conn) {
+      assert(false, 'Should not request book offers');
+    });
+
+    self.app
+    .get('/v1/accounts/' + addresses.VALID + '/order_book/' + 'BTC+' + addresses.ISSUER + '/USD+' + addresses.INVALID)
+    .expect(testutils.checkStatus(400))
+    .expect(testutils.checkHeaders)
+    .expect(testutils.checkBody(errors.RESTInvalidCounter))
+    .end(done);
+  });
+
+  test('v1/accounts/:account/order_book/:base/:counter -- with XRP as base with counterparty', function(done) {
+    self.wss.on('request_ledger', function(message, conn) {
+      assert(false, 'Should not request ledger info');
+    });
+
+    self.wss.on('request_book_offers', function(message, conn) {
+      assert(false, 'Should not request book offers');
+    });
+
+    self.app
+    .get('/v1/accounts/' + addresses.VALID + '/order_book/' + 'XRP+' + addresses.ISSUER + '/USD+' + addresses.ISSUER)
+    .expect(testutils.checkStatus(400))
+    .expect(testutils.checkHeaders)
+    .expect(testutils.checkBody(errors.RESTInvalidXRPBase))
+    .end(done);
+  });
+
+  test('v1/accounts/:account/order_book/:base/:counter -- with XRP as counter with issuer', function(done) {
+    self.wss.on('request_ledger', function(message, conn) {
+      assert(false, 'Should not request ledger info');
+    });
+
+    self.wss.on('request_book_offers', function(message, conn) {
+      assert(false, 'Should not request book offers');
+    });
+
+    self.app
+    .get('/v1/accounts/' + addresses.VALID + '/order_book/' + 'BTC+' + addresses.ISSUER + '/XRP+' + addresses.ISSUER)
+    .expect(testutils.checkStatus(400))
+    .expect(testutils.checkHeaders)
+    .expect(testutils.checkBody(errors.RESTInvalidXRPCounter))
+    .end(done);
+  });
+
+  test('v1/accounts/:account/order_book/:base/:counter -- with invalid account', function(done) {
+    self.wss.on('request_ledger', function(message, conn) {
+      assert(false, 'Should not request ledger info');
+    });
+
+    self.wss.on('request_book_offers', function(message, conn) {
+      assert(false, 'Should not request book offers');
+    });
+
+    self.app
+    .get('/v1/accounts/' + addresses.INVALID + '/order_book/BTC+' + addresses.ISSUER + '/XRP')
     .expect(testutils.checkStatus(400))
     .expect(testutils.checkHeaders)
     .expect(testutils.checkBody(errors.RESTInvalidAccount))

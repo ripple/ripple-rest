@@ -60,26 +60,27 @@ module.exports.RESTServerConnectedResponse = JSON.stringify({
 });
 
 module.exports.RESTServerIndexResponse = JSON.stringify({
-  "success": true,
-  "name": "ripple-rest",
-  "package_version": pJson.version,
-  "version": "1",
-  "documentation": "https://github.com/ripple/ripple-rest",
-  "endpoints": {
-    "wallet_new": "/v1/wallet/new",
-    "payment_paths": "/v1/accounts/{address}/payments/paths/{destination_account}/{destination_amount as value+currency or value+currency+issuer}",
-    "payment_submit": "/v1/accounts/{address}/payments",
-    "account_payments": "/v1/accounts/{address}/payments/{hash,client_resource_id}{?direction,exclude_failed}",
-    "account_notifications": "/v1/accounts/{address}/notifications/{hash,client_resource_id}",
-    "account_balances": "/v1/accounts/{address}/balances",
-    "account_settings": "/v1/accounts/{address}/settings",
-    "account_trustlines": "/v1/accounts/{address}/trustlines",
-    "account_orders_place": "/v1/accounts/{address}/orders",
-    "account_orders_cancel": "/v1/accounts/{address}/orders/{sequence}",
-    "ripple_transactions": "/v1/transactions/{hash}",
-    "server_status": "/v1/server",
-    "server_connected": "/v1/server/connected",
-    "transaction_fee": "/v1/transaction-fee",
-    "uuid_generator": "/v1/uuid"
+  success: true,
+  name: 'ripple-rest',
+  package_version: pJson.version,
+  version: '1',
+  documentation: 'https://github.com/ripple/ripple-rest',
+  endpoints: {
+    wallet_new: '/v1/wallet/new',
+    payment_paths: '/v1/accounts/{address}/payments/paths/{destination_account}/{destination_amount as value+currency or value+currency+issuer}',
+    payment_submit: '/v1/accounts/{address}/payments',
+    account_payments: '/v1/accounts/{address}/payments/{hash,client_resource_id}{?direction,exclude_failed}',
+    account_notifications: '/v1/accounts/{address}/notifications/{hash,client_resource_id}',
+    account_balances: '/v1/accounts/{address}/balances',
+    account_settings: '/v1/accounts/{address}/settings',
+    account_trustlines: '/v1/accounts/{address}/trustlines',
+    account_orders_place: '/v1/accounts/{address}/orders',
+    account_orders_cancel: '/v1/accounts/{address}/orders/{sequence}',
+    account_order_book: '/v1/accounts/{address}/order_book/{base as currency+issuer}/{counter as currency+issuer}',
+    ripple_transactions: '/v1/transactions/{hash}',
+    server_status: '/v1/server',
+    server_connected: '/v1/server/connected',
+    transaction_fee: '/v1/transaction-fee',
+    uuid_generator: '/v1/uuid'
   }
 });
