@@ -378,7 +378,6 @@ module.exports.paymentTx = function(options) {
 };
 
 module.exports.paymentRest = {
-  hash: VALID_TRANSACTION_HASH,
   source_account: addresses.VALID,
   source_tag: '',
   source_amount: { value: '1.112209', currency: 'XRP', issuer: '' },

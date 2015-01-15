@@ -219,19 +219,7 @@ function submitPayment(request, response, next) {
       transaction.meta = message.metadata;
       transaction.ledger_index = transaction.inLedger = message.ledger_index;
 
-      return formatPaymentHelper(params.payment.source_account, transaction, function (error, payment) {
-        if (error) {
-          return callback(error);
-        }
-
-        var result = {
-          payment: payment
-        };
-
-        _.extend(result, meta);
-
-        callback(null, result);
-      });
+      return formatPaymentHelper(params.payment.source_account, transaction, callback);
     }
 
     var urlBase = utils.getUrlBase(request);
@@ -314,27 +302,12 @@ function getPayment(request, response, next) {
     });
   };
 
+
   var steps = [
     validateOptions,
     getTransaction,
     function (transaction, callback) {
-      formatPaymentHelper(options.account, transaction, function (err, payment) {
-        if (err) {
-          return callback(err);
-        }
-
-        var result = {
-          payment: payment
-        };
-
-        _.extend(result, {
-          hash: transaction.hash || '',
-          ledger: !_.isUndefined(transaction.inLedger) ? String(transaction.inLedger) : String(transaction.ledger_index),
-          state: transaction.state || transaction.meta ? (transaction.meta.TransactionResult === 'tesSUCCESS' ? 'validated' : 'failed') : ''
-        });
-
-        callback(null, result);
-      });
+      return formatPaymentHelper(options.account, transaction, callback);
     }
   ];
 
@@ -369,9 +342,30 @@ function formatPaymentHelper(account, transaction, callback) {
     }
   };
 
+  function getPaymentMetadata(transaction) {
+    return {
+      client_resource_id: transaction.client_resource_id || '',
+      hash: transaction.hash || '',
+      ledger: !_.isUndefined(transaction.inLedger) ? String(transaction.inLedger) : String(transaction.ledger_index),
+      state: transaction.state || transaction.meta ? (transaction.meta.TransactionResult === 'tesSUCCESS' ? 'validated' : 'failed') : ''
+    };
+  }
+
   function formatTransaction(transaction, callback) {
     if (transaction) {
-      TxToRestConverter.parsePaymentFromTx(transaction, {account: account}, callback);
+      TxToRestConverter.parsePaymentFromTx(transaction, { account: account }, function(err, parsedPayment) {
+        if (err) {
+          return callback(err);
+        }
+
+        var result = {
+          payment: parsedPayment
+        };
+
+        _.extend(result, getPaymentMetadata(transaction));
+
+        return callback(null, result);
+      });
     } else {
       callback(new NotFoundError('Payment Not Found. This may indicate that the payment was never validated and written into '
         + 'the Ripple ledger and it was not submitted through this ripple-rest instance. '
@@ -413,9 +407,10 @@ function formatPaymentHelper(account, transaction, callback) {
  *  @param {Express.js Next} next
  */
 function getAccountPayments(request, response, next) {
+  var options;
 
   function getTransactions(callback) {
-    var options = {
+    options = {
       account: request.params.account,
       source_account: request.query.source_account,
       destination_account: request.query.destination_account,
@@ -434,13 +429,12 @@ function getAccountPayments(request, response, next) {
   };
 
   function formatTransactions(transactions, callback) {
-
     if (!Array.isArray(transactions)) {
-      callback(null);
+      return callback(null);
     } else {
       async.map(transactions,
-        function (payment, callback) {
-          TxToRestConverter.parsePaymentFromTx(payment, { account: request.params.account }, callback);
+        function (transaction, async_map_callback) {
+          return formatPaymentHelper(options.account, transaction, async_map_callback);
         },
         callback
       );
@@ -448,12 +442,11 @@ function getAccountPayments(request, response, next) {
   };
 
   function attachResourceId(transactions, callback) {
-    async.map(transactions, function(payment, async_map_callback) {
-      if (!payment) {
-        async_map_callback(new Error('No payment found'));
-      }
+    async.map(transactions, function(paymentResult, async_map_callback) {
+      var hash = paymentResult.hash;
+      var payment = paymentResult.payment;
 
-      dbinterface.getTransaction({ hash: payment.hash }, function(error, db_entry) {
+      dbinterface.getTransaction({ hash: hash }, function(error, db_entry) {
         if (error) {
           return async_map_callback(error);
         }
@@ -461,10 +454,10 @@ function getAccountPayments(request, response, next) {
         if (db_entry && db_entry.client_resource_id) {
           client_resource_id = db_entry.client_resource_id;
         }
-        async_map_callback(null, {
-          client_resource_id: client_resource_id,
-          payment: payment
-        });
+
+        paymentResult.client_resource_id = client_resource_id;
+
+        async_map_callback(null, paymentResult);
       });
     }, callback);
   };
@@ -686,3 +679,4 @@ function getPathFind(request, response, next) {
     }
   });
 };
+
