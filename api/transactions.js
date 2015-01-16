@@ -440,7 +440,13 @@ function getAccountTransactions(options, response, callback) {
     if (error) {
       return callback(error);
     }
-    if (!options.min || transactions.length >= options.min || !options.marker) {
+
+    var isComplete = transactions.length === 0
+    || !options.min
+    || transactions.length >= options.min
+    || !options.marker;
+
+    if (isComplete)  {
       callback(null, transactions);
     } else {
       options.previous_transactions = transactions;
@@ -449,7 +455,6 @@ function getAccountTransactions(options, response, callback) {
       });
     }
   };
-
 };
 
 /**
