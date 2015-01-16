@@ -1974,7 +1974,8 @@ module.exports.RESTAccountOrdersResponse = function(options) {
     ledger: options.ledger,
     validated: options.validated,
     orders: [
-      { taker_gets:
+      { type: 'buy',
+        taker_gets:
           { currency: 'EUR',
             counterparty: 'rMwjYedjc7qqtKYVLiAccJSmCwih4LnE2q',
             value: '17.70155237781915' },
@@ -1983,9 +1984,9 @@ module.exports.RESTAccountOrdersResponse = function(options) {
             counterparty: 'rMwjYedjc7qqtKYVLiAccJSmCwih4LnE2q',
             value: '1122.990930900328' },
         sequence: 719930,
-        passive: false,
-        sell: false },
-      { taker_gets:
+        passive: false },
+      { type: 'buy',
+        taker_gets:
           { currency: 'USD',
             counterparty: 'rMwjYedjc7qqtKYVLiAccJSmCwih4LnE2q',
             value: '18.46856867857617' },
@@ -1994,9 +1995,9 @@ module.exports.RESTAccountOrdersResponse = function(options) {
             counterparty: 'rpDMez6pm6dBve2TJsmDpv7Yae6V5Pyvy2',
             value: '19.50899530491766' },
         sequence: 757002,
-        passive: false,
-        sell: false },
-      { taker_gets:
+        passive: false },
+      { type: 'buy',
+        taker_gets:
           { currency: 'USD',
             counterparty: 'rMwjYedjc7qqtKYVLiAccJSmCwih4LnE2q',
             value: '19.11697137482289' },
@@ -2005,9 +2006,9 @@ module.exports.RESTAccountOrdersResponse = function(options) {
             counterparty: 'rMwjYedjc7qqtKYVLiAccJSmCwih4LnE2q',
             value: '750' },
         sequence: 756999,
-        passive: false,
-        sell: false },
-      { taker_gets:
+        passive: false },
+      { type: 'buy',
+        taker_gets:
           { currency: 'USD',
             counterparty: 'rMwjYedjc7qqtKYVLiAccJSmCwih4LnE2q',
             value: '14.40727807030772' },
@@ -2016,9 +2017,9 @@ module.exports.RESTAccountOrdersResponse = function(options) {
             counterparty: 'rpDMez6pm6dBve2TJsmDpv7Yae6V5Pyvy2',
             value: '1445.796633544794' },
         sequence: 757003,
-        passive: false,
-        sell: false },
-      { taker_gets:
+        passive: false },
+      { type: 'buy',
+        taker_gets:
           { currency: 'NZD',
             counterparty: 'rsP3mgGb2tcYUrxiLFiHJiQXhsziegtwBc',
             value: '9.178557969538755' },
@@ -2027,9 +2028,9 @@ module.exports.RESTAccountOrdersResponse = function(options) {
             counterparty: 'rMwjYedjc7qqtKYVLiAccJSmCwih4LnE2q',
             value: '750' },
         sequence: 782148,
-        passive: false,
-        sell: false },
-      { taker_gets:
+        passive: false },
+      { type: 'buy',
+        taker_gets:
           { currency: 'USD',
             counterparty: 'rMwjYedjc7qqtKYVLiAccJSmCwih4LnE2q',
             value: '9.94768291869523' },
@@ -2038,9 +2039,9 @@ module.exports.RESTAccountOrdersResponse = function(options) {
             counterparty: 'rvYAfWj5gh67oV6fW32ZzP3Aw4Eubs59B',
             value: '500' },
         sequence: 787368,
-        passive: false,
-        sell: false },
-      { taker_gets:
+        passive: false },
+      { type: 'buy',
+        taker_gets:
           { currency: 'USD',
             counterparty: 'rMwjYedjc7qqtKYVLiAccJSmCwih4LnE2q',
             value: '9.994805759894176' },
@@ -2049,9 +2050,9 @@ module.exports.RESTAccountOrdersResponse = function(options) {
             counterparty: 'rvYAfWj5gh67oV6fW32ZzP3Aw4Eubs59B',
             value: '10000' },
         sequence: 787408,
-        passive: false,
-        sell: false },
-      { taker_gets:
+        passive: false },
+      { type: 'buy',
+        taker_gets:
           { currency: 'USD',
             counterparty: 'rMwjYedjc7qqtKYVLiAccJSmCwih4LnE2q',
             value: '11.67691646304319' },
@@ -2060,9 +2061,9 @@ module.exports.RESTAccountOrdersResponse = function(options) {
             counterparty: 'rG6FZ31hDHN1K5Dkbma3PSB5uVCuVVRzfn',
             value: '15834.53653918684' },
         sequence: 803438,
-        passive: false,
-        sell: false },
-      { taker_gets:
+        passive: false },
+      { type: 'buy',
+        taker_gets:
           { currency: 'XAU',
             counterparty: 'r9Dr5xwkeLegBeXq6ujinjSBLQzQ1zQGjH',
             value: '0.03206299605333101' },
@@ -2071,9 +2072,9 @@ module.exports.RESTAccountOrdersResponse = function(options) {
             counterparty: 'r9Dr5xwkeLegBeXq6ujinjSBLQzQ1zQGjH',
             value: '3968.240250979598' },
         sequence: 807858,
-        passive: false,
-        sell: false },
-      { taker_gets:
+        passive: false },
+      { type: 'buy',
+        taker_gets:
           { currency: 'XAU',
             counterparty: 'r9Dr5xwkeLegBeXq6ujinjSBLQzQ1zQGjH',
             value: '0.03347459066593226' },
@@ -2082,17 +2083,17 @@ module.exports.RESTAccountOrdersResponse = function(options) {
             counterparty: 'rvYAfWj5gh67oV6fW32ZzP3Aw4Eubs59B',
             value: '4139.022125516302' },
         sequence: 807896,
-        passive: false,
-        sell: false },
-      { taker_gets:
+        passive: false },
+      { type: 'buy',
+        taker_gets:
           { currency: 'NZD',
             counterparty: 'rsP3mgGb2tcYUrxiLFiHJiQXhsziegtwBc',
             value: '6.840555705' },
         taker_pays: { currency: 'XRP', counterparty: '', value: '115760.19' },
         sequence: 814018,
-        passive: false,
-        sell: false },
-      { taker_gets:
+        passive: false },
+      { type: 'buy',
+        taker_gets:
           { currency: 'EUR',
             counterparty: 'rMwjYedjc7qqtKYVLiAccJSmCwih4LnE2q',
             value: '14.40843766044656' },
@@ -2101,9 +2102,9 @@ module.exports.RESTAccountOrdersResponse = function(options) {
             counterparty: 'rvYAfWj5gh67oV6fW32ZzP3Aw4Eubs59B',
             value: '902.4050961259154' },
         sequence: 827522,
-        passive: false,
-        sell: false },
-      { taker_gets:
+        passive: false },
+      { type: 'buy',
+        taker_gets:
           { currency: 'XAG',
             counterparty: 'r9Dr5xwkeLegBeXq6ujinjSBLQzQ1zQGjH',
             value: '1.128432823485991' },
@@ -2112,9 +2113,9 @@ module.exports.RESTAccountOrdersResponse = function(options) {
             counterparty: 'r9Dr5xwkeLegBeXq6ujinjSBLQzQ1zQGjH',
             value: '1814.887131319799' },
         sequence: 833592,
-        passive: false,
-        sell: false },
-      { taker_gets:
+        passive: false },
+      { type: 'buy',
+        taker_gets:
           { currency: 'XAG',
             counterparty: 'r9Dr5xwkeLegBeXq6ujinjSBLQzQ1zQGjH',
             value: '1.128432823485989' },
@@ -2123,9 +2124,9 @@ module.exports.RESTAccountOrdersResponse = function(options) {
             counterparty: 'r9Dr5xwkeLegBeXq6ujinjSBLQzQ1zQGjH',
             value: '181.4887131319798' },
         sequence: 833591,
-        passive: false,
-        sell: false },
-      { taker_gets:
+        passive: false },
+      { type: 'buy',
+        taker_gets:
           { currency: 'XAG',
             counterparty: 'r9Dr5xwkeLegBeXq6ujinjSBLQzQ1zQGjH',
             value: '0.7283371225235964' },
@@ -2134,17 +2135,17 @@ module.exports.RESTAccountOrdersResponse = function(options) {
             counterparty: 'rvYAfWj5gh67oV6fW32ZzP3Aw4Eubs59B',
             value: '118.6872603846736' },
         sequence: 838954,
-        passive: false,
-        sell: false },
-      { taker_gets: { currency: 'XRP', counterparty: '', value: '2229.229447' },
+        passive: false },
+      { type: 'buy',
+        taker_gets: { currency: 'XRP', counterparty: '', value: '2229.229447' },
         taker_pays:
           { currency: 'XAU',
             counterparty: 'r9Dr5xwkeLegBeXq6ujinjSBLQzQ1zQGjH',
             value: '1' },
         sequence: 843730,
-        passive: false,
-        sell: false },
-      { taker_gets:
+        passive: false },
+      { type: 'buy',
+        taker_gets:
           { currency: 'USD',
             counterparty: 'rvYAfWj5gh67oV6fW32ZzP3Aw4Eubs59B',
             value: '17.77537376072202' },
@@ -2153,8 +2154,7 @@ module.exports.RESTAccountOrdersResponse = function(options) {
             counterparty: 'rMwjYedjc7qqtKYVLiAccJSmCwih4LnE2q',
             value: '750' },
         sequence: 844068,
-        passive: false,
-        sell: false }
+        passive: false }
     ]
   });
 };
