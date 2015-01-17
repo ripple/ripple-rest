@@ -387,7 +387,7 @@ function getAccountTransactions(options, response, callback) {
     options.max = Math.max(options.min, module.exports.DEFAULT_RESULTS_PER_PAGE);
   }
   if (!options.limit) {
-    options.limit = Math.max(options.max, module.exports.DEFAULT_RESULTS_PER_PAGE);
+    options.limit = module.exports.DEFAULT_LIMIT;
   }
 
   function validateOptions(async_callback) {
@@ -649,6 +649,7 @@ function getAccountTx(remote, options, callback) {
 };
 
 module.exports = {
+  DEFAULT_LIMIT: 200,
   DEFAULT_RESULTS_PER_PAGE: 10,
   NUM_TRANSACTION_TYPES: 5,
   DEFAULT_LEDGER_BUFFER: 3,
