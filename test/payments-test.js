@@ -17,7 +17,24 @@ suite('get payments', function() {
   setup(testutils.setup.bind(self));
   teardown(testutils.teardown.bind(self));
 
-  test('/accounts/:account/payments/:identifier', function(done) {
+  test('/accounts/:account/payments/', function(done) {
+    self.wss.once('request_account_tx', function(message, conn) {
+      assert.strictEqual(message.command, 'account_tx');
+      conn.send(fixtures.accountTransactionsResponse(message));
+    });
+
+    self.app
+    .get(requestPath(addresses.VALID))
+    .expect(testutils.checkStatus(200))
+    .expect(testutils.checkHeaders)
+    .expect(testutils.checkBody(fixtures.RESTAccountTransactionsResponse()))
+    .end(done);
+  });
+
+  test.skip('/accounts/:account/payments/:identifier -- with identifier as client_resource_id', function(done) {
+  });
+
+  test('/accounts/:account/payments/:identifier -- with identifier as txn hash', function(done) {
     self.wss.once('request_tx', function(message, conn) {
       assert.strictEqual(message.command, 'tx');
       assert.strictEqual(message.transaction, fixtures.VALID_TRANSACTION_HASH);
@@ -246,7 +263,9 @@ suite('post payments', function() {
       conn.send(fixtures.requestSubmitResponse(message));
 
       process.nextTick(function () {
-        conn.send(fixtures.transactionVerifiedResponse());
+        conn.send(fixtures.transactionVerifiedResponse({
+          ledger: currentLedger
+        }));
       });
     });
 
@@ -287,7 +306,8 @@ suite('post payments', function() {
       process.nextTick(function () {
         conn.send(fixtures.transactionVerifiedResponse({
           hash: hash,
-          fee: '5000000'
+          fee: '5000000',
+          ledger: currentLedger
         }));
       });
     });
@@ -324,7 +344,10 @@ suite('post payments', function() {
       conn.send(fixtures.requestSubmitResponse(message, {hash: hash}));
 
       process.nextTick(function () {
-        conn.send(fixtures.verifiedResponseComplexCurrency({hash: hash}));
+        conn.send(fixtures.verifiedResponseComplexCurrency({
+          hash: hash,
+          ledger: currentLedger
+        }));
       });
     });
 
