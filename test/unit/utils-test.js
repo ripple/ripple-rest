@@ -22,7 +22,7 @@ suite('unit - utils.parseLedger()', function() {
 
   test('parseLedger() -- ledger (sequence)', function() {
     var ledger_sequence = '9592219';
-    assert.strictEqual(utils.parseLedger(ledger_sequence), ledger_sequence);
+    assert.strictEqual(utils.parseLedger(ledger_sequence), 9592219);
   });
 
   test('parseLedger() -- ledger (validated)', function() {
