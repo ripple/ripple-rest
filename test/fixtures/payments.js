@@ -458,6 +458,7 @@ module.exports.RESTTransactionResponse = function(options) {
   return JSON.stringify({
     "success": true,
     "payment": {
+      "hash": options.hash,
       "source_account": options.fromAccount,
       "source_tag": '',
       "source_amount": {
@@ -521,6 +522,7 @@ module.exports.RESTAccountTransactionsResponse = function(options) {
     "payments": [
       {
         "payment": {
+          "hash": options.hash,
           "source_account": options.fromAccount,
           "source_tag": '',
           "source_amount": {
@@ -581,6 +583,7 @@ module.exports.RESTTransactionResponseComplexCurrencies = function(options) {
   return JSON.stringify({
     "success": true,
     "payment": {
+      "hash": options.hash,
       "source_account": "r3GgMwvgvP8h4yVWvjH1dPZNvC37TjzBBE",
       "source_tag": "",
       "source_amount": {
