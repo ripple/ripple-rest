@@ -453,7 +453,7 @@ module.exports.rippledSubmitErrorResponse = function(request, options) {
         "Fee": "12000",
         "Flags": options.flags,
         "LastLedgerSequence": 10055679,
-        "Sequence": 24,
+        "Sequence": options.sequence,
         "SigningPubKey": "02AFA3692CC78A804ACC11DBA23DBB99943C6F8D61D3CB07BBE6D28356EB5B9C57",
         "TakerGets": options.taker_gets,
         "TakerPays": options.taker_pays,

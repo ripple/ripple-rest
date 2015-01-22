@@ -61,8 +61,7 @@ function submitTransaction(options, hooks, callback) {
 
       transaction.once('submitted', function(message) {
         if (message.result.slice(0, 3) === 'tec' && options.validated !== true) {
-          transaction.removeListener('error', callback);
-          return callback(message);
+          return formatTransactionResponseWrapper(transaction, message, options.validated, callback);
         }
 
         // Handle erred transactions that should not make it into ledger (all
