@@ -428,6 +428,34 @@ function getAccountPayments(request, response, next) {
     transactions.getAccountTransactions(options, response, callback);
   };
 
+  function attachDate(transactions, callback) {
+    var groupedTx = _.groupBy(transactions, function(tx) {
+      return tx.ledger_index;
+    });
+
+    async.each(_.keys(groupedTx), function(ledger, next) {
+      remote.requestLedger({ 
+        ledger_index: Number(ledger) 
+      }, function(err, data) {
+        if (err) {
+          return next(err);
+        }
+
+        _.each(groupedTx[ledger], function(tx) {
+          tx.date = data.ledger.close_time;
+        })
+
+        return next(null);
+      });
+    }, function(err) {
+      if (err) {
+        return callback(err);
+      }
+
+      return callback(null, transactions);
+    });
+  }
+
   function formatTransactions(transactions, callback) {
     if (!Array.isArray(transactions)) {
       return callback(null);
@@ -464,6 +492,7 @@ function getAccountPayments(request, response, next) {
 
   var steps = [
     getTransactions,
+    attachDate,
     formatTransactions,
     attachResourceId
   ];
@@ -679,4 +708,3 @@ function getPathFind(request, response, next) {
     }
   });
 };
-
