@@ -86,7 +86,7 @@ module.exports.accountOrdersResponse = function(request, options) {
       "ledger_index": options.ledger,
       "offers": [
         {
-          "flags": 0,
+          "flags": 131072,
           "seq": 719930,
           "taker_gets": {
             "currency": "EUR",
@@ -1974,7 +1974,7 @@ module.exports.RESTAccountOrdersResponse = function(options) {
     ledger: options.ledger,
     validated: options.validated,
     orders: [
-      { type: 'buy',
+      { type: 'sell',
         taker_gets:
           { currency: 'EUR',
             counterparty: 'rMwjYedjc7qqtKYVLiAccJSmCwih4LnE2q',
