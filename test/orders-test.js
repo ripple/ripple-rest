@@ -1803,3 +1803,72 @@ suite('get order book', function() {
     .end(done);
   });
 });
+
+suite('get order', function() {
+  var self = this
+  var hash = testutils.generateHash();
+
+  setup(testutils.setup.bind(self));
+  teardown(testutils.teardown.bind(self));
+
+  test('v1/accounts/:account/order/:identifier', function(done) {
+    self.wss.on('request_tx', function(message, conn) {
+      assert.strictEqual(message.transaction, hash);
+      conn.send(fixtures.requestTxOfferCreateResponse(message, {
+        hash: hash,
+        account: addresses.VALID
+      }));
+    });
+
+    self.app
+    .get('/v1/accounts/' + addresses.VALID + '/orders/' + hash)
+    .expect(testutils.checkStatus(200))
+    .expect(testutils.checkHeaders)
+    .expect(testutils.checkBody(fixtures.RESTOrderResponse({
+      hash: hash,
+      account: addresses.VALID
+    })))
+    .end(done);
+  });
+
+  test('v1/accounts/:account/order_change/:identifier -- invalid transaction hash', function(done) {
+    self.wss.on('request_tx', function(message, conn) {
+      assert(false, 'should not submit request');
+    });
+
+    self.app
+    .get('/v1/accounts/' + addresses.VALID + '/orders/foo')
+    .expect(testutils.checkStatus(400))
+    .expect(testutils.checkHeaders)
+    .expect(testutils.checkBody(errors.RESTInvalidTransactionHash))
+    .end(done);
+  });
+
+  test('v1/accounts/:account/order_change/:identifier -- invalid transaction (payment)', function(done) {
+    var requestTxPaymentResponse = require('./fixtures').payments.transactionResponse;
+
+    self.wss.on('request_tx', function(message, conn) {
+      conn.send(requestTxPaymentResponse(message));
+    });
+
+    self.app
+    .get('/v1/accounts/' + addresses.VALID + '/orders/' + hash)
+    .expect(testutils.checkStatus(400))
+    .expect(testutils.checkHeaders)
+    .expect(testutils.checkBody(errors.RESTInvalidTransactionNotAnOrder))
+    .end(done);
+  });
+
+  test('v1/accounts/:account/order_change/:identifier -- invalid account', function(done) {
+    self.wss.once('request_tx', function(message, conn) {
+      assert(false, 'Should not request transaction');
+    });
+
+    self.app
+    .get('/v1/accounts/' + addresses.INVALID + '/orders/' + hash)
+    .expect(testutils.checkStatus(400))
+    .expect(testutils.checkHeaders)
+    .expect(testutils.checkBody(errors.RESTInvalidAccount))
+    .end(done);
+  });
+});
