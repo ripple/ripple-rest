@@ -1004,6 +1004,7 @@ suite('post orders', function() {
   });
 
   test('/orders -- unfunded offer', function(done) {
+    var lastLedger = self.app.remote._ledger_current_index;
     var hash = testutils.generateHash();
 
     self.wss.once('request_account_info', function(message, conn) {
@@ -1025,12 +1026,11 @@ suite('post orders', function() {
     self.app
     .post('/v1/accounts/' + addresses.VALID + '/orders')
     .send(fixtures.order())
-    .expect(testutils.checkStatus(500))
+    .expect(testutils.checkStatus(200))
     .expect(testutils.checkHeaders)
-    .expect(testutils.checkBody(errors.RESTErrorResponse({
-      type: 'transaction',
-      error: 'tecUNFUNDED_OFFER',
-      message: 'Insufficient balance to fund created offer.'
+    .expect(testutils.checkBody(fixtures.RESTSubmitTransactionResponse({
+      hash: hash,
+      last_ledger: lastLedger
     })))
     .end(done);
   });
