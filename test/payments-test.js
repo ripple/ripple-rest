@@ -23,6 +23,11 @@ suite('get payments', function() {
       conn.send(fixtures.accountTransactionsResponse(message));
     });
 
+    self.wss.once('request_ledger', function(message, conn) {
+      assert.strictEqual(message.command, 'ledger');
+      conn.send(fixtures.ledgerResponse(message));
+    });
+
     self.app
     .get(requestPath(addresses.VALID))
     .expect(testutils.checkStatus(200))
@@ -56,14 +61,14 @@ suite('get payments', function() {
       conn.send(fixtures.transactionResponse(message, {
         memos: [
           {
-            "Memo": {
-              "MemoData": "736F6D655F76616C7565",
-              "MemoType": "736F6D655F6B6579"
+            Memo: {
+              MemoData: 'Lorem ipsum dolor sit amet, consectetur',
+              MemoType: 'unformatted_memo'
             }
           },
           {
-            "Memo": {
-              "MemoData": "736F6D655F76616C7565"
+            Memo: {
+              MemoData: 'Lorem asdf sit amet, consectetur'
             }
           }
         ]
@@ -82,11 +87,11 @@ suite('get payments', function() {
     .expect(testutils.checkBody(fixtures.RESTTransactionResponse({
       memos: [
         {
-          MemoData: "736F6D655F76616C7565",
-          MemoType: "736F6D655F6B6579"
+          MemoData: '4C6F72656D20697073756D20646F6C6F722073697420616D65742C20636F6E7365637465747572',
+          MemoType: '756E666F726D61747465645F6D656D6F'
         },
         {
-          MemoData: "736F6D655F76616C7565"
+          MemoData: '4C6F72656D20617364662073697420616D65742C20636F6E7365637465747572'
         }
       ]
     })))
@@ -563,11 +568,11 @@ suite('post payments', function() {
     .send(fixtures.payment({
       memos: [
         {
-          "MemoType": 1,
-          "MemoData": "some_value"
+          MemoType: 1,
+          MemoData: 'some_value'
         },
         {
-          "MemoData": "some_value"
+          MemoData: 'some_value'
         }
       ]
     }))
@@ -598,11 +603,11 @@ suite('post payments', function() {
     .send(fixtures.payment({
       memos: [
         {
-          "MemoType": "some_key",
-          "MemoData": 1
+          MemoType: 'some_key',
+          MemoData: 1
         },
         {
-          "MemoData": "some_value"
+          MemoData: 'some_value'
         }
       ]
     }))
@@ -633,7 +638,7 @@ suite('post payments', function() {
     .send(fixtures.payment({
       memos: [
         {
-          "MemoData": "some_value"
+          MemoData: 'some_value'
         }
       ]
     }))
@@ -660,11 +665,11 @@ suite('post payments', function() {
     .send(fixtures.payment({
       memos: [
         {
-          "MemoType": "some_key",
-          "MemoData": "some_value"
+          MemoType: 'some_key',
+          MemoData: 'some_value'
         },
         {
-          "MemoData": "some_value"
+          MemoData: 'some_value'
         }
       ]
     }))

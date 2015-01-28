@@ -417,7 +417,7 @@ suite('payments', function() {
     var _tx = function(data,ws) {
       delete data.id;
       delete data.transaction;
-      assert.deepEqual(data,  { command: 'tx' });
+      assert.deepEqual(data,  { command: 'tx', binary: true });
       orderlist.mark('tx');
     };
 
@@ -441,7 +441,6 @@ suite('payments', function() {
         no_direct_ripple: false,
         partial_payment: false,
         direction: 'outgoing',
-        result: '',
         timestamp: '',
         fee: '0.000012',
         source_balance_changes: [],
@@ -456,7 +455,7 @@ suite('payments', function() {
       }
       assert.equal(resp.body.hash, '8EA3CF4D854669007058EB45E9860611CC24FEB655895E418A5C8BC5EA901D01');
       assert.equal(resp.body.ledger, 'undefined');
-      assert.equal(resp.body.state, '');
+      assert.equal(resp.body.state, 'failed');
       assert.equal(orderlist.test(),true);
       orderlist.reset();
     })
@@ -490,7 +489,6 @@ suite('payments', function() {
           no_direct_ripple: false,
           partial_payment: false,
           direction: 'outgoing',
-          result: '',
           timestamp: '',
           fee: '0.000012',
           source_balance_changes: [],
@@ -504,7 +502,7 @@ suite('payments', function() {
         };
         assert.equal(resp.body.hash, '8EA3CF4D854669007058EB45E9860611CC24FEB655895E418A5C8BC5EA901D01');
         assert.equal(resp.body.ledger, 'undefined');
-        assert.equal(resp.body.state, '');
+        assert.equal(resp.body.state, 'failed');
         assert.equal(orderlist.test(),true);
         orderlist.reset();
       })

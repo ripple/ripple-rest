@@ -1,4 +1,6 @@
 var RL = require('ripple-lib')
+var SerializedObject = RL.SerializedObject;
+
 var accounts = {}
 var state = {};
 accounts.genesis = {
@@ -10,16 +12,16 @@ accounts.alice = {
     secret : 'shtfQyMwYqppw6A3hcyhzwLxYaqgE'
 }
 accounts.bob = {
-    address : "rwmityd4Ss34DBUsRy7Pacv6UA5n7yjfe5",
-    secret : "sh1TryzqJSfEyvKke6jtzhfcjbTDj"
+    address : 'rwmityd4Ss34DBUsRy7Pacv6UA5n7yjfe5',
+    secret : 'sh1TryzqJSfEyvKke6jtzhfcjbTDj'
 }
 accounts.carol = {
-    address : "r3YHFNkQRJDPc9aCkRojPLwKVwok3ihgBJ",
-    secret : "ssW6HG7i5Qzz3ienBDwujEW8fzSDq"
+    address : 'r3YHFNkQRJDPc9aCkRojPLwKVwok3ihgBJ',
+    secret : 'ssW6HG7i5Qzz3ienBDwujEW8fzSDq'
 }
 accounts.dan = {
-    address : "rsE6ZLDkXhSvfJHvSqFPhdazsoMgCEC52V",
-    secret : "snByi24KpxSZKE3ECm3NiGxfPuTgf"
+    address : 'rsE6ZLDkXhSvfJHvSqFPhdazsoMgCEC52V',
+    secret : 'snByi24KpxSZKE3ECm3NiGxfPuTgf'
 }
 
 exports.accounts = accounts
@@ -353,7 +355,26 @@ exports.nominal_xrp_post_response = {
 
 var tx = function(data,ws) {
     ws.send(JSON.stringify(
-    {"id":data.id,"result":{"Account":"rJRLoJSErtNRFnbCyHEUYnRUKNwkVYDM7U","Amount":"200000000","Destination":"rwmityd4Ss34DBUsRy7Pacv6UA5n7yjfe5","Fee":"12","Flags":0,"LastLedgerSequence":10,"Sequence":2,"SigningPubKey":"022E3308DCB75B17BEF734CE342AC40FF7FDF55E3FEA3593EE8301A70C532BB5BB","TransactionType":"Payment","TxnSignature":"3044022030A2F33C088F07CC86A87B8E82EFC95E1CE1D525A16EF2DC059485EB54D946BB022009482C8F4F14BC4E2E7FF188C95DB47EA84533BF9E1114C28E7997B1B439C46A","hash":"8EA3CF4D854669007058EB45E9860611CC24FEB655895E418A5C8BC5EA901D01"},"status":"success","type":"response"}
+        {
+            id: data.id,
+            result: {
+                tx: SerializedObject.from_json({
+                    Account: "rJRLoJSErtNRFnbCyHEUYnRUKNwkVYDM7U",
+                    Amount: "200000000",
+                    Destination: "rwmityd4Ss34DBUsRy7Pacv6UA5n7yjfe5",
+                    Fee: "12",
+                    Flags: 0,
+                    LastLedgerSequence: 10,
+                    Sequence: 2,
+                    SigningPubKey: "022E3308DCB75B17BEF734CE342AC40FF7FDF55E3FEA3593EE8301A70C532BB5BB",
+                    TransactionType: "Payment",
+                    TxnSignature: "3044022030A2F33C088F07CC86A87B8E82EFC95E1CE1D525A16EF2DC059485EB54D946BB022009482C8F4F14BC4E2E7FF188C95DB47EA84533BF9E1114C28E7997B1B439C46A",
+                }).to_hex(),
+                hash:"8EA3CF4D854669007058EB45E9860611CC24FEB655895E418A5C8BC5EA901D01"
+            },
+            status: "success",
+            type: "response"
+        }
     ))
 }
 exports.tx = tx;

@@ -662,9 +662,9 @@
       "resolved": "https://registry.npmjs.org/node-uuid/-/node-uuid-1.4.2.tgz"
     },
     "ripple-lib": {
-      "version": "0.11.0-rc2",
-      "from": "ripple-lib@>=0.11.0-rc2 <0.12.0",
-      "resolved": "https://registry.npmjs.org/ripple-lib/-/ripple-lib-0.11.0-rc2.tgz",
+      "version": "0.11.0-rc3",
+      "from": "ripple-lib@>=0.11.0-rc3 <0.12.0",
+      "resolved": "https://registry.npmjs.org/ripple-lib/-/ripple-lib-0.11.0-rc3.tgz",
       "dependencies": {
         "async": {
           "version": "0.8.0",
