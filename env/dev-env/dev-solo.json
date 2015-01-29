@@ -1,6 +1,0 @@
-{
-  "nodejs": {
-    "version": "0.10.26"
-  },
-  "run_list": [ "nodejs" ]
-}
