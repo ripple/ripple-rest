@@ -182,7 +182,7 @@ module.exports.paymentTx = function(options) {
         {
           "ModifiedNode": {
             "FinalFields": {
-              "Account": "r9tGqzZgKxVFvzKFdUqXAqTzazWBUia8Qr",
+              "Account": addresses.VALID,
               "BookDirectory": "4627DFFCFF8B5A265EDBD8AE8C14A52325DBFEDAF4F5C32E5E03E788E09BB000",
               "BookNode": "0000000000000000",
               "Flags": 0,
@@ -401,6 +401,22 @@ module.exports.paymentRest = {
     [ { value: '0.001',
       currency: 'USD',
       issuer: addresses.COUNTERPARTY } ],
+  order_changes: [
+    {
+      taker_pays: {
+        currency: 'XRP',
+        counterparty: '',
+        value: '-1.101198',
+      },
+      taker_gets: {
+        currency: 'USD',
+        counterparty: addresses.COUNTERPARTY,
+        value: '-0.001002',
+      },
+      sequence: 58,
+      status: 'open'
+    }
+  ],
   memos:
     [ { MemoData: '736F6D655F76616C7565',
       MemoType: '736F6D655F6B6579' },
