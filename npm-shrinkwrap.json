@@ -653,7 +653,7 @@
     },
     "ripple-lib": {
       "version": "0.11.0",
-      "from": "ripple-lib@0.11.0",
+      "from": "https://registry.npmjs.org/ripple-lib/-/ripple-lib-0.11.0.tgz",
       "resolved": "https://registry.npmjs.org/ripple-lib/-/ripple-lib-0.11.0.tgz",
       "dependencies": {
         "async": {
@@ -675,6 +675,33 @@
           "version": "1.0.1",
           "from": "ripple-wallet-generator@1.0.1",
           "resolved": "https://registry.npmjs.org/ripple-wallet-generator/-/ripple-wallet-generator-1.0.1.tgz"
+        },
+        "ws": {
+          "version": "0.4.32",
+          "from": "ws@~0.4.31",
+          "resolved": "https://registry.npmjs.org/ws/-/ws-0.4.32.tgz",
+          "dependencies": {
+            "commander": {
+              "version": "2.1.0",
+              "from": "commander@~2.1.0",
+              "resolved": "https://registry.npmjs.org/commander/-/commander-2.1.0.tgz"
+            },
+            "nan": {
+              "version": "1.0.0",
+              "from": "nan@~1.0.0",
+              "resolved": "https://registry.npmjs.org/nan/-/nan-1.0.0.tgz"
+            },
+            "tinycolor": {
+              "version": "0.0.1",
+              "from": "tinycolor@0.x",
+              "resolved": "https://registry.npmjs.org/tinycolor/-/tinycolor-0.0.1.tgz"
+            },
+            "options": {
+              "version": "0.0.6",
+              "from": "options@>=0.0.5",
+              "resolved": "https://registry.npmjs.org/options/-/options-0.0.6.tgz"
+            }
+          }
         },
         "superagent": {
           "version": "0.18.2",
@@ -785,7 +812,7 @@
     },
     "ripple-lib-transactionparser": {
       "version": "0.2.1",
-      "from": "ripple-lib-transactionparser@0.2.1",
+      "from": "https://registry.npmjs.org/ripple-lib-transactionparser/-/ripple-lib-transactionparser-0.2.1.tgz",
       "resolved": "https://registry.npmjs.org/ripple-lib-transactionparser/-/ripple-lib-transactionparser-0.2.1.tgz"
     },
     "sqlite3": {
