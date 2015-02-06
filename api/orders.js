@@ -491,9 +491,67 @@ function getOrderBook(request, response, next) {
   }
 }
 
+/**
+ *  Get an Order transaction (`OfferCreate` or `OfferCancel`)
+ *
+ *  @url
+ *  @param {RippleAddress} request.params.account
+ *  @param {String} request.params.identifier
+ *
+ *  @param {Express.js Request} request
+ *  @param {Express.js Response} response
+ *  @param {Express.js Next} next
+ */
+function getOrder(request, response, next) {
+  var options = request.params;
+
+  validateOptions(options)
+  .then(getOrderTx)
+  .then(respondWithOrder)
+  .catch(next);
+
+  function validateOptions(options) {
+    return new Promise(function(resolve, reject) {
+      if (!ripple.UInt160.is_valid(options.account)) {
+        reject(new InvalidRequestError('Parameter is not a valid Ripple address: account'));
+      }
+      if (!validator.isValid(options.identifier, 'Hash256')) {
+        reject(new InvalidRequestError('Parameter is not a valid transaction hash: identifier'));
+      }
+
+      resolve(options);
+    });
+  }
+
+  function getOrderTx(options) {
+    return new Promise(function(resolve, reject) {
+      var txRequest = remote.requestTx({
+        hash: options.identifier
+      });
+
+      txRequest.once('error', reject);
+      txRequest.once('transaction', function(res) {
+        if (res.TransactionType !== 'OfferCreate' && res.TransactionType !== 'OfferCancel') {
+          reject(new InvalidRequestError('Invalid parameter: identifier. The transaction corresponding to the given identifier is not an order'));
+        } else {
+          resolve(TxToRestConverter.parseOrderFromTx(res, options));
+        }
+      });
+      txRequest.request();
+    });
+  }
+
+  function respondWithOrder(order) {
+    return new Promise(function(resolve, reject) {
+      resolve(respond.success(response, order));
+    });
+  }
+}
+
 module.exports = {
   getOrders: getOrders,
   placeOrder: placeOrder,
   cancelOrder: cancelOrder,
-  getOrderBook: getOrderBook
+  getOrderBook: getOrderBook,
+  getOrder: getOrder
 };

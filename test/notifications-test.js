@@ -195,7 +195,7 @@ suite('get notifications', function() {
 
     self.app
     .get(fixtures.requestPath(addresses.VALID, '/' + INVALID_TRANSACTION_HASH))
-    .expect(testutils.checkBody(errors.RESTInvalidTransactionHash))
+    .expect(testutils.checkBody(errors.RESTInvalidTransactionHashOrClientResourceID))
     .expect(testutils.checkStatus(400))
     .expect(testutils.checkHeaders)
     .end(done);
