@@ -62,13 +62,13 @@ suite('get payments', function() {
         memos: [
           {
             Memo: {
-              MemoData: 'Lorem ipsum dolor sit amet, consectetur',
-              MemoType: 'unformatted_memo'
+              MemoData: '4C6F72656D20697073756D20646F6C6F722073697420616D65742C20636F6E7365637465747572',
+              MemoType: '756E666F726D61747465645F6D656D6F'
             }
           },
           {
             Memo: {
-              MemoData: 'Lorem asdf sit amet, consectetur'
+              MemoData: '4C6F72656D20617364662073697420616D65742C20636F6E7365637465747572'
             }
           }
         ]
