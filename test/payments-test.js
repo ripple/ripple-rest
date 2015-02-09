@@ -23,6 +23,11 @@ suite('get payments', function() {
       conn.send(fixtures.accountTransactionsResponse(message));
     });
 
+    self.wss.once('request_ledger', function(message, conn) {
+      assert.strictEqual(message.command, 'ledger');
+      conn.send(fixtures.ledgerResponse(message));
+    });
+
     self.app
     .get(requestPath(addresses.VALID))
     .expect(testutils.checkStatus(200))
@@ -56,14 +61,14 @@ suite('get payments', function() {
       conn.send(fixtures.transactionResponse(message, {
         memos: [
           {
-            "Memo": {
-              "MemoData": "736F6D655F76616C7565",
-              "MemoType": "736F6D655F6B6579"
+            Memo: {
+              MemoData: '4C6F72656D20697073756D20646F6C6F722073697420616D65742C20636F6E7365637465747572',
+              MemoType: '756E666F726D61747465645F6D656D6F'
             }
           },
           {
-            "Memo": {
-              "MemoData": "736F6D655F76616C7565"
+            Memo: {
+              MemoData: '4C6F72656D20617364662073697420616D65742C20636F6E7365637465747572'
             }
           }
         ]
@@ -82,11 +87,11 @@ suite('get payments', function() {
     .expect(testutils.checkBody(fixtures.RESTTransactionResponse({
       memos: [
         {
-          MemoData: "736F6D655F76616C7565",
-          MemoType: "736F6D655F6B6579"
+          MemoData: '4C6F72656D20697073756D20646F6C6F722073697420616D65742C20636F6E7365637465747572',
+          MemoType: '756E666F726D61747465645F6D656D6F'
         },
         {
-          MemoData: "736F6D655F76616C7565"
+          MemoData: '4C6F72656D20617364662073697420616D65742C20636F6E7365637465747572'
         }
       ]
     })))
@@ -563,11 +568,11 @@ suite('post payments', function() {
     .send(fixtures.payment({
       memos: [
         {
-          "MemoType": 1,
-          "MemoData": "some_value"
+          MemoType: 1,
+          MemoData: 'some_value'
         },
         {
-          "MemoData": "some_value"
+          MemoData: 'some_value'
         }
       ]
     }))
@@ -598,11 +603,11 @@ suite('post payments', function() {
     .send(fixtures.payment({
       memos: [
         {
-          "MemoType": "some_key",
-          "MemoData": 1
+          MemoType: 'some_key',
+          MemoData: 1
         },
         {
-          "MemoData": "some_value"
+          MemoData: 'some_value'
         }
       ]
     }))
@@ -633,7 +638,7 @@ suite('post payments', function() {
     .send(fixtures.payment({
       memos: [
         {
-          "MemoData": "some_value"
+          MemoData: 'some_value'
         }
       ]
     }))
@@ -660,11 +665,11 @@ suite('post payments', function() {
     .send(fixtures.payment({
       memos: [
         {
-          "MemoType": "some_key",
-          "MemoData": "some_value"
+          MemoType: 'some_key',
+          MemoData: 'some_value'
         },
         {
-          "MemoData": "some_value"
+          MemoData: 'some_value'
         }
       ]
     }))
@@ -985,6 +990,215 @@ suite('post payments', function() {
       .expect(testutils.checkHeaders)
       .expect(testutils.checkBody(fixtures.RESTSuccessResponse({
         clientResourceId: 'id'
+      })))
+      .end(secondPayment);
+  });
+
+  test('/payments -- duplicate client resource id and first transaction failed', function(done) {
+    var hash = testutils.generateHash();
+
+    self.wss.once('request_account_info', function(message, conn) {
+      assert.strictEqual(message.command, 'account_info');
+      assert.strictEqual(message.account, addresses.VALID);
+      conn.send(fixtures.accountInfoResponse(message));
+    });
+
+    self.wss.once('request_submit', function(message, conn) {
+      assert.strictEqual(message.command, 'submit');
+
+      conn.send(fixtures.rippledSubmitErrorResponse(message, {
+        engineResult: 'tecNO_DST_INSUF_XRP',
+        engineResultCode: '125',
+        engineResultMessage: 'Destination does not exist. Too little XRP sent to create it.',
+        hash: hash
+      }));
+
+      self.wss.once('request_submit', function(message, conn) {
+        // second payment should not hit submit
+        assert(false);
+      });
+    });
+
+    var secondPayment = function(err) {
+      if (err) {
+        assert(false);
+        return done(err);
+      }
+
+      // 2nd payment
+      self.app.post('/v1/accounts/' + addresses.VALID + '/payments')
+        .send(fixtures.payment({
+          clientResourceId: 'id'
+        }))
+        .expect(testutils.checkStatus(500))
+        .expect(testutils.checkHeaders)
+        .expect(testutils.checkBody(errors.RESTErrorResponse({
+          type: 'server',
+          error: 'restDUPLICATE_TRANSACTION',
+          message: 'Duplicate Transaction. A record already exists in the database for a transaction of this type with the same client_resource_id. If this was not an accidental resubmission please submit the transaction again with a unique client_resource_id'
+        })))
+        .end(done);
+    };
+
+    self.app
+      .post('/v1/accounts/' + addresses.VALID + '/payments')
+      .send(fixtures.payment({
+        clientResourceId: 'id'
+      }))
+      .expect(testutils.checkStatus(200))
+      .expect(testutils.checkHeaders)
+      .expect(testutils.checkBody(fixtures.RESTSuccessResponse({
+        clientResourceId: 'id'
+      })))
+      .end(secondPayment);
+  });
+
+  test('/payments -- duplicate client resource id, first transaction failed and validated true for first transaction', function(done) {
+    var hash = testutils.generateHash();
+
+    self.wss.once('request_subscribe', function(message, conn) {
+      assert.strictEqual(message.command, 'subscribe');
+      assert.strictEqual(message.accounts[0], addresses.VALID);
+      conn.send(fixtures.rippledSubcribeResponse(message));
+    });
+
+    self.wss.once('request_account_info', function(message, conn) {
+      assert.strictEqual(message.command, 'account_info');
+      assert.strictEqual(message.account, addresses.VALID);
+      conn.send(fixtures.accountInfoResponse(message));
+    });
+
+    self.wss.once('request_submit', function(message, conn) {
+      assert.strictEqual(message.command, 'submit');
+      conn.send(fixtures.rippledSubmitErrorResponse(message, {
+        engineResult: 'tecNO_DST_INSUF_XRP',
+        engineResultCode: '125',
+        engineResultMessage: 'This should not show up, is not a validated result',
+        hash: hash
+      }));
+
+      process.nextTick(function () {
+        conn.send(fixtures.rippledValidatedErrorResponse(message, {
+          engineResult: 'tecNO_DST_INSUF_XRP',
+          engineResultCode: '125',
+          engineResultMessage: 'Destination does not exist. Too little XRP sent to create it.',
+          hash: hash
+        }));
+      });
+
+      self.wss.once('request_submit', function(message, conn) {
+        // second payment should not hit submit
+        assert(false);
+      });
+    });
+
+    var secondPayment = function(err) {
+      if (err) {
+        assert(false);
+        return done(err);
+      }
+
+      // 2nd payment
+      self.app.post('/v1/accounts/' + addresses.VALID + '/payments')
+        .send(fixtures.payment({
+          clientResourceId: 'id'
+        }))
+        .expect(testutils.checkStatus(500))
+        .expect(testutils.checkHeaders)
+        .expect(testutils.checkBody(errors.RESTErrorResponse({
+          type: 'server',
+          error: 'restDUPLICATE_TRANSACTION',
+          message: 'Duplicate Transaction. A record already exists in the database for a transaction of this type with the same client_resource_id. If this was not an accidental resubmission please submit the transaction again with a unique client_resource_id'
+        })))
+        .end(done);
+    };
+
+    self.app
+      .post('/v1/accounts/' + addresses.VALID + '/payments?validated=true')
+      .send(fixtures.payment({
+        clientResourceId: 'id'
+      }))
+      .expect(testutils.checkStatus(500))
+      .expect(testutils.checkHeaders)
+      .expect(testutils.checkBody(errors.RESTErrorResponse({
+        type: 'transaction',
+        error: 'tecNO_DST_INSUF_XRP',
+        message: 'Destination does not exist. Too little XRP sent to create it.'
+      })))
+      .end(secondPayment);
+  });
+
+  test('/payments -- duplicate client resource id, first transaction failed and validated true for both transactions', function(done) {
+    var hash = testutils.generateHash();
+
+    self.wss.once('request_subscribe', function(message, conn) {
+      assert.strictEqual(message.command, 'subscribe');
+      assert.strictEqual(message.accounts[0], addresses.VALID);
+      conn.send(fixtures.rippledSubcribeResponse(message));
+    });
+
+    self.wss.once('request_account_info', function(message, conn) {
+      assert.strictEqual(message.command, 'account_info');
+      assert.strictEqual(message.account, addresses.VALID);
+      conn.send(fixtures.accountInfoResponse(message));
+    });
+
+    self.wss.once('request_submit', function(message, conn) {
+      assert.strictEqual(message.command, 'submit');
+      conn.send(fixtures.rippledSubmitErrorResponse(message, {
+        engineResult: 'tecNO_DST_INSUF_XRP',
+        engineResultCode: '125',
+        engineResultMessage: 'This should not show up, is not a validated result',
+        hash: hash
+      }));
+
+      process.nextTick(function () {
+        conn.send(fixtures.rippledValidatedErrorResponse(message, {
+          engineResult: 'tecNO_DST_INSUF_XRP',
+          engineResultCode: '125',
+          engineResultMessage: 'Destination does not exist. Too little XRP sent to create it.',
+          hash: hash
+        }));
+      });
+
+      self.wss.once('request_submit', function(message, conn) {
+        // second payment should not hit submit
+        assert(false);
+      });
+    });
+
+    var secondPayment = function(err) {
+      if (err) {
+        assert(false);
+        return done(err);
+      }
+
+      // 2nd payment
+      self.app.post('/v1/accounts/' + addresses.VALID + '/payments?validated=true')
+        .send(fixtures.payment({
+          clientResourceId: 'id'
+        }))
+        .expect(testutils.checkStatus(500))
+        .expect(testutils.checkHeaders)
+        .expect(testutils.checkBody(errors.RESTErrorResponse({
+          type: 'server',
+          error: 'restDUPLICATE_TRANSACTION',
+          message: 'Duplicate Transaction. A record already exists in the database for a transaction of this type with the same client_resource_id. If this was not an accidental resubmission please submit the transaction again with a unique client_resource_id'
+        })))
+        .end(done);
+    };
+
+    self.app
+      .post('/v1/accounts/' + addresses.VALID + '/payments?validated=true')
+      .send(fixtures.payment({
+        clientResourceId: 'id'
+      }))
+      .expect(testutils.checkStatus(500))
+      .expect(testutils.checkHeaders)
+      .expect(testutils.checkBody(errors.RESTErrorResponse({
+        type: 'transaction',
+        error: 'tecNO_DST_INSUF_XRP',
+        message: 'Destination does not exist. Too little XRP sent to create it.'
       })))
       .end(secondPayment);
   });

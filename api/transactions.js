@@ -61,8 +61,7 @@ function submitTransaction(options, hooks, callback) {
 
       transaction.once('submitted', function(message) {
         if (message.result.slice(0, 3) === 'tec' && options.validated !== true) {
-          transaction.removeListener('error', callback);
-          return callback(message);
+          return formatTransactionResponseWrapper(transaction, message, options.validated, callback);
         }
 
         // Handle erred transactions that should not make it into ledger (all
@@ -139,7 +138,7 @@ function submitTransaction(options, hooks, callback) {
         if (error) {
           return callback(error);
         }
-        if (db_record && db_record.state !== 'failed') {
+        if (db_record) {
           return callback(new errors.DuplicateTransactionError('Duplicate Transaction. ' +
             'A record already exists in the database for a transaction of this type ' +
             'with the same client_resource_id. If this was not an accidental resubmission ' +

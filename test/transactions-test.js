@@ -38,7 +38,7 @@ suite('get transaction', function() {
     .get(requestPath(fixtures.INVALID_TRANSACTION_HASH))
     .expect(testutils.checkStatus(400))
     .expect(testutils.checkHeaders)
-    .expect(testutils.checkBody(errors.RESTInvalidTransactionHash))
+    .expect(testutils.checkBody(errors.RESTInvalidTransactionHashOrClientResourceID))
     .end(done);
   });
 

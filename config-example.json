@@ -1,12 +1,13 @@
 {
-  "config_version": "2.0.2",
+  "config_version": "2.0.3",
   "debug": false,
   "port": 5990,
   "host": "localhost",
   "ssl_enabled": false,
   "ssl": {
     "key_path": "./certs/server.key",
-    "cert_path": "./certs/server.crt"
+    "cert_path": "./certs/server.crt",
+    "reject_unauthorized": true
   },
   "db_path": "./ripple-rest.db",
   "max_transaction_fee": 1000000,

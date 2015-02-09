@@ -196,7 +196,7 @@ function addTrustLine(request, response, next) {
     if (typeof params.trustline !== 'object') {
       return callback(new errors.InvalidRequestError('Parameter missing: trustline'));
     }
-    if (!params.trustline.limit) {
+    if (_.isUndefined(params.trustline.limit)) {
       return callback(new errors.InvalidRequestError('Parameter missing: trustline.limit'));
     }
     if (isNaN(params.trustline.limit = String(params.trustline.limit))) {

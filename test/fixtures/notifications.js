@@ -1,4 +1,6 @@
-var _ = require('lodash');
+var _                = require('lodash');
+var addresses        = require('./../fixtures').addresses;
+var SerializedObject = require('ripple-lib').SerializedObject;
 
 module.exports.VALID_TRANSACTION_HASH = 'F4AB442A6D4CBB935D66E1DA7309A5FC71C7143ED4049053EC14E3875B0CF9BF';
 module.exports.INVALID_TRANSACTION_HASH = 'XF4AB442A6D4CBB935D66E1DA7309A5FC71C7143ED4049053EC14E3875B0CF9BF';
@@ -9,28 +11,28 @@ module.exports.requestPath = function(address, params) {
 
 var LEDGER = module.exports.LEDGER = 348860;
 
-var TRANSACTION = module.exports.TRANSACTION = {
-  Account: 'r3GgMwvgvP8h4yVWvjH1dPZNvC37TjzBBE',
+var BINARY_TRANSACTION = module.exports.BINARY_TRANSACTION = {
+  Account: addresses.VALID,
   Amount: {
     currency: 'USD',
-    issuer: 'r3PDtZSa5LiYp1Ysn1vMuMzB59RzV3W9QH',
+    issuer: addresses.ISSUER,
     value: '0.001'
   },
-  Destination: 'r3PDtZSa5LiYp1Ysn1vMuMzB59RzV3W9QH',
+  Destination: addresses.ISSUER,
   Fee: '10',
   Flags: 0,
   Paths: [
     [
       {
     currency: 'USD',
-    issuer: 'rvYAfWj5gh67oV6fW32ZzP3Aw4Eubs59B',
+    issuer: addresses.COUNTERPARTY,
     type: 48,
     type_hex: '0000000000000030'
   },
   {
-    account: 'rvYAfWj5gh67oV6fW32ZzP3Aw4Eubs59B',
+    account: addresses.COUNTERPARTY,
     currency: 'USD',
-    issuer: 'rvYAfWj5gh67oV6fW32ZzP3Aw4Eubs59B',
+    issuer: addresses.COUNTERPARTY,
     type: 49,
     type_hex: '0000000000000031'
   }
@@ -40,12 +42,17 @@ var TRANSACTION = module.exports.TRANSACTION = {
   Sequence: 4,
   SigningPubKey: '02BC8C02199949B15C005B997E7C8594574E9B02BA2D0628902E0532989976CF9D',
   TransactionType: 'Payment',
-  TxnSignature: '304502204EE3E9D1B01D8959B08450FCA9E22025AF503DEF310E34A93863A85CAB3C0BC5022100B61F5B567F77026E8DEED89EED0B7CAF0E6C96C228A2A65216F0DC2D04D52083',
+  TxnSignature: '304502204EE3E9D1B01D8959B08450FCA9E22025AF503DEF310E34A93863A85CAB3C0BC5022100B61F5B567F77026E8DEED89EED0B7CAF0E6C96C228A2A65216F0DC2D04D52083'
+};
+
+var BINARY_TRANSACTION_SYNTH = module.exports.BINARY_TRANSACTION_SYNTH = {
   date: 416447810,
   hash: 'F4AB442A6D4CBB935D66E1DA7309A5FC71C7143ED4049053EC14E3875B0CF9BF',
   inLedger: LEDGER,
   ledger_index: LEDGER
 };
+
+var TRANSACTION = module.exports.TRANSACTION = _.extend(_.cloneDeep(BINARY_TRANSACTION), _.cloneDeep(BINARY_TRANSACTION_SYNTH));
 
 var METADATA = module.exports.METADATA = {
   AffectedNodes: [
@@ -59,7 +66,7 @@ var METADATA = module.exports.METADATA = {
         Sequence: 58,
         TakerGets: {
           currency: 'USD',
-          issuer: 'rvYAfWj5gh67oV6fW32ZzP3Aw4Eubs59B',
+          issuer: addresses.COUNTERPARTY,
           value: '5.648998'
         },
         TakerPays: '6208248802'
@@ -69,7 +76,7 @@ var METADATA = module.exports.METADATA = {
       PreviousFields: {
         TakerGets: {
           currency: 'USD',
-          issuer: 'rvYAfWj5gh67oV6fW32ZzP3Aw4Eubs59B',
+          issuer: addresses.COUNTERPARTY,
           value: '5.65'
         },
         TakerPays: '6209350000'
@@ -88,13 +95,13 @@ var METADATA = module.exports.METADATA = {
         Flags: 131072,
         HighLimit: {
           currency: 'USD',
-          issuer: 'r3PDtZSa5LiYp1Ysn1vMuMzB59RzV3W9QH',
+          issuer: addresses.ISSUER,
           value: '1'
         },
         HighNode: '0000000000000000',
         LowLimit: {
           currency: 'USD',
-          issuer: 'rvYAfWj5gh67oV6fW32ZzP3Aw4Eubs59B',
+          issuer: addresses.COUNTERPARTY,
           value: '0'
         },
         LowNode: '0000000000000002'
@@ -114,7 +121,7 @@ var METADATA = module.exports.METADATA = {
   },
   { ModifiedNode: {
       FinalFields: {
-        Account: 'r3GgMwvgvP8h4yVWvjH1dPZNvC37TjzBBE',
+        Account: addresses.VALID,
         Balance: '9998898762',
         Flags: 0,
         OwnerCount: 3,
@@ -163,7 +170,7 @@ var METADATA = module.exports.METADATA = {
         HighNode: '0000000000000000',
         LowLimit: {
           currency: 'USD',
-          issuer: 'rvYAfWj5gh67oV6fW32ZzP3Aw4Eubs59B',
+          issuer: addresses.COUNTERPARTY,
           value: '0'
         },
         LowNode: '000000000000000C'
@@ -192,9 +199,9 @@ module.exports.transactionResponse = function(request) {
     status: 'success',
     type: 'response',
     result: _.extend({
-      validated: true,
-      meta: METADATA
-    }, TRANSACTION)
+      meta: SerializedObject.from_json(METADATA).to_hex(),
+      tx: SerializedObject.from_json(BINARY_TRANSACTION).to_hex()
+    }, BINARY_TRANSACTION_SYNTH)
   });
 };
 
@@ -278,14 +285,15 @@ module.exports.accountTxLedgerResponse = function(request) {
     status: 'success',
     type: 'response',
     result: {
-      account: 'r3GgMwvgvP8h4yVWvjH1dPZNvC37TjzBBE',
+      account: addresses.VALID,
       ledger_index_max: request.ledger_index_min,
       ledger_index_min: request.ledger_index_max,
       limit: request.limit,
       transactions: [
         {
-          meta: METADATA,
-          tx: TRANSACTION,
+          ledger_index: LEDGER,
+          meta: SerializedObject.from_json(METADATA).to_hex(),
+          tx_blob: SerializedObject.from_json(BINARY_TRANSACTION).to_hex(),
           validated: true
         }
       ]
@@ -299,7 +307,7 @@ module.exports.accountTxEmptyResponse = function(request) {
     status: 'success',
     type: 'response',
     result: {
-      account: 'r3GgMwvgvP8h4yVWvjH1dPZNvC37TjzBBE',
+      account: addresses.VALID,
       ledger_index_max: request.ledger_index_min,
       ledger_index_min: request.ledger_index_max,
       limit: request.limit,
@@ -315,19 +323,18 @@ module.exports.accountTxNextResponse = function(request) {
     status: 'success',
     type: 'response',
     result: {
-      account: 'r3GgMwvgvP8h4yVWvjH1dPZNvC37TjzBBE',
+      account: addresses.VALID,
       ledger_index_max: request.ledger_index_min,
       ledger_index_min: request.ledger_index_max,
       limit: request.limit,
       forward: request.forward,
       transactions: [
         {
-          meta: METADATA,
-          tx: _.extend({}, TRANSACTION, {
-            hash: 'G4AB442A6D4CBB935D66E1DA7309A5FC71C7143ED4049053EC14E3875B0CF9BF',
-            inLedger: request.ledger_index_min + 2,
-            ledger_index: request.ledger_index_min + 2
-          }),
+          ledger_index: request.ledger_index_min + 2,
+          meta: SerializedObject.from_json(METADATA).to_hex(),
+          tx_blob: SerializedObject.from_json(_.extend({}, TRANSACTION, {
+            Account: addresses.ISSUER
+          })).to_hex(),
           validated: true
         }
       ]
@@ -341,19 +348,18 @@ module.exports.accountTxPreviousResponse = function(request) {
     status: 'success',
     type: 'response',
     result: {
-      account: 'r3GgMwvgvP8h4yVWvjH1dPZNvC37TjzBBE',
+      account: addresses.VALID,
       ledger_index_max: request.ledger_index_min,
       ledger_index_min: request.ledger_index_max,
       limit: request.limit,
       forward: request.forward,
       transactions: [
         {
-          meta: METADATA,
-          tx: _.extend({}, TRANSACTION, {
-            hash: 'H4AB442A6D4CBB935D66E1DA7309A5FC71C7143ED4049053EC14E3875B0CF9BF',
-            inLedger: request.ledger_index_max - 2,
-            ledger_index: request.ledger_index_max - 2
-          }),
+          ledger_index: request.ledger_index_max - 2,
+          meta: SerializedObject.from_json(METADATA).to_hex(),
+          tx_blob: SerializedObject.from_json(_.extend({}, TRANSACTION, {
+            Destination: addresses.VALID
+          })).to_hex(),
           validated: true
         }
       ]
@@ -364,7 +370,7 @@ module.exports.accountTxPreviousResponse = function(request) {
 module.exports.RESTNotificationResponse = JSON.stringify({
   success: true,
   notification: {
-    account: 'r3GgMwvgvP8h4yVWvjH1dPZNvC37TjzBBE',
+    account: addresses.VALID,
     type: 'payment',
     direction: 'outgoing',
     state: 'validated',
@@ -372,18 +378,18 @@ module.exports.RESTNotificationResponse = JSON.stringify({
     ledger: String(LEDGER),
     hash: 'F4AB442A6D4CBB935D66E1DA7309A5FC71C7143ED4049053EC14E3875B0CF9BF',
     timestamp: '2013-03-12T23:56:50.000Z',
-    transaction_url: 'http://127.0.0.1:5990/v1/accounts/r3GgMwvgvP8h4yVWvjH1dPZNvC37TjzBBE/payments/F4AB442A6D4CBB935D66E1DA7309A5FC71C7143ED4049053EC14E3875B0CF9BF',
-    previous_hash: 'H4AB442A6D4CBB935D66E1DA7309A5FC71C7143ED4049053EC14E3875B0CF9BF',
-    previous_notification_url: 'http://127.0.0.1:5990/v1/accounts/r3GgMwvgvP8h4yVWvjH1dPZNvC37TjzBBE/notifications/H4AB442A6D4CBB935D66E1DA7309A5FC71C7143ED4049053EC14E3875B0CF9BF',
-    next_hash: 'G4AB442A6D4CBB935D66E1DA7309A5FC71C7143ED4049053EC14E3875B0CF9BF',
-    next_notification_url: 'http://127.0.0.1:5990/v1/accounts/r3GgMwvgvP8h4yVWvjH1dPZNvC37TjzBBE/notifications/G4AB442A6D4CBB935D66E1DA7309A5FC71C7143ED4049053EC14E3875B0CF9BF'
+    transaction_url: 'http://127.0.0.1:5990/v1/accounts/' + addresses.VALID + '/payments/F4AB442A6D4CBB935D66E1DA7309A5FC71C7143ED4049053EC14E3875B0CF9BF',
+    previous_hash: 'BACD1473E1D778CE38AD6D7C671D519506D0BC33AE3C54FA5A59D9C9161C381B',
+    previous_notification_url: 'http://127.0.0.1:5990/v1/accounts/' + addresses.VALID + '/notifications/BACD1473E1D778CE38AD6D7C671D519506D0BC33AE3C54FA5A59D9C9161C381B',
+    next_hash: '59FE90C3FF75B0AF31A4333819FF676954D0246F7502BB31B91AB37D55747788',
+    next_notification_url: 'http://127.0.0.1:5990/v1/accounts/' + addresses.VALID + '/notifications/59FE90C3FF75B0AF31A4333819FF676954D0246F7502BB31B91AB37D55747788'
   }
 });
 
 module.exports.RESTNotificationNoNextResponse = JSON.stringify({
   success: true,
   notification: {
-    account: 'r3GgMwvgvP8h4yVWvjH1dPZNvC37TjzBBE',
+    account: addresses.VALID,
     type: 'payment',
     direction: 'outgoing',
     state: 'validated',
@@ -391,9 +397,9 @@ module.exports.RESTNotificationNoNextResponse = JSON.stringify({
     ledger: String(LEDGER),
     hash: 'F4AB442A6D4CBB935D66E1DA7309A5FC71C7143ED4049053EC14E3875B0CF9BF',
     timestamp: '2013-03-12T23:56:50.000Z',
-    transaction_url: 'http://127.0.0.1:5990/v1/accounts/r3GgMwvgvP8h4yVWvjH1dPZNvC37TjzBBE/payments/F4AB442A6D4CBB935D66E1DA7309A5FC71C7143ED4049053EC14E3875B0CF9BF',
-    previous_hash: 'H4AB442A6D4CBB935D66E1DA7309A5FC71C7143ED4049053EC14E3875B0CF9BF',
-    previous_notification_url: 'http://127.0.0.1:5990/v1/accounts/r3GgMwvgvP8h4yVWvjH1dPZNvC37TjzBBE/notifications/H4AB442A6D4CBB935D66E1DA7309A5FC71C7143ED4049053EC14E3875B0CF9BF',
+    transaction_url: 'http://127.0.0.1:5990/v1/accounts/' + addresses.VALID + '/payments/F4AB442A6D4CBB935D66E1DA7309A5FC71C7143ED4049053EC14E3875B0CF9BF',
+    previous_hash: 'BACD1473E1D778CE38AD6D7C671D519506D0BC33AE3C54FA5A59D9C9161C381B',
+    previous_notification_url: 'http://127.0.0.1:5990/v1/accounts/' + addresses.VALID + '/notifications/BACD1473E1D778CE38AD6D7C671D519506D0BC33AE3C54FA5A59D9C9161C381B',
     next_notification_url: ''
   }
 });

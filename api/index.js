@@ -45,7 +45,8 @@ module.exports = {
     getOrderBook: Orders.getOrderBook,
     getOrders: Orders.getOrders,
     placeOrder: Orders.placeOrder,
-    cancelOrder: Orders.cancelOrder
+    cancelOrder: Orders.cancelOrder,
+    getOrder: Orders.getOrder
   },
 
   notifications: {

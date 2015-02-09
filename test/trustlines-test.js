@@ -691,6 +691,46 @@ suite('post trustlines', function() {
     }, done);
   });
 
+  test('/accounts/:account/trustlines -- limit 0', function(done) {
+    var hash = testutils.generateHash();
+    var currentLedger = self.app.remote._ledger_current_index;
+    var lastLedger = currentLedger + testutils.LEDGER_OFFSET;
+
+    self.wss.once('request_account_info', function(message, conn) {
+      assert.strictEqual(message.command, 'account_info');
+      assert.strictEqual(message.account, addresses.VALID);
+      conn.send(fixtures.accountInfoResponse(message));
+    });
+
+    self.wss.once('request_submit', function(message, conn) {
+      assert.strictEqual(message.command, 'submit');
+      var so = new ripple.SerializedObject(message.tx_blob).to_json();
+
+      assert.strictEqual(so.TransactionType, 'TrustSet');
+      assert.strictEqual(so.LimitAmount.value, '0');
+
+      conn.send(fixtures.submitTrustlineResponse(message, {
+        hash: hash
+      }));
+    });
+
+    var expectFn = function(res) {
+      var body = res.body;
+      assert.strictEqual(body.success, true);
+      assert(body.hasOwnProperty('trustline'));
+    };
+
+    var data = _.cloneDeep(defaultData);
+    data.trustline.limit = 0;
+
+    testPostRequest({
+      account: addresses.VALID,
+      data: data,
+      expectedStatus: 201,
+      expectFn: expectFn
+    }, done);
+  });
+
   test('/accounts/:account/trustlines -- no-rippling', function(done) {
     var hash = testutils.generateHash();
 

@@ -1004,6 +1004,7 @@ suite('post orders', function() {
   });
 
   test('/orders -- unfunded offer', function(done) {
+    var lastLedger = self.app.remote._ledger_current_index;
     var hash = testutils.generateHash();
 
     self.wss.once('request_account_info', function(message, conn) {
@@ -1025,12 +1026,11 @@ suite('post orders', function() {
     self.app
     .post('/v1/accounts/' + addresses.VALID + '/orders')
     .send(fixtures.order())
-    .expect(testutils.checkStatus(500))
+    .expect(testutils.checkStatus(200))
     .expect(testutils.checkHeaders)
-    .expect(testutils.checkBody(errors.RESTErrorResponse({
-      type: 'transaction',
-      error: 'tecUNFUNDED_OFFER',
-      message: 'Insufficient balance to fund created offer.'
+    .expect(testutils.checkBody(fixtures.RESTSubmitTransactionResponse({
+      hash: hash,
+      last_ledger: lastLedger
     })))
     .end(done);
   });
@@ -1797,6 +1797,75 @@ suite('get order book', function() {
 
     self.app
     .get('/v1/accounts/' + addresses.INVALID + '/order_book/BTC+' + addresses.ISSUER + '/XRP')
+    .expect(testutils.checkStatus(400))
+    .expect(testutils.checkHeaders)
+    .expect(testutils.checkBody(errors.RESTInvalidAccount))
+    .end(done);
+  });
+});
+
+suite('get order', function() {
+  var self = this
+  var hash = testutils.generateHash();
+
+  setup(testutils.setup.bind(self));
+  teardown(testutils.teardown.bind(self));
+
+  test('v1/accounts/:account/order/:identifier', function(done) {
+    self.wss.on('request_tx', function(message, conn) {
+      assert.strictEqual(message.transaction, hash);
+      conn.send(fixtures.requestTxOfferCreateResponse(message, {
+        hash: hash,
+        account: addresses.VALID
+      }));
+    });
+
+    self.app
+    .get('/v1/accounts/' + addresses.VALID + '/orders/' + hash)
+    .expect(testutils.checkStatus(200))
+    .expect(testutils.checkHeaders)
+    .expect(testutils.checkBody(fixtures.RESTOrderResponse({
+      hash: hash,
+      account: addresses.VALID
+    })))
+    .end(done);
+  });
+
+  test('v1/accounts/:account/order_change/:identifier -- invalid transaction hash', function(done) {
+    self.wss.on('request_tx', function(message, conn) {
+      assert(false, 'should not submit request');
+    });
+
+    self.app
+    .get('/v1/accounts/' + addresses.VALID + '/orders/foo')
+    .expect(testutils.checkStatus(400))
+    .expect(testutils.checkHeaders)
+    .expect(testutils.checkBody(errors.RESTInvalidTransactionHash))
+    .end(done);
+  });
+
+  test('v1/accounts/:account/order_change/:identifier -- invalid transaction (payment)', function(done) {
+    var requestTxPaymentResponse = require('./fixtures').payments.transactionResponse;
+
+    self.wss.on('request_tx', function(message, conn) {
+      conn.send(requestTxPaymentResponse(message));
+    });
+
+    self.app
+    .get('/v1/accounts/' + addresses.VALID + '/orders/' + hash)
+    .expect(testutils.checkStatus(400))
+    .expect(testutils.checkHeaders)
+    .expect(testutils.checkBody(errors.RESTInvalidTransactionNotAnOrder))
+    .end(done);
+  });
+
+  test('v1/accounts/:account/order_change/:identifier -- invalid account', function(done) {
+    self.wss.once('request_tx', function(message, conn) {
+      assert(false, 'Should not request transaction');
+    });
+
+    self.app
+    .get('/v1/accounts/' + addresses.INVALID + '/orders/' + hash)
     .expect(testutils.checkStatus(400))
     .expect(testutils.checkHeaders)
     .expect(testutils.checkBody(errors.RESTInvalidAccount))

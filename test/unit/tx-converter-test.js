@@ -4,7 +4,6 @@ var addresses         = require('./../fixtures').addresses;
 var txToRestConverter = require('./../../lib/tx-to-rest-converter.js');
 
 suite('unit - converter - Tx to Rest', function() {
-
   test('parsePaymentFromTx()', function(done) {
     var tx = fixtures.paymentTx();
     var options = {
@@ -158,4 +157,72 @@ suite('unit - converter - Tx to Rest', function() {
 
     done();
   });
+
+  suite('parseOrderFromTx', function() {
+    test('parse OfferCreate', function(done) {
+      var options = {
+        account: addresses.VALID
+      };
+
+      txToRestConverter.parseOrderFromTx(fixtures.offerCreateTx, options)
+      .then(function(orderChange) {
+        assert.deepEqual(orderChange, fixtures.parsedOfferCreateTx);
+        done();
+      })
+      .catch(done);
+    });
+
+    test('parse OfferCancel', function(done) {
+      var options = {
+        account: addresses.VALID
+      };
+
+      txToRestConverter.parseOrderFromTx(fixtures.offerCancelTx, options)
+      .then(function(orderChange) {
+        assert.deepEqual(orderChange, fixtures.parsedOfferCancelTx);
+        done();
+      })
+      .catch(done);
+    });
+
+    test('parse Payment -- invalid transaction type', function(done) {
+      var options = {
+        account: addresses.VALID
+      };
+
+      txToRestConverter.parseOrderFromTx(fixtures.paymentTx(), options)
+      .catch(function(err) {
+        assert.strictEqual(err.message, 'Invalid parameter: identifier. The transaction corresponding to the given identifier is not an order');
+      })
+      .then(done);
+    });
+
+    test('parse OfferCreate -- missing options.account', function(done) {
+      var options = {
+        account: void(0)
+      };
+
+      txToRestConverter.parseOrderFromTx(fixtures.offerCreateTx, options)
+      .catch(function(err) {
+        assert.strictEqual(err.message, 'Internal Error. must supply options.account');
+      })
+      .then(done);
+    });
+
+    test('parse OfferCreate -- invalid secret', function(done) {
+      var options = {
+        account: addresses.VALID
+      };
+
+      var tx = fixtures.offerCreateTx;
+      tx.meta.TransactionResult = 'tejSecretInvalid';
+
+      txToRestConverter.parseOrderFromTx(tx, options)
+      .catch(function(err) {
+        assert.strictEqual(err.message, 'Invalid secret provided.');
+      })
+      .then(done);
+    });
+  });
+
 });

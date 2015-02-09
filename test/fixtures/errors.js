@@ -26,11 +26,25 @@ module.exports.RESTInvalidCounterparty = JSON.stringify({
   message: 'Parameter is not a valid Ripple address: counterparty'
 });
 
-module.exports.RESTInvalidTransactionHash = JSON.stringify({
+module.exports.RESTInvalidTransactionHashOrClientResourceID = JSON.stringify({
   success: false,
   error_type: 'invalid_request',
   error: 'restINVALID_PARAMETER',
   message: 'Transaction not found. A transaction hash was not supplied and there were no entries matching the client_resource_id.'
+});
+
+module.exports.RESTInvalidTransactionHash = JSON.stringify({
+  success: false,
+  error_type: 'invalid_request',
+  error: 'restINVALID_PARAMETER',
+  message: 'Parameter is not a valid transaction hash: identifier'
+});
+
+module.exports.RESTInvalidTransactionNotAnOrder = JSON.stringify({
+  success: false,
+  error_type: 'invalid_request',
+  error: 'restINVALID_PARAMETER',
+  message: 'Invalid parameter: identifier. The transaction corresponding to the given identifier is not an order'
 });
 
 module.exports.RESTTransactionNotFound = JSON.stringify({
