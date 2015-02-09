@@ -1,10 +1,26 @@
-## 1.3.2
+## 1.4.0
 
-+ Add place and cancel order functionality [d80d198](https://github.com/ripple/ripple-rest/commit/d80d198e18f9c1f96adad8fba4be67b8ae26c4d5) and [274f5236](https://github.com/ripple/ripple-rest/commit/274f5236b8a3e879cacb3b64a62100c45cef6b93) and [a384c5d5](https://github.com/ripple/ripple-rest/commit/a384c5d5e7da20c64536dd04d90fc3757e01df85) and [e6a8c74a](https://github.com/ripple/ripple-rest/commit/e6a8c74a0f0e6ebd8814e78498ad775a4c654c37)
+#### Breaking Changes
+
++ `client_resource_id` cannot be reused anymore for failed transactions [3b4c1636](https://github.com/ripple/ripple-rest/commit/3b4c16368dbed8a96a125eee37018293bbad8d27)
+
++ Removed deprecated depoly/dev config [3eae89e7](https://github.com/ripple/ripple-rest/commit/3eae89e756ee3de3e80bcfe930badef65f76c436)
+
++ Move hash, ledger and state fields to be on root response object [fbc8840c](https://github.com/ripple/ripple-rest/commit/fbc8840c47685a15513ab2e68f3fff5df3c0c807)
+
+***Deprecations***
+
++ In a future version of ripple-rest `issuer` will be renamed to `counterparty`
+
+#### Changes
+
++ Add place and cancel order functionality [d80d198](https://github.com/ripple/ripple-rest/commit/d80d198e18f9c1f96adad8fba4be67b8ae26c4d5) and [274f5236](https://github.com/ripple/ripple-rest/commit/274f5236b8a3e879cacb3b64a62100c45cef6b93) and [a384c5d5](https://github.com/ripple/ripple-rest/commit/a384c5d5e7da20c64536dd04d90fc3757e01df85) and [e6a8c74a](https://github.com/ripple/ripple-rest/commit/e6a8c74a0f0e6ebd8814e78498ad775a4c654c37) and [bbf386ec](https://github.com/ripple/ripple-rest/commit/bbf386ecd7c9f076114f8a4560dc3c3faa673864)
 
 + Add orderbook functionality, get an orderbook for a currency pair [41905cb9](https://github.com/ripple/ripple-rest/commit/41905cb9e1d12a0fccfdf34018ce5f85ce093a58)
 
 + Allow a fixed fee to be set on a payment [aaa9efae](https://github.com/ripple/ripple-rest/commit/aaa9efae3d28cdb3b0184c50179e47c54677b060)
+
++ Make response objects consistent for payment history [159e53cb](https://github.com/ripple/ripple-rest/commit/159e53cb757e6dc5129a906cb39010f555a36e25)
 
 + Support paging behavior for balances and trustlines [6980ab7](https://github.com/ripple/ripple-rest/commit/6980ab7c844508caae5c62ee7202aa429d12ef0b) and [d5a153e3](https://github.com/ripple/ripple-rest/commit/d5a153e33a7bcb7246569ea91c9cdb2551142594)
 
@@ -18,13 +34,19 @@
 
 + Add query parameter for only showing frozen balances [a9b246bd](https://github.com/ripple/ripple-rest/commit/a9b246bdaa4aeb63f881ac467177059081c5c100)
 
++ Add cors allow methods [18e52a06](https://github.com/ripple/ripple-rest/commit/18e52a06a279b9f57f7b1152d1cc0ee6fff13595)
+
 + Increase default account_tx limit [a2ed905f](https://github.com/ripple/ripple-rest/commit/a2ed905f7f58655644a397447435af3373b60041)
 
 + Use the `ripple-lib-transactionparser` to compute transaction balance changes [8b900bf0](https://github.com/ripple/ripple-rest/commit/8b900bf04e852c34e43876676d6ab87112665f07)
 
 + Fix parameter discrepancy, `*_froze_line` -> `*_trustline_frozen` [2701c0b](https://github.com/ripple/ripple-rest/commit/2701c0b9ac481b4e9172b6faaf0d0a4821d6acb5) and [a8aeeec](https://github.com/ripple/ripple-rest/commit/a8aeeeced9b9f896608160a3d34aaedf00e3dc96)
 
-+ Add tests to show use of complex currencies [9c5412f](https://github.com/ripple/ripple-rest/commit/9c5412f3a0e1498e3108930d38da6157dc764e53)
++ Fix: allow trust line to be set to 0 [333bf320](https://github.com/ripple/ripple-rest/commit/333bf3204db2931a524ddfb1df872b1df3593314)
+
++ Add tests to show use of interest-bearing currencies [9c5412f](https://github.com/ripple/ripple-rest/commit/9c5412f3a0e1498e3108930d38da6157dc764e53)
+
++ Add configuration to allow self-signed certificates [3503049b](https://github.com/ripple/ripple-rest/commit/3503049bceb13551cfe1d31798fa316c4d32e57b)
 
 + Update ripple-lib which fixes several stability problems and improving transaction submission reliability, see [ripple-lib releases](https://github.com/ripple/ripple-lib/releases)
 
