@@ -501,6 +501,13 @@ module.exports.RESTTransactionResponse = function(options) {
       result: 'tesSUCCESS',
       timestamp: '2013-03-12T23:56:50.000Z',
       fee: options.fee,
+      balance_changes: [
+        {
+          currency: 'XRP',
+          value: '-1.101208',
+          issuer: ''
+        }
+      ],
       source_balance_changes: [
         {
           value: '-1.101208',
@@ -574,6 +581,13 @@ module.exports.RESTAccountTransactionsResponse = function(options) {
           result: 'tesSUCCESS',
           timestamp: '2014-09-24T21:21:50.000Z',
           fee: options.fee,
+          balance_changes: [
+            {
+              currency: 'XRP',
+              value: '-1.101208',
+              issuer: ''
+            }
+          ],
           source_balance_changes: [
             {
               value: '-1.101208',
@@ -644,6 +658,18 @@ module.exports.RESTTransactionResponseComplexCurrencies = function(options) {
       result: 'tesSUCCESS',
       timestamp: '2014-11-25T21:03:00.000Z',
       fee: '0.012',
+      balance_changes: [
+        {
+          currency: 'XRP',
+          value: '-0.012',
+          issuer: ''
+        },
+        {
+          currency: '0158415500000000C1F76FF6ECB0BAC600000000',
+          value: '-1e-8',
+          issuer: 'rvYAfWj5gh67oV6fW32ZzP3Aw4Eubs59B'
+        }
+      ],
       source_balance_changes: [
         {
           value: '-0.012',

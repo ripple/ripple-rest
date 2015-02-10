@@ -448,14 +448,14 @@ Submitted transactions can have additional fields reflecting the current status 
 | Field | Type | Description |
 |-------|------|-------------|
 | direction | String | The direction of the payment relative to the account from the URL, either `"outgoing"` (sent by the account in the URL) or `"incoming"` (received by the account in the URL) |
-| state | String | The current status of the payment in transaction processing. A value of `"validated"` indicates that the transaction is finalized. |
 | result | String | The [Ripple transaction status code](https://wiki.ripple.com/Transaction_errors) for the transaction. A value of `"tesSUCCESS"` indicates a successful transaction. |
-| ledger | String | The sequence number of the ledger version that includes this transaction. |
-| hash | String | A hash value that uniquely identifies this transaction in the Ripple network. |
 | timestamp | String | The time the ledger containing this transaction was validated, as a [ISO8601 extended format](http://en.wikipedia.org/wiki/ISO_8601) string in the form `YYYY-MM-DDTHH:mm:ss.sssZ`. |
 | fee | String (Quoted decimal) | The amount of XRP charged as a transaction fee. |
+| balance_changes | Array | Array of [Amount objects](#amount_object) indicating changes in balances held by the perspective account (i.e., the Ripple account address specified in the URI). |
 | source_balance_changes | Array | Array of [Amount objects](#amount_object) indicating changes in balances held by the account sending the transaction as a result of the transaction. |
 | destination_balance_changes | Array | Array of [Amount objects](#amount_object) indicating changes in balances held by the account receiving the transaction as a result of the transaction. |
+| destination_amount_submitted | Object | An [Amount object](#amount_object) indicating the destination amount submitted (useful when `payment.partial_payment` flag is set to *true* |
+| source_amount_submitted | Object | An [Amount object](#amount_object) indicating the source amount submitted (useful when `payment.partial_payment` flag is set to *true* |
 
 
 ### Memo Objects ###
@@ -1037,44 +1037,59 @@ The following URL parameters are required by this API endpoint:
     "destination_account": "ra5nK24KXen9AHvsdFTKHSANinZseWnPcX",
     "destination_tag": "",
     "destination_amount": {
+      "value": "0.00000005080000000000001",
       "currency": "USD",
-      "issuer": "rsP3mgGb2tcYUrxiLFiHJiQXhsziegtwBc",
-      "value": "0.01"
+      "issuer": "rsP3mgGb2tcYUrxiLFiHJiQXhsziegtwBc"
     },
     "invoice_id": "",
     "paths": "[]",
     "no_direct_ripple": false,
     "partial_payment": true,
     "direction": "outgoing",
-    "state": "validated",
     "result": "tesSUCCESS",
-    "ledger": "8924146",
-    "hash": "9D591B18EDDD34F0B6CF4223A2940AEA2C3CC778925BABF289E0011CD8FA056E",
     "timestamp": "2014-09-17T21:47:00.000Z",
     "fee": "0.00001",
-    "source_balance_changes": [
-      {
-        "value": "-0.00002",
-        "currency": "XRP",
-        "issuer": ""
-      }
-    ],
-    "destination_balance_changes": [
-      {
-        "value": "5.08e-8",
-        "currency": "USD",
-        "issuer": "rsP3mgGb2tcYUrxiLFiHJiQXhsziegtwBc"
-      }
-    ]
-  }
+    "balance_changes": [{
+      "currency": "XRP",
+      "value": "-0.00002",
+      "issuer": ""
+    }],
+    "source_balance_changes": [{
+      "currency": "XRP",
+      "value": "-0.00002",
+      "issuer": ""
+    }],
+    "destination_balance_changes": [{
+      "currency": "USD",
+      "value": "5.08e-8",
+      "issuer": "rsP3mgGb2tcYUrxiLFiHJiQXhsziegtwBc"
+    }],
+    "order_changes": [],
+    "destination_amount_submitted": {
+      "value": "0.01",
+      "currency": "USD",
+      "issuer": "rsP3mgGb2tcYUrxiLFiHJiQXhsziegtwBc"
+    },
+    "source_amount_submitted": {
+      "value": "0.00001",
+      "currency": "XRP",
+      "issuer": ""
+    }
+  },
+  "client_resource_id": "",
+  "hash": "9D591B18EDDD34F0B6CF4223A2940AEA2C3CC778925BABF289E0011CD8FA056E",
+  "ledger": "8924146",
+  "state": "validated"
 }
 ```
 
 | Field | Type | Description |
 |-------|------|-------------|
 | payment | Object | A [payment object](#payment-objects) for the transaction. |
+| hash | String | The hash of the payment transaction |
+| ledger | String | The sequence number of the ledger version that includes this transaction. |
 
-If the `payment.state` field has the value `"validated"`, then the payment has been finalized, and is included in the shared global ledger. However, this does not necessarily mean that it succeeded. Check the `payment.result` field for a value of `"tesSUCCESS"` to see if the payment was successfully executed. If the `payment.partial_payment` flag is *true*, then you should also consult the `payment.destination_balance_changes` array to see how much currency was actually delivered to the destination account.
+If the `state` field has the value `"validated"`, then the payment has been finalized, and is included in the shared global ledger. However, this does not necessarily mean that it succeeded. Check the `payment.result` field for a value of `"tesSUCCESS"` to see if the payment was successfully executed. If the `payment.partial_payment` flag is *true*, then you should also consult the `payment.destination_balance_changes` array to see how much currency was actually delivered to the destination account.
 
 Processing a payment can take several seconds to complete, depending on the [consensus process](consensus-whitepaper.html). If the payment does not exist yet, or has not been validated, you should wait a few seconds before checking again.
 
@@ -1117,99 +1132,57 @@ Optionally, you can also include the following query parameters:
 ```js
 {
   "success": true,
-  "payments": [
-    {
-      "payment": {
-        "source_account": "rBvktWhzs4MQDaFYScsqPCB5YufRDXwKDC",
-        "source_tag": "",
-        "source_amount": {
-          "value": "1166313.057",
-          "currency": "JPY",
-          "issuer": "r94s8px6kSw1uZ1MV98dhSRTvc6VMPoPcN"
-        },
-        "source_slippage": "0",
-        "destination_account": "rBvktWhzs4MQDaFYScsqPCB5YufRDXwKDC",
-        "destination_tag": "",
-        "destination_amount": {
-          "value": "600000",
-          "currency": "XRP",
-          "issuer": ""
-        },
-        "invoice_id": "",
-        "paths": "[[{\"currency\":\"XRP\",\"type\":16,\"type_hex\":\"0000000000000010\"}]]",
-        "no_direct_ripple": false,
-        "partial_payment": false,
-        "direction": "passthrough",
-        "result": "tesSUCCESS",
-        "timestamp": "2015-02-06T03:59:30.000Z",
-        "fee": "0.012",
-        "source_balance_changes": [
-          {
-            "currency": "JPY",
-            "value": "-1164533.852420654",
-            "issuer": "r94s8px6kSw1uZ1MV98dhSRTvc6VMPoPcN"
-          },
-          {
-            "currency": "XRP",
-            "value": "599999.988",
-            "issuer": ""
-          }
-        ],
-        "destination_balance_changes": [
-          {
-            "currency": "JPY",
-            "value": "-1164533.852420654",
-            "issuer": "r94s8px6kSw1uZ1MV98dhSRTvc6VMPoPcN"
-          },
-          {
-            "currency": "XRP",
-            "value": "599999.988",
-            "issuer": ""
-          }
-        ],
-        "order_changes": [
-          {
-            "taker_pays": {
-              "currency": "JPY",
-              "counterparty": "r94s8px6kSw1uZ1MV98dhSRTvc6VMPoPcN",
-              "value": "-67605.3"
-            },
-            "taker_gets": {
-              "currency": "XRP",
-              "counterparty": "",
-              "value": "-34300"
-            },
-            "sequence": 3751,
-            "status": "closed"
-          }
-        ],
-        "memos": [
-          {
-            "MemoType": "636C69656E74",
-            "MemoFormat": "7274312E332E31",
-            "parsed_memo_type": "client",
-            "parsed_memo_format": "rt1.3.1"
-          }
-        ]
+  "payments": [{
+    "payment": {
+      "source_account": "rf1BiGeXwwQoi8Z2ueFYTEXSwuJYfV2Jpn",
+      "source_tag": "",
+      "source_amount": {
+        "value": "20",
+        "currency": "XRP",
+        "issuer": ""
       },
-      "client_resource_id": "",
-      "hash": "E485D1E18D946ACD410AD79F51E2C57E887CC206286E6CE0A1CA80FC75C24643",
-      "ledger": "11547185",
-      "state": "validated"
-    }
-  ]
-}
+      "source_slippage": "0",
+      "destination_account": "raKEEVSGnKSD9Zyvxu4z6Pqpm4ABH8FS6n",
+      "destination_tag": "",
+      "destination_amount": {
+        "value": "20",
+        "currency": "XRP",
+        "issuer": ""
+      },
+      "invoice_id": "",
+      "paths": "[]",
+      "no_direct_ripple": false,
+      "partial_payment": false,
+      "direction": "outgoing",
+      "result": "tesSUCCESS",
+      "timestamp": "2015-02-09T23:31:40.000Z",
+      "fee": "0.012",
+      "balance_changes": [{
+        "currency": "XRP",
+        "value": "-20.012",
+        "issuer": ""
+      }],
+      "source_balance_changes": [{
+        "currency": "XRP",
+        "value": "-20.012",
+        "issuer": ""
+      }],
+      "destination_balance_changes": [{
+        "currency": "XRP",
+        "value": "20",
+        "issuer": ""
+      }],
+      "order_changes": []
+    },
+    "client_resource_id": "",
+    "hash": "1D381C0FCA00E8C34A6D4D3A91DAC9F3697B4E66BC49ED3D9B2D6F57D7F15E2E",
+    "ledger": "11620700",
+    "state": "validated"
+  }
+]
 ```
 
 If the length of the `payments` array is equal to `results_per_page`, then there may be more results. To get them, increment the `page` query paramter and run the request again.
-
-The `payment` objects include additional transactional metadata:
-
-| Field | Type | Description |
-|-------|------|-------------|
-| source_balance_changes | Amount | The balance changes of the Ripple address that submitted the payment |
-| destination_balance_changes | Amount | The balance changes of the Ripple address that received the payment |
-| order_changes | Order | The changes in the orders of the perspective account |
 
 *Note:* It is not more efficient to specify more filter values, because Ripple-REST has to retrieve the full list of payments from the `rippled` before it can filter them.
 
