@@ -3,12 +3,12 @@ var assert                  = require('assert');
 var async                   = require('async');
 var ripple                  = require('ripple-lib');
 var transactions            = require('./transactions.js');
-var SubmitTransactionHooks  = require('./../lib/submit_transaction_hooks.js');
-var remote                  = require('./../lib/remote.js');
-var respond                 = require('./../lib/response-handler.js');
-var errors                  = require('./../lib/errors.js');
-var TxToRestConverter       = require('./../lib/tx-to-rest-converter.js');
-var RestToTxConverter       = require('./../lib/rest-to-tx-converter.js');
+var SubmitTransactionHooks  = require('./lib/submit_transaction_hooks.js');
+var remote                  = require('./lib/remote.js');
+var respond                 = require('../server/response-handler.js');
+var errors                  = require('./lib/errors.js');
+var TxToRestConverter       = require('./lib/tx-to-rest-converter.js');
+var RestToTxConverter       = require('./lib/rest-to-tx-converter.js');
 
 const InvalidRequestError = errors.InvalidRequestError;
 

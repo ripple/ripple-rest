@@ -1,7 +1,7 @@
 var assert            = require('assert');
 var fixtures          = require('./fixtures').restConverter;
 var addresses         = require('./../fixtures').addresses;
-var restToTxConverter = require('./../../lib/rest-to-tx-converter.js');
+var restToTxConverter = require('./../../api/lib/rest-to-tx-converter.js');
 
 suite('unit - converter - Rest to Tx', function() {
 

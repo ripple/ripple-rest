@@ -72,8 +72,8 @@ if (nconf.get('ssl')) {
 }
 
 if (nconf.get('NODE_ENV') === 'test') {
-  nconf.set('port', require('../config-example').port);
-  nconf.set('host', require('../config-example').host);
+  nconf.set('port', require('../../config-example').port);
+  nconf.set('host', require('../../config-example').host);
 }
 
 // Print configuration and exit

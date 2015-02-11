@@ -1,5 +1,5 @@
 var assert = require('assert');
-var utils = require('./../../lib/utils.js');
+var utils = require('../../api/lib/utils.js');
 var addresses = require('./../fixtures/addresses.js');
 
 suite('unit - utils.parseLedger()', function() {

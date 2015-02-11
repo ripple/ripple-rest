@@ -1,7 +1,7 @@
 var assert            = require('assert-diff');
 var fixtures          = require('./fixtures').txConverter;
 var addresses         = require('./../fixtures').addresses;
-var txToRestConverter = require('./../../lib/tx-to-rest-converter.js');
+var txToRestConverter = require('./../../api/lib/tx-to-rest-converter.js');
 
 suite('unit - converter - Tx to Rest', function() {
   test('parsePaymentFromTx()', function(done) {

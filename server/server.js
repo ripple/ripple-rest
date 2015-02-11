@@ -1,10 +1,10 @@
 var fs        = require('fs');
 var https     = require('https');
 var constants = require('constants')
-var app       = require('./lib/express_app.js');
-var config    = require('./lib/config');
-var logger    = require('./lib/logger.js').logger;
-var utils     = require('./lib/utils.js');
+var app       = require('./express_app.js');
+var config    = require('../api/lib/config');
+var logger    = require('../api/lib/logger.js').logger;
+var utils     = require('../api/lib/utils.js');
 
 var port = config.get('port') || 5990;
 var host = config.get('host');

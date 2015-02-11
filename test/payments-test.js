@@ -5,7 +5,7 @@ var testutils   = require('./testutils');
 var fixtures    = require('./fixtures').payments;
 var errors      = require('./fixtures').errors;
 var addresses   = require('./fixtures').addresses;
-var utils       = require('./../lib/utils');
+var utils       = require('../api/lib/utils');
 var requestPath = fixtures.requestPath;
 
 suite('get payments', function() {

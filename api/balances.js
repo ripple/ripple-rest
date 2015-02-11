@@ -1,11 +1,11 @@
 var Promise   = require('bluebird');
 var async     = require('async');
 var ripple    = require('ripple-lib');
-var remote    = require('./../lib/remote.js');
-var respond   = require('../lib/response-handler.js');
-var utils     = require('./../lib/utils');
-var errors    = require('./../lib/errors.js');
-var validator = require('./../lib/schema-validator.js');
+var remote    = require('./lib/remote.js');
+var respond   = require('../server/response-handler.js');
+var utils     = require('./lib/utils');
+var errors    = require('./lib/errors.js');
+var validator = require('./lib/schema-validator.js');
 
 var InvalidRequestError = errors.InvalidRequestError;
 const DefaultPageLimit = 200;

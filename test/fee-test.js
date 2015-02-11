@@ -3,7 +3,7 @@ var ripple = require('ripple-lib');
 var testutils = require('./testutils');
 var fixtures = require('./fixtures');
 var errors = require('./fixtures').errors;
-var utils = require('./../lib/utils');
+var utils = require('../api/lib/utils');
 
 suite('get fee', function() {
   var self = this;

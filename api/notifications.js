@@ -2,13 +2,13 @@ var _                   = require('lodash');
 var async               = require('async');
 var ripple              = require('ripple-lib');
 var transactions        = require('./transactions');
-var serverLib           = require('../lib/server-lib');
-var remote              = require('./../lib/remote.js');
-var config              = require('./../lib/config.js');
-var NotificationParser  = require('./../lib/notification_parser.js');
-var respond             = require('./../lib/response-handler.js');
-var errors              = require('./../lib/errors.js');
-var utils               = require('./../lib/utils.js');
+var serverLib           = require('./lib/server-lib');
+var remote              = require('./lib/remote.js');
+var config              = require('./lib/config.js');
+var NotificationParser  = require('./lib/notification_parser.js');
+var respond             = require('../server/response-handler.js');
+var errors              = require('./lib/errors.js');
+var utils               = require('./lib/utils.js');
 
 module.exports = {
   getNotification: getNotification

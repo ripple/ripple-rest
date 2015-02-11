@@ -5,7 +5,7 @@ var testutils = require('./testutils');
 var fixtures  = require('./fixtures').orders;
 var errors    = require('./fixtures').errors;
 var addresses = require('./fixtures').addresses;
-var utils     = require('./../lib/utils');
+var utils     = require('../api/lib/utils');
 var Currency  = require('ripple-lib').Currency;
 
 const HEX_CURRENCY = '0158415500000000C1F76FF6ECB0BAC600000000';

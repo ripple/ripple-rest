@@ -1,6 +1,6 @@
 var assert = require('assert');
 var ripple = require('ripple-lib');
-var remote = require('../lib/remote');
+var remote = require('../api/lib/remote');
 var testutils = require('./testutils');
 var fixtures = require('./fixtures').server;
 var errors = require('./fixtures').errors;

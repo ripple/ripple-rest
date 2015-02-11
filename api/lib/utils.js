@@ -1,7 +1,7 @@
 var _         = require('lodash');
 var bignum    = require('bignumber.js');
 var config    = require('./config.js');
-var pJson     = require('./../package.json');
+var pJson     = require('../../package.json');
 var validator = require('./schema-validator.js');
 
 module.exports = {

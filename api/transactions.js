@@ -1,11 +1,11 @@
 var _           = require('lodash');
 var async       = require('async');
 var ripple      = require('ripple-lib');
-var validator   = require('./../lib/schema-validator');
-var remote      = require('./../lib/remote.js');
-var dbinterface = require('./../lib/db-interface.js');
-var respond     = require('./../lib/response-handler.js');
-var errors      = require('./../lib/errors.js');
+var validator   = require('./lib/schema-validator');
+var remote      = require('./lib/remote.js');
+var dbinterface = require('./lib/db-interface.js');
+var respond     = require('../server/response-handler.js');
+var errors      = require('./lib/errors.js');
 
 /**
  *  Submit a normal ripple-lib transaction, blocking duplicates for payments and orders.
