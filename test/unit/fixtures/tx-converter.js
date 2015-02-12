@@ -396,6 +396,13 @@ module.exports.paymentRest = {
   result: 'tesSUCCESS',
   timestamp: '2013-03-12T23:56:50.000Z',
   fee: '0.00001',
+  balance_changes: [
+    {
+      currency: 'XRP',
+      value: '-1.101208',
+      issuer: ''
+    }
+  ],
   source_balance_changes: [ { value: '-1.101208', currency: 'XRP', issuer: '' } ],
   destination_balance_changes:
     [ { value: '0.001',

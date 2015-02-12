@@ -127,6 +127,7 @@ TxToRestConverter.prototype.parsePaymentFromTx = function(tx, options, callback)
     result: tx.meta ? tx.meta.TransactionResult : '',
     timestamp: (tx.date ? new Date(ripple.utils.toTimestamp(tx.date)).toISOString() : ''),
     fee: utils.dropsToXrp(tx.Fee) || '',
+    balance_changes: balanceChanges[options.account] || [],
     source_balance_changes: balanceChanges[tx.Account] || [],
     destination_balance_changes: balanceChanges[tx.Destination] || [],
     order_changes: order_changes || []
