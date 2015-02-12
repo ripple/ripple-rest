@@ -1,6 +1,6 @@
 const Wallet  = require('ripple-lib').Wallet;
-const errors  = require('./../lib/errors.js');
-const respond = require('./../lib/response-handler.js');
+const errors  = require('./lib/errors.js');
+const respond = require('../server/response-handler.js');
 
 module.exports = {
   generate: generate

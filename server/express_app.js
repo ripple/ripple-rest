@@ -2,12 +2,12 @@ const ripple     = require('ripple-lib');
 const express    = require('express');
 const bodyParser = require('body-parser');
 const morgan     = require('morgan');
-const logger     = require('./logger.js');
-const config     = require('./config');
-const remote     = require('./remote.js');
+const logger     = require('../api/lib/logger.js');
+const config     = require('../api/lib/config');
+const remote     = require('../api/lib/remote.js');
 const router     = require('./router.js');
-const errors     = require('./errors.js');
-const utils      = require('./utils.js');
+const errors     = require('../api/lib/errors.js');
+const utils      = require('../api/lib/utils.js');
 const compress   = require('compression');
 
 var app = express();

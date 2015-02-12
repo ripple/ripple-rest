@@ -6,8 +6,8 @@ var WSS = require('ws').Server;
 var ripple = require('ripple-lib');
 var fixtures = require('./fixtures').startup;
 var addresses = require('./fixtures').addresses;
-var app = require('../lib/express_app');
-var dbinterface = require('../lib/db-interface');
+var app = require('../server/express_app');
+var dbinterface = require('../api/lib/db-interface');
 var crypto = require('crypto');
 var UInt256 = ripple.UInt256;
 

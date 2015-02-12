@@ -3,13 +3,13 @@ var Promise                 = require('bluebird');
 var async                   = require('async');
 var ripple                  = require('ripple-lib');
 var transactions            = require('./transactions.js');
-var SubmitTransactionHooks  = require('./../lib/submit_transaction_hooks.js');
-var remote                  = require('./../lib/remote.js');
-var respond                 = require('./../lib/response-handler.js');
-var utils                   = require('./../lib/utils');
-var errors                  = require('./../lib/errors.js');
-var validator               = require('./../lib/schema-validator');
-var TxToRestConverter       = require('./../lib/tx-to-rest-converter.js');
+var SubmitTransactionHooks  = require('./lib/submit_transaction_hooks.js');
+var remote                  = require('./lib/remote.js');
+var respond                 = require('../server/response-handler.js');
+var utils                   = require('./lib/utils');
+var errors                  = require('./lib/errors.js');
+var validator               = require('./lib/schema-validator');
+var TxToRestConverter       = require('./lib/tx-to-rest-converter.js');
 
 const TrustSetFlags = {
   SetAuth:       { name: 'authorized', set: 'SetAuth' },

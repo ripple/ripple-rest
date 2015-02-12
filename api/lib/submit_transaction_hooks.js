@@ -1,5 +1,5 @@
 var _      = require('lodash');
-var remote = require('./../lib/remote.js');
+var remote = require('./remote.js');
 
 /**
  *  Used to hold methods defined by caller to customize transaction submit

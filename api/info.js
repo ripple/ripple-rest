@@ -1,10 +1,10 @@
 var _         = require('lodash');
 var uuid      = require('node-uuid');
-var serverlib = require('./../lib/server-lib');
-var remote    = require('./../lib/remote.js');
-var respond   = require('./../lib/response-handler.js');
-var errors    = require('./../lib/errors.js');
-var utils     = require('./../lib/utils.js');
+var serverlib = require('./lib/server-lib');
+var remote    = require('./lib/remote.js');
+var respond   = require('../server/response-handler.js');
+var errors    = require('./lib/errors.js');
+var utils     = require('./lib/utils.js');
 
 function getServerStatus(request, response, next) {
   serverlib.getStatus(remote, function(error, status) {

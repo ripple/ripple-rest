@@ -1,8 +1,8 @@
 var ripple    = require('ripple-lib');
-var utils     = require(__dirname+'/utils');
+var utils     = require('./utils');
 var _         = require('lodash');
 var Promise   = require('bluebird');
-var settings  = require('./../api/settings.js');
+var settings  = require('../settings.js');
 var parseBalanceChanges   = require('ripple-lib-transactionparser').parseBalanceChanges;
 var parseOrderBookChanges = require('ripple-lib-transactionparser').parseOrderBookChanges;
 
@@ -386,7 +386,7 @@ TxToRestConverter.prototype.parseSettingResponseFromTx = function(params, messag
   };
 
   // lazy loading to avoid circular dependency
-  var settings = require('./../api/settings.js');
+  var settings = require('../settings.js');
 
   for (var flagName in settings.AccountSetIntFlags) {
     var flag = settings.AccountSetIntFlags[flagName];

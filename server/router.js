@@ -1,11 +1,11 @@
 const ripple    = require('ripple-lib');
 const express   = require('express');
-const api       = require('./../api');
-const remote    = require('./remote.js');
-const serverLib = require('./server-lib.js');
+const api       = require('../api');
+const remote    = require('../api/lib/remote.js');
+const serverLib = require('../api/lib/server-lib.js');
 const respond   = require('./response-handler.js');
-const errors    = require('./errors.js');
-const utils     = require('./utils.js');
+const errors    = require('../api/lib/errors.js');
+const utils     = require('../api/lib/utils.js');
 
 var router = new express.Router();
 router.remote = remote;
