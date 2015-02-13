@@ -7,7 +7,7 @@ module.exports.paymentRest = {
   "destination_amount": {
     "value": "0.001",
     "currency": "USD",
-    "issuer": addresses.COUNTERPARTY
+    "counterparty": addresses.COUNTERPARTY
   }
 };
 
@@ -17,7 +17,7 @@ module.exports.paymentRestXRP = {
   "destination_amount": {
     "value": "1",
     "currency": "XRP",
-    "issuer": ""
+    "counterparty": ""
   }
 };
 
@@ -27,7 +27,7 @@ module.exports.paymentRestComplex = {
   "source_amount": {
     "value": "10",
     "currency": "USD",
-    "issuer": addresses.VALID
+    "counterparty": addresses.VALID
   },
   "source_slippage": "0",
   "destination_account": addresses.COUNTERPARTY,
@@ -35,7 +35,7 @@ module.exports.paymentRestComplex = {
   "destination_amount": {
     "value": "10",
     "currency": "USD",
-    "issuer": addresses.VALID
+    "counterparty": addresses.VALID
   },
   "invoice_id": "",
   "paths": "[]",
@@ -125,21 +125,21 @@ module.exports.exportsPaymentRestIssuers = function(options) {
     source_tag: '',
     source_amount: {
       value: options.sourceValue,
-        currency: 'USD',
-        issuer: options.sourceIssuer
+      currency: 'USD',
+      counterparty: options.sourceIssuer
     },
     source_slippage: options.sourceSlippage,
-      destination_account: options.destinationAccount,
-      destination_tag: '',
-      destination_amount: {
+    destination_account: options.destinationAccount,
+    destination_tag: '',
+    destination_amount: {
       value: '10',
-        currency: 'USD',
-        issuer: options.destinationIssuer
+      currency: 'USD',
+      counterparty: options.destinationIssuer
     },
     invoice_id: '',
-      paths: '[]',
-      partial_payment: false,
-      no_direct_ripple: false
+    paths: '[]',
+    partial_payment: false,
+    no_direct_ripple: false
   }
 
 };

@@ -435,11 +435,11 @@ suite('payments', function() {
       var statusPayment = {
         source_account: 'rJRLoJSErtNRFnbCyHEUYnRUKNwkVYDM7U',
         source_tag: '',
-        source_amount: { value: '200', currency: 'XRP', issuer: '' },
+        source_amount: { value: '200', currency: 'XRP', counterparty: '' },
         source_slippage: '0',
         destination_account: 'rwmityd4Ss34DBUsRy7Pacv6UA5n7yjfe5',
         destination_tag: '',
-        destination_amount: { value: '200', currency: 'XRP', issuer: '' },
+        destination_amount: { value: '200', currency: 'XRP', counterparty: '' },
         invoice_id: '',
         paths: '[]',
         no_direct_ripple: false,
@@ -466,7 +466,6 @@ suite('payments', function() {
     .end(done);
   });
 
-  // confirm payment via transaction hash
   test('confirm payment via transaction hash', function(done) {
     orderlist.create([{command:'tx'}]);
     var _tx = function(data,ws) {
@@ -483,11 +482,11 @@ suite('payments', function() {
         var statusPayment = {
           source_account: 'rJRLoJSErtNRFnbCyHEUYnRUKNwkVYDM7U',
           source_tag: '',
-          source_amount: { value: '200', currency: 'XRP', issuer: '' },
+          source_amount: { value: '200', currency: 'XRP', counterparty: '' },
           source_slippage: '0',
           destination_account: 'rwmityd4Ss34DBUsRy7Pacv6UA5n7yjfe5',
           destination_tag: '',
-          destination_amount: { value: '200', currency: 'XRP', issuer: '' },
+          destination_amount: { value: '200', currency: 'XRP', counterparty: '' },
           invoice_id: '',
           paths: '[]',
           no_direct_ripple: false,
@@ -772,7 +771,7 @@ suite('payments', function() {
               source_amount: {
                 value: '10',
                 currency: 'USD',
-                issuer: ''
+                counterparty: ''
               },
               source_slippage: '0',
               destination_account: 'rwmityd4Ss34DBUsRy7Pacv6UA5n7yjfe5',
@@ -780,7 +779,7 @@ suite('payments', function() {
               destination_amount: {
                 value: '10',
                 currency: 'USD',
-                issuer: 'rJRLoJSErtNRFnbCyHEUYnRUKNwkVYDM7U'
+                counterparty: 'rJRLoJSErtNRFnbCyHEUYnRUKNwkVYDM7U'
               },
               invoice_id: '',
               paths: '[]',
@@ -808,7 +807,7 @@ suite('payments', function() {
         assert.deepEqual(resp.body,{ success: false,
           error_type: 'invalid_request',
           error: 'restINVALID_PARAMETER',
-          message: 'Invalid parameter: destination_amount. Must be an amount string in the form value+currency+issuer' })
+          message: 'Invalid parameter: destination_amount. Must be an amount string in the form value+currency+counterparty' })
         done()
       })
   });
@@ -820,7 +819,7 @@ suite('payments', function() {
         assert.deepEqual(resp.body,{ success: false,
           error_type: 'invalid_request',
           error: 'restINVALID_PARAMETER',
-          message: 'Invalid parameter: destination_amount. Must be an amount string in the form value+currency+issuer' })
+          message: 'Invalid parameter: destination_amount. Must be an amount string in the form value+currency+counterparty' })
         done()
       })
   });

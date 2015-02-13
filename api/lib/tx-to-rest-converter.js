@@ -76,40 +76,22 @@ TxToRestConverter.prototype.parsePaymentFromTx = function(tx, options, callback)
     Amount = tx.Amount;
   }
 
-  var balanceChanges = tx.meta ?
-    renameCounterpartyToIssuer(parseBalanceChanges(tx.meta)) : [];
+  var balanceChanges = tx.meta ? parseBalanceChanges(tx.meta) : [];
 
   var order_changes = tx.meta ? parseOrderBookChanges(tx.meta)[options.account] : [];
+
+  var source_amount = tx.SendMax ? utils.parseCurrencyAmount(tx.SendMax) : utils.parseCurrencyAmount(Amount);
+  var destination_amount = utils.parseCurrencyAmount(Amount);
 
   var payment = {
     // User supplied
     source_account: tx.Account,
     source_tag: (tx.SourceTag ? '' + tx.SourceTag : ''),
-    source_amount: (tx.SendMax ?
-      (typeof tx.SendMax === 'object' ?
-        tx.SendMax :
-      {
-        value: utils.dropsToXrp(tx.SendMax),
-        currency: 'XRP',
-        issuer: ''
-      }) :
-      (typeof Amount === 'string' ?
-      {
-        value: utils.dropsToXrp(tx.Amount),
-        currency: 'XRP',
-        issuer: ''
-      } :
-        Amount)),
+    source_amount: source_amount,
     source_slippage: '0',
     destination_account: tx.Destination,
     destination_tag: (tx.DestinationTag ? '' + tx.DestinationTag : ''),
-    destination_amount: (typeof Amount === 'object' ?
-      Amount :
-    {
-      value: utils.dropsToXrp(Amount),
-      currency: 'XRP',
-      issuer: ''
-    }),
+    destination_amount: destination_amount,
     // Advanced options
     invoice_id: tx.InvoiceID || '',
     paths: JSON.stringify(tx.Paths || []),
@@ -266,12 +248,12 @@ TxToRestConverter.prototype.parsePaymentsFromPathFind = function(pathfindResults
       {
         value: utils.dropsToXrp(alternative.source_amount),
         currency: 'XRP',
-        issuer: ''
+        counterparty: ''
       } :
       {
         value: alternative.source_amount.value,
         currency: alternative.source_amount.currency,
-        issuer: (typeof alternative.source_amount.issuer !== 'string' || alternative.source_amount.issuer === pathfindResults.source_account ?
+        counterparty: (typeof alternative.source_amount.issuer !== 'string' || alternative.source_amount.issuer === pathfindResults.source_account ?
           '' :
           alternative.source_amount.issuer)
       }),
@@ -282,12 +264,12 @@ TxToRestConverter.prototype.parsePaymentsFromPathFind = function(pathfindResults
       {
         value: utils.dropsToXrp(pathfindResults.destination_amount),
         currency: 'XRP',
-        issuer: ''
+        counterparty: ''
       } :
       {
         value: pathfindResults.destination_amount.value,
         currency: pathfindResults.destination_amount.currency,
-        issuer: pathfindResults.destination_amount.issuer
+        counterparty: pathfindResults.destination_amount.issuer
       }),
       invoice_id: '',
       paths: JSON.stringify(alternative.paths_computed),

@@ -29,7 +29,7 @@ suite('unit - converter - Rest to Tx', function() {
     });
   });
 
-  test('convert() -- payment with currency that has same issuer for source and destination amount', function(done) {
+  test('convert() -- payment with currency that has same counterpartes for source and destination amount', function(done) {
     restToTxConverter.convert(fixtures.exportsPaymentRestIssuers({
       sourceIssuer:  addresses.VALID,
       destinationIssuer: addresses.VALID
@@ -40,7 +40,7 @@ suite('unit - converter - Rest to Tx', function() {
     });
   });
 
-  test('convert() -- payment with currency that has different issuers for source and destination amount', function(done) {
+  test('convert() -- payment with currency that has different counterparties for source and destination amount', function(done) {
     restToTxConverter.convert(fixtures.exportsPaymentRestIssuers({
       sourceIssuer:  addresses.VALID,
       destinationIssuer: addresses.COUNTERPARTY
@@ -55,7 +55,7 @@ suite('unit - converter - Rest to Tx', function() {
     });
   });
 
-  test('convert() -- payment with currency that has different issuers for source and destination amount and a source_slippage of 0.1', function(done) {
+  test('convert() -- payment with currency that has different counterparties for source and destination amount and a source_slippage of 0.1', function(done) {
     restToTxConverter.convert(fixtures.exportsPaymentRestIssuers({
       sourceIssuer:  addresses.VALID,
       destinationIssuer: addresses.COUNTERPARTY,

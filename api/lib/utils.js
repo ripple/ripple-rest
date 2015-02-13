@@ -12,7 +12,8 @@ module.exports = {
   getUrlBase: getUrlBase,
   parseLedger: parseLedger,
   parseCurrencyAmount: parseCurrencyAmount,
-  parseCurrencyQuery: parseCurrencyQuery
+  parseCurrencyQuery: parseCurrencyQuery,
+  txFromRestAmount: txFromRestAmount
 };
 
 function dropsToXrp(drops) {
@@ -59,18 +60,30 @@ function parseLedger(ledger) {
   return 'validated';
 }
 
-function parseCurrencyAmount(currencyAmount) {
-  if (typeof currencyAmount === 'string') {
+function parseCurrencyAmount(rippledAmount) {
+  if (typeof rippledAmount === 'string') {
     return {
       currency: 'XRP',
       counterparty: '',
-      value: dropsToXrp(currencyAmount)
+      value: dropsToXrp(rippledAmount)
     };
   } else {
     return {
-      currency: currencyAmount.currency,
-      counterparty: currencyAmount.issuer,
-      value: currencyAmount.value
+      currency: rippledAmount.currency,
+      counterparty: rippledAmount.issuer,
+      value: rippledAmount.value
+    };
+  }
+}
+
+function txFromRestAmount(restAmount) {
+  if (restAmount.currency === 'XRP') {
+    return xrpToDrops(restAmount.value);
+  } else {
+    return {
+      currency: restAmount.currency,
+      issuer: restAmount.counterparty,
+      value: restAmount.value
     };
   }
 }
@@ -80,14 +93,14 @@ function parseCurrencyQuery(query) {
 
   if (!isNaN(params[0])) {
     return {
-      value:    (params.length >= 1 ? params[0] : ''),
-      currency: (params.length >= 2 ? params[1] : ''),
-      issuer:   (params.length >= 3 ? params[2] : '')
+      value:        (params.length >= 1 ? params[0] : ''),
+      currency:     (params.length >= 2 ? params[1] : ''),
+      counterparty: (params.length >= 3 ? params[2] : '')
     };
   } else {
     return {
-      currency: (params.length >= 1 ? params[0] : ''),
-      issuer:   (params.length >= 2 ? params[1] : '')
+      currency:     (params.length >= 1 ? params[0] : ''),
+      counterparty: (params.length >= 2 ? params[1] : '')
     };
   }
 }

@@ -340,7 +340,7 @@ function getOrderBook(request, response, next) {
         reject(new InvalidRequestError('Invalid parameter: base. Must be a currency string in the form currency+counterparty'));
       }
 
-      if (options.base.currency !== 'XRP' && (!options.base.issuer || !ripple.UInt160.is_valid(options.base.issuer))) {
+      if (options.base.currency !== 'XRP' && (!options.base.counterparty || !ripple.UInt160.is_valid(options.base.counterparty))) {
         reject(new InvalidRequestError('Invalid parameter: base. Must be a currency string in the form currency+counterparty'));
       }
 
@@ -352,15 +352,15 @@ function getOrderBook(request, response, next) {
         reject(new InvalidRequestError('Invalid parameter: counter. Must be a currency string in the form currency+counterparty'));
       }
 
-      if (options.counter.currency !== 'XRP' && (!options.counter.issuer || !ripple.UInt160.is_valid(options.counter.issuer))) {
+      if (options.counter.currency !== 'XRP' && (!options.counter.counterparty || !ripple.UInt160.is_valid(options.counter.counterparty))) {
         reject(new InvalidRequestError('Invalid parameter: counter. Must be a currency string in the form currency+counterparty'));
       }
 
-      if (options.counter.currency === 'XRP' && options.counter.issuer) {
+      if (options.counter.currency === 'XRP' && options.counter.counterparty) {
         reject(new InvalidRequestError('Invalid parameter: counter. XRP cannot have counterparty'));
       }
 
-      if (options.base.currency === 'XRP' && options.base.issuer) {
+      if (options.base.currency === 'XRP' && options.base.counterparty) {
         reject(new InvalidRequestError('Invalid parameter: base. XRP cannot have counterparty'));
       }
 
@@ -387,8 +387,8 @@ function getOrderBook(request, response, next) {
   function getBookOffers(taker_gets, taker_pays, options) {
     var promise = new Promise(function (resolve, reject) {
       var bookOffersRequest = remote.requestBookOffers({
-        taker_gets: taker_gets,
-        taker_pays: taker_pays,
+        taker_gets: { currency: taker_gets.currency, issuer: taker_gets.counterparty },
+        taker_pays: { currency: taker_pays.currency, issuer: taker_pays.counterparty },
         ledger: options.ledger,
         limit: options.limit,
         taker: options.account
