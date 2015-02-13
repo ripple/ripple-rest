@@ -2,18 +2,14 @@ const ripple     = require('ripple-lib');
 const express    = require('express');
 const bodyParser = require('body-parser');
 const morgan     = require('morgan');
-const logger     = require('../api/lib/logger.js');
+const logger     = require('./logger.js');
 const config     = require('../api/lib/config');
-const remote     = require('../api/lib/remote.js');
 const router     = require('./router.js');
-const errors     = require('../api/lib/errors.js');
-const utils      = require('../api/lib/utils.js');
+const version    = require('./version.js');
 const compress   = require('compression');
 
 var app = express();
 
-app.remote = remote;
-app.set('remote', remote);
 app.set('json spaces', 2);
 app.disable('x-powered-by');
 
@@ -39,7 +35,7 @@ if (config.get('debug')) {
   })
 }
 
-app.use('/v'+utils.getApiVersion(), router);
+app.use('/v' + version.getApiVersion(), router);
 app.use('/', (new express.Router()).get('/', router.generateIndexPage));
 app.use(require('./error-handler'));
 

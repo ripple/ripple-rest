@@ -638,7 +638,7 @@ suite('post trustlines', function() {
 
   test('/accounts/:account/trustlines', function(done) {
     var hash = testutils.generateHash();
-    var currentLedger = self.app.remote._ledger_current_index;
+    var currentLedger = self.remote._ledger_current_index;
     var lastLedger = currentLedger + testutils.LEDGER_OFFSET;
 
     self.wss.once('request_account_info', function(message, conn) {
@@ -693,7 +693,7 @@ suite('post trustlines', function() {
 
   test('/accounts/:account/trustlines -- limit 0', function(done) {
     var hash = testutils.generateHash();
-    var currentLedger = self.app.remote._ledger_current_index;
+    var currentLedger = self.remote._ledger_current_index;
     var lastLedger = currentLedger + testutils.LEDGER_OFFSET;
 
     self.wss.once('request_account_info', function(message, conn) {

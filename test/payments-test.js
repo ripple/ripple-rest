@@ -255,7 +255,7 @@ suite('post payments', function() {
   });
 
   test('/payments?validated=true', function(done){
-    var currentLedger = self.app.remote._ledger_current_index;
+    var currentLedger = self.remote._ledger_current_index;
 
     self.wss.once('request_account_info', function(message, conn) {
       assert.strictEqual(message.command, 'account_info');
@@ -290,7 +290,7 @@ suite('post payments', function() {
   });
 
   test('/payments?validated=true -- fixed fee', function(done) {
-    var currentLedger = self.app.remote._ledger_current_index;
+    var currentLedger = self.remote._ledger_current_index;
     var hash = testutils.generateHash();
 
     self.wss.once('request_account_info', function(message, conn) {
@@ -336,7 +336,7 @@ suite('post payments', function() {
 
   test('/payments?validated=true -- hex currency gold', function(done){
     var hash = testutils.generateHash();
-    var currentLedger = self.app.remote._ledger_current_index;
+    var currentLedger = self.remote._ledger_current_index;
 
     self.wss.once('request_account_info', function(message, conn) {
       assert.strictEqual(message.command, 'account_info');
@@ -728,7 +728,7 @@ suite('post payments', function() {
   });
 
   test('/payments?validated=true -- max fee above computed fee but below expected server fee and remote\'s local_fee flag turned off', function(done) {
-    self.app.remote.local_fee = false;
+    self.remote.local_fee = false;
 
     self.wss.once('request_account_info', function(message, conn) {
       assert.strictEqual(message.command, 'account_info');

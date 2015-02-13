@@ -1,6 +1,5 @@
 var assert = require('assert');
 var ripple = require('ripple-lib');
-var remote = require('../api/lib/remote');
 var testutils = require('./testutils');
 var fixtures = require('./fixtures').server;
 var errors = require('./fixtures').errors;
@@ -74,7 +73,7 @@ suite('get server info', function() {
 
     var closeTime = new Date();
     closeTime.setSeconds(closeTime.getSeconds() - 60);
-    remote.getServer()._lastLedgerClose = closeTime.getTime();
+    self.remote.getServer()._lastLedgerClose = closeTime.getTime();
 
     self.app
     .get('/v1/server/connected')

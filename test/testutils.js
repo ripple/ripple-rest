@@ -10,6 +10,7 @@ var app = require('../server/express_app');
 var dbinterface = require('../api/lib/db-interface');
 var crypto = require('crypto');
 var UInt256 = ripple.UInt256;
+var remote = require('../api/lib/remote');
 
 const LEDGER_OFFSET = 3;
 
@@ -17,7 +18,7 @@ function setup(done) {
   var self = this;
 
   self.app = supertest(app);
-  self.app.remote =  app.get('remote');
+  self.remote = remote;
 
   self.wss = new WSS({ port: 5995 });
 
@@ -35,26 +36,26 @@ function setup(done) {
     conn.send(fixtures.subscribeResponse(message));
   });
 
-  app.get('remote').once('connect', function() {
-    app.get('remote').getServer().once('ledger_closed', function() {
+  self.remote.once('connect', function() {
+    self.remote.getServer().once('ledger_closed', function() {
       dbinterface.clear().then(function() {
         dbinterface.init(done);
       });
     });
-    app.get('remote').getServer().emit('message', fixtures.ledgerClose());
+    self.remote.getServer().emit('message', fixtures.ledgerClose());
   });
 
-  //app.get('remote').trace = true;
-  app.get('remote')._servers = [ ] ;
-  app.get('remote').addServer('ws://localhost:5995');
-  app.get('remote').connect();
+  //self.remote.trace = true;
+  self.remote._servers = [ ] ;
+  self.remote.addServer('ws://localhost:5995');
+  self.remote.connect();
 };
 
 function teardown(done) {
   var self = this;
 
-  app.get('remote').once('disconnect', function() {
-    var submitAccount = app.get('remote').getAccount(addresses.VALID);
+  self.remote.once('disconnect', function() {
+    var submitAccount = self.remote.getAccount(addresses.VALID);
 
     if (submitAccount) {
       var pendingQueue = submitAccount._transactionManager._pending;
@@ -65,7 +66,7 @@ function teardown(done) {
     setImmediate(done);
   });
 
-  app.get('remote').disconnect();
+  self.remote.disconnect();
 };
 
 function checkStatus(expected) {

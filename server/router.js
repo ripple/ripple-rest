@@ -1,23 +1,20 @@
 const ripple    = require('ripple-lib');
 const express   = require('express');
 const api       = require('../api');
-const remote    = require('../api/lib/remote.js');
-const serverLib = require('../api/lib/server-lib.js');
+const errors    = require('../api').errors;
 const respond   = require('./response-handler.js');
-const errors    = require('../api/lib/errors.js');
-const utils     = require('../api/lib/utils.js');
+const version   = require('./version.js');
 
 var router = new express.Router();
-router.remote = remote;
 
 router.generateIndexPage = function(req, res) {
-  var url_base = '/v' + utils.getApiVersion();
+  var url_base = '/v' + version.getApiVersion();
 
   res.json({
     success: true,
     name: 'ripple-rest',
-    package_version: utils.getPackageVersion(),
-    version: utils.getApiVersion(),
+    package_version: version.getPackageVersion(),
+    version: version.getApiVersion(),
     documentation: 'https://github.com/ripple/ripple-rest',
     endpoints: {
       wallet_new: url_base + '/wallet/new',
@@ -52,15 +49,13 @@ router.get('/uuid', api.info.uuid);
  * insert the validateRemoteConnected middleware here
  */
 
-/* make sure the remote is connected to a rippled */
+/* make sure the api is connected to a rippled */
 router.all('*', function(req, res, next) {
-  serverLib.ensureConnected(remote, function(error, connected) {
-    if (connected) {
-      next();
-    } else {
-      next(new errors.RippledNetworkError(error ? error.message : void(0)));
-    }
-  });
+  if (api.isConnected()) {
+    next();
+  } else {
+    next(new errors.RippledNetworkError(void(0)));
+  }
 });
 
 /* Connected - if we hit this route, it means the server is connected */

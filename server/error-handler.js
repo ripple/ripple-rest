@@ -1,7 +1,7 @@
 var config        = require('../api/lib/config');
 var respond       = require('./response-handler.js');
-var errors        = require('../api/lib/errors.js');
-var logger        = require('../api/lib/logger.js').logger;
+var errors        = require('../api').errors;
+var logger        = require('./logger.js').logger;
 
 var InvalidRequestError   = errors.InvalidRequestError;
 var NetworkError          = errors.NetworkError;
