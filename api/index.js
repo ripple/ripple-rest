@@ -7,6 +7,9 @@ var Notifications = require('./notifications');
 var Orders        = require('./orders');
 var Payments      = require('./payments');
 var Wallet        = require('./wallet');
+var errors        = require('./lib/errors');
+var serverLib     = require('./lib/server-lib');
+var remote        = require('./lib/remote');
 
 module.exports = {
   info: {
@@ -53,5 +56,9 @@ module.exports = {
     getNotification: Notifications.getNotification
   },
 
-  wallet: Wallet
+  wallet: Wallet,
+
+  errors: errors,
+
+  isConnected: function() { return serverLib.isConnected(remote); }
 };

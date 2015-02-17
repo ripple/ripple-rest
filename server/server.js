@@ -3,13 +3,13 @@ var https     = require('https');
 var constants = require('constants')
 var app       = require('./express_app.js');
 var config    = require('../api/lib/config');
-var logger    = require('../api/lib/logger.js').logger;
-var utils     = require('../api/lib/utils.js');
+var logger    = require('./logger.js').logger;
+var version   = require('./version.js');
 
 var port = config.get('port') || 5990;
 var host = config.get('host');
 
-logger.info('ripple-rest (v' + utils.getPackageVersion() + ')');
+logger.info('ripple-rest (v' + version.getPackageVersion() + ')');
 
 function loadSSLConfig() {
   var keyPath  = config.get('ssl').key_path || './certs/server.key';

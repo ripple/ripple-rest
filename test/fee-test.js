@@ -28,7 +28,7 @@ suite('get fee', function() {
   });
 
   test('/transaction-fee -- increased fee', function(done) {
-    self.app.remote._servers[0].emit('message', {
+    self.remote._servers[0].emit('message', {
       type: 'serverStatus',
       load_base: 256,
       load_factor: 256 * 2,

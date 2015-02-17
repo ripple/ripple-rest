@@ -334,7 +334,7 @@ suite('post orders', function() {
   teardown(testutils.teardown.bind(self));
 
   test('/orders?validated=true', function(done) {
-    var lastLedger = self.app.remote._ledger_current_index;
+    var lastLedger = self.remote._ledger_current_index;
     var hash = testutils.generateHash();
 
     self.wss.once('request_account_info', function(message, conn) {
@@ -408,7 +408,7 @@ suite('post orders', function() {
   });
 
   test('/orders', function(done) {
-    var lastLedger = self.app.remote._ledger_current_index;
+    var lastLedger = self.remote._ledger_current_index;
     var hash = testutils.generateHash();
 
     self.wss.once('request_account_info', function(message, conn) {
@@ -451,7 +451,7 @@ suite('post orders', function() {
   });
 
   test('/orders -- taker_gets -- hex currency', function(done) {
-    var lastLedger = self.app.remote._ledger_current_index;
+    var lastLedger = self.remote._ledger_current_index;
     var hash = testutils.generateHash();
 
     var options = {
@@ -503,7 +503,7 @@ suite('post orders', function() {
   });
 
   test('/orders -- taker_pays -- hex currency', function(done) {
-    var lastLedger = self.app.remote._ledger_current_index;
+    var lastLedger = self.remote._ledger_current_index;
     var hash = testutils.generateHash();
 
     var options = {
@@ -599,7 +599,7 @@ suite('post orders', function() {
   });
 
   test('/orders -- type sell', function(done) {
-    var lastLedger = self.app.remote._ledger_current_index;
+    var lastLedger = self.remote._ledger_current_index;
     var hash = testutils.generateHash();
 
     self.wss.once('request_account_info', function(message, conn) {
@@ -633,7 +633,7 @@ suite('post orders', function() {
   });
 
   test('/orders -- passive true', function(done) {
-    var lastLedger = self.app.remote._ledger_current_index;
+    var lastLedger = self.remote._ledger_current_index;
     var hash = testutils.generateHash();
 
     self.wss.once('request_account_info', function(message, conn) {
@@ -667,7 +667,7 @@ suite('post orders', function() {
   });
 
   test('/orders -- fill_or_kill true', function(done) {
-    var lastLedger = self.app.remote._ledger_current_index;
+    var lastLedger = self.remote._ledger_current_index;
     var hash = testutils.generateHash();
 
     self.wss.once('request_account_info', function(message, conn) {
@@ -701,7 +701,7 @@ suite('post orders', function() {
   });
 
   test('/orders -- immediate_or_cancel true', function(done) {
-    var lastLedger = self.app.remote._ledger_current_index;
+    var lastLedger = self.remote._ledger_current_index;
     var hash = testutils.generateHash();
 
     self.wss.once('request_account_info', function(message, conn) {
@@ -735,7 +735,7 @@ suite('post orders', function() {
   });
 
   test('/orders -- passive false', function(done) {
-    var lastLedger = self.app.remote._ledger_current_index;
+    var lastLedger = self.remote._ledger_current_index;
     var hash = testutils.generateHash();
 
     self.wss.once('request_account_info', function(message, conn) {
@@ -769,7 +769,7 @@ suite('post orders', function() {
   });
 
   test('/orders -- fill_or_kill false', function(done) {
-    var lastLedger = self.app.remote._ledger_current_index;
+    var lastLedger = self.remote._ledger_current_index;
     var hash = testutils.generateHash();
 
     self.wss.once('request_account_info', function(message, conn) {
@@ -803,7 +803,7 @@ suite('post orders', function() {
   });
 
   test('/orders -- immediate_or_cancel false', function(done) {
-    var lastLedger = self.app.remote._ledger_current_index;
+    var lastLedger = self.remote._ledger_current_index;
     var hash = testutils.generateHash();
 
     self.wss.once('request_account_info', function(message, conn) {
@@ -909,7 +909,7 @@ suite('post orders', function() {
   });
 
   test('/orders -- taker_gets -- xrp', function(done) {
-    var lastLedger = self.app.remote._ledger_current_index;
+    var lastLedger = self.remote._ledger_current_index;
     var hash = testutils.generateHash();
 
     var options = {
@@ -957,7 +957,7 @@ suite('post orders', function() {
   });
 
   test('/orders -- taker_pays -- xrp', function(done) {
-    var lastLedger = self.app.remote._ledger_current_index;
+    var lastLedger = self.remote._ledger_current_index;
     var hash = testutils.generateHash();
 
     var options = {
@@ -1004,7 +1004,7 @@ suite('post orders', function() {
   });
 
   test('/orders -- unfunded offer', function(done) {
-    var lastLedger = self.app.remote._ledger_current_index;
+    var lastLedger = self.remote._ledger_current_index;
     var hash = testutils.generateHash();
 
     self.wss.once('request_account_info', function(message, conn) {
@@ -1251,7 +1251,7 @@ suite('delete orders', function() {
   teardown(testutils.teardown.bind(self));
 
   test('/orders/:sequence?validated=true', function(done) {
-    var lastLedger = self.app.remote._ledger_current_index;
+    var lastLedger = self.remote._ledger_current_index;
     var hash = testutils.generateHash();
 
     self.wss.once('request_account_info', function(message, conn) {
@@ -1338,7 +1338,7 @@ suite('delete orders', function() {
   });
 
   test('/orders/:sequence', function(done) {
-    var lastLedger = self.app.remote._ledger_current_index;
+    var lastLedger = self.remote._ledger_current_index;
     var hash = testutils.generateHash();
 
     self.wss.once('request_account_info', function(message, conn) {

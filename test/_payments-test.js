@@ -6,6 +6,7 @@ var ws            = require('ws');
 var route         = new (require('events').EventEmitter);
 var fixtures      = require('./fixtures')._payments;
 var RL            = require('ripple-lib');
+var remote        = require('../api/lib/remote');
 
 var testutils = { };
 
@@ -69,6 +70,8 @@ suite('payments', function() {
   var rippled;
 
   suiteSetup(function(done) {
+    var self = this;
+    self.remote = remote;
     rippled = new ws.Server({port: 5150});
 
     route.on('ping', fixtures.ping);
@@ -83,28 +86,29 @@ suite('payments', function() {
 
     rippled.on('connection', fixtures.connection.bind({route:route}));
 
-    _app.remote.once('connect', function() {
-      _app.remote.getServer().once('ledger_closed', function() {
+    self.remote.once('connect', function() {
+      self.remote.getServer().once('ledger_closed', function() {
         // proceed to the tests, api is ready
         done();
       });
 
-      _app.remote.getServer().emit('message', fixtures.sample_ledger);
+      self.remote.getServer().emit('message', fixtures.sample_ledger);
     });
 
-    _app.remote._servers = [ ];
-    _app.remote.addServer('ws://localhost:5150');
-    _app.remote.connect();
+    self.remote._servers = [ ];
+    self.remote.addServer('ws://localhost:5150');
+    self.remote.connect();
 
   });
 
   suiteTeardown(function(done) {
-    _app.remote.once('disconnect', function() {
+    var self = this;
+    self.remote.once('disconnect', function() {
       rippled.close();
       done()
     });
 
-    _app.remote.disconnect();
+    self.remote.disconnect();
 
   });
 

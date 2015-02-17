@@ -67,7 +67,7 @@ suite('post settings', function() {
   teardown(testutils.teardown.bind(self));
 
   test('/accounts/:account/settings?validated=true', function(done) {
-    var currentLedger = self.app.remote._ledger_current_index;
+    var currentLedger = self.remote._ledger_current_index;
     var lastLedger = currentLedger + testutils.LEDGER_OFFSET;
 
     self.wss.once('request_account_info', function(message, conn) {
@@ -767,7 +767,7 @@ suite('post settings', function() {
   });
 
   test('/accounts/:account/settings -- transfer_rate', function(done) {
-    var currentLedger = self.app.remote._ledger_current_index;
+    var currentLedger = self.remote._ledger_current_index;
     var lastLedger = currentLedger + testutils.LEDGER_OFFSET;
 
     self.wss.once('request_account_info', function(message, conn) {
@@ -809,7 +809,7 @@ suite('post settings', function() {
   });
 
   test('/accounts/:account/settings?validated=true -- ledger sequence too high', function(done) {
-    var lastLedger = self.app.remote._ledger_current_index;
+    var lastLedger = self.remote._ledger_current_index;
 
     self.wss.once('request_account_info', function(message, conn) {
       assert.strictEqual(message.command, 'account_info');
@@ -837,7 +837,7 @@ suite('post settings', function() {
   });
 
   test('/accounts/:account/settings -- secret invalid', function(done) {
-    var lastLedger = self.app.remote._ledger_current_index;
+    var lastLedger = self.remote._ledger_current_index;
 
     self.wss.once('request_account_info', function(message, conn) {
       assert.strictEqual(message.command, 'account_info');
