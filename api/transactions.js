@@ -4,7 +4,6 @@ var ripple      = require('ripple-lib');
 var validator   = require('./lib/schema-validator');
 var remote      = require('./lib/remote.js');
 var dbinterface = require('./lib/db-interface.js');
-var respond     = require('../server/response-handler.js');
 var errors      = require('./lib/errors.js');
 
 /**
@@ -197,12 +196,12 @@ function setTransactionBitFlags(transaction, options) {
  *
  *  See getTransaction for parameter details
  */
-function getTransactionAndRespond(request, response, next) {
+function getTransactionAndRespond(request, callback) {
   getTransaction(request.params.account, request.params.identifier, function(error, transaction) {
     if (error) {
-      next(error);
+      callback(error);
     } else {
-      respond.success(response, { transaction: transaction });
+      callback(null, { transaction: transaction });
     }
   });
 };
@@ -368,7 +367,7 @@ function getTransaction(account, identifier, callback) {
  *  @param {Error} error
  *  @param {Array of transactions in JSON format} transactions
  */
-function getAccountTransactions(options, response, callback) {
+function getAccountTransactions(options, callback) {
   var steps = [
     validateOptions,
     queryTransactions,
@@ -444,7 +443,7 @@ function getAccountTransactions(options, response, callback) {
     } else {
       options.previous_transactions = transactions;
       setImmediate(function() {
-        getAccountTransactions(options, response, callback);
+        getAccountTransactions(options, callback);
       });
     }
   };

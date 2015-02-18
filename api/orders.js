@@ -4,7 +4,6 @@ var ripple                  = require('ripple-lib');
 var remote                  = require('./lib/remote.js');
 var transactions            = require('./transactions');
 var SubmitTransactionHooks  = require('./lib/submit_transaction_hooks.js');
-var respond                 = require('../server/response-handler.js');
 var utils                   = require('./lib/utils');
 var errors                  = require('./lib/errors.js');
 var TxToRestConverter       = require('./lib/tx-to-rest-converter.js');
@@ -32,10 +31,8 @@ const DefaultPageLimit = 200;
  *  @url
  *  @param {RippleAddress} request.params.account  - The ripple address to query orders
  *
- *  @param {Express.js Response} response
- *  @param {Express.js Next} next
  */
-function getOrders(request, response, next) {
+function getOrders(request, callback) {
   var options = request.params;
 
   options.isAggregate = request.param('limit') === 'all';
@@ -47,7 +44,7 @@ function getOrders(request, response, next) {
   validateOptions(options)
   .then(getAccountOrders)
   .then(respondWithOrders)
-  .catch(next);
+  .catch(callback);
 
   function validateOptions(options) {
     if (!ripple.UInt160.is_valid(options.account)) {
@@ -130,7 +127,7 @@ function getOrders(request, response, next) {
       orders.validated = result.validated;
       orders.orders    = getParsedOrders(result.offers);
 
-      resolve(respond.success(response, orders));
+      resolve(callback(null, orders));
     });
 
     return promise;
@@ -155,10 +152,8 @@ function getOrders(request, response, next) {
  *  @query
  *  @param {String "true"|"false"} request.query.validated    - used to force request to wait until rippled has finished validating the submitted transaction
  *
- *  @param {Express.js Response} response
- *  @param {Express.js Next} next
  */
-function placeOrder(request, response, next) {
+function placeOrder(request, callback) {
   var params = request.params;
 
   Object.keys(request.body).forEach(function(param) {
@@ -178,10 +173,10 @@ function placeOrder(request, response, next) {
 
   transactions.submit(options, new SubmitTransactionHooks(hooks), function(err, placedOrder) {
     if (err) {
-      return next(err);
+      return callback(err);
     }
 
-    respond.success(response, placedOrder);
+    callback(null, placedOrder);
   });
   
   function validateParams(callback) {
@@ -244,10 +239,8 @@ function placeOrder(request, response, next) {
  *  @query
  *  @param {String "true"|"false"} request.query.validated - used to force request to wait until rippled has finished validating the submitted transaction
  *
- *  @param {Express.js Response} response
- *  @param {Express.js Next} next
  */
-function cancelOrder(request, response, next) {
+function cancelOrder(request, callback) {
   var params = request.params;
 
   Object.keys(request.body).forEach(function(param) {
@@ -267,10 +260,10 @@ function cancelOrder(request, response, next) {
 
   transactions.submit(options, new SubmitTransactionHooks(hooks), function(err, canceledOrder) {
     if (err) {
-      return next(err);
+      return callback(err);
     }
 
-    respond.success(response, canceledOrder);
+    callback(null, canceledOrder);
   });
 
   function validateParams(callback) {
@@ -300,10 +293,8 @@ function cancelOrder(request, response, next) {
  *  @param {String} [request.query.limit] - Set a limit to the number of results returned
  *
  *  @param {Express.js Request} request
- *  @param {Express.js Response} response
- *  @param {Express.js Next} next
  */
-function getOrderBook(request, response, next) {
+function getOrderBook(request, callback) {
   var options = request.params;
 
   Object.keys(request.query).forEach(function(param) {
@@ -315,7 +306,7 @@ function getOrderBook(request, response, next) {
   .then(getLastValidatedLedger)
   .then(getBidsAndAsks)
   .spread(respondWithOrderBook)
-  .catch(next);
+  .catch(callback);
 
   function parseOptions(options) {
     options.validated  = true;
@@ -436,7 +427,7 @@ function getOrderBook(request, response, next) {
         asks:  getParsedBookOffers(asks.offers, true)
       };
 
-      resolve(respond.success(response, orderBook));
+      resolve(callback(null, orderBook));
     });
 
     return promise;
@@ -499,16 +490,14 @@ function getOrderBook(request, response, next) {
  *  @param {String} request.params.identifier
  *
  *  @param {Express.js Request} request
- *  @param {Express.js Response} response
- *  @param {Express.js Next} next
  */
-function getOrder(request, response, next) {
+function getOrder(request, callback) {
   var options = request.params;
 
   validateOptions(options)
   .then(getOrderTx)
   .then(respondWithOrder)
-  .catch(next);
+  .catch(callback);
 
   function validateOptions(options) {
     return new Promise(function(resolve, reject) {
@@ -543,7 +532,7 @@ function getOrder(request, response, next) {
 
   function respondWithOrder(order) {
     return new Promise(function(resolve, reject) {
-      resolve(respond.success(response, order));
+      resolve(callback(null, order));
     });
   }
 }

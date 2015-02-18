@@ -2,7 +2,6 @@ var Promise   = require('bluebird');
 var async     = require('async');
 var ripple    = require('ripple-lib');
 var remote    = require('./lib/remote.js');
-var respond   = require('../server/response-handler.js');
 var utils     = require('./lib/utils');
 var errors    = require('./lib/errors.js');
 var validator = require('./lib/schema-validator.js');
@@ -28,10 +27,8 @@ const DefaultPageLimit = 200;
  *  @param {Number String} [request.query.limit] - max results per response
  *  @param {Number String} [request.query.ledger] - identifier
  *
- *  @param {Express.js Response} response
- *  @param {Express.js Next} next
  */
-function getBalances(request, response, next) {
+function getBalances(request, callback) {
   var options = {
     account: request.params.account,
     currency: request.query.currency,
@@ -46,7 +43,7 @@ function getBalances(request, response, next) {
   validateOptions(options)
   .then(getAccountBalances)
   .then(respondWithBalances)
-  .catch(next)
+  .catch(callback)
 
   function validateOptions(options) {
     if (!ripple.UInt160.is_valid(options.account)) {
@@ -185,7 +182,7 @@ function getBalances(request, response, next) {
       balances.validated = result.validated;
       balances.balances  = result.lines;
 
-      resolve(respond.success(response, balances));
+      resolve(callback(null, balances));
     });
 
     return promise;
