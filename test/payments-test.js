@@ -138,7 +138,7 @@ suite('post payments', function() {
   setup(testutils.setup.bind(self));
   teardown(testutils.teardown.bind(self));
 
-  test('/payments -- issuer', function(done){
+  test('/payments -- counterparty', function(done){
     var hash = testutils.generateHash();
 
     self.wss.once('request_account_info', function(message, conn) {
@@ -157,7 +157,7 @@ suite('post payments', function() {
       .send(fixtures.payment({
         value: '0.001',
         currency: 'USD',
-        issuer: addresses.ISSUER,
+        counterparty: addresses.ISSUER,
         hash: hash
       }))
       .expect(testutils.checkStatus(200))
@@ -166,7 +166,7 @@ suite('post payments', function() {
       .end(done);
   });
 
-  test('/payments -- no issuer', function(done){
+  test('/payments -- no counterparty', function(done){
     var hash = testutils.generateHash();
 
     self.wss.once('request_account_info', function(message, conn) {
@@ -176,6 +176,8 @@ suite('post payments', function() {
     });
 
     self.wss.once('request_submit', function(message, conn) {
+      var tx = ripple.Remote.parseBinaryAccountTransaction(message).tx;
+      assert.strictEqual(tx.Amount.issuer, addresses.COUNTERPARTY);
       assert.strictEqual(message.command, 'submit');
       conn.send(fixtures.requestSubmitResponse(message, {hash: hash}));
     });
@@ -245,7 +247,7 @@ suite('post payments', function() {
       .send(fixtures.payment({
         value: '0.0001',
         currency: '015841550000000041F78E0A28CBF19200000000',
-        issuer: addresses.VALID,
+        counterparty: addresses.VALID,
         hash: hash
       }))
       .expect(testutils.checkStatus(200))
@@ -361,7 +363,7 @@ suite('post payments', function() {
       .send(fixtures.payment({
         value: '0.0001',
         currency: '015841550000000041F78E0A28CBF19200000000',
-        issuer: addresses.VALID,
+        counterparty: addresses.VALID,
         hash: hash
       }))
       .expect(testutils.checkStatus(200))
@@ -439,7 +441,7 @@ suite('post payments', function() {
     .send(fixtures.payment({
       value: '0.001',
       currency: 'USD',
-      issuer: addresses.ISSUER,
+      counterparty: addresses.ISSUER,
       max_fee: utils.dropsToXrp(10)
     }))
     .expect(testutils.checkBody(errors.RESTMaxFeeExceeded))
@@ -488,7 +490,7 @@ suite('post payments', function() {
     .send(fixtures.payment({
       value: '0.001',
       currency: 'USD',
-      issuer: addresses.ISSUER,
+      counterparty: addresses.ISSUER,
       max_fee: 0.000010
     }))
     .expect(testutils.checkStatus(500))
@@ -718,7 +720,7 @@ suite('post payments', function() {
     .send(fixtures.payment({
       value: '0.001',
       currency: 'USD',
-      issuer: addresses.issuer,
+      counterparty: addresses.issuer,
       lastLedgerSequence: 9036185
     }))
     .expect(testutils.checkStatus(200))
@@ -754,7 +756,7 @@ suite('post payments', function() {
     .send(fixtures.payment({
       value: '0.001',
       currency: 'USD',
-      issuer: addresses.ISSUER,
+      counterparty: addresses.ISSUER,
       max_fee: 0.000015
     }))
     .expect(testutils.checkBody(errors.RESTResponseLedgerSequenceTooHigh))
@@ -779,7 +781,7 @@ suite('post payments', function() {
     .send(fixtures.payment({
       value: '0.001',
       currency: 'USD',
-      issuer: addresses.ISSUER,
+      counterparty: addresses.ISSUER,
       max_fee: 0.000010
     }))
     .expect(testutils.checkStatus(500))
@@ -807,7 +809,7 @@ suite('post payments', function() {
     .send(fixtures.payment({
       value: '0.001',
       currency: 'USD',
-      issuer: addresses.ISSUER,
+      counterparty: addresses.ISSUER,
       max_fee: 0.001200
     }))
     .expect(testutils.checkStatus(200))
@@ -1202,4 +1204,179 @@ suite('post payments', function() {
       })))
       .end(secondPayment);
   });
+
+  test('/payments -- missing client_resource_id', function(done) {
+    var hash = testutils.generateHash();
+
+    self.wss.once('request_account_info', function(message, conn) {
+      assert.strictEqual(message.command, 'account_info');
+      assert.strictEqual(message.account, addresses.VALID);
+      conn.send(fixtures.accountInfoResponse(message));
+    });
+
+    self.wss.once('request_submit', function(message, conn) {
+      assert.strictEqual(message.command, 'submit');
+      conn.send(fixtures.requestSubmitResponse(message, {hash: hash}));
+    });
+
+    self.app
+      .post('/v1/accounts/' + addresses.VALID + '/payments')
+      .send(fixtures.payment({
+        value: '0.001',
+        currency: 'USD',
+        counterparty: addresses.ISSUER,
+        hash: hash,
+        clientResourceId: ''
+      }))
+      .expect(testutils.checkStatus(400))
+      .expect(testutils.checkHeaders)
+      .expect(testutils.checkBody(errors.RESTErrorResponse({
+        message: 'Missing parameter: client_resource_id. All payments must be submitted with a client_resource_id to prevent duplicate payments',
+        type: 'invalid_request',
+        error: 'restINVALID_PARAMETER'
+      })))
+      .end(done);
+  });
+
+  test('/payments -- invalid client_resource_id', function(done) {
+    var hash = testutils.generateHash();
+
+    self.wss.once('request_account_info', function(message, conn) {
+      assert.strictEqual(message.command, 'account_info');
+      assert.strictEqual(message.account, addresses.VALID);
+      conn.send(fixtures.accountInfoResponse(message));
+    });
+
+    self.wss.once('request_submit', function(message, conn) {
+      assert.strictEqual(message.command, 'submit');
+      conn.send(fixtures.requestSubmitResponse(message, {hash: hash}));
+    });
+
+    self.app
+      .post('/v1/accounts/' + addresses.VALID + '/payments')
+      .send(fixtures.payment({
+        value: '0.001',
+        currency: 'USD',
+        counterparty: addresses.ISSUER,
+        hash: hash,
+        clientResourceId: testutils.generateHash()
+      }))
+      .expect(testutils.checkStatus(400))
+      .expect(testutils.checkHeaders)
+      .expect(testutils.checkBody(errors.RESTErrorResponse({
+        message: 'Invalid parameter: client_resource_id. Must be a string of ASCII-printable characters. Note that 256-bit hex strings are disallowed because of the potential confusion with transaction hashes.',
+        type: 'invalid_request',
+        error: 'restINVALID_PARAMETER'
+      })))
+      .end(done);
+  });
+
+  test('/payments -- invalid source_account', function(done) {
+    var hash = testutils.generateHash();
+
+    self.wss.once('request_account_info', function(message, conn) {
+      assert.strictEqual(message.command, 'account_info');
+      assert.strictEqual(message.account, addresses.VALID);
+      conn.send(fixtures.accountInfoResponse(message));
+    });
+
+    self.wss.once('request_submit', function(message, conn) {
+      assert.strictEqual(message.command, 'submit');
+      conn.send(fixtures.requestSubmitResponse(message, {hash: hash}));
+    });
+
+    self.app
+      .post('/v1/accounts/' + addresses.VALID + '/payments')
+      .send(fixtures.payment({
+        value: '0.001',
+        currency: 'USD',
+        counterparty: addresses.ISSUER,
+        hash: hash,
+        sourceAccount: 'foo'
+      }))
+      .expect(testutils.checkStatus(400))
+      .expect(testutils.checkHeaders)
+      .expect(testutils.checkBody(errors.RESTErrorResponse({
+        message: 'Invalid parameter: source_account. Must be a valid Ripple address',
+        type: 'invalid_request',
+        error: 'restINVALID_PARAMETER'
+      })))
+      .end(done);
+  });
+
+  test('/payments -- invalid destination_account', function(done) {
+    var hash = testutils.generateHash();
+
+    self.wss.once('request_account_info', function(message, conn) {
+      assert.strictEqual(message.command, 'account_info');
+      assert.strictEqual(message.account, addresses.VALID);
+      conn.send(fixtures.accountInfoResponse(message));
+    });
+
+    self.wss.once('request_submit', function(message, conn) {
+      assert.strictEqual(message.command, 'submit');
+      conn.send(fixtures.requestSubmitResponse(message, {hash: hash}));
+    });
+
+    self.app
+      .post('/v1/accounts/' + addresses.VALID + '/payments')
+      .send(fixtures.payment({
+        value: '0.001',
+        currency: 'USD',
+        counterparty: addresses.ISSUER,
+        hash: hash,
+        destinationAccount: 'foo'
+      }))
+      .expect(testutils.checkStatus(400))
+      .expect(testutils.checkHeaders)
+      .expect(testutils.checkBody(errors.RESTErrorResponse({
+        message: 'Invalid parameter: destination_account. Must be a valid Ripple address',
+        type: 'invalid_request',
+        error: 'restINVALID_PARAMETER'
+      })))
+      .end(done);
+  });
+
+  test.skip('/payments -- counterparty with XRP source_amount', function(done) {
+  });
+
+  test.skip('/payments -- counterparty with XRP destination_amount', function(done) {
+  });
+
+  test.skip('/payments -- counterparty with XRP destination_amount', function(done) {
+  });
+
+  test.skip('/payments -- valid source_tag', function(done) {
+  });
+
+  test.skip('/payments -- invalid source_tag', function(done) {
+  });
+
+  test.skip('/payments -- valid destination_tag', function(done) {
+  });
+
+  test.skip('/payments -- invalid destination_tag', function(done) {
+  });
+
+  test.skip('/payments -- invalid source_slippage', function(done) {
+  });
+
+  test.skip('/payments -- invalid invoice_id', function(done) {
+  });
+
+  test.skip('/payments -- invalid invoice_id', function(done) {
+  });
+
+  test.skip('/payments -- invalid paths (object)', function(done) {
+  });
+
+  test.skip('/payments -- invalid paths (string)', function(done) {
+  });
+
+  test.skip('/payments -- invalid partial_payment flag', function(done) {
+  });
+
+  test.skip('/payments -- invalid no_direct_ripple flag', function(done) {
+  });
+
 });

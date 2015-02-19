@@ -18,12 +18,19 @@ function RestToTxConverter() {};
  */
 RestToTxConverter.prototype.convert = function(payment, callback) {
   try {
-    // Convert blank issuer to sender's address (Ripple convention for 'any issuer')
-    if (payment.source_amount && payment.source_amount.currency !== 'XRP' && payment.source_amount.issuer === '') {
-      payment.source_amount.issuer = payment.source_account;
+
+    // Convert blank counterparty to sender's address (Ripple convention for 'any counterparty')
+    // https://ripple.com/build/transactions/#special-issuer-values-for-sendmax-and-amount
+    // https://ripple.com/build/ripple-rest/#counterparties-in-payments
+    if (payment.source_amount && payment.source_amount.currency !== 'XRP' && payment.source_amount.counterparty === '') {
+      payment.source_amount.counterparty = payment.source_account;
     }
-    if (payment.destination_amount && payment.destination_amount.currency !== 'XRP' && payment.destination_amount.issuer === '') {
-      payment.destination_amount.issuer = payment.destination_account;
+
+    // Convert blank counterparty to destinations's address (Ripple convention for 'any counterparty')
+    // https://ripple.com/build/transactions/#special-issuer-values-for-sendmax-and-amount
+    // https://ripple.com/build/ripple-rest/#counterparties-in-payments
+    if (payment.destination_amount && payment.destination_amount.currency !== 'XRP' && payment.destination_amount.counterparty === '') {
+      payment.destination_amount.counterparty = payment.destination_account;
     }
     // Uppercase currency codes
     if (payment.source_amount) {
@@ -36,13 +43,10 @@ RestToTxConverter.prototype.convert = function(payment, callback) {
     var transaction = new ripple.Transaction();
     var transactionData = {
       from: payment.source_account,
-      to: payment.destination_account
+      to: payment.destination_account,
+      amount: utils.txFromRestAmount(payment.destination_amount)
     };
-    if (payment.destination_amount.currency === 'XRP') {
-      transactionData.amount = utils.xrpToDrops(payment.destination_amount.value);
-    } else {
-      transactionData.amount = payment.destination_amount;
-    }
+
     // invoice_id  Because transactionData is a object,  transaction.payment function is ignored invoiceID
     if (payment.invoice_id) {
       transaction.invoiceID(payment.invoice_id);
@@ -58,7 +62,7 @@ RestToTxConverter.prototype.convert = function(payment, callback) {
     // SendMax
     if (payment.source_amount) {
       // Only set send max if source and destination currencies are different
-      if (!(payment.source_amount.currency === payment.destination_amount.currency && payment.source_amount.issuer === payment.destination_amount.issuer)) {
+      if (!(payment.source_amount.currency === payment.destination_amount.currency && payment.source_amount.counterparty === payment.destination_amount.counterparty)) {
         var max_value = bignum(payment.source_amount.value).plus(payment.source_slippage).toString();
         if (payment.source_amount.currency === 'XRP') {
           transaction.sendMax(utils.xrpToDrops(max_value));
@@ -66,7 +70,7 @@ RestToTxConverter.prototype.convert = function(payment, callback) {
           transaction.sendMax({
             value: max_value,
             currency: payment.source_amount.currency,
-            issuer: payment.source_amount.issuer
+            issuer: payment.source_amount.counterparty
           });
         }
       }

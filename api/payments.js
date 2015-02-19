@@ -60,10 +60,6 @@ function submitPayment(request, response, next) {
   params.max_fee = Number(request.body.max_fee) > 0 ? utils.xrpToDrops(request.body.max_fee) : void(0);
   params.fixed_fee = Number(request.body.fixed_fee) > 0 ? utils.xrpToDrops(request.body.fixed_fee) : void(0);
 
-  if (params.payment.destination_amount && params.payment.destination_amount.currency !== 'XRP' && _.isEmpty(params.payment.destination_amount.issuer)) {
-    params.payment.destination_amount.issuer = params.payment.destination_account;
-  }
-
   var options = {
     secret: params.secret,
     validated: request.query.validated === 'true',
@@ -124,17 +120,12 @@ function submitPayment(request, response, next) {
       return callback(new InvalidRequestError('Invalid parameter: source_amount. Must be a valid Amount object'));
     }
 
-    // No issuer for XRP
-    if (payment.destination_amount && payment.destination_amount.currency.toUpperCase() === 'XRP' && payment.destination_amount.issuer) {
-      return callback(new InvalidRequestError('Invalid parameter: destination_amount. XRP cannot have issuer'));
+    // No counterparty for XRP
+    if (payment.destination_amount && payment.destination_amount.currency.toUpperCase() === 'XRP' && payment.destination_amount.counterparty) {
+      return callback(new InvalidRequestError('Invalid parameter: destination_amount. XRP cannot have counterparty'));
     }
-    if (payment.source_amount && payment.source_amount.currency.toUpperCase() === 'XRP' && payment.source_amount.issuer) {
-      return callback(new InvalidRequestError('Invalid parameter: source_amount. XRP cannot have issuer'));
-    }
-
-    // Must have issuer for non-XRP payments
-    if (payment.destination_amount && payment.destination_amount.currency.toUpperCase() !== 'XRP' && !payment.destination_amount.issuer) {
-      return callback(new InvalidRequestError('Invalid parameter: destination_amount. Non-XRP payment must have an issuer'));
+    if (payment.source_amount && payment.source_amount.currency.toUpperCase() === 'XRP' && payment.source_amount.counterparty) {
+      return callback(new InvalidRequestError('Invalid parameter: source_amount. XRP cannot have counterparty'));
     }
 
     // Slippage
@@ -550,7 +541,7 @@ function getPathFind(request, response, next) {
 
   // Parse destination amount
   if (!request.params.destination_amount_string) {
-    next(new InvalidRequestError('Missing parameter: destination_amount. Must be an amount string in the form value+currency+issuer'));
+    next(new InvalidRequestError('Missing parameter: destination_amount. Must be an amount string in the form value+currency+counterparty'));
     return;
   }
 
@@ -567,13 +558,13 @@ function getPathFind(request, response, next) {
   }
 
   if (!validator.isValid(params.destination_amount, 'Amount')) {
-    next(new InvalidRequestError('Invalid parameter: destination_amount. Must be an amount string in the form value+currency+issuer'));
+    next(new InvalidRequestError('Invalid parameter: destination_amount. Must be an amount string in the form value+currency+counterparty'));
     return;
   }
 
   // Parse source currencies
   // Note that the source_currencies should be in the form
-  // "USD r...,BTC,XRP". The issuer is optional but if provided should be
+  // "USD r...,BTC,XRP". The counterparty is optional but if provided should be
   // separated from the currency by a single space.
   if (request.query.source_currencies) {
     var sourceCurrencyStrings = request.query.source_currencies.split(',');
@@ -582,10 +573,10 @@ function getPathFind(request, response, next) {
       sourceCurrencyStrings[c] = sourceCurrencyStrings[c].replace(/(^[ ])|([ ]$)/g, '');
       // If there is a space, there should be a valid issuer after the space
       if (/ /.test(sourceCurrencyStrings[c])) {
-        var currencyIssuerArray = sourceCurrencyStrings[c].split(' ');
+        var currencyCounterpartyArray = sourceCurrencyStrings[c].split(' ');
         var currencyObject = {
-          currency: currencyIssuerArray[0],
-          issuer: currencyIssuerArray[1]
+          currency: currencyCounterpartyArray[0],
+          issuer: currencyCounterpartyArray[1]
         };
         if (validator.isValid(currencyObject.currency, 'Currency') && ripple.UInt160.is_valid(currencyObject.issuer)) {
           params.source_currencies.push(currencyObject);
@@ -608,11 +599,13 @@ function getPathFind(request, response, next) {
     var pathfindParams = {
       src_account: params.source_account,
       dst_account: params.destination_account,
-      dst_amount: (params.destination_amount.currency === 'XRP' ?
-        utils.xrpToDrops(params.destination_amount.value) :
-        params.destination_amount)
+      dst_amount: utils.txFromRestAmount(params.destination_amount)
     };
     if (typeof pathfindParams.dst_amount === 'object' && !pathfindParams.dst_amount.issuer) {
+      // Convert blank issuer to sender's address (Ripple convention for 'any issuer')
+      // https://ripple.com/build/transactions/#special-issuer-values-for-sendmax-and-amount
+      // https://ripple.com/build/ripple-rest/#counterparties-in-payments
+
       pathfindParams.dst_amount.issuer = pathfindParams.dst_account;
     }
     if (params.source_currencies.length > 0) {

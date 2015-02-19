@@ -94,21 +94,21 @@ suite('unit - utils.parseCurrencyQuery()', function() {
     assert.deepEqual(utils.parseCurrencyQuery('123+XRP'), {
       value: '123',
       currency: 'XRP',
-      issuer: ''
+      counterparty: ''
     });
   });
 
   test('parseCurrencyQuery() -- XRP', function() {
     assert.deepEqual(utils.parseCurrencyQuery('XRP'), {
       currency: 'XRP',
-      issuer: ''
+      counterparty: ''
     });
   });
 
   test('parseCurrencyQuery() -- USD', function() {
     assert.deepEqual(utils.parseCurrencyQuery('USD'), {
       currency: 'USD',
-      issuer: ''
+      counterparty: ''
     });
   });
 
@@ -116,44 +116,44 @@ suite('unit - utils.parseCurrencyQuery()', function() {
     assert.deepEqual(utils.parseCurrencyQuery('123+USD'), {
       value: '123',
       currency: 'USD',
-      issuer: ''
+      counterparty: ''
     });
   });
 
-  test('parseCurrencyQuery() -- USD+issuer', function() {
+  test('parseCurrencyQuery() -- USD+counterparty', function() {
     assert.deepEqual(utils.parseCurrencyQuery('USD+' + addresses.VALID), {
       currency: 'USD',
-      issuer: addresses.VALID
+      counterparty: addresses.VALID
     });
   });
 
-  test('parseCurrencyQuery() -- 123+USD+issuer', function() {
+  test('parseCurrencyQuery() -- 123+USD+counterparty', function() {
     assert.deepEqual(utils.parseCurrencyQuery('123+USD+' + addresses.VALID), {
       value: '123',
       currency: 'USD',
-      issuer: addresses.VALID
+      counterparty: addresses.VALID
     });
   });
 
-  test('parseCurrencyQuery() -- XRP+issuer', function() {
+  test('parseCurrencyQuery() -- XRP+counterparty', function() {
     assert.deepEqual(utils.parseCurrencyQuery('XRP+' + addresses.VALID), {
       currency: 'XRP',
-      issuer: addresses.VALID
+      counterparty: addresses.VALID
     });
   });
 
-  test('parseCurrencyQuery() -- 123+XRP+issuer', function() {
+  test('parseCurrencyQuery() -- 123+XRP+counterparty', function() {
     assert.deepEqual(utils.parseCurrencyQuery('123+XRP+' + addresses.VALID), {
       value: '123',
       currency: 'XRP',
-      issuer: addresses.VALID
+      counterparty: addresses.VALID
     });
   });
 
   test('parseCurrencyQuery() -- XRP+', function() {
     assert.deepEqual(utils.parseCurrencyQuery('XRP+'), {
       currency: 'XRP',
-      issuer: ''
+      counterparty: ''
     });
   });
 
@@ -161,7 +161,7 @@ suite('unit - utils.parseCurrencyQuery()', function() {
     assert.deepEqual(utils.parseCurrencyQuery('123+XRP+'), {
       value: '123',
       currency: 'XRP',
-      issuer: ''
+      counterparty: ''
     });
   });
 
@@ -169,7 +169,34 @@ suite('unit - utils.parseCurrencyQuery()', function() {
     assert.deepEqual(utils.parseCurrencyQuery('123'), {
       value: '123',
       currency: '',
-      issuer: ''
+      counterparty: ''
+    });
+  });
+});
+
+suite('unit - utils.txFromRestAmount()', function() {
+
+  test('txFromRestAmount() -- XRP', function() {
+    var amount = {
+      value: '1',
+      currency: 'XRP',
+      counterparty: ''
+    };
+
+    assert.strictEqual(utils.txFromRestAmount(amount), '1000000');
+  });
+
+  test('txFromRestAmount() -- USD', function() {
+    var amount = {
+      value: '1',
+      currency: 'USD',
+      counterparty: addresses.COUNTERPARTY
+    };
+
+    assert.deepEqual(utils.txFromRestAmount(amount), {
+      value: '1',
+      currency: 'USD',
+      issuer: addresses.COUNTERPARTY
     });
   });
 });
