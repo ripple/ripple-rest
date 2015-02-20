@@ -41,10 +41,10 @@ const ROUTE_MAP = {
 var router = new express.Router();
 router.get('/', generateIndexPage);
 
-function generateIndexPage(req, res) {
+function generateIndexPage(request, response, next) {
   var url_base = '/v' + version.getApiVersion();
 
-  res.json({
+  respond.success(response, {
     success: true,
     name: 'ripple-rest',
     package_version: version.getPackageVersion(),
@@ -71,7 +71,7 @@ function generateIndexPage(req, res) {
       uuid_generator: url_base + '/uuid'
     }
   });
-};
+}
 
 /**
  * For all the routes, we need a connected rippled
