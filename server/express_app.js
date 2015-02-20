@@ -1,8 +1,8 @@
 const ripple     = require('ripple-lib');
 const express    = require('express');
 const bodyParser = require('body-parser');
-const morgan     = require('morgan');
-const logger     = require('./logger.js');
+const logger     = require('./logger.js').logger;
+const morgan     = require('./logger.js').morgan;
 const config     = require('../api/lib/config');
 const router     = require('./router.js');
 const version    = require('./version.js');
@@ -24,13 +24,11 @@ app.use(function(req, res, next) {
   next();
 });
 
-if (config.get('NODE_ENV') !== 'test') {
-  app.use(morgan('dev', { stream: logger.loggerStream }));
-}
+morgan(app);
 
 if (config.get('debug')) {
   app.use(function (req, res, next) {
-    logger.logger.info(req.method, req.url, req.body);
+    logger.info(req.method, req.url, req.body);
     next();
   })
 }

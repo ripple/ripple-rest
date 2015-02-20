@@ -7,30 +7,13 @@ var logger = new winston.Logger({
       prettyPrint: true,
       colorize: true,
       timestamp: true,
-      handleExceptions: true
+      handleExceptions: true,
+      logLevel: 'info',
+      showLevel: true,
+      silent: config.get('NODE_ENV') === 'test'
     })
-  ]
+  ],
+  exitOnError: false
 });
 
-var loggerStream = {write: function (data) {
-  logger.info(data.replace(/\n$/, ''));
-}};
-
-var logInfo = logger.info;
-
-logger.info = function() {
-  if (config.get('NODE_ENV') !== 'test') {
-    logInfo.apply(logger, arguments);
-  }
-};
-
-var logError = logger.error;
-
-logger.error = function() {
-  if (config.get('NODE_ENV') !== 'test') {
-    logError.apply(logger, arguments);
-  }
-};
-
 exports.logger = logger;
-exports.loggerStream = loggerStream;
