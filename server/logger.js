@@ -1,36 +1,76 @@
-var winston = require('winston');
-var config = require('../api/lib/config');
+const winston = require('winston');
+const config  = require('../api/lib/config');
+const morgan  = require('morgan');
+const utils   = require('../api/lib/utils.js');
 
-var logger = new winston.Logger({
+
+var logger = exports.logger = new winston.Logger({
   transports: [
     new winston.transports.Console({
       prettyPrint: true,
       colorize: true,
+      handleExceptions: true,
+      level: 'info',
+      showLevel: true,
       timestamp: true,
-      handleExceptions: true
+      silent: config.get('NODE_ENV') === 'test'
     })
-  ]
+  ],
+  exitOnError: false
 });
 
-var loggerStream = {write: function (data) {
-  logger.info(data.replace(/\n$/, ''));
-}};
+/**
+ * Setup server logging middleware
+ *
+ * Production logs conform to Extended Log File Format:
+ * http://www.w3.org/TR/WD-logfile
+ */
 
-var logInfo = logger.info;
+/**
+ *  Returns the a date-time in ELF format (e.g, 2015-02-20 00:02:08)
+ */
+function elfDate() {
+  return new Date().toISOString().replace('T', ' ').substr(0, 19);
+}
 
-logger.info = function() {
-  if (config.get('NODE_ENV') !== 'test') {
-    logInfo.apply(logger, arguments);
+// ELF Headers
+var elfHeaders = 
+  '\n#Version: 1.0\n' +
+  '#Date: ' + elfDate() + '\n' + 
+  '#Software: ' + utils.getPackageVersion() + '\n' + 
+  '#Fields: c-ip date time cs-method cs-uri cs(Version) sc-status time-taken cs(User-Agent)';
+
+// Logging in ELF format (http://www.w3.org/TR/WD-logfile)
+var morganFormat = ':remote-addr :datetime :method :url :http-version :status '
+                 + ':response-time :user-agent';
+
+// Both morgan and winston append a newline
+var stream = {
+  write: function (data) {
+    logger.info(data.slice(0, -1));
   }
 };
 
-var logError = logger.error;
+// Define the datetime token in ELF format
+morgan.token('datetime', elfDate);
 
-logger.error = function() {
-  if (config.get('NODE_ENV') !== 'test') {
-    logError.apply(logger, arguments);
+// Define the user-agent token in ELF format
+morgan.token('user-agent', function(req, res) {
+  return req.get('User-Agent').split(' ').join('+');
+});
+
+exports.morgan = function(app) {
+  if (config.get('NODE_ENV') === 'production') {
+    app.use(morgan(morganFormat));
+
+    logger.timestamp   = false;
+    logger.prettyPrint = false;
+    logger.colorize    = false;
+    logger.showLevel   = false;
+
+    logger.info(elfHeaders);
+  } else {
+    app.use(morgan('dev', {stream: stream}));
   }
 };
 
-exports.logger = logger;
-exports.loggerStream = loggerStream;
