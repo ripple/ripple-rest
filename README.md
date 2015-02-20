@@ -342,8 +342,8 @@ When an amount of currency is specified as part of a JSON body, it is encoded as
 |-------|------|-------------|
 | value | String (Quoted decimal) | The quantity of the currency |
 | currency | String | Three-digit [ISO 4217 Currency Code](http://www.xe.com/iso4217.php) specifying which currency. Alternatively, a 160-bit hex value. (Some advanced features, like [demurrage](https://ripple.com/wiki/Gateway_demurrage), require the hex version.) |
-| counterparty | String | (New in [v1.3.2](https://github.com/ripple/ripple-rest/releases/tag/1.3.2-rc4)) The Ripple address of the account that is a counterparty to this currency. This is usually an [issuing gateway](https://wiki.ripple.com/Gateway_List). Always omitted, or an empty string, for XRP. |
-| issuer | String | (Prior to 1.4.0) **DEPRECATED** alias for `counterparty`. |
+| counterparty | String | (New in [v1.4.0](https://github.com/ripple/ripple-rest/releases/tag/1.4.0)) The Ripple address of the account that is a counterparty to this currency. This is usually an [issuing gateway](https://wiki.ripple.com/Gateway_List). Always omitted, or an empty string, for XRP. |
+| issuer | String | (Prior to 1.4.0) **DEPRECATED** alias for `counterparty`.
 
 
 Example Amount Object:
@@ -455,6 +455,7 @@ Submitted transactions can have additional fields reflecting the current status 
 | source_balance_changes | Array | Array of [Amount objects](#amount_object) indicating changes in balances held by the account sending the transaction as a result of the transaction. |
 | destination_balance_changes | Array | Array of [Amount objects](#amount_object) indicating changes in balances held by the account receiving the transaction as a result of the transaction. |
 | destination_amount_submitted | Object | An [Amount object](#amount_object) indicating the destination amount submitted (useful when `payment.partial_payment` flag is set to *true* |
+| order_changes | Array | Array of [Amount objects](#amount_object) indicating changes to orders caused by the Payment. |
 | source_amount_submitted | Object | An [Amount object](#amount_object) indicating the source amount submitted (useful when `payment.partial_payment` flag is set to *true* |
 
 
@@ -1122,10 +1123,14 @@ The following URL parameters are required by this API endpoint:
 | Field | Type | Description |
 |-------|------|-------------|
 | payment | Object | A [payment object](#payment-objects) for the transaction. |
-| hash | String | The hash of the payment transaction |
-| ledger | String | The sequence number of the ledger version that includes this transaction. |
+| client_resource_id | String | The [client resource identifier](#client-resource-ids) used for this payment. |
+| hash | String (Transaction Hash) | A hash value that uniquely identifies this transaction in the Ripple network. |
+| ledger | String (Ledger Index) | (May be omitted) The sequence number of the ledger that includes this transaction, if this transaction is in a ledger. |
+| state | String | Whether or not the transaction is included in a ledger that has been validated by consensus. |
 
-If the `state` field has the value `"validated"`, then the payment has been finalized, and is included in the shared global ledger. However, this does not necessarily mean that it succeeded. Check the `payment.result` field for a value of `"tesSUCCESS"` to see if the payment was successfully executed. If the `payment.partial_payment` flag is *true*, then you should also consult the `payment.destination_balance_changes` array to see how much currency was actually delivered to the destination account.
+_New in [v1.4.0](https://github.com/ripple/ripple-rest/releases/tag/1.4.0) - The `hash`, `ledger`, and `state` fields have been moved to the top level. Previously, they were included as part of the Payment object._
+
+If the `state` field has the value `validated`, then the payment has been finalized, and is included in the shared global ledger. However, this does not necessarily mean that it succeeded. Check the `result` field of the Payment for a value of `"tesSUCCESS"` to see if the payment was successfully executed. If the `payment.partial_payment` flag is *true*, then you should also consult the `payment.destination_balance_changes` array to see how much currency was actually delivered to the destination account.
 
 Processing a payment can take several seconds to complete, depending on the [consensus process](https://ripple.com/consensus-whitepaper/). If the payment does not exist yet, or has not been validated, you should wait a few seconds before checking again.
 
