@@ -17,11 +17,23 @@ function makeCallback(response, next, type) {
   };
 }
 
-function wallet_new(request, response, next) {
+function getUUID(request, response, next) {
+  api.info.uuid(makeCallback(response, next));
+}
+
+function isConnected(request, response, next) {
+  api.info.isConnected(makeCallback(response, next));
+}
+
+function getFee(request, response, next) {
+  api.info.fee(makeCallback(response, next));
+}
+
+function generateWallet(request, response, next) {
   api.wallet.generate(makeCallback(response, next));
 }
 
-function payment_paths(request, response, next) {
+function getPathFind(request, response, next) {
   const source_account = request.params.account;
   const destination_account = request.params.destination_account;
   const destination_amount = request.params.destination_amount_string;
@@ -30,7 +42,7 @@ function payment_paths(request, response, next) {
     destination_amount, source_currencies, makeCallback(response, next));
 }
 
-function payment_submit(request, response, next) {
+function getAccountPayments(request, response, next) {
   const account = request.params.account;
   const source_account = request.query.source_account;
   const destination_account = request.query.destination_account;
@@ -50,19 +62,53 @@ function payment_submit(request, response, next) {
     direction, options, makeCallback(response, next));
 }
 
-function account_payments(request, response, next) {
+function getPayment(request, response, next) {
   const account = request.params.account;
   const identifier = request.params.identifier;
   api.payments.get(account, identifier, makeCallback(response, next));
 }
 
-function account_notifications(request, response, next) {
+function getNotification(request, response, next) {
   const account = request.params.account;
   const identifier = request.params.identifier;
   api.notifications.getNotification(account, identifier,
     makeCallback(response, next));
 }
 
-function account_balances(request, response, next) {
-
+function getBalances(request, response, next) {
+  const account = request.params.account;
+  const currency = request.query.currency;
+  const counterparty = request.query.counterparty;
+  const options = {
+    frozen: request.query.frozen === 'true',
+    isAggregate: request.param('limit') === 'all',
+    ledger: utils.parseLedger(request.param('ledger'))
+  };
+  api.balances.get(account, currency, counterparty, options,
+    makeCallback(response, next));
 }
+
+function getSettings(request, response, next) {
+  const account = request.params.account;
+  api.settings.get(account, makeCallback(response, next));
+}
+
+function getTrustlines(request, response, next) {
+  const account = request.params.account;
+  const currency = request.params.currency;
+  const counterparty = request.params.counterparty;
+  const options = {
+    isAggregate: request.params.limit === 'all'
+  };
+  api.trustlines.get(account, currency, counterparty, options,
+    makeCallback(response, next));
+}
+
+function getOrders(request, response, next) {
+  const account = request.params.account;
+  const options = {
+    isAggregate: request.params.limit === 'all'
+  };
+  api.orders.getOrders(account, options, makeCallback(response, next));
+}
+
