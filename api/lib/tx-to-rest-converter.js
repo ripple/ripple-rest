@@ -2,7 +2,7 @@ var ripple    = require('ripple-lib');
 var utils     = require('./utils');
 var _         = require('lodash');
 var Promise   = require('bluebird');
-var settings  = require('../settings.js');
+var settingsModule = require('../settings.js');
 var parseBalanceChanges   = require('ripple-lib-transactionparser').parseBalanceChanges;
 var parseOrderBookChanges = require('ripple-lib-transactionparser').parseOrderBookChanges;
 
@@ -351,24 +351,22 @@ const AccountSetResponseFlags = {
   DisallowXRP:    { name:   'disallow_xrp', value: ripple.Transaction.flags.AccountSet.DisallowXRP }
 };
 
-TxToRestConverter.prototype.parseSettingResponseFromTx = function(params, message, meta, callback) {
+TxToRestConverter.prototype.parseSettingResponseFromTx = function(settings, message, meta, callback) {
   var result = {
     settings: {}
   };
 
-  // lazy loading to avoid circular dependency
-  var settings = require('../settings.js');
+  // cannot require at the top due to circular dependency
+  var settingsModule = require('../settings');
 
-  for (var flagName in settings.AccountSetIntFlags) {
-    var flag = settings.AccountSetIntFlags[flagName];
-
-    result.settings[flag.name] = params.settings[flag.name];
+  for (var flagName in settingsModule.AccountSetIntFlags) {
+    var flag = settingsModule.AccountSetIntFlags[flagName];
+    result.settings[flag.name] = settings[flag.name];
   }
 
-  for (var fieldName in settings.AccountRootFields) {
-    var field = settings.AccountRootFields[fieldName];
-
-    result.settings[field.name] = params.settings[field.name];
+  for (var fieldName in settingsModule.AccountRootFields) {
+    var field = settingsModule.AccountRootFields[fieldName];
+    result.settings[field.name] = settings[field.name];
   }
 
   _.extend(result.settings, TxToRestConverter.prototype.parseFlagsFromResponse(message.tx_json.Flags, AccountSetResponseFlags));
