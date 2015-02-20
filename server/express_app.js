@@ -34,7 +34,6 @@ if (config.get('debug')) {
 }
 
 app.use('/v' + version.getApiVersion(), router);
-app.use('/', (new express.Router()).get('/', router.generateIndexPage));
 app.use(require('./error-handler'));
 
 

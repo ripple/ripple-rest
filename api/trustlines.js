@@ -5,7 +5,6 @@ var ripple                  = require('ripple-lib');
 var transactions            = require('./transactions.js');
 var SubmitTransactionHooks  = require('./lib/submit_transaction_hooks.js');
 var remote                  = require('./lib/remote.js');
-var respond                 = require('../server/response-handler.js');
 var utils                   = require('./lib/utils');
 var errors                  = require('./lib/errors.js');
 var validator               = require('./lib/schema-validator');
@@ -36,11 +35,9 @@ const DefaultPageLimit = 200;
  *  @param {Number String} [request.query.limit] - max results per response
  *  @param {Number String} [request.query.ledger] - identifier
  *
- *  @param {Express.js Response} response
- *  @param {Express.js Next} next
  */
 
-function getTrustLines(request, response, next) {
+function getTrustLines(request, callback) {
   var options = request.params;
   options.isAggregate = request.param('limit') === 'all';
 
@@ -51,7 +48,7 @@ function getTrustLines(request, response, next) {
   validateOptions(options)
   .then(getAccountLines)
   .then(respondWithTrustlines)
-  .catch(next);
+  .catch(callback);
 
   var currencyRE = new RegExp(options.currency ? ('^' + options.currency.toUpperCase() + '$') : /./);
 
@@ -142,7 +139,7 @@ function getTrustLines(request, response, next) {
       trustlines.validated  = result.validated;
       trustlines.trustlines = result.lines;
 
-      resolve(respond.success(response, trustlines));
+      resolve(callback(null, trustlines));
     });
 
     return promise;
@@ -160,11 +157,9 @@ function getTrustLines(request, response, next) {
  *  @query
  *  @param {String "true"|"false"} request.query.validated Used to force request to wait until rippled has finished validating the submitted transaction
  *
- *  @param {Express.js Response} response
- *  @param {Express.js Next} next
  */
 
-function addTrustLine(request, response, next) {
+function addTrustLine(request, callback) {
   var params = request.params;
 
   Object.keys(request.body).forEach(function(param) {
@@ -184,9 +179,9 @@ function addTrustLine(request, response, next) {
 
   transactions.submit(options, new SubmitTransactionHooks(hooks), function(err, trustline) {
     if (err) {
-      return next(err);
+      return callback(err);
     }
-    respond.created(response, trustline);
+    callback(null, trustline);
   });
 
   function validateParams(callback) {

@@ -13,7 +13,6 @@ var config                  = require('./lib/config.js');
 var RestToTxConverter       = require('./lib/rest-to-tx-converter.js');
 var TxToRestConverter       = require('./lib/tx-to-rest-converter.js');
 var SubmitTransactionHooks  = require('./lib/submit_transaction_hooks.js');
-var respond                 = require('../server/response-handler.js');
 var errors                  = require('./lib/errors.js');
 
 var InvalidRequestError     = errors.InvalidRequestError;
@@ -47,10 +46,8 @@ module.exports = {
  *  @query
  *  @param {String "true"|"false"} request.query.validated Used to force request to wait until rippled has finished validating the submitted transaction
  *
- *  @param {Express.js Response} response
- *  @param {Express.js Next} next
  */
-function submitPayment(request, response, next) {
+function submitPayment(request, callback) {
   var params = request.params;
 
   Object.keys(request.body).forEach(function(param) {
@@ -77,10 +74,10 @@ function submitPayment(request, response, next) {
 
   transactions.submit(options, new SubmitTransactionHooks(hooks), function(err, payment) {
     if (err) {
-      return next(err);
+      return callback(err);
     }
 
-    respond.success(response, payment);
+    callback(null, payment);
   });
 
   function validateParams(callback) {
@@ -253,10 +250,8 @@ function submitPayment(request, response, next) {
  *  @param {/lib/db-interface} dbinterface
  *  @param {RippleAddress} req.params.account
  *  @param {Hex-encoded String|ASCII printable character String} req.params.identifier
- *  @param {Express.js Response} res
- *  @param {Express.js Next} next
  */
-function getPayment(request, response, next) {
+function getPayment(request, callback) {
   var options = {
     account: request.params.account,
     identifier: request.params.identifier
@@ -304,9 +299,9 @@ function getPayment(request, response, next) {
 
   async.waterfall(steps, function(error, result) {
     if (error) {
-      next(error);
+      callback(error);
     } else {
-      respond.success(response, result);
+      callback(null, result);
     }
   });
 };
@@ -394,10 +389,8 @@ function formatPaymentHelper(account, transaction, callback) {
  *  @param {Boolean} [false] req.query.exclude_failed
  *  @param {Number} [20] req.query.results_per_page
  *  @param {Number} [1] req.query.page
- *  @param {Express.js Response} res
- *  @param {Express.js Next} next
  */
-function getAccountPayments(request, response, next) {
+function getAccountPayments(request, callback) {
   var options;
 
   function getTransactions(callback) {
@@ -416,7 +409,7 @@ function getAccountPayments(request, response, next) {
       types: [ 'payment' ]
     };
 
-    transactions.getAccountTransactions(options, response, callback);
+    transactions.getAccountTransactions(options, callback);
   };
 
   function attachDate(transactions, callback) {
@@ -490,9 +483,9 @@ function getAccountPayments(request, response, next) {
 
   async.waterfall(steps, function(error, payments) {
     if (error) {
-      next(error);
+      callback(error);
     } else {
-      respond.success(response, { payments: payments });
+      callback(null, { payments: payments });
     }
   });
 };
@@ -508,10 +501,8 @@ function getAccountPayments(request, response, next) {
  *  @param {Amount Array ["USD r...,XRP,..."]} req.query.source_currencies Note that Express.js middleware replaces "+" signs with spaces. Clients should use "+" signs but the values here will end up as spaces
  *  @param {RippleAddress} req.params.destination_account
  *  @param {Amount "1+USD+r..."} req.params.destination_amount_string
- *  @param {Express.js Response} res
- *  @param {Express.js Next} next
  */
-function getPathFind(request, response, next) {
+function getPathFind(request, callback) {
 
   // Parse and validate parameters
   var params = {
@@ -522,43 +513,43 @@ function getPathFind(request, response, next) {
   };
 
   if (!params.source_account) {
-    next(new InvalidRequestError('Missing parameter: source_account. Must be a valid Ripple address'));
+    callback(new InvalidRequestError('Missing parameter: source_account. Must be a valid Ripple address'));
     return;
   }
 
   if (!params.destination_account) {
-    next(new InvalidRequestError('Missing parameter: destination_account. Must be a valid Ripple address'));
+    callback(new InvalidRequestError('Missing parameter: destination_account. Must be a valid Ripple address'));
     return;
   }
 
   if (!ripple.UInt160.is_valid(params.source_account)) {
-    return next(new errors.InvalidRequestError('Parameter is not a valid Ripple address: account'));
+    return callback(new errors.InvalidRequestError('Parameter is not a valid Ripple address: account'));
   }
 
   if (!ripple.UInt160.is_valid(params.destination_account)) {
-    return next(new errors.InvalidRequestError('Parameter is not a valid Ripple address: destination_account'));
+    return callback(new errors.InvalidRequestError('Parameter is not a valid Ripple address: destination_account'));
   }
 
   // Parse destination amount
   if (!request.params.destination_amount_string) {
-    next(new InvalidRequestError('Missing parameter: destination_amount. Must be an amount string in the form value+currency+counterparty'));
+    callback(new InvalidRequestError('Missing parameter: destination_amount. Must be an amount string in the form value+currency+counterparty'));
     return;
   }
 
   params.destination_amount = utils.parseCurrencyQuery(request.params.destination_amount_string);
 
   if (!ripple.UInt160.is_valid(params.source_account)) {
-    next(new InvalidRequestError('Invalid parameter: source_account. Must be a valid Ripple address'));
+    callback(new InvalidRequestError('Invalid parameter: source_account. Must be a valid Ripple address'));
     return;
   }
 
   if (!ripple.UInt160.is_valid(params.destination_account)){
-    next(new InvalidRequestError('Invalid parameter: destination_account. Must be a valid Ripple address'));
+    callback(new InvalidRequestError('Invalid parameter: destination_account. Must be a valid Ripple address'));
     return;
   }
 
   if (!validator.isValid(params.destination_amount, 'Amount')) {
-    next(new InvalidRequestError('Invalid parameter: destination_amount. Must be an amount string in the form value+currency+counterparty'));
+    callback(new InvalidRequestError('Invalid parameter: destination_amount. Must be an amount string in the form value+currency+counterparty'));
     return;
   }
 
@@ -581,14 +572,14 @@ function getPathFind(request, response, next) {
         if (validator.isValid(currencyObject.currency, 'Currency') && ripple.UInt160.is_valid(currencyObject.issuer)) {
           params.source_currencies.push(currencyObject);
         } else {
-          next(new InvalidRequestError('Invalid parameter: source_currencies. Must be a list of valid currencies'));
+          callback(new InvalidRequestError('Invalid parameter: source_currencies. Must be a list of valid currencies'));
           return;
         }
       } else {
         if (validator.isValid(sourceCurrencyStrings[c], 'Currency')) {
           params.source_currencies.push({ currency: sourceCurrencyStrings[c] });
         } else {
-          next(new InvalidRequestError('Invalid parameter: source_currencies. Must be a list of valid currencies'));
+          callback(new InvalidRequestError('Invalid parameter: source_currencies. Must be a list of valid currencies'));
           return;
         }
       }
@@ -695,9 +686,9 @@ function getPathFind(request, response, next) {
   ];
   async.waterfall(steps, function(error, payments) {
     if (error) {
-      next(error);
+      callback(error);
     } else {
-      respond.success(response, { payments: payments });
+      callback(null, { payments: payments });
     }
   });
 };

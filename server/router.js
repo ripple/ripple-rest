@@ -1,3 +1,4 @@
+const _         = require('lodash');
 const ripple    = require('ripple-lib');
 const express   = require('express');
 const api       = require('../api');
@@ -5,12 +6,45 @@ const errors    = require('../api').errors;
 const respond   = require('./response-handler.js');
 const version   = require('./version.js');
 
-var router = new express.Router();
+const ROUTE_MAP = {
+  GET: {
+    '/uuid': api.info.uuid,
+    '/server/connected': api.info.isConnected,
+    '/transaction-fee': api.info.fee,
+    '/server': api.info.serverStatus,
+    '/wallet/new': api.wallet.generate,
+    '/accounts/:account/payments': api.payments.getAccountPayments,
+    '/accounts/:account/payments/:identifier': api.payments.get,
+    '/accounts/:account/payments/paths/:destination_account/:destination_amount_string': api.payments.getPathFind,
+    '/accounts/:account/orders': api.orders.getOrders,
+    '/accounts/:account/order_book/:base/:counter': api.orders.getOrderBook,
+    '/accounts/:account/orders/:identifier': api.orders.getOrder,
+    '/accounts/:account/notifications': api.notifications.getNotification,
+    '/accounts/:account/notifications/:identifier':
+      api.notifications.getNotification,
+    '/accounts/:account/balances': api.balances.get,
+    '/accounts/:account/settings': api.settings.get,
+    '/transactions/:identifier': api.transactions.get,
+    '/accounts/:account/trustlines': api.trustlines.get
+  },
+  POST: {
+    '/accounts/:account/payments': api.payments.submit,
+    '/accounts/:account/orders': api.orders.placeOrder,
+    '/accounts/:account/settings': api.settings.change,
+    '/accounts/:account/trustlines': api.trustlines.add
+  },
+  DELETE: {
+    '/accounts/:account/orders/:sequence': api.orders.cancelOrder
+  }
+};
 
-router.generateIndexPage = function(req, res) {
+var router = new express.Router();
+router.get('/', generateIndexPage);
+
+function generateIndexPage(request, response, next) {
   var url_base = '/v' + version.getApiVersion();
 
-  res.json({
+  respond.success(response, {
     success: true,
     name: 'ripple-rest',
     package_version: version.getPackageVersion(),
@@ -37,15 +71,10 @@ router.generateIndexPage = function(req, res) {
       uuid_generator: url_base + '/uuid'
     }
   });
-};
-
-router.get('/', router.generateIndexPage);
-
-/* uuid util */
-router.get('/uuid', api.info.uuid);
+}
 
 /**
- * For all the routes below, we need a connected rippled
+ * For all the routes, we need a connected rippled
  * insert the validateRemoteConnected middleware here
  */
 
@@ -58,47 +87,37 @@ router.all('*', function(req, res, next) {
   }
 });
 
-/* Connected - if we hit this route, it means the server is connected */
-router.get('/server/connected', api.info.isConnected);
+function wrapper(handler, method, url) {
+  return function(request, response, next) {
+    handler(request, function(error, data) {
+      if (error !== null) {
+        next(error);
+      } else {
+        if (method === 'POST' && url === '/accounts/:account/trustlines') {
+          respond.created(response, data);
+        } else {
+          respond.success(response, data);
+        }
+      }
+    });
+  };
+}
 
-/* Transaction fee */
-router.get('/transaction-fee', api.info.fee);
+function connectRoutes(routeMap) {
+  var methods = {
+    'GET': router.get,
+    'POST': router.post,
+    'DELETE': router.delete,
+    'PUT': router.put
+  };
+  _.forIn(methods, function(connector, method) {
+    const routes = routeMap[method] || {};
+    _.forIn(routes, function(callback, url) {
+      connector.call(router, url, wrapper(callback, method, url));
+    });
+  });
+}
 
-/* Server */
-router.get('/server', api.info.serverStatus);
-
-/* Wallet */
-router.get('/wallet/new', api.wallet.generate);
-
-/* Payments */
-router.post('/accounts/:account/payments', api.payments.submit);
-router.get('/accounts/:account/payments', api.payments.getAccountPayments);
-router.get('/accounts/:account/payments/:identifier', api.payments.get);
-router.get('/accounts/:account/payments/paths/:destination_account/:destination_amount_string', api.payments.getPathFind);
-
-/* Orders */
-router.get('/accounts/:account/orders', api.orders.getOrders);
-router.post('/accounts/:account/orders', api.orders.placeOrder);
-router.delete('/accounts/:account/orders/:sequence', api.orders.cancelOrder);
-router.get('/accounts/:account/order_book/:base/:counter', api.orders.getOrderBook);
-router.get('/accounts/:account/orders/:identifier', api.orders.getOrder);
-
-/* Notifications */
-router.get('/accounts/:account/notifications', api.notifications.getNotification);
-router.get('/accounts/:account/notifications/:identifier', api.notifications.getNotification);
-
-/* Balances */
-router.get('/accounts/:account/balances', api.balances.get);
-
-/* Settings */
-router.get('/accounts/:account/settings', api.settings.get);
-router.post('/accounts/:account/settings', api.settings.change);
-
-/* Standard Ripple Transactions */
-router.get('/transactions/:identifier', api.transactions.get);
-
-/* Trustlines */
-router.get('/accounts/:account/trustlines', api.trustlines.get);
-router.post('/accounts/:account/trustlines', api.trustlines.add);
+connectRoutes(ROUTE_MAP);
 
 module.exports = router;

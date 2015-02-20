@@ -5,7 +5,6 @@ var ripple                  = require('ripple-lib');
 var transactions            = require('./transactions.js');
 var SubmitTransactionHooks  = require('./lib/submit_transaction_hooks.js');
 var remote                  = require('./lib/remote.js');
-var respond                 = require('../server/response-handler.js');
 var errors                  = require('./lib/errors.js');
 var TxToRestConverter       = require('./lib/tx-to-rest-converter.js');
 var RestToTxConverter       = require('./lib/rest-to-tx-converter.js');
@@ -160,18 +159,16 @@ function setTransactionFields(transaction, input, fieldSchema) {
  *
  *  @url
  *  @param {String} request.params.account
- *  
- *  @param {Express.js Response} response
- *  @param {Express.js Next} next
+ *
  */
-function getSettings(request, response, next) {
+function getSettings(request, callback) {
   if (!ripple.UInt160.is_valid(request.param('account'))) {
-    return next(new errors.InvalidRequestError('Parameter is not a valid Ripple address: account'));
+    return callback(new errors.InvalidRequestError('Parameter is not a valid Ripple address: account'));
   }
 
   remote.requestAccountInfo({account: request.params.account}, function(error, info) {
     if (error) {
-      return next(error);
+      return callback(error);
     }
 
     var data = info.account_data;
@@ -188,7 +185,7 @@ function getSettings(request, response, next) {
 
     settings.transaction_sequence = String(settings.transaction_sequence);
 
-    respond.success(response, { settings: settings });
+    callback(null, { settings: settings });
   });
 };
 
@@ -202,10 +199,8 @@ function getSettings(request, response, next) {
  *  @query
  *  @param {String "true"|"false"} request.query.validated Used to force request to wait until rippled has finished validating the submitted transaction
  *
- *  @param {Express.js Response} response
- *  @param {Express.js Next} next
  */
-function changeSettings(request, response, next) {
+function changeSettings(request, callback) {
   var params = request.params;
 
   Object.keys(request.body).forEach(function(param) {
@@ -225,10 +220,10 @@ function changeSettings(request, response, next) {
 
   transactions.submit(options, new SubmitTransactionHooks(hooks), function(err, settings) {
     if (err) {
-      return next(err);
+      return callback(err);
     }
 
-    respond.success(response, settings);
+    callback(null, settings);
   });
   
   function validateParams(callback) {

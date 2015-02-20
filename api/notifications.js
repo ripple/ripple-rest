@@ -6,7 +6,6 @@ var serverLib           = require('./lib/server-lib');
 var remote              = require('./lib/remote.js');
 var config              = require('./lib/config.js');
 var NotificationParser  = require('./lib/notification_parser.js');
-var respond             = require('../server/response-handler.js');
 var errors              = require('./lib/errors.js');
 var utils               = require('./lib/utils.js');
 
@@ -24,13 +23,11 @@ module.exports = {
  *  @param {/lib/config-loader} $.config
  *  @param {RippleAddress} req.params.account
  *  @param {Hex-encoded String|ResourceId} req.params.identifier
- *  @param {Express.js Response} res
- *  @param {Express.js Next} next
  */
-function getNotification(request, response, next) {
-  getNotificationHelper(request, response, function(error, notification) {
+function getNotification(request, callback) {
+  getNotificationHelper(request, function(error, notification) {
     if (error) {
-      return next(error);
+      return callback(error);
     }
 
     var responseBody = {
@@ -52,7 +49,7 @@ function getNotification(request, response, next) {
       responseBody.client_resource_id = client_resource_id;
     }
 
-    respond.success(response, responseBody);
+    callback(null, responseBody);
   });
 }
 
@@ -73,7 +70,7 @@ function getNotification(request, response, next) {
  *  @param {Error} error
  *  @param {Notification} notification
  */
-function getNotificationHelper(request, response, callback) {
+function getNotificationHelper(request, callback) {
   var account = request.params.account;
   var identifier = request.params.identifier
 
@@ -115,7 +112,7 @@ function getNotificationHelper(request, response, callback) {
     if (baseTransaction.client_resource_id) {
       notificationDetails.client_resource_id = baseTransaction.client_resource_id;
     }
-    attachPreviousAndNextTransactionIdentifiers(response, notificationDetails, async_callback);
+    attachPreviousAndNextTransactionIdentifiers(notificationDetails, async_callback);
   }
 
   // Parse the Notification object from the notificationDetails
@@ -154,7 +151,7 @@ function getNotificationHelper(request, response, callback) {
  *    "next_transaction_identifier", "next_hash",
  *    "previous_transaction_identifier", "previous_hash"} notificationDetails
  */
-function attachPreviousAndNextTransactionIdentifiers(response, notificationDetails, callback) {
+function attachPreviousAndNextTransactionIdentifiers(notificationDetails, callback) {
 
   // Get all of the transactions affecting the specified
   // account in the given ledger. This is done so that 
@@ -172,7 +169,7 @@ function attachPreviousAndNextTransactionIdentifiers(response, notificationDetai
       limit: 200 // arbitrary, just checking number of transactions in ledger
     };
 
-    transactions.getAccountTransactions(params, response, async_callback);
+    transactions.getAccountTransactions(params, async_callback);
   }
 
   // All we care about is the count of the transactions
@@ -203,7 +200,7 @@ function attachPreviousAndNextTransactionIdentifiers(response, notificationDetai
         params.ledger_index_min = -1;
       }
 
-      transactions.getAccountTransactions(params, response, async_concat_callback);
+      transactions.getAccountTransactions(params, async_concat_callback);
 
     }, async_callback);
 

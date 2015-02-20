@@ -2,19 +2,18 @@ var _         = require('lodash');
 var uuid      = require('node-uuid');
 var serverlib = require('./lib/server-lib');
 var remote    = require('./lib/remote.js');
-var respond   = require('../server/response-handler.js');
 var errors    = require('./lib/errors.js');
 var utils     = require('./lib/utils.js');
 
-function getServerStatus(request, response, next) {
+function getServerStatus(request, callback) {
   serverlib.getStatus(remote, function(error, status) {
     if (error) {
-      return next(new errors.RippledNetworkError(error.message));
+      callback(new errors.RippledNetworkError(error.message));
+    } else {
+      callback(null, _.extend({
+        api_documentation_url: 'https://github.com/ripple/ripple-rest'
+      }, status));
     }
-
-    respond.success(response, _.extend({
-      api_documentation_url: 'https://github.com/ripple/ripple-rest'
-    }, status));
   });
 };
 
@@ -23,26 +22,25 @@ function getServerStatus(request, response, next) {
  *  connected, as per middleware
  */
 
-function getServerConnected(request, response, next) {
-  respond.success(response, { connected: true });
+function getServerConnected(request, callback) {
+  callback(null, { connected: true });
 };
 
 /**
  * Get UUID, for use by the client as transaction identifier
  */
 
-function getUUID(request, response, next) {
-  respond.success(response, { uuid: uuid.v4() });
+function getUUID(request, callback) {
+  callback(null, { uuid: uuid.v4() });
 };
 
 /**
  * Get the current transaction fee
  */
 
-function getFee(request, response, next) {
+function getFee(request, callback) {
   var fee = remote.createTransaction()._computeFee();
-
-  respond.success(response, { fee: utils.dropsToXrp(fee) });
+  callback(null, { fee: utils.dropsToXrp(fee) });
 };
 
 module.exports.serverStatus = getServerStatus;
