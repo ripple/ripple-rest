@@ -33,15 +33,6 @@ function generateWallet(request, response, next) {
   api.wallet.generate(makeCallback(response, next));
 }
 
-function getPathFind(request, response, next) {
-  const source_account = request.params.account;
-  const destination_account = request.params.destination_account;
-  const destination_amount = request.params.destination_amount_string;
-  const source_currencies = request.query.source_currencies;
-  api.payments.getPathFind(source_account, destination_account,
-    destination_amount, source_currencies, makeCallback(response, next));
-}
-
 function getAccountPayments(request, response, next) {
   const account = request.params.account;
   const source_account = request.query.source_account;
@@ -68,10 +59,45 @@ function getPayment(request, response, next) {
   api.payments.get(account, identifier, makeCallback(response, next));
 }
 
+function getPathFind(request, response, next) {
+  const source_account = request.params.account;
+  const destination_account = request.params.destination_account;
+  const destination_amount = request.params.destination_amount_string;
+  const source_currencies = request.query.source_currencies;
+  api.payments.getPathFind(source_account, destination_account,
+    destination_amount, source_currencies, makeCallback(response, next));
+}
+
+function getOrders(request, response, next) {
+  const account = request.params.account;
+  const options = {
+    isAggregate: request.params.limit === 'all'
+  };
+  api.orders.getOrders(account, options, makeCallback(response, next));
+}
+
+function getOrderBook(request, response, next) {
+  const account = request.params.account;
+  const base = request.params.base;
+  const counter = request.params.counter;
+  const options = {
+    limit: request.params.limit
+  };
+  api.orders.getOrderBook(account, base, counter, options,
+    makeCallback(response, next));
+}
+
+function getOrder(request, response, next) {
+  const account = request.params.account;
+  const identifier = request.params.identifier;
+  api.orders.getOrder(account, identifier, makeCallback(response, next));
+}
+
 function getNotification(request, response, next) {
   const account = request.params.account;
   const identifier = request.params.identifier;
-  api.notifications.getNotification(account, identifier,
+  const urlBase = utils.getUrlBase(request);
+  api.notifications.getNotification(account, identifier, urlBase,
     makeCallback(response, next));
 }
 
@@ -93,6 +119,12 @@ function getSettings(request, response, next) {
   api.settings.get(account, makeCallback(response, next));
 }
 
+function getTransaction(request, response, next) {
+  const account = request.params.account;
+  const identifier = request.params.identifier;
+  api.transactions.get(account, identifier, makeCallback(response, next));
+}
+
 function getTrustlines(request, response, next) {
   const account = request.params.account;
   const currency = request.params.currency;
@@ -104,11 +136,46 @@ function getTrustlines(request, response, next) {
     makeCallback(response, next));
 }
 
-function getOrders(request, response, next) {
-  const account = request.params.account;
+function submitPayment(request, response, next) {
+  const payment = request.params.payment;
+  const clientResourceID = request.params.client_resource_id;
+  const lastLedgerSequence = request.params.last_ledger_sequence;
+  const secret = request.params.secret;
   const options = {
-    isAggregate: request.params.limit === 'all'
+    max_fee: request.body.max_fee,
+    fixed_fee: request.body.fixed_fee,
+    validated: request.query.validated === 'true',
+    blockDuplicates: true,
+    saveTransaction: true
   };
-  api.orders.getOrders(account, options, makeCallback(response, next));
+  api.payments.submitPayment(payment, clientResourceID, secret,
+    lastLedgerSequence, options, makeCallback(response, next));
 }
 
+function placeOrder(request, response, next) {
+  const account = request.params.account;
+  const secret = request.params.secret;
+  const order = request.params.order;
+  const options = {
+    validated: request.query.validated === 'true'
+  };
+  api.orders.placeOrder(account, order, secret, options,
+    makeCallback(response, next));
+}
+
+function changeSettings(request, response, next) {
+  const account = request.params.account;
+  const settings = request.params.settings;
+  const secret = request.params.secret;
+  const options = {
+    validated: request.query.validated === 'true'
+  };
+  api.settings.changeSettings(account, settings, secret, options,
+    makeCallback(response, next));
+}
+
+function addTrustLine(request, response, next) {
+  const account = request.params.account;
+  const trustline = request.params.trustline;
+  
+}
