@@ -4,39 +4,9 @@ const express   = require('express');
 const api       = require('../api');
 const errors    = require('../api').errors;
 const respond   = require('./response-handler');
+const version   = require('./version');
+const routes    = require('./routes');
 const generateIndexPage = require('./indexpage');
-
-const ROUTE_MAP = {
-  GET: {
-    '/uuid': api.info.uuid,
-    '/server/connected': api.info.isConnected,
-    '/transaction-fee': api.info.fee,
-    '/server': api.info.serverStatus,
-    '/wallet/new': api.wallet.generate,
-    '/accounts/:account/payments': api.payments.getAccountPayments,
-    '/accounts/:account/payments/:identifier': api.payments.get,
-    '/accounts/:account/payments/paths/:destination_account/:destination_amount_string': api.payments.getPathFind,
-    '/accounts/:account/orders': api.orders.getOrders,
-    '/accounts/:account/order_book/:base/:counter': api.orders.getOrderBook,
-    '/accounts/:account/orders/:identifier': api.orders.getOrder,
-    '/accounts/:account/notifications': api.notifications.getNotification,
-    '/accounts/:account/notifications/:identifier':
-      api.notifications.getNotification,
-    '/accounts/:account/balances': api.balances.get,
-    '/accounts/:account/settings': api.settings.get,
-    '/transactions/:identifier': api.transactions.get,
-    '/accounts/:account/trustlines': api.trustlines.get
-  },
-  POST: {
-    '/accounts/:account/payments': api.payments.submit,
-    '/accounts/:account/orders': api.orders.placeOrder,
-    '/accounts/:account/settings': api.settings.change,
-    '/accounts/:account/trustlines': api.trustlines.add
-  },
-  DELETE: {
-    '/accounts/:account/orders/:sequence': api.orders.cancelOrder
-  }
-};
 
 var router = new express.Router();
 router.get('/', generateIndexPage);
@@ -79,13 +49,12 @@ function connectRoutes(routeMap) {
     'PUT': router.put
   };
   _.forIn(methods, function(connector, method) {
-    const routes = routeMap[method] || {};
-    _.forIn(routes, function(callback, url) {
+    _.forIn(routeMap[method] || {}, function(callback, url) {
       connector.call(router, url, wrapper(callback, method, url));
     });
   });
 }
 
-connectRoutes(ROUTE_MAP);
+connectRoutes(routes);
 
 module.exports = router;
