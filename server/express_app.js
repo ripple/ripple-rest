@@ -7,6 +7,7 @@ const config     = require('../api/lib/config');
 const router     = require('./router.js');
 const version    = require('./version.js');
 const compress   = require('compression');
+const generateIndexPage = require('./indexpage');
 
 var app = express();
 
@@ -34,6 +35,7 @@ if (config.get('debug')) {
 }
 
 app.use('/v' + version.getApiVersion(), router);
+app.get('/', generateIndexPage);
 app.use(require('./error-handler'));
 
 
