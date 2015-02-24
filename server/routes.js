@@ -87,7 +87,10 @@ function getPathFind(request, callback) {
 function getOrders(request, callback) {
   const account = request.params.account;
   const options = {
-    isAggregate: request.params.limit === 'all'
+    isAggregate: request.query.limit === 'all',
+    ledger: request.query.ledger,
+    limit: request.query.limit,
+    marker: request.query.marker
   };
   api.orders.getOrders(account, options, callback);
 }
@@ -206,7 +209,7 @@ module.exports = {
     '/accounts/:account/payments': makeMiddleware(getAccountPayments),
     '/accounts/:account/payments/:identifier': makeMiddleware(getPayment),
     '/accounts/:account/payments/paths/:destination_account/:destination_amount_string': makeMiddleware(getPathFind),
-    '/accounts/:account/orders': api.orders.getOrders,
+    '/accounts/:account/orders': makeMiddleware(getOrders),
     '/accounts/:account/order_book/:base/:counter': api.orders.getOrderBook,
     '/accounts/:account/orders/:identifier': api.orders.getOrder,
     '/accounts/:account/notifications': api.notifications.getNotification,

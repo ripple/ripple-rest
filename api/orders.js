@@ -32,22 +32,14 @@ const DefaultPageLimit = 200;
  *  @param {RippleAddress} request.params.account  - The ripple address to query orders
  *
  */
-function getOrders(request, callback) {
-  var options = request.params;
-
-  options.isAggregate = request.query.limit === 'all';
-
-  Object.keys(request.query).forEach(function(param) {
-    options[param] = request.query[param];
-  });
-
+function getOrders(account, options, callback) {
   validateOptions(options)
   .then(getAccountOrders)
   .then(respondWithOrders)
   .catch(callback);
 
   function validateOptions(options) {
-    if (!ripple.UInt160.is_valid(options.account)) {
+    if (!ripple.UInt160.is_valid(account)) {
       return Promise.reject(new InvalidRequestError('Parameter is not a valid Ripple address: account'));
     }
 
@@ -70,13 +62,13 @@ function getOrders(request, callback) {
         limit  = prevResult.limit;
         ledger = prevResult.ledger_index;
       } else {
-        marker = request.query.marker;
-        limit  = validator.isValid(request.query.limit, 'UINT32') ? Number(request.query.limit) : DefaultPageLimit;
-        ledger = utils.parseLedger(request.query.ledger);
+        marker = options.marker;
+        limit  = validator.isValid(options.limit, 'UINT32') ? Number(options.limit) : DefaultPageLimit;
+        ledger = utils.parseLedger(options.ledger);
       }
 
       accountOrdersRequest = remote.requestAccountOffers({
-        account: options.account,
+        account: account,
         marker: marker,
         limit: limit,
         ledger: ledger
