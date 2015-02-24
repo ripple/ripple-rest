@@ -5,7 +5,7 @@ module.exports = {
   generate: generate
 };
 
-function generate(request, callback) {
+function generate(callback) {
   var wallet = Wallet.generate();
   if (wallet) {
     callback(null, {wallet: wallet});
