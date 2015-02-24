@@ -489,63 +489,56 @@ function getAccountPayments(account, source_account, destination_account,
  *  @param {RippleAddress} req.params.destination_account
  *  @param {Amount "1+USD+r..."} req.params.destination_amount_string
  */
-function getPathFind(request, callback) {
-
-  // Parse and validate parameters
-  var params = {
-    source_account: request.params.account,
-    destination_account: request.params.destination_account,
-    destination_amount: {},
-    source_currencies: []
-  };
-
-  if (!params.source_account) {
+function getPathFind(source_account, destination_account,
+    destination_amount_string, source_currency_strings, callback) {
+  if (!source_account) {
     callback(new InvalidRequestError('Missing parameter: source_account. Must be a valid Ripple address'));
     return;
   }
 
-  if (!params.destination_account) {
+  if (!destination_account) {
     callback(new InvalidRequestError('Missing parameter: destination_account. Must be a valid Ripple address'));
     return;
   }
 
-  if (!ripple.UInt160.is_valid(params.source_account)) {
+  if (!ripple.UInt160.is_valid(source_account)) {
     return callback(new errors.InvalidRequestError('Parameter is not a valid Ripple address: account'));
   }
 
-  if (!ripple.UInt160.is_valid(params.destination_account)) {
+  if (!ripple.UInt160.is_valid(destination_account)) {
     return callback(new errors.InvalidRequestError('Parameter is not a valid Ripple address: destination_account'));
   }
 
   // Parse destination amount
-  if (!request.params.destination_amount_string) {
+  if (!destination_amount_string) {
     callback(new InvalidRequestError('Missing parameter: destination_amount. Must be an amount string in the form value+currency+counterparty'));
     return;
   }
 
-  params.destination_amount = utils.parseCurrencyQuery(request.params.destination_amount_string);
+  var destination_amount = utils.parseCurrencyQuery(destination_amount_string);
 
-  if (!ripple.UInt160.is_valid(params.source_account)) {
+  if (!ripple.UInt160.is_valid(source_account)) {
     callback(new InvalidRequestError('Invalid parameter: source_account. Must be a valid Ripple address'));
     return;
   }
 
-  if (!ripple.UInt160.is_valid(params.destination_account)){
+  if (!ripple.UInt160.is_valid(destination_account)){
     callback(new InvalidRequestError('Invalid parameter: destination_account. Must be a valid Ripple address'));
     return;
   }
 
-  if (!validator.isValid(params.destination_amount, 'Amount')) {
+  if (!validator.isValid(destination_amount, 'Amount')) {
     callback(new InvalidRequestError('Invalid parameter: destination_amount. Must be an amount string in the form value+currency+counterparty'));
     return;
   }
 
+  var source_currencies = [];
   // Parse source currencies
   // Note that the source_currencies should be in the form
   // "USD r...,BTC,XRP". The counterparty is optional but if provided should be
   // separated from the currency by a single space.
-  if (request.query.source_currencies) {
-    var sourceCurrencyStrings = request.query.source_currencies.split(',');
+  if (source_currency_strings) {
+    var sourceCurrencyStrings = source_currency_strings.split(',');
     for (var c = 0; c < sourceCurrencyStrings.length; c++) {
       // Remove leading and trailing spaces
       sourceCurrencyStrings[c] = sourceCurrencyStrings[c].replace(/(^[ ])|([ ]$)/g, '');
@@ -557,14 +550,14 @@ function getPathFind(request, callback) {
           issuer: currencyCounterpartyArray[1]
         };
         if (validator.isValid(currencyObject.currency, 'Currency') && ripple.UInt160.is_valid(currencyObject.issuer)) {
-          params.source_currencies.push(currencyObject);
+          source_currencies.push(currencyObject);
         } else {
           callback(new InvalidRequestError('Invalid parameter: source_currencies. Must be a list of valid currencies'));
           return;
         }
       } else {
         if (validator.isValid(sourceCurrencyStrings[c], 'Currency')) {
-          params.source_currencies.push({ currency: sourceCurrencyStrings[c] });
+          source_currencies.push({ currency: sourceCurrencyStrings[c] });
         } else {
           callback(new InvalidRequestError('Invalid parameter: source_currencies. Must be a list of valid currencies'));
           return;
@@ -575,9 +568,9 @@ function getPathFind(request, callback) {
 
   function prepareOptions(callback) {
     var pathfindParams = {
-      src_account: params.source_account,
-      dst_account: params.destination_account,
-      dst_amount: utils.txFromRestAmount(params.destination_amount)
+      src_account: source_account,
+      dst_account: destination_account,
+      dst_amount: utils.txFromRestAmount(destination_amount)
     };
     if (typeof pathfindParams.dst_amount === 'object' && !pathfindParams.dst_amount.issuer) {
       // Convert blank issuer to sender's address (Ripple convention for 'any issuer')
@@ -586,8 +579,8 @@ function getPathFind(request, callback) {
 
       pathfindParams.dst_amount.issuer = pathfindParams.dst_account;
     }
-    if (params.source_currencies.length > 0) {
-      pathfindParams.src_currencies = params.source_currencies;
+    if (source_currencies.length > 0) {
+      pathfindParams.src_currencies = source_currencies;
     }
     callback(null, pathfindParams);
   };
@@ -644,10 +637,10 @@ function getPathFind(request, callback) {
     if (pathfindResults.alternatives && pathfindResults.alternatives.length > 0) {
       return TxToRestConverter.parsePaymentsFromPathFind(pathfindResults, callback);
     }
-    if (pathfindResults.destination_currencies.indexOf(params.destination_amount.currency) === -1) {
+    if (pathfindResults.destination_currencies.indexOf(destination_amount.currency) === -1) {
       callback(new NotFoundError('No paths found. ' +
         'The destination_account does not accept ' +
-        params.destination_amount.currency +
+        destination_amount.currency +
         ', they only accept: ' +
         pathfindResults.destination_currencies.join(', ')));
 

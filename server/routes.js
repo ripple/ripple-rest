@@ -78,10 +78,10 @@ function getPayment(request, callback) {
 function getPathFind(request, callback) {
   const source_account = request.params.account;
   const destination_account = request.params.destination_account;
-  const destination_amount = request.params.destination_amount_string;
-  const source_currencies = request.query.source_currencies;
+  const destination_amount_string = request.params.destination_amount_string;
+  const source_currency_strings = request.query.source_currencies;
   api.payments.getPathFind(source_account, destination_account,
-    destination_amount, source_currencies, callback);
+    destination_amount_string, source_currency_strings, callback);
 }
 
 function getOrders(request, callback) {
@@ -205,7 +205,7 @@ module.exports = {
     '/wallet/new': makeMiddleware(generateWallet),
     '/accounts/:account/payments': makeMiddleware(getAccountPayments),
     '/accounts/:account/payments/:identifier': makeMiddleware(getPayment),
-    '/accounts/:account/payments/paths/:destination_account/:destination_amount_string': api.payments.getPathFind,
+    '/accounts/:account/payments/paths/:destination_account/:destination_amount_string': makeMiddleware(getPathFind),
     '/accounts/:account/orders': api.orders.getOrders,
     '/accounts/:account/order_book/:base/:counter': api.orders.getOrderBook,
     '/accounts/:account/orders/:identifier': api.orders.getOrder,
