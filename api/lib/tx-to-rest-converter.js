@@ -8,18 +8,6 @@ var parseOrderBookChanges = require('ripple-lib-transactionparser').parseOrderBo
 
 function TxToRestConverter() {};
 
-// This is just to support the legacy naming of "counterparty", this
-// function should be removed when "issuer" is eliminated
-function renameCounterpartyToIssuer(balanceChanges) {
-  return _.mapValues(balanceChanges, function(changes) {
-    return _.map(changes, function(change) {
-      var converted = _.omit(change, 'counterparty');
-      converted.issuer = change.counterparty;
-      return converted;
-    });
-  });
-}
-
 // Paths
 
 /**

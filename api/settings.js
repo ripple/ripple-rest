@@ -162,7 +162,7 @@ function setTransactionFields(transaction, input, fieldSchema) {
  *
  */
 function getSettings(request, callback) {
-  if (!ripple.UInt160.is_valid(request.param('account'))) {
+  if (!ripple.UInt160.is_valid(request.params.account)) {
     return callback(new errors.InvalidRequestError('Parameter is not a valid Ripple address: account'));
   }
 
