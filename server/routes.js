@@ -203,7 +203,7 @@ module.exports = {
     '/transaction-fee': makeMiddleware(getFee),
     '/server': makeMiddleware(getServerStatus),
     '/wallet/new': makeMiddleware(generateWallet),
-    '/accounts/:account/payments': api.payments.getAccountPayments,
+    '/accounts/:account/payments': makeMiddleware(getAccountPayments),
     '/accounts/:account/payments/:identifier': api.payments.get,
     '/accounts/:account/payments/paths/:destination_account/:destination_amount_string': api.payments.getPathFind,
     '/accounts/:account/orders': api.orders.getOrders,

@@ -390,26 +390,18 @@ function formatPaymentHelper(account, transaction, callback) {
  *  @param {Number} [20] req.query.results_per_page
  *  @param {Number} [1] req.query.page
  */
-function getAccountPayments(request, callback) {
-  var options;
+function getAccountPayments(account, source_account, destination_account,
+    direction, options, callback) {
 
   function getTransactions(callback) {
-    options = {
-      account: request.params.account,
-      source_account: request.query.source_account,
-      destination_account: request.query.destination_account,
-      direction: request.query.direction,
-      ledger_index_min: request.query.start_ledger,
-      ledger_index_max: request.query.end_ledger,
-      earliest_first: (request.query.earliest_first === 'true'),
-      exclude_failed: (request.query.exclude_failed === 'true'),
-      min: request.query.results_per_page,
-      max: request.query.results_per_page,
-      offset: (request.query.results_per_page || DEFAULT_RESULTS_PER_PAGE) * ((request.query.page || 1) - 1),
-      types: [ 'payment' ]
+    var args = {
+      account: account,
+      source_account: source_account,
+      destination_account: destination_account,
+      direction: direction,
     };
 
-    transactions.getAccountTransactions(options, callback);
+    transactions.getAccountTransactions(_.merge(options, args), callback);
   };
 
   function attachDate(transactions, callback) {
@@ -418,8 +410,8 @@ function getAccountPayments(request, callback) {
     });
 
     async.each(_.keys(groupedTx), function(ledger, next) {
-      remote.requestLedger({ 
-        ledger_index: Number(ledger) 
+      remote.requestLedger({
+        ledger_index: Number(ledger)
       }, function(err, data) {
         if (err) {
           return next(err);
@@ -446,7 +438,7 @@ function getAccountPayments(request, callback) {
     } else {
       async.map(transactions,
         function (transaction, async_map_callback) {
-          return formatPaymentHelper(options.account, transaction, async_map_callback);
+          return formatPaymentHelper(account, transaction, async_map_callback);
         },
         callback
       );
