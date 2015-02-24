@@ -30,7 +30,7 @@ function getServerConnected(request, callback) {
  * Get UUID, for use by the client as transaction identifier
  */
 
-function getUUID(request, callback) {
+function getUUID(callback) {
   callback(null, { uuid: uuid.v4() });
 };
 

@@ -194,7 +194,7 @@ function cancelOrder(request, callback) {
 
 module.exports = {
   GET: {
-    '/uuid': api.info.uuid,
+    '/uuid': makeMiddleware(getUUID),
     '/server/connected': api.info.isConnected,
     '/transaction-fee': api.info.fee,
     '/server': api.info.serverStatus,

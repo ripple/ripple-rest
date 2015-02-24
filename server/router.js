@@ -50,7 +50,9 @@ function connectRoutes(routeMap) {
   };
   _.forIn(methods, function(connector, method) {
     _.forIn(routeMap[method] || {}, function(callback, url) {
-      connector.call(router, url, wrapper(callback, method, url));
+      var handler = (callback.length === 3) ?
+        callback : wrapper(callback, method, url);
+      connector.call(router, url, handler);
     });
   });
 }
