@@ -35,7 +35,7 @@ const DefaultPageLimit = 200;
 function getOrders(request, callback) {
   var options = request.params;
 
-  options.isAggregate = request.param('limit') === 'all';
+  options.isAggregate = request.query.limit === 'all';
 
   Object.keys(request.query).forEach(function(param) {
     options[param] = request.query[param];

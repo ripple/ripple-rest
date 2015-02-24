@@ -34,8 +34,8 @@ function getBalances(request, callback) {
     currency: request.query.currency,
     counterparty: request.query.counterparty,
     frozen: request.query.frozen === 'true',
-    isAggregate: request.param('limit') === 'all',
-    ledger: utils.parseLedger(request.param('ledger'))
+    isAggregate: request.query.limit === 'all',
+    ledger: utils.parseLedger(request.params.ledger)
   };
 
   var currencyRE = new RegExp(options.currency ? ('^' + options.currency.toUpperCase() + '$') : /./);
