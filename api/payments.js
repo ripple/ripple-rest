@@ -251,26 +251,21 @@ function submitPayment(request, callback) {
  *  @param {RippleAddress} req.params.account
  *  @param {Hex-encoded String|ASCII printable character String} req.params.identifier
  */
-function getPayment(request, callback) {
-  var options = {
-    account: request.params.account,
-    identifier: request.params.identifier
-  };
-
+function getPayment(account, identifier, callback) {
   function validateOptions(callback) {
     var invalid;
-    if (!options.account) {
+    if (!account) {
       invalid = 'Missing parameter: account. Must provide account to get payment details';
     }
-    if (!ripple.UInt160.is_valid(options.account)) {
+    if (!ripple.UInt160.is_valid(account)) {
       invalid = 'Parameter is not a valid Ripple address: account';
     }
-    if (!options.identifier) {
+    if (!identifier) {
       invalid = 'Missing parameter: hash or client_resource_id. '+
         'Must provide transaction hash or client_resource_id to get payment details';
     }
-    if (!validator.isValid(options.identifier, 'Hash256') &&
-      !validator.isValid(options.identifier, 'ResourceId')) {
+    if (!validator.isValid(identifier, 'Hash256') &&
+      !validator.isValid(identifier, 'ResourceId')) {
         invalid = 'Invalid Parameter: hash or client_resource_id. ' +
         'Must provide a transaction hash or client_resource_id to get payment details';
     }
@@ -283,7 +278,7 @@ function getPayment(request, callback) {
 
   // If the transaction was not in the outgoing_transactions db, get it from rippled
   function getTransaction(callback) {
-    transactions.getTransaction(request.params.account, request.params.identifier, function(error, transaction) {
+    transactions.getTransaction(account, identifier, function(error, transaction) {
       callback(error, transaction);
     });
   };
@@ -293,7 +288,7 @@ function getPayment(request, callback) {
     validateOptions,
     getTransaction,
     function (transaction, callback) {
-      return formatPaymentHelper(options.account, transaction, callback);
+      return formatPaymentHelper(account, transaction, callback);
     }
   ];
 

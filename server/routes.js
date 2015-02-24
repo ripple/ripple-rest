@@ -204,7 +204,7 @@ module.exports = {
     '/server': makeMiddleware(getServerStatus),
     '/wallet/new': makeMiddleware(generateWallet),
     '/accounts/:account/payments': makeMiddleware(getAccountPayments),
-    '/accounts/:account/payments/:identifier': api.payments.get,
+    '/accounts/:account/payments/:identifier': makeMiddleware(getPayment),
     '/accounts/:account/payments/paths/:destination_account/:destination_amount_string': api.payments.getPathFind,
     '/accounts/:account/orders': api.orders.getOrders,
     '/accounts/:account/order_book/:base/:counter': api.orders.getOrderBook,
