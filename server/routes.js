@@ -100,7 +100,7 @@ function getOrderBook(request, callback) {
   const base = request.params.base;
   const counter = request.params.counter;
   const options = {
-    limit: request.params.limit
+    limit: request.query.limit
   };
   api.orders.getOrderBook(account, base, counter, options, callback);
 }
@@ -210,7 +210,8 @@ module.exports = {
     '/accounts/:account/payments/:identifier': makeMiddleware(getPayment),
     '/accounts/:account/payments/paths/:destination_account/:destination_amount_string': makeMiddleware(getPathFind),
     '/accounts/:account/orders': makeMiddleware(getOrders),
-    '/accounts/:account/order_book/:base/:counter': api.orders.getOrderBook,
+    '/accounts/:account/order_book/:base/:counter':
+      makeMiddleware(getOrderBook),
     '/accounts/:account/orders/:identifier': api.orders.getOrder,
     '/accounts/:account/notifications': api.notifications.getNotification,
     '/accounts/:account/notifications/:identifier':

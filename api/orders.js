@@ -286,78 +286,79 @@ function cancelOrder(request, callback) {
  *
  *  @param {Express.js Request} request
  */
-function getOrderBook(request, callback) {
-  var options = request.params;
-
-  Object.keys(request.query).forEach(function(param) {
-    options[param] = request.query[param];
-  });
-
-  parseOptions(options)
-  .then(validateOptions)
+function getOrderBook(account, base, counter, options, callback) {
+  parseParameters()
+  .then(validateParameters)
   .then(getLastValidatedLedger)
   .then(getBidsAndAsks)
   .spread(respondWithOrderBook)
   .catch(callback);
 
-  function parseOptions(options) {
-    options.validated  = true;
-    options.order_book = options.base + '/' + options.counter;
-    options.base       = utils.parseCurrencyQuery(options.base);
-    options.counter    = utils.parseCurrencyQuery(options.counter);
+  function parseParameters() {
+    var parameters = _.merge(options, {
+      validated: true,
+      order_book: base + '/' + counter,
+      base: utils.parseCurrencyQuery(base),
+      counter: utils.parseCurrencyQuery(counter)
+    });
 
-    return Promise.resolve(options);
+    return Promise.resolve(parameters);
   }
 
-  function validateOptions(options) {
+  function validateParameters(parameters) {
     return new Promise(function(resolve, reject) {
-      if (!ripple.UInt160.is_valid(options.account)) {
+      if (!ripple.UInt160.is_valid(account)) {
         reject(new InvalidRequestError('Parameter is not a valid Ripple address: account'));
       }
 
-      if (!options.base.currency) {
+      if (!parameters.base.currency) {
         reject(new InvalidRequestError('Invalid parameter: base. Must be a currency string in the form currency+counterparty'));
       }
 
-      if (!validator.isValid(options.base.currency, 'Currency')) {
+      if (!validator.isValid(parameters.base.currency, 'Currency')) {
         reject(new InvalidRequestError('Invalid parameter: base. Must be a currency string in the form currency+counterparty'));
       }
 
-      if (options.base.currency !== 'XRP' && (!options.base.counterparty || !ripple.UInt160.is_valid(options.base.counterparty))) {
+      if (parameters.base.currency !== 'XRP'
+          && (!parameters.base.counterparty
+              || !ripple.UInt160.is_valid(parameters.base.counterparty))) {
         reject(new InvalidRequestError('Invalid parameter: base. Must be a currency string in the form currency+counterparty'));
       }
 
-      if (!options.counter.currency) {
+      if (!parameters.counter.currency) {
         reject(new InvalidRequestError('Invalid parameter: counter. Must be a currency string in the form currency+counterparty'));
       }
 
-      if (!validator.isValid(options.counter.currency, 'Currency')) {
+      if (!validator.isValid(parameters.counter.currency, 'Currency')) {
         reject(new InvalidRequestError('Invalid parameter: counter. Must be a currency string in the form currency+counterparty'));
       }
 
-      if (options.counter.currency !== 'XRP' && (!options.counter.counterparty || !ripple.UInt160.is_valid(options.counter.counterparty))) {
+      if (parameters.counter.currency !== 'XRP'
+          && (!parameters.counter.counterparty
+              || !ripple.UInt160.is_valid(parameters.counter.counterparty))) {
         reject(new InvalidRequestError('Invalid parameter: counter. Must be a currency string in the form currency+counterparty'));
       }
 
-      if (options.counter.currency === 'XRP' && options.counter.counterparty) {
+      if (parameters.counter.currency === 'XRP'
+          && parameters.counter.counterparty) {
         reject(new InvalidRequestError('Invalid parameter: counter. XRP cannot have counterparty'));
       }
 
-      if (options.base.currency === 'XRP' && options.base.counterparty) {
+      if (parameters.base.currency === 'XRP' && parameters.base.counterparty) {
         reject(new InvalidRequestError('Invalid parameter: base. XRP cannot have counterparty'));
       }
 
-      resolve(options);
+      resolve(parameters);
     });
   }
 
-  function getLastValidatedLedger(options) {
+  function getLastValidatedLedger(parameters) {
     var promise = new Promise(function (resolve, reject) {
       var ledgerRequest = remote.requestLedger('validated');
 
       ledgerRequest.once('success', function(res) {
-        options.ledger = res.ledger.ledger_index;
-        resolve(options);
+        parameters.ledger = res.ledger.ledger_index;
+        resolve(parameters);
       });
 
       ledgerRequest.once('error', reject);
@@ -367,14 +368,14 @@ function getOrderBook(request, callback) {
     return promise;
   }
 
-  function getBookOffers(taker_gets, taker_pays, options) {
+  function getBookOffers(taker_gets, taker_pays, parameters) {
     var promise = new Promise(function (resolve, reject) {
       var bookOffersRequest = remote.requestBookOffers({
         taker_gets: { currency: taker_gets.currency, issuer: taker_gets.counterparty },
         taker_pays: { currency: taker_pays.currency, issuer: taker_pays.counterparty },
-        ledger: options.ledger,
-        limit: options.limit,
-        taker: options.account
+        ledger: parameters.ledger,
+        limit: parameters.limit,
+        taker: account
       });
 
       bookOffersRequest.once('success', resolve);
@@ -385,36 +386,36 @@ function getOrderBook(request, callback) {
     return promise;
   }
 
-  function getBids(options) {
-    var taker_gets = options.counter;
-    var taker_pays = options.base;
+  function getBids(parameters) {
+    var taker_gets = parameters.counter;
+    var taker_pays = parameters.base;
 
-    return getBookOffers(taker_gets, taker_pays, options);
+    return getBookOffers(taker_gets, taker_pays, parameters);
   }
 
-  function getAsks(options) {
-    var taker_gets = options.base;
-    var taker_pays = options.counter;
+  function getAsks(parameters) {
+    var taker_gets = parameters.base;
+    var taker_pays = parameters.counter;
 
-    return getBookOffers(taker_gets, taker_pays, options);
+    return getBookOffers(taker_gets, taker_pays, parameters);
   }
 
-  function getBidsAndAsks(options) {
+  function getBidsAndAsks(parameters) {
     return Promise.join(
-      getBids(options),
-      getAsks(options),
+      getBids(parameters),
+      getAsks(parameters),
       function(bids, asks) {
-        return [bids,asks, options];
+        return [bids,asks, parameters];
       }
     );
   }
 
-  function respondWithOrderBook(bids, asks, options) {
+  function respondWithOrderBook(bids, asks, parameters) {
     var promise = new Promise(function (resolve, reject) {
       var orderBook = {
-        order_book: options.order_book,
-        ledger: options.ledger,
-        validated: options.validated,
+        order_book: parameters.order_book,
+        ledger: parameters.ledger,
+        validated: parameters.validated,
         bids:  getParsedBookOffers(bids.offers),
         asks:  getParsedBookOffers(asks.offers, true)
       };
