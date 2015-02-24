@@ -213,9 +213,9 @@ module.exports = {
     '/accounts/:account/order_book/:base/:counter':
       makeMiddleware(getOrderBook),
     '/accounts/:account/orders/:identifier': makeMiddleware(getOrder),
-    '/accounts/:account/notifications': api.notifications.getNotification,
+    '/accounts/:account/notifications': makeMiddleware(getNotification),
     '/accounts/:account/notifications/:identifier':
-      api.notifications.getNotification,
+      makeMiddleware(getNotification),
     '/accounts/:account/balances': api.balances.get,
     '/accounts/:account/settings': api.settings.get,
     '/transactions/:identifier': api.transactions.get,
