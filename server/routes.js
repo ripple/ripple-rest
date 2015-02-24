@@ -41,6 +41,10 @@ function getFee(request, callback) {
   api.info.fee(callback);
 }
 
+function getServerStatus(request, callback) {
+  api.info.serverStatus(callback);
+}
+
 function generateWallet(request, callback) {
   api.wallet.generate(callback);
 }
@@ -195,9 +199,9 @@ function cancelOrder(request, callback) {
 module.exports = {
   GET: {
     '/uuid': makeMiddleware(getUUID),
-    '/server/connected': api.info.isConnected,
-    '/transaction-fee': api.info.fee,
-    '/server': api.info.serverStatus,
+    '/server/connected': makeMiddleware(isConnected),
+    '/transaction-fee': makeMiddleware(getFee),
+    '/server': makeMiddleware(getServerStatus),
     '/wallet/new': api.wallet.generate,
     '/accounts/:account/payments': api.payments.getAccountPayments,
     '/accounts/:account/payments/:identifier': api.payments.get,

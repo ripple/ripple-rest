@@ -5,7 +5,7 @@ var remote    = require('./lib/remote.js');
 var errors    = require('./lib/errors.js');
 var utils     = require('./lib/utils.js');
 
-function getServerStatus(request, callback) {
+function getServerStatus(callback) {
   serverlib.getStatus(remote, function(error, status) {
     if (error) {
       callback(new errors.RippledNetworkError(error.message));
@@ -22,7 +22,7 @@ function getServerStatus(request, callback) {
  *  connected, as per middleware
  */
 
-function getServerConnected(request, callback) {
+function getServerConnected(callback) {
   callback(null, { connected: true });
 };
 
@@ -38,7 +38,7 @@ function getUUID(callback) {
  * Get the current transaction fee
  */
 
-function getFee(request, callback) {
+function getFee(callback) {
   var fee = remote.createTransaction()._computeFee();
   callback(null, { fee: utils.dropsToXrp(fee) });
 };
