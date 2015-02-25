@@ -41,24 +41,24 @@ function getBalances(account, options, callback) {
   const currencyRE = new RegExp(options.currency ?
     ('^' + options.currency.toUpperCase() + '$') : /./);
 
-  getAccountBalances(options)
+  getAccountBalances()
   .then(respondWithBalances)
   .catch(callback)
 
-  function getAccountBalances(options) {
+  function getAccountBalances() {
     if (options.counterparty || options.frozen) {
-      return getLineBalances(options);
+      return getLineBalances();
     }
 
     if (options.currency) {
       if (options.currency === 'XRP') {
-        return getXRPBalance(options);
+        return getXRPBalance();
       } else {
-        return getLineBalances(options);
+        return getLineBalances();
       }
     }
 
-    return Promise.all([getXRPBalance(options), getLineBalances(options)])
+    return Promise.all([getXRPBalance(), getLineBalances()])
     .then(function(values) {
       const xrpBalance = values[0].lines[0];
       var lineBalances = values[1];
@@ -67,7 +67,7 @@ function getBalances(account, options, callback) {
     });
   }
 
-  function getXRPBalance(options) {
+  function getXRPBalance() {
     var promise = new Promise(function(resolve, reject) {
       var accountInfoRequest = remote.requestAccountInfo({
         account: account,
@@ -93,7 +93,7 @@ function getBalances(account, options, callback) {
     return promise;
   };
 
-  function getLineBalances(options, prevResult) {
+  function getLineBalances(prevResult) {
     const isAggregate = options.limit === 'all';
     if (prevResult && (!isAggregate || !prevResult.marker)) {
       return Promise.resolve(prevResult)
@@ -146,12 +146,12 @@ function getBalances(account, options, callback) {
         });
 
         nextResult.lines = prevResult ? prevResult.lines.concat(lines) : lines;
-        resolve([options, nextResult]);
+        resolve(nextResult);
       });
       accountLinesRequest.request();
     });
 
-    return promise.spread(getLineBalances);
+    return promise.then(getLineBalances);
   };
 
   function respondWithBalances(result) {
