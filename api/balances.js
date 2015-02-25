@@ -5,6 +5,7 @@ var remote    = require('./lib/remote.js');
 var utils     = require('./lib/utils');
 var errors    = require('./lib/errors.js');
 var validator = require('./lib/schema-validator.js');
+var validate  = require('./lib/validate');
 
 var InvalidRequestError = errors.InvalidRequestError;
 const DefaultPageLimit = 200;
@@ -29,27 +30,20 @@ const DefaultPageLimit = 200;
  *
  */
 function getBalances(account, options, callback) {
-  var currencyRE = new RegExp(options.currency ?
+  if(validate.fail([
+    validate.account(account),
+    validate.currency(options.currency, true),
+    validate.counterparty(options.counterparty, true)
+  ], callback)) {
+    return;
+  }
+
+  const currencyRE = new RegExp(options.currency ?
     ('^' + options.currency.toUpperCase() + '$') : /./);
 
-  validateOptions(options)
-  .then(getAccountBalances)
+  getAccountBalances(options)
   .then(respondWithBalances)
   .catch(callback)
-
-  function validateOptions(options) {
-    if (!ripple.UInt160.is_valid(account)) {
-      return Promise.reject(new InvalidRequestError('Parameter is not a valid Ripple address: account'));
-    }
-    if (options.counterparty && !ripple.UInt160.is_valid(options.counterparty)) {
-      return Promise.reject(new InvalidRequestError('Parameter is not a valid Ripple address: counterparty'));
-    }
-    if (options.currency && !validator.isValid(options.currency, 'Currency')) {
-      return Promise.reject(new InvalidRequestError('Parameter is not a valid currency: currency'));
-    }
-
-    return Promise.resolve(options);
-  };
 
   function getAccountBalances(options) {
     if (options.counterparty || options.frozen) {
