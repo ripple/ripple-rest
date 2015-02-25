@@ -119,15 +119,15 @@ function getNotification(request, callback) {
 
 function getBalances(request, callback) {
   const account = request.params.account;
-  const currency = request.query.currency;
-  const counterparty = request.query.counterparty;
   const options = {
+    currency: request.query.currency,
+    counterparty: request.query.counterparty,
     frozen: request.query.frozen === 'true',
     limit: request.query.limit,
     ledger: request.query.ledger,
     marker: request.query.marker
   };
-  api.balances.get(account, currency, counterparty, options, callback);
+  api.balances.get(account, options, callback);
 }
 
 function getSettings(request, callback) {

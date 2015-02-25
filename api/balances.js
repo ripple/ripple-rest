@@ -28,19 +28,18 @@ const DefaultPageLimit = 200;
  *  @param {Number String} [request.query.ledger] - identifier
  *
  */
-function getBalances(account, currency, counterparty, options, callback) {
+function getBalances(account, options, callback) {
   var parameters = {
-    account: account,
-    currency: currency,
-    counterparty: counterparty,
+    currency: options.currency,
+    counterparty: options.counterparty,
     frozen: options.frozen,
     limit: options.limit,
     ledger: utils.parseLedger(options.ledger),
     marker: options.marker
   };
 
-  var currencyRE = new RegExp(currency ?
-    ('^' + currency.toUpperCase() + '$') : /./);
+  var currencyRE = new RegExp(options.currency ?
+    ('^' + options.currency.toUpperCase() + '$') : /./);
 
   validateOptions(parameters)
   .then(getAccountBalances)
@@ -48,7 +47,7 @@ function getBalances(account, currency, counterparty, options, callback) {
   .catch(callback)
 
   function validateOptions(parameters) {
-    if (!ripple.UInt160.is_valid(parameters.account)) {
+    if (!ripple.UInt160.is_valid(account)) {
       return Promise.reject(new InvalidRequestError('Parameter is not a valid Ripple address: account'));
     }
     if (parameters.counterparty && !ripple.UInt160.is_valid(parameters.counterparty)) {
@@ -89,7 +88,7 @@ function getBalances(account, currency, counterparty, options, callback) {
   function getXRPBalance(parameters) {
     var promise = new Promise(function(resolve, reject) {
       var accountInfoRequest = remote.requestAccountInfo({
-        account: parameters.account,
+        account: account,
         ledger: parameters.ledger
       });
 
@@ -136,7 +135,7 @@ function getBalances(account, currency, counterparty, options, callback) {
       }
 
       accountLinesRequest = remote.requestAccountLines({
-        account: parameters.account,
+        account: account,
         marker: marker,
         limit: limit,
         ledger: ledger
