@@ -161,12 +161,12 @@ function setTransactionFields(transaction, input, fieldSchema) {
  *  @param {String} request.params.account
  *
  */
-function getSettings(request, callback) {
-  if (!ripple.UInt160.is_valid(request.params.account)) {
+function getSettings(account, callback) {
+  if (!ripple.UInt160.is_valid(account)) {
     return callback(new errors.InvalidRequestError('Parameter is not a valid Ripple address: account'));
   }
 
-  remote.requestAccountInfo({account: request.params.account}, function(error, info) {
+  remote.requestAccountInfo({account: account}, function(error, info) {
     if (error) {
       return callback(error);
     }

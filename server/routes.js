@@ -219,7 +219,7 @@ module.exports = {
     '/accounts/:account/notifications/:identifier':
       makeMiddleware(getNotification),
     '/accounts/:account/balances': makeMiddleware(getBalances),
-    '/accounts/:account/settings': api.settings.get,
+    '/accounts/:account/settings': makeMiddleware(getSettings),
     '/transactions/:identifier': api.transactions.get,
     '/accounts/:account/trustlines': api.trustlines.get
   },
