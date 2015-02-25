@@ -58,14 +58,11 @@ function getBalances(account, options, callback) {
       }
     }
 
-    return getXRPBalance(options)
-    .then(function(XRPResult) {
-      options.XRPLines = XRPResult.lines;
-      return Promise.resolve(options);
-    })
-    .then(getLineBalances)
-    .then(function(lineBalances) {
-      lineBalances.lines.unshift(options.XRPLines[0]);
+    return Promise.all([getXRPBalance(options), getLineBalances(options)])
+    .then(function(values) {
+      const xrpBalance = values[0].lines[0];
+      var lineBalances = values[1];
+      lineBalances.lines.unshift(xrpBalance);
       return Promise.resolve(lineBalances);
     });
   }
