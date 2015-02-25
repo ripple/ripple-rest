@@ -145,12 +145,14 @@ function getTransaction(request, callback) {
 
 function getTrustlines(request, callback) {
   const account = request.params.account;
-  const currency = request.params.currency;
-  const counterparty = request.params.counterparty;
   const options = {
-    isAggregate: request.params.limit === 'all'
+    currency: request.query.currency,
+    counterparty: request.query.counterparty,
+    limit: request.query.limit,
+    ledger: request.query.ledger,
+    marker: request.query.marker
   };
-  api.trustlines.get(account, currency, counterparty, options, callback);
+  api.trustlines.get(account, options, callback);
 }
 
 function submitPayment(request, callback) {
@@ -221,7 +223,7 @@ module.exports = {
     '/accounts/:account/balances': makeMiddleware(getBalances),
     '/accounts/:account/settings': makeMiddleware(getSettings),
     '/transactions/:identifier': makeMiddleware(getTransaction),
-    '/accounts/:account/trustlines': api.trustlines.get
+    '/accounts/:account/trustlines': makeMiddleware(getTrustlines),
   },
   POST: {
     '/accounts/:account/payments': api.payments.submit,

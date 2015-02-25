@@ -9,6 +9,7 @@ var utils                   = require('./lib/utils');
 var errors                  = require('./lib/errors.js');
 var validator               = require('./lib/schema-validator');
 var TxToRestConverter       = require('./lib/tx-to-rest-converter.js');
+var validate                = require('./lib/validate');
 
 const TrustSetFlags = {
   SetAuth:       { name: 'authorized', set: 'SetAuth' },
@@ -36,38 +37,25 @@ const DefaultPageLimit = 200;
  *  @param {Number String} [request.query.ledger] - identifier
  *
  */
+function getTrustLines(account, options, callback) {
+  if(validate.fail([
+    validate.account(account),
+    validate.currency(options.currency, true),
+    validate.counterparty(options.counterparty, true)
+  ], callback)) {
+    return;
+  }
 
-function getTrustLines(request, callback) {
-  var options = request.params;
-  options.isAggregate = request.query.limit === 'all';
+  const currencyRE = new RegExp(options.currency ?
+    ('^' + options.currency.toUpperCase() + '$') : /./);
 
-  Object.keys(request.query).forEach(function(param) {
-    options[param] = request.query[param];
-  });
-
-  validateOptions(options)
-  .then(getAccountLines)
+  getAccountLines()
   .then(respondWithTrustlines)
   .catch(callback);
 
-  var currencyRE = new RegExp(options.currency ? ('^' + options.currency.toUpperCase() + '$') : /./);
-
-  function validateOptions(options) {
-    if (!ripple.UInt160.is_valid(options.account)) {
-      return Promise.reject(new errors.InvalidRequestError('Parameter is not a valid Ripple address: account'));
-    }
-    if (options.counterparty && !ripple.UInt160.is_valid(options.counterparty)) {
-      return Promise.reject(new errors.InvalidRequestError('Parameter is not a valid Ripple address: counterparty'));
-    }
-    if (options.currency && !validator.isValid(options.currency, 'Currency')) {
-      return Promise.reject(new errors.InvalidRequestError('Parameter is not a valid currency: currency'));
-    }
-
-    return Promise.resolve(options);
-  };
-
-  function getAccountLines(options, prevResult) {
-    if (prevResult && (!options.isAggregate || !prevResult.marker)) {
+  function getAccountLines(prevResult) {
+    const isAggregate = options.limit === 'all';
+    if (prevResult && (!isAggregate || !prevResult.marker)) {
       return Promise.resolve(prevResult);
     }
 
@@ -82,13 +70,14 @@ function getTrustLines(request, callback) {
         limit  = prevResult.limit;
         ledger = prevResult.ledger_index;
       } else {
-        marker = request.query.marker;
-        limit  = validator.isValid(request.query.limit, 'UINT32') ? Number(request.query.limit) : DefaultPageLimit;
-        ledger = utils.parseLedger(request.query.ledger);
+        marker = options.marker;
+        limit  = validator.isValid(options.limit, 'UINT32')
+          ? Number(options.limit) : DefaultPageLimit;
+        ledger = utils.parseLedger(options.ledger);
       }
 
       accountLinesRequest = remote.requestAccountLines({
-        account: options.account,
+        account: account,
         marker: marker,
         limit: limit,
         ledger: ledger
@@ -105,7 +94,7 @@ function getTrustLines(request, callback) {
         nextResult.lines.forEach(function(line) {
           if (!currencyRE.test(line.currency)) return;
           lines.push({
-            account: options.account,
+            account: account,
             counterparty: line.account,
             currency: line.currency,
             limit: line.limit,
@@ -118,7 +107,7 @@ function getTrustLines(request, callback) {
         });
 
         nextResult.lines = prevResult ? prevResult.lines.concat(lines) : lines;
-        resolve([options, nextResult]);
+        resolve([nextResult]);
       });
       accountLinesRequest.request();
     });
