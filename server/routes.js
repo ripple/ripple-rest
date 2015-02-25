@@ -220,7 +220,7 @@ module.exports = {
       makeMiddleware(getNotification),
     '/accounts/:account/balances': makeMiddleware(getBalances),
     '/accounts/:account/settings': makeMiddleware(getSettings),
-    '/transactions/:identifier': api.transactions.get,
+    '/transactions/:identifier': makeMiddleware(getTransaction),
     '/accounts/:account/trustlines': api.trustlines.get
   },
   POST: {

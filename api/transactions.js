@@ -196,8 +196,8 @@ function setTransactionBitFlags(transaction, options) {
  *
  *  See getTransaction for parameter details
  */
-function getTransactionAndRespond(request, callback) {
-  getTransaction(request.params.account, request.params.identifier, function(error, transaction) {
+function getTransactionAndRespond(account, identifier, callback) {
+  getTransaction(account, identifier, function(error, transaction) {
     if (error) {
       callback(error);
     } else {
