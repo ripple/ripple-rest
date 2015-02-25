@@ -29,67 +29,58 @@ const DefaultPageLimit = 200;
  *
  */
 function getBalances(account, options, callback) {
-  var parameters = {
-    currency: options.currency,
-    counterparty: options.counterparty,
-    frozen: options.frozen,
-    limit: options.limit,
-    ledger: utils.parseLedger(options.ledger),
-    marker: options.marker
-  };
-
   var currencyRE = new RegExp(options.currency ?
     ('^' + options.currency.toUpperCase() + '$') : /./);
 
-  validateOptions(parameters)
+  validateOptions(options)
   .then(getAccountBalances)
   .then(respondWithBalances)
   .catch(callback)
 
-  function validateOptions(parameters) {
+  function validateOptions(options) {
     if (!ripple.UInt160.is_valid(account)) {
       return Promise.reject(new InvalidRequestError('Parameter is not a valid Ripple address: account'));
     }
-    if (parameters.counterparty && !ripple.UInt160.is_valid(parameters.counterparty)) {
+    if (options.counterparty && !ripple.UInt160.is_valid(options.counterparty)) {
       return Promise.reject(new InvalidRequestError('Parameter is not a valid Ripple address: counterparty'));
     }
-    if (parameters.currency && !validator.isValid(parameters.currency, 'Currency')) {
+    if (options.currency && !validator.isValid(options.currency, 'Currency')) {
       return Promise.reject(new InvalidRequestError('Parameter is not a valid currency: currency'));
     }
 
-    return Promise.resolve(parameters);
+    return Promise.resolve(options);
   };
 
-  function getAccountBalances(parameters) {
-    if (parameters.counterparty || parameters.frozen) {
-      return getLineBalances(parameters);
+  function getAccountBalances(options) {
+    if (options.counterparty || options.frozen) {
+      return getLineBalances(options);
     }
 
-    if (parameters.currency) {
-      if (parameters.currency === 'XRP') {
-        return getXRPBalance(parameters);
+    if (options.currency) {
+      if (options.currency === 'XRP') {
+        return getXRPBalance(options);
       } else {
-        return getLineBalances(parameters);
+        return getLineBalances(options);
       }
     }
 
-    return getXRPBalance(parameters)
+    return getXRPBalance(options)
     .then(function(XRPResult) {
-      parameters.XRPLines = XRPResult.lines;
-      return Promise.resolve(parameters);
+      options.XRPLines = XRPResult.lines;
+      return Promise.resolve(options);
     })
     .then(getLineBalances)
     .then(function(lineBalances) {
-      lineBalances.lines.unshift(parameters.XRPLines[0]);
+      lineBalances.lines.unshift(options.XRPLines[0]);
       return Promise.resolve(lineBalances);
     });
   }
 
-  function getXRPBalance(parameters) {
+  function getXRPBalance(options) {
     var promise = new Promise(function(resolve, reject) {
       var accountInfoRequest = remote.requestAccountInfo({
         account: account,
-        ledger: parameters.ledger
+        ledger: utils.parseLedger(options.ledger)
       });
 
       var lines = [];
@@ -111,8 +102,8 @@ function getBalances(account, options, callback) {
     return promise;
   };
 
-  function getLineBalances(parameters, prevResult) {
-    const isAggregate = parameters.limit === 'all';
+  function getLineBalances(options, prevResult) {
+    const isAggregate = options.limit === 'all';
     if (prevResult && (!isAggregate || !prevResult.marker)) {
       return Promise.resolve(prevResult)
     }
@@ -128,10 +119,10 @@ function getBalances(account, options, callback) {
         limit  = prevResult.limit;
         ledger = prevResult.ledger_index;
       } else {
-        marker = parameters.marker;
-        limit  = validator.isValid(parameters.limit, 'UINT32')
-          ? Number(parameters.limit) : DefaultPageLimit;
-        ledger = utils.parseLedger(parameters.ledger);
+        marker = options.marker;
+        limit  = validator.isValid(options.limit, 'UINT32')
+          ? Number(options.limit) : DefaultPageLimit;
+        ledger = utils.parseLedger(options.ledger);
       }
 
       accountLinesRequest = remote.requestAccountLines({
@@ -141,8 +132,8 @@ function getBalances(account, options, callback) {
         ledger: ledger
       });
 
-      if (parameters.counterparty) {
-        accountLinesRequest.message.peer = parameters.counterparty;
+      if (options.counterparty) {
+        accountLinesRequest.message.peer = options.counterparty;
       }
 
       accountLinesRequest.once('error', reject);
@@ -150,7 +141,7 @@ function getBalances(account, options, callback) {
 
         var lines = [];
         nextResult.lines.forEach(function(line) {
-          if (parameters.frozen && !line.freeze) {
+          if (options.frozen && !line.freeze) {
             return;
           }
 
@@ -164,7 +155,7 @@ function getBalances(account, options, callback) {
         });
 
         nextResult.lines = prevResult ? prevResult.lines.concat(lines) : lines;
-        resolve([parameters, nextResult]);
+        resolve([options, nextResult]);
       });
       accountLinesRequest.request();
     });
