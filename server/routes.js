@@ -87,7 +87,6 @@ function getPathFind(request, callback) {
 function getOrders(request, callback) {
   const account = request.params.account;
   const options = {
-    isAggregate: request.query.limit === 'all',
     ledger: request.query.ledger,
     limit: request.query.limit,
     marker: request.query.marker
@@ -125,7 +124,6 @@ function getBalances(request, callback) {
   const options = {
     frozen: request.query.frozen === 'true',
     limit: request.query.limit,
-    isAggregate: request.query.limit === 'all',
     ledger: request.query.ledger,
     marker: request.query.marker
   };

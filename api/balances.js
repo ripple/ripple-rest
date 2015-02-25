@@ -35,7 +35,6 @@ function getBalances(account, currency, counterparty, options, callback) {
     counterparty: counterparty,
     frozen: options.frozen,
     limit: options.limit,
-    isAggregate: options.isAggregate,
     ledger: utils.parseLedger(options.ledger),
     marker: options.marker
   };
@@ -114,7 +113,8 @@ function getBalances(account, currency, counterparty, options, callback) {
   };
 
   function getLineBalances(parameters, prevResult) {
-    if (prevResult && (!parameters.isAggregate || !prevResult.marker)) {
+    const isAggregate = parameters.limit === 'all';
+    if (prevResult && (!isAggregate || !prevResult.marker)) {
       return Promise.resolve(prevResult)
     }
 

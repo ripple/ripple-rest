@@ -47,7 +47,8 @@ function getOrders(account, options, callback) {
   };
 
   function getAccountOrders(options, prevResult) {
-    if (prevResult && (!options.isAggregate || !prevResult.marker)) {
+    const isAggregate = options.limit === 'all';
+    if (prevResult && (!isAggregate || !prevResult.marker)) {
       return Promise.resolve(prevResult);
     }
 
