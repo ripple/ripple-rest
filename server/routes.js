@@ -2,8 +2,6 @@ const api = require('../api');
 const respond = require('./response-handler');
 const utils = require('../api/lib/utils');
 
-const DEFAULT_RESULTS_PER_PAGE = 10;
-
 function validatedOptions(request) {
   return  {validated: request.query.validated === 'true'};
 }
@@ -57,13 +55,10 @@ function getAccountPayments(request, callback) {
   const options = {
     ledger_index_min: request.query.start_ledger,
     ledger_index_max: request.query.end_ledger,
-    earliest_first: (request.query.earliest_first === 'true'),
-    exclude_failed: (request.query.exclude_failed === 'true'),
-    min: request.query.results_per_page,
-    max: request.query.results_per_page,
-    offset: (request.query.results_per_page || DEFAULT_RESULTS_PER_PAGE)
-            * ((request.query.page || 1) - 1),
-    types: ['payment']
+    earliest_first: request.query.earliest_first === 'true',
+    exclude_failed: request.query.exclude_failed === 'true',
+    results_per_page: request.query.results_per_page,
+    page: request.query.page
   };
   api.payments.getAccountPayments(account, source_account, destination_account,
     direction, options, callback);
@@ -99,7 +94,9 @@ function getOrderBook(request, callback) {
   const base = request.params.base;
   const counter = request.params.counter;
   const options = {
-    limit: request.query.limit
+    ledger: request.query.ledger,
+    limit: request.query.limit,
+    marker: request.query.marker
   };
   api.orders.getOrderBook(account, base, counter, options, callback);
 }

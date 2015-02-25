@@ -394,6 +394,11 @@ function getAccountPayments(account, source_account, destination_account,
       source_account: source_account,
       destination_account: destination_account,
       direction: direction,
+      min: options.results_per_page,
+      max: options.results_par_page,
+      offset: (options.results_per_page || DEFAULT_RESULTS_PER_PAGE)
+              * ((options.page || 1) - 1),
+      types: ['payment']
     };
 
     transactions.getAccountTransactions(_.merge(options, args), callback);
