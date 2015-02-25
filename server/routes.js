@@ -124,8 +124,10 @@ function getBalances(request, callback) {
   const counterparty = request.query.counterparty;
   const options = {
     frozen: request.query.frozen === 'true',
-    isAggregate: request.param('limit') === 'all',
-    ledger: utils.parseLedger(request.param('ledger'))
+    limit: request.query.limit,
+    isAggregate: request.query.limit === 'all',
+    ledger: request.query.ledger,
+    marker: request.query.marker
   };
   api.balances.get(account, currency, counterparty, options, callback);
 }
@@ -216,7 +218,7 @@ module.exports = {
     '/accounts/:account/notifications': makeMiddleware(getNotification),
     '/accounts/:account/notifications/:identifier':
       makeMiddleware(getNotification),
-    '/accounts/:account/balances': api.balances.get,
+    '/accounts/:account/balances': makeMiddleware(getBalances),
     '/accounts/:account/settings': api.settings.get,
     '/transactions/:identifier': api.transactions.get,
     '/accounts/:account/trustlines': api.trustlines.get
