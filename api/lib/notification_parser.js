@@ -39,9 +39,8 @@ NotificationParser.prototype.parse = function(notification_details) {
     client_resource_id: notification_details.client_resource_id
   };
 
-  notification.timestamp = new Date(
-    ripple.utils.time.fromRipple(transaction.date)
-  ).toISOString();
+  notification.timestamp = transaction.date ?
+    new Date(ripple.utils.time.fromRipple(transaction.date)).toISOString() : '';
 
   if (account === transaction.Account) {
     notification.direction = 'outgoing';

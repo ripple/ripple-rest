@@ -217,7 +217,7 @@ function attachPreviousAndNextTransactionIdentifiers(notificationDetails, callba
     // Sort transactions in ascending order (earliestFirst) by ledger_index
     transactions.sort(function(a, b) {
       if (a.ledger_index === b.ledger_index) {
-        return a.date <= b.date ? -1 : 1;
+        return a.Sequence <= b.Sequence ? -1 : 1;
       } else {
         return a.ledger_index < b.ledger_index ? -1 : 1;
       }
