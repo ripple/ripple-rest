@@ -146,16 +146,10 @@ function getOrders(account, options, callback) {
  *  @param {String "true"|"false"} request.query.validated    - used to force request to wait until rippled has finished validating the submitted transaction
  *
  */
-function placeOrder(request, callback) {
-  var params = request.params;
-
-  Object.keys(request.body).forEach(function(param) {
-    params[param] = request.body[param];
-  });
-
-  var options = {
-    secret: params.secret,
-    validated: request.query.validated === 'true'
+function placeOrder(account, order, secret, options, callback) {
+  var params = {
+    secret: secret,
+    validated: options.validated
   };
 
   var hooks = {
@@ -164,42 +158,42 @@ function placeOrder(request, callback) {
     setTransactionParameters: setTransactionParameters
   };
 
-  transactions.submit(options, new SubmitTransactionHooks(hooks), function(err, placedOrder) {
+  transactions.submit(params, new SubmitTransactionHooks(hooks), function(err, placedOrder) {
     if (err) {
       return callback(err);
     }
 
     callback(null, placedOrder);
   });
-  
+
   function validateParams(callback) {
-    if (!params.order) {
+    if (!order) {
       return callback(new InvalidRequestError('Missing parameter: order. Submission must have order object in JSON form'));
     } else {
-      if (params.order.taker_gets && params.order.taker_gets.currency !== 'XRP') {
-        params.order.taker_gets.issuer = params.order.taker_gets.counterparty;
-        delete params.order.taker_gets.counterparty;
+      if (order.taker_gets && order.taker_gets.currency !== 'XRP') {
+        order.taker_gets.issuer = order.taker_gets.counterparty;
+        delete order.taker_gets.counterparty;
       }
 
-      if (params.order.taker_pays && params.order.taker_pays.currency !== 'XRP') {
-        params.order.taker_pays.issuer = params.order.taker_pays.counterparty;
-        delete params.order.taker_pays.counterparty;
+      if (order.taker_pays && order.taker_pays.currency !== 'XRP') {
+        order.taker_pays.issuer = order.taker_pays.counterparty;
+        delete order.taker_pays.counterparty;
       }
     }
 
-    if (!ripple.UInt160.is_valid(params.account)) {
+    if (!ripple.UInt160.is_valid(account)) {
       return callback(new errors.InvalidRequestError('Parameter is not a valid Ripple address: account'));
-    } else if (!/^buy|sell$/.test(params.order.type)) {
+    } else if (!/^buy|sell$/.test(order.type)) {
       return callback(new InvalidRequestError('Parameter must be "buy" or "sell": type'));
-    } else if (!_.isUndefined(params.order.passive) && !_.isBoolean(params.order.passive)) {
+    } else if (!_.isUndefined(order.passive) && !_.isBoolean(order.passive)) {
       return callback(new InvalidRequestError('Parameter must be a boolean: passive'));
-    } else if (!_.isUndefined(params.order.immediate_or_cancel) && !_.isBoolean(params.order.immediate_or_cancel)) {
+    } else if (!_.isUndefined(order.immediate_or_cancel) && !_.isBoolean(order.immediate_or_cancel)) {
       return callback(new InvalidRequestError('Parameter must be a boolean: immediate_or_cancel'));
-    } else if (!_.isUndefined(params.order.fill_or_kill) && !_.isBoolean(params.order.fill_or_kill)) {
+    } else if (!_.isUndefined(order.fill_or_kill) && !_.isBoolean(order.fill_or_kill)) {
       return callback(new InvalidRequestError('Parameter must be a boolean: fill_or_kill'));
-    } else if (!params.order.taker_gets || (!validator.isValid(params.order.taker_gets, 'Amount')) || (!params.order.taker_gets.issuer && params.order.taker_gets.currency !== 'XRP')) {
+    } else if (!order.taker_gets || (!validator.isValid(order.taker_gets, 'Amount')) || (!order.taker_gets.issuer && order.taker_gets.currency !== 'XRP')) {
       callback(new InvalidRequestError('Parameter must be a valid Amount object: taker_gets'));
-    } else if (!params.order.taker_pays || (!validator.isValid(params.order.taker_pays, 'Amount')) || (!params.order.taker_pays.issuer && params.order.taker_pays.currency !== 'XRP')) {
+    } else if (!order.taker_pays || (!validator.isValid(order.taker_pays, 'Amount')) || (!order.taker_pays.issuer && order.taker_pays.currency !== 'XRP')) {
       callback(new InvalidRequestError('Parameter must be a valid Amount object: taker_pays'));
     } else {
       callback();
@@ -207,17 +201,17 @@ function placeOrder(request, callback) {
   };
 
   function setTransactionParameters(transaction) {
-    var takerPays = params.order.taker_pays.currency !== 'XRP' ? params.order.taker_pays : utils.xrpToDrops(params.order.taker_pays.value);
-    var takerGets = params.order.taker_gets.currency !== 'XRP' ? params.order.taker_gets : utils.xrpToDrops(params.order.taker_gets.value);
+    var takerPays = order.taker_pays.currency !== 'XRP' ? order.taker_pays : utils.xrpToDrops(order.taker_pays.value);
+    var takerGets = order.taker_gets.currency !== 'XRP' ? order.taker_gets : utils.xrpToDrops(order.taker_gets.value);
 
-    transaction.offerCreate(params.account, ripple.Amount.from_json(takerPays), ripple.Amount.from_json(takerGets));
+    transaction.offerCreate(account, ripple.Amount.from_json(takerPays), ripple.Amount.from_json(takerGets));
 
     transactions.setTransactionBitFlags(transaction, {
-      input: params.order,
+      input: order,
       flags: OfferCreateFlags
     });
 
-    if (params.order.type === 'sell') {
+    if (order.type === 'sell') {
       transaction.setFlags('Sell');
     }
   };

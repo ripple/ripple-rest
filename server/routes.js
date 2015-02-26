@@ -168,8 +168,8 @@ function submitPayment(request, callback) {
 
 function placeOrder(request, callback) {
   const account = request.params.account;
-  const secret = request.params.secret;
-  const order = request.params.order;
+  const order = request.body.order;
+  const secret = request.body.secret;
   const options = validatedOptions(request);
   api.orders.placeOrder(account, order, secret, options, callback);
 }
@@ -222,7 +222,7 @@ module.exports = {
   },
   POST: {
     '/accounts/:account/payments': makeMiddleware(submitPayment),
-    '/accounts/:account/orders': api.orders.placeOrder,
+    '/accounts/:account/orders': makeMiddleware(placeOrder),
     '/accounts/:account/settings': api.settings.change,
     '/accounts/:account/trustlines': api.trustlines.add
   },
