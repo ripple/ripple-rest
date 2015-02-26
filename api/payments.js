@@ -47,21 +47,18 @@ module.exports = {
  *  @param {String "true"|"false"} request.query.validated Used to force request to wait until rippled has finished validating the submitted transaction
  *
  */
-function submitPayment(request, callback) {
-  var params = request.params;
+function submitPayment(account, payment, clientResourceID, secret,
+    lastLedgerSequence, urlBase, options, callback) {
+  const max_fee = Number(options.max_fee) > 0 ?
+    utils.xrpToDrops(options.max_fee) : void(0);
+  const fixed_fee = Number(options.fixed_fee) > 0 ?
+    utils.xrpToDrops(options.fixed_fee) : void(0);
 
-  Object.keys(request.body).forEach(function(param) {
-    params[param] = request.body[param];
-  });
-
-  params.max_fee = Number(request.body.max_fee) > 0 ? utils.xrpToDrops(request.body.max_fee) : void(0);
-  params.fixed_fee = Number(request.body.fixed_fee) > 0 ? utils.xrpToDrops(request.body.fixed_fee) : void(0);
-
-  var options = {
-    secret: params.secret,
-    validated: request.query.validated === 'true',
+  var params = {
+    secret: secret,
+    validated: options.validated,
+    clientResourceId: clientResourceID,
     blockDuplicates: true,
-    clientResourceId: params.client_resource_id,
     saveTransaction: true
   };
 
@@ -72,7 +69,7 @@ function submitPayment(request, callback) {
     setTransactionParameters: setTransactionParameters
   };
 
-  transactions.submit(options, new SubmitTransactionHooks(hooks), function(err, payment) {
+  transactions.submit(params, new SubmitTransactionHooks(hooks), function(err, payment) {
     if (err) {
       return callback(err);
     }
@@ -81,15 +78,13 @@ function submitPayment(request, callback) {
   });
 
   function validateParams(callback) {
-    var payment = params.payment;
-
     if (!payment) {
       return callback(new InvalidRequestError('Missing parameter: payment. Submission must have payment object in JSON form'));
     }
-    if (!params.client_resource_id) {
+    if (!clientResourceID) {
       return callback(new InvalidRequestError('Missing parameter: client_resource_id. All payments must be submitted with a client_resource_id to prevent duplicate payments'));
     }
-    if (!validator.isValid(params.client_resource_id, 'ResourceId')) {
+    if (!validator.isValid(clientResourceID, 'ResourceId')) {
       return callback(new InvalidRequestError('Invalid parameter: client_resource_id. Must be a string of ASCII-printable characters. Note that 256-bit hex strings are disallowed because of the potential confusion with transaction hashes.'));
     }
 
@@ -192,7 +187,7 @@ function submitPayment(request, callback) {
   };
 
   function initializeTransaction(callback) {
-    RestToTxConverter.convert(params.payment, function(error, transaction) {
+    RestToTxConverter.convert(payment, function(error, transaction) {
       if (error) {
         return callback(error);
       }
@@ -207,23 +202,22 @@ function submitPayment(request, callback) {
       transaction.meta = message.metadata;
       transaction.ledger_index = transaction.inLedger = message.ledger_index;
 
-      return formatPaymentHelper(params.payment.source_account, transaction, callback);
+      return formatPaymentHelper(payment.source_account, transaction, callback);
     }
 
-    var urlBase = utils.getUrlBase(request);
     callback(null, {
-      client_resource_id: params.client_resource_id,
-      status_url: urlBase + '/v1/accounts/' + params.payment.source_account + '/payments/' + params.client_resource_id
+      client_resource_id: clientResourceID,
+      status_url: urlBase + '/v1/accounts/' + payment.source_account + '/payments/' + clientResourceID
     });
   };
 
   function setTransactionParameters(transaction) {
     var ledgerIndex;
-    var maxFee = Number(params.max_fee);
-    var fixedFee = Number(params.fixed_fee);
+    var maxFee = Number(max_fee);
+    var fixedFee = Number(fixed_fee);
 
-    if (Number(params.last_ledger_sequence) > 0) {
-      ledgerIndex = Number(params.last_ledger_sequence);
+    if (Number(lastLedgerSequence) > 0) {
+      ledgerIndex = Number(lastLedgerSequence);
     } else {
       ledgerIndex = Number(remote._ledger_current_index) + transactions.DEFAULT_LEDGER_BUFFER;
     }
@@ -238,7 +232,7 @@ function submitPayment(request, callback) {
       transaction.setFixedFee(fixedFee);
     }
 
-    transaction.clientID(params.client_resource_id);
+    transaction.clientID(clientResourceID);
   };
 };
 

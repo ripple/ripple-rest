@@ -151,19 +151,19 @@ function getTrustlines(request, callback) {
 }
 
 function submitPayment(request, callback) {
-  const payment = request.params.payment;
-  const clientResourceID = request.params.client_resource_id;
-  const lastLedgerSequence = request.params.last_ledger_sequence;
-  const secret = request.params.secret;
+  const account = request.params.account;
+  const payment = request.body.payment;
+  const clientResourceID = request.body.client_resource_id;
+  const lastLedgerSequence = request.body.last_ledger_sequence;
+  const secret = request.body.secret;
+  const urlBase = utils.getUrlBase(request);
   const options = {
     max_fee: request.body.max_fee,
     fixed_fee: request.body.fixed_fee,
-    validated: request.query.validated === 'true',
-    blockDuplicates: true,
-    saveTransaction: true
+    validated: request.query.validated === 'true'
   };
-  api.payments.submitPayment(payment, clientResourceID, secret,
-    lastLedgerSequence, options, callback);
+  api.payments.submit(account, payment, clientResourceID, secret,
+    lastLedgerSequence, urlBase, options, callback);
 }
 
 function placeOrder(request, callback) {
@@ -221,7 +221,7 @@ module.exports = {
     '/accounts/:account/trustlines': makeMiddleware(getTrustlines),
   },
   POST: {
-    '/accounts/:account/payments': api.payments.submit,
+    '/accounts/:account/payments': makeMiddleware(submitPayment),
     '/accounts/:account/orders': api.orders.placeOrder,
     '/accounts/:account/settings': api.settings.change,
     '/accounts/:account/trustlines': api.trustlines.add
