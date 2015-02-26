@@ -29,6 +29,11 @@ suite('get notifications', function() {
       conn.send(fixtures.serverInfoResponse(message));
     });
 
+    self.wss.once('request_ledger', function(message, conn) {
+      assert.strictEqual(message.command, 'ledger');
+      conn.send(fixtures.ledgerResponse(message));
+    });
+
     function handleLedgerQuery(message, conn) {
       assert.strictEqual(message.command, 'account_tx');
       assert.strictEqual(message.account, addresses.VALID);
@@ -83,6 +88,11 @@ suite('get notifications', function() {
     self.wss.once('request_server_info', function(message, conn) {
       assert.strictEqual(message.command, 'server_info');
       conn.send(fixtures.serverInfoResponse(message));
+    });
+
+    self.wss.once('request_ledger', function(message, conn) {
+      assert.strictEqual(message.command, 'ledger');
+      conn.send(fixtures.ledgerResponse(message));
     });
 
     function handleLedgerQuery(message, conn) {
@@ -146,6 +156,11 @@ suite('get notifications', function() {
     };
 
     self.wss.once('request_account_tx', handleLedgerQuery);
+
+    self.wss.once('request_ledger', function(message, conn) {
+      assert.strictEqual(message.command, 'ledger');
+      conn.send(fixtures.ledgerResponse(message));
+    });
 
     self.app
     .get(fixtures.requestPath(addresses.VALID, '/' + VALID_TRANSACTION_HASH))
