@@ -2,10 +2,6 @@ const api = require('../api');
 const respond = require('./response-handler');
 const utils = require('../api/lib/utils');
 
-function validatedOptions(request) {
-  return  {validated: request.query.validated === 'true'};
-}
-
 function makeCallback(response, next, type) {
   return function(error, data) {
     if (error !== null) {
@@ -170,23 +166,23 @@ function placeOrder(request, callback) {
   const account = request.params.account;
   const order = request.body.order;
   const secret = request.body.secret;
-  const options = validatedOptions(request);
+  const options = {validated: request.query.validated === 'true'};
   api.orders.placeOrder(account, order, secret, options, callback);
 }
 
 function changeSettings(request, callback) {
   const account = request.params.account;
-  const settings = request.params.settings;
-  const secret = request.params.secret;
-  const options = validatedOptions(request);
-  api.settings.changeSettings(account, settings, secret, options, callback);
+  const settings = request.body.settings;
+  const secret = request.body.secret;
+  const options = {validated: request.query.validated === 'true'};
+  api.settings.change(account, settings, secret, options, callback);
 }
 
 function addTrustLine(request, callback) {
   const account = request.params.account;
   const trustline = request.params.trustline;
   const secret = request.params.secret;
-  const options = validatedOptions(request);
+  const options = {validated: request.query.validated === 'true'};
   api.trustlines.add(account, trustline, secret, options, callback);
 }
 
@@ -194,7 +190,7 @@ function cancelOrder(request, callback) {
   const account = request.params.account;
   const sequence = request.params.sequence;
   const secret = request.params.secret;
-  const options = validatedOptions(request);
+  const options = {validated: request.query.validated === 'true'};
   api.orders.cancelOrder(account, sequence, secret, options, callback);
 }
 
@@ -223,7 +219,7 @@ module.exports = {
   POST: {
     '/accounts/:account/payments': makeMiddleware(submitPayment),
     '/accounts/:account/orders': makeMiddleware(placeOrder),
-    '/accounts/:account/settings': api.settings.change,
+    '/accounts/:account/settings': makeMiddleware(changeSettings),
     '/accounts/:account/trustlines': api.trustlines.add
   },
   DELETE: {

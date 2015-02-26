@@ -1,6 +1,5 @@
 var _                       = require('lodash');
 var assert                  = require('assert');
-var async                   = require('async');
 var ripple                  = require('ripple-lib');
 var transactions            = require('./transactions.js');
 var SubmitTransactionHooks  = require('./lib/submit_transaction_hooks.js');
@@ -195,105 +194,99 @@ function getSettings(account, callback) {
  *  @body
  *  @param {Settings} request.body.settings
  *  @param {String} request.body.secret
- *  
+ *
  *  @query
  *  @param {String "true"|"false"} request.query.validated Used to force request to wait until rippled has finished validating the submitted transaction
  *
  */
-function changeSettings(request, callback) {
-  var params = request.params;
-
-  Object.keys(request.body).forEach(function(param) {
-    params[param] = request.body[param];
-  });
-
-  var options = {
-    secret: params.secret,
-    validated: request.query.validated === 'true'
+function changeSettings(account, settings, secret, options, callback) {
+  var params = {
+    secret: secret,
+    validated: options.validated
   };
 
   var hooks = {
     validateParams: validateParams,
-    formatTransactionResponse: TxToRestConverter.parseSettingResponseFromTx.bind(void(0), params),
+    formatTransactionResponse: TxToRestConverter.parseSettingResponseFromTx.bind(void(0), settings),
     setTransactionParameters: setTransactionParameters
   };
 
-  transactions.submit(options, new SubmitTransactionHooks(hooks), function(err, settings) {
+  transactions.submit(params, new SubmitTransactionHooks(hooks), function(err, settings) {
     if (err) {
       return callback(err);
     }
 
     callback(null, settings);
   });
-  
+
   function validateParams(callback) {
-    if (typeof params.settings !== 'object') {
+    if (typeof settings !== 'object') {
       return callback(new InvalidRequestError('Parameter missing: settings'));
     }
-    if (!ripple.UInt160.is_valid(params.account)) {
+    if (!ripple.UInt160.is_valid(account)) {
       return callback(new InvalidRequestError(
         'Parameter is not a valid Ripple address: account'));
     }
-    if (!/(undefined|string)/.test(typeof params.settings.domain)) {
+    if (!/(undefined|string)/.test(typeof settings.domain)) {
       return callback(new InvalidRequestError(
         'Parameter must be a string: domain'));
     }
-    if (!/(undefined|string)/.test(typeof params.settings.wallet_locator)) {
+    if (!/(undefined|string)/.test(typeof settings.wallet_locator)) {
       return callback(new InvalidRequestError(
         'Parameter must be a string: wallet_locator'));
     }
-    if (!/(undefined|string)/.test(typeof params.settings.email_hash)) {
+    if (!/(undefined|string)/.test(typeof settings.email_hash)) {
       return callback(new InvalidRequestError(
         'Parameter must be a string: email_hash'));
     }
-    if (!/(undefined|string)/.test(typeof params.settings.message_key)) {
+    if (!/(undefined|string)/.test(typeof settings.message_key)) {
       return callback(new InvalidRequestError(
         'Parameter must be a string: message_key'));
     }
-    if (!/(undefined|number)/.test(typeof params.settings.transfer_rate)) {
-      if (params.settings.transfer_rate !== '') {
+    if (!/(undefined|number)/.test(typeof settings.transfer_rate)) {
+      if (settings.transfer_rate !== '') {
         return callback(new InvalidRequestError(
           'Parameter must be a number: transfer_rate'));
       }
     }
-    if (!/(undefined|number)/.test(typeof params.settings.wallet_size)) {
-      if (params.settings.wallet_size !== '') {
+    if (!/(undefined|number)/.test(typeof settings.wallet_size)) {
+      if (settings.wallet_size !== '') {
         return callback(new InvalidRequestError(
           'Parameter must be a number: wallet_size'));
       }
     }
-    if (!/(undefined|boolean)/.test(typeof params.settings.no_freeze)) {
+    if (!/(undefined|boolean)/.test(typeof settings.no_freeze)) {
       return callback(new InvalidRequestError(
         'Parameter must be a boolean: no_freeze'));
     }
-    if (!/(undefined|boolean)/.test(typeof params.settings.global_freeze)) {
+    if (!/(undefined|boolean)/.test(typeof settings.global_freeze)) {
       return callback(new InvalidRequestError(
         'Parameter must be a boolean: global_freeze'));
     }
-    if (!/(undefined|boolean)/.test(typeof params.settings.password_spent)) {
+    if (!/(undefined|boolean)/.test(typeof settings.password_spent)) {
       return callback(new InvalidRequestError(
         'Parameter must be a boolean: password_spent'));
     }
-    if (!/(undefined|boolean)/.test(typeof params.settings.disable_master)) {
+    if (!/(undefined|boolean)/.test(typeof settings.disable_master)) {
       return callback(new InvalidRequestError(
         'Parameter must be a boolean: disable_master'));
     }
-    if (!/(undefined|boolean)/.test(typeof params.settings.require_destination_tag)) {
+    if (!/(undefined|boolean)/.test(typeof settings.require_destination_tag)) {
       return callback(new InvalidRequestError(
         'Parameter must be a boolean: require_destination_tag'));
     }
-    if (!/(undefined|boolean)/.test(typeof params.settings.require_authorization)) {
+    if (!/(undefined|boolean)/.test(typeof settings.require_authorization)) {
       return callback(new InvalidRequestError(
         'Parameter must be a boolean: require_authorization'));
     }
-    if (!/(undefined|boolean)/.test(typeof params.settings.disallow_xrp)) {
+    if (!/(undefined|boolean)/.test(typeof settings.disallow_xrp)) {
       return callback(new InvalidRequestError(
         'Parameter must be a boolean: disallow_xrp'));
     }
 
-    var setCollision = (typeof params.settings.no_freeze === 'boolean')
-      && (typeof params.settings.global_freeze === 'boolean')
-      && params.settings.no_freeze === params.settings.global_freeze;
+    var setCollision = (typeof settings.no_freeze === 'boolean')
+      && (typeof settings.global_freeze === 'boolean')
+      && settings.no_freeze === settings.global_freeze;
 
     if (setCollision) {
       return callback(new InvalidRequestError(
@@ -304,15 +297,15 @@ function changeSettings(request, callback) {
   };
 
   function setTransactionParameters(transaction) {
-    transaction.accountSet(params.account);
+    transaction.accountSet(account);
 
     transactions.setTransactionBitFlags(transaction, {
-      input: params.settings, 
+      input: settings,
       flags: AccountSetFlags,
       clear_setting: CLEAR_SETTING
     });
-    setTransactionIntFlags(transaction, params.settings, AccountSetIntFlags);
-    setTransactionFields(transaction, params.settings, AccountRootFields);
+    setTransactionIntFlags(transaction, settings, AccountSetIntFlags);
+    setTransactionFields(transaction, settings, AccountRootFields);
 
     transaction.tx_json.TransferRate = RestToTxConverter.convertTransferRate(transaction.tx_json.TransferRate);
   };

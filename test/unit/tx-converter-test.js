@@ -123,7 +123,7 @@ suite('unit - converter - Tx to Rest', function() {
       state: 'validated'
     };
 
-    txToRestConverter.parseSettingResponseFromTx(params, txMessage, meta, function(err, settingObj) {
+    txToRestConverter.parseSettingResponseFromTx(params.settings, txMessage, meta, function(err, settingObj) {
       assert.strictEqual(err, null);
       assert.deepEqual(settingObj, fixtures.settingResponseRest);
       done();
