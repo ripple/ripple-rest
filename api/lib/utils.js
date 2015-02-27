@@ -1,14 +1,9 @@
-var _         = require('lodash');
 var bignum    = require('bignumber.js');
-var config    = require('./config.js');
-var packageJson     = require('../../package.json');
 var validator = require('./schema-validator.js');
 
 module.exports = {
   dropsToXrp: dropsToXrp,
   xrpToDrops: xrpToDrops,
-  getPackageVersion: getPackageVersion,
-  getApiVersion: getApiVersion,
   parseLedger: parseLedger,
   parseCurrencyAmount: parseCurrencyAmount,
   parseCurrencyQuery: parseCurrencyQuery,
@@ -21,15 +16,6 @@ function dropsToXrp(drops) {
 
 function xrpToDrops(xrp) {
   return bignum(xrp).times(1000000.0).floor().toString();
-}
-
-function getPackageVersion() {
-  return packageJson.version;
-}
-
-function getApiVersion() {
-  var pattern = /([0-9])(?:\.)/g;
-  return pattern.exec(getPackageVersion())[1];
 }
 
 function isValidHash256(hash) {
