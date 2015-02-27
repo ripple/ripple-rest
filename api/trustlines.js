@@ -148,16 +148,10 @@ function getTrustLines(account, options, callback) {
  *
  */
 
-function addTrustLine(request, callback) {
-  var params = request.params;
-
-  Object.keys(request.body).forEach(function(param) {
-    params[param] = request.body[param];
-  });
-
-  var options = {
-    secret: params.secret,
-    validated: request.query.validated === 'true'
+function addTrustLine(account, trustline, secret, options, callback) {
+  var params = {
+    secret: secret,
+    validated: options.validated
   };
 
   var hooks = {
@@ -166,7 +160,7 @@ function addTrustLine(request, callback) {
     setTransactionParameters: setTransactionParameters
   };
 
-  transactions.submit(options, new SubmitTransactionHooks(hooks), function(err, trustline) {
+  transactions.submit(params, new SubmitTransactionHooks(hooks), function(err, trustline) {
     if (err) {
       return callback(err);
     }
@@ -174,37 +168,37 @@ function addTrustLine(request, callback) {
   });
 
   function validateParams(callback) {
-    if (!ripple.UInt160.is_valid(params.account)) {
+    if (!ripple.UInt160.is_valid(account)) {
       return callback(new errors.InvalidRequestError('Parameter is not a valid Ripple address: account'));
     }
-    if (typeof params.trustline !== 'object') {
+    if (typeof trustline !== 'object') {
       return callback(new errors.InvalidRequestError('Parameter missing: trustline'));
     }
-    if (_.isUndefined(params.trustline.limit)) {
+    if (_.isUndefined(trustline.limit)) {
       return callback(new errors.InvalidRequestError('Parameter missing: trustline.limit'));
     }
-    if (isNaN(params.trustline.limit = String(params.trustline.limit))) {
+    if (isNaN(trustline.limit = String(trustline.limit))) {
       return callback(new errors.InvalidRequestError('Parameter is not a number: trustline.limit'));
     }
-    if (!params.trustline.currency) {
+    if (!trustline.currency) {
       return callback(new errors.InvalidRequestError('Parameter missing: trustline.currency'));
     }
-    if (!validator.isValid(params.trustline.currency, 'Currency')) {
+    if (!validator.isValid(trustline.currency, 'Currency')) {
       return callback(new errors.InvalidRequestError('Parameter is not a valid currency: trustline.currency'));
     }
-    if (!params.trustline.counterparty) {
+    if (!trustline.counterparty) {
       return callback(new errors.InvalidRequestError('Parameter missing: trustline.counterparty'));
     }
-    if (!ripple.UInt160.is_valid(params.trustline.counterparty)) {
+    if (!ripple.UInt160.is_valid(trustline.counterparty)) {
       return callback(new errors.InvalidRequestError('Parameter is not a Ripple address: trustline.counterparty'));
     }
-    if (!/^(undefined|number)$/.test(typeof params.trustline.quality_in)) {
+    if (!/^(undefined|number)$/.test(typeof trustline.quality_in)) {
       return callback(new errors.InvalidRequestError('Parameter must be a number: trustline.quality_in'));
     }
-    if (!/^(undefined|number)$/.test(typeof params.trustline.quality_out)) {
+    if (!/^(undefined|number)$/.test(typeof trustline.quality_out)) {
       return callback(new errors.InvalidRequestError('Parameter must be a number: trustline.quality_out'));
     }
-    if (!/^(undefined|boolean)$/.test(typeof params.trustline.account_allows_rippling)) {
+    if (!/^(undefined|boolean)$/.test(typeof trustline.account_allows_rippling)) {
       return callback(new errors.InvalidRequestError('Parameter must be a boolean: trustline.allow_rippling'));
     }
 
@@ -213,23 +207,23 @@ function addTrustLine(request, callback) {
 
   function setTransactionParameters(transaction) {
     var limit = [
-      params.trustline.limit,
-      params.trustline.currency,
-      params.trustline.counterparty
+      trustline.limit,
+      trustline.currency,
+      trustline.counterparty
     ].join('/');
 
-    transaction.trustSet(params.account, limit);
-    transaction.secret(params.secret);
+    transaction.trustSet(account, limit);
+    transaction.secret(secret);
 
-    if (typeof params.trustline.quality_in === 'number') {
-      transaction.tx_json.QualityIn = params.trustline.quality_in;
+    if (typeof trustline.quality_in === 'number') {
+      transaction.tx_json.QualityIn = trustline.quality_in;
     }
-    if (typeof params.trustline.quality_out === 'number') {
-      transaction.tx_json.QualityOut = params.trustline.quality_out;
+    if (typeof trustline.quality_out === 'number') {
+      transaction.tx_json.QualityOut = trustline.quality_out;
     }
 
     transactions.setTransactionBitFlags(transaction, {
-      input: params.trustline,
+      input: trustline,
       flags: TrustSetFlags,
       clear_setting: ''
     });

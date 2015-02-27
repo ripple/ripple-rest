@@ -180,8 +180,8 @@ function changeSettings(request, callback) {
 
 function addTrustLine(request, callback) {
   const account = request.params.account;
-  const trustline = request.params.trustline;
-  const secret = request.params.secret;
+  const trustline = request.body.trustline;
+  const secret = request.body.secret;
   const options = {validated: request.query.validated === 'true'};
   api.trustlines.add(account, trustline, secret, options, callback);
 }
@@ -189,7 +189,7 @@ function addTrustLine(request, callback) {
 function cancelOrder(request, callback) {
   const account = request.params.account;
   const sequence = request.params.sequence;
-  const secret = request.params.secret;
+  const secret = request.body.secret;
   const options = {validated: request.query.validated === 'true'};
   api.orders.cancelOrder(account, sequence, secret, options, callback);
 }
@@ -220,7 +220,8 @@ module.exports = {
     '/accounts/:account/payments': makeMiddleware(submitPayment),
     '/accounts/:account/orders': makeMiddleware(placeOrder),
     '/accounts/:account/settings': makeMiddleware(changeSettings),
-    '/accounts/:account/trustlines': api.trustlines.add
+    '/accounts/:account/trustlines':
+      makeMiddleware(addTrustLine, respond.created),
   },
   DELETE: {
     '/accounts/:account/orders/:sequence': api.orders.cancelOrder
