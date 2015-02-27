@@ -1,6 +1,14 @@
 const api = require('../api');
 const respond = require('./response-handler');
-const utils = require('../api/lib/utils');
+const config = require('../api/lib/config');
+
+function getUrlBase(request) {
+  if (config.get('url_base')) {
+    return config.get('url_base');
+  }
+  return request.protocol + '://' + request.hostname +
+    (config && config.get('port') ? ':' + config.get('port') : '');
+}
 
 function makeCallback(response, next, type) {
   return function(error, data) {
@@ -106,7 +114,7 @@ function getOrder(request, callback) {
 function getNotification(request, callback) {
   const account = request.params.account;
   const identifier = request.params.identifier;
-  const urlBase = utils.getUrlBase(request);
+  const urlBase = getUrlBase(request);
   api.notifications.getNotification(account, identifier, urlBase, callback);
 }
 
@@ -152,7 +160,7 @@ function submitPayment(request, callback) {
   const clientResourceID = request.body.client_resource_id;
   const lastLedgerSequence = request.body.last_ledger_sequence;
   const secret = request.body.secret;
-  const urlBase = utils.getUrlBase(request);
+  const urlBase = getUrlBase(request);
   const options = {
     max_fee: request.body.max_fee,
     fixed_fee: request.body.fixed_fee,

@@ -1,7 +1,7 @@
 const winston = require('winston');
 const config  = require('../api/lib/config');
 const morgan  = require('morgan');
-const utils   = require('../api/lib/utils.js');
+const version = require('./version');
 
 
 var logger = exports.logger = new winston.Logger({
@@ -37,7 +37,7 @@ function elfDate() {
 var elfHeaders = 
   '\n#Version: 1.0\n' +
   '#Date: ' + elfDate() + '\n' + 
-  '#Software: ' + utils.getPackageVersion() + '\n' + 
+  '#Software: ' + version.getPackageVersion() + '\n' + 
   '#Fields: c-ip date time cs-method cs-uri cs(Version) sc-status time-taken cs(User-Agent)';
 
 // Logging in ELF format (http://www.w3.org/TR/WD-logfile)

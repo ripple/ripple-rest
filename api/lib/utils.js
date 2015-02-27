@@ -1,7 +1,7 @@
 var _         = require('lodash');
 var bignum    = require('bignumber.js');
 var config    = require('./config.js');
-var pJson     = require('../../package.json');
+var packageJson     = require('../../package.json');
 var validator = require('./schema-validator.js');
 
 module.exports = {
@@ -9,7 +9,6 @@ module.exports = {
   xrpToDrops: xrpToDrops,
   getPackageVersion: getPackageVersion,
   getApiVersion: getApiVersion,
-  getUrlBase: getUrlBase,
   parseLedger: parseLedger,
   parseCurrencyAmount: parseCurrencyAmount,
   parseCurrencyQuery: parseCurrencyQuery,
@@ -25,19 +24,12 @@ function xrpToDrops(xrp) {
 }
 
 function getPackageVersion() {
-  return pJson.version;
+  return packageJson.version;
 }
 
 function getApiVersion() {
   var pattern = /([0-9])(?:\.)/g;
   return pattern.exec(getPackageVersion())[1];
-}
-
-function getUrlBase(request) {
-  if (config.get('url_base')) {
-    return config.get('url_base');
-  }
-  return request.protocol + '://' + request.hostname + (config && config.get('port') ? ':' + config.get('port') : '');
 }
 
 function isValidHash256(hash) {
