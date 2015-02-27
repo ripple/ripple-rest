@@ -46,7 +46,6 @@ var BINARY_TRANSACTION = module.exports.BINARY_TRANSACTION = {
 };
 
 var BINARY_TRANSACTION_SYNTH = module.exports.BINARY_TRANSACTION_SYNTH = {
-  date: 416447810,
   hash: 'F4AB442A6D4CBB935D66E1DA7309A5FC71C7143ED4049053EC14E3875B0CF9BF',
   inLedger: LEDGER,
   ledger_index: LEDGER
@@ -250,6 +249,34 @@ module.exports.serverInfoResponse = function(request) {
   });
 };
 
+module.exports.ledgerResponse = function(request) {
+  return JSON.stringify(
+    {
+      id: request.id,
+      status: 'success',
+      type: 'response',
+      result: {
+        ledger: {
+          accepted: true,
+          account_hash: 'EC028EC32896D537ECCA18D18BEBE6AE99709FEFF9EF72DBD3A7819E918D8B96',
+          close_time: 464908910,
+          close_time_human: '2014-Sep-24 21:21:50',
+          close_time_resolution: 10,
+          closed: true,
+          hash: '0F7ED9F40742D8A513AE86029462B7A6768325583DF8EE21B7EC663019DD6A0F',
+          ledger_hash: '0F7ED9F40742D8A513AE86029462B7A6768325583DF8EE21B7EC663019DD6A0F',
+          ledger_index: '9038214',
+          parent_hash: '4BB9CBE44C39DC67A1BE849C7467FE1A6D1F73949EA163C38A0121A15E04FFDE',
+          seqNum: '9038214',
+          totalCoins: '99999973964317514',
+          total_coins: '99999973964317514',
+          transaction_hash: 'ECB730839EB55B1B114D5D1AD2CD9A932C35BA9AB6D3A8C2F08935EAC2BAC239'
+        }
+      }
+    }
+  );
+};
+
 module.exports.serverInfoMissingLedgerResponse = function(request) {
   return JSON.stringify({
     id: request.id,
@@ -377,7 +404,7 @@ module.exports.RESTNotificationResponse = JSON.stringify({
     result: 'tesSUCCESS',
     ledger: String(LEDGER),
     hash: 'F4AB442A6D4CBB935D66E1DA7309A5FC71C7143ED4049053EC14E3875B0CF9BF',
-    timestamp: '2013-03-12T23:56:50.000Z',
+    timestamp: '2014-09-24T21:21:50.000Z',
     transaction_url: 'http://127.0.0.1:5990/v1/accounts/' + addresses.VALID + '/payments/F4AB442A6D4CBB935D66E1DA7309A5FC71C7143ED4049053EC14E3875B0CF9BF',
     previous_hash: 'BACD1473E1D778CE38AD6D7C671D519506D0BC33AE3C54FA5A59D9C9161C381B',
     previous_notification_url: 'http://127.0.0.1:5990/v1/accounts/' + addresses.VALID + '/notifications/BACD1473E1D778CE38AD6D7C671D519506D0BC33AE3C54FA5A59D9C9161C381B',
@@ -396,7 +423,7 @@ module.exports.RESTNotificationNoNextResponse = JSON.stringify({
     result: 'tesSUCCESS',
     ledger: String(LEDGER),
     hash: 'F4AB442A6D4CBB935D66E1DA7309A5FC71C7143ED4049053EC14E3875B0CF9BF',
-    timestamp: '2013-03-12T23:56:50.000Z',
+    timestamp: '2014-09-24T21:21:50.000Z',
     transaction_url: 'http://127.0.0.1:5990/v1/accounts/' + addresses.VALID + '/payments/F4AB442A6D4CBB935D66E1DA7309A5FC71C7143ED4049053EC14E3875B0CF9BF',
     previous_hash: 'BACD1473E1D778CE38AD6D7C671D519506D0BC33AE3C54FA5A59D9C9161C381B',
     previous_notification_url: 'http://127.0.0.1:5990/v1/accounts/' + addresses.VALID + '/notifications/BACD1473E1D778CE38AD6D7C671D519506D0BC33AE3C54FA5A59D9C9161C381B',
