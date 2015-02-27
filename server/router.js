@@ -25,22 +25,6 @@ router.all('*', function(req, res, next) {
   }
 });
 
-function wrapper(handler, method, url) {
-  return function(request, response, next) {
-    handler(request, function(error, data) {
-      if (error !== null) {
-        next(error);
-      } else {
-        if (method === 'POST' && url === '/accounts/:account/trustlines') {
-          respond.created(response, data);
-        } else {
-          respond.success(response, data);
-        }
-      }
-    });
-  };
-}
-
 function connectRoutes(routeMap) {
   var methods = {
     'GET': router.get,
@@ -49,10 +33,8 @@ function connectRoutes(routeMap) {
     'PUT': router.put
   };
   _.forIn(methods, function(connector, method) {
-    _.forIn(routeMap[method] || {}, function(callback, url) {
-      var handler = (callback.length === 3) ?
-        callback : wrapper(callback, method, url);
-      connector.call(router, url, handler);
+    _.forIn(routeMap[method] || {}, function(middleware, url) {
+      connector.call(router, url, middleware);
     });
   });
 }
