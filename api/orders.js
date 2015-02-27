@@ -227,16 +227,10 @@ function placeOrder(account, order, secret, options, callback) {
  *  @param {String "true"|"false"} request.query.validated - used to force request to wait until rippled has finished validating the submitted transaction
  *
  */
-function cancelOrder(request, callback) {
-  var params = request.params;
-
-  Object.keys(request.body).forEach(function(param) {
-    params[param] = request.body[param];
-  });
-
-  var options = {
-    secret: params.secret,
-    validated: request.query.validated === 'true'
+function cancelOrder(account, sequence, secret, options, callback) {
+  var params = {
+    secret: secret,
+    validated: options.validated
   };
 
   var hooks = {
@@ -245,7 +239,7 @@ function cancelOrder(request, callback) {
     setTransactionParameters: setTransactionParameters
   }
 
-  transactions.submit(options, new SubmitTransactionHooks(hooks), function(err, canceledOrder) {
+  transactions.submit(params, new SubmitTransactionHooks(hooks), function(err, canceledOrder) {
     if (err) {
       return callback(err);
     }
@@ -254,9 +248,9 @@ function cancelOrder(request, callback) {
   });
 
   function validateParams(callback) {
-    if (!(Number(params.sequence) >= 0)) {
+    if (!(Number(sequence) >= 0)) {
       callback(new InvalidRequestError('Invalid parameter: sequence. Sequence must be a positive number'));
-    } else if (!ripple.UInt160.is_valid(params.account)) {
+    } else if (!ripple.UInt160.is_valid(account)) {
       callback(new InvalidRequestError('Parameter is not a valid Ripple address: account'));
     } else {
       callback();
@@ -264,7 +258,7 @@ function cancelOrder(request, callback) {
   };
 
   function setTransactionParameters(transaction) {
-    transaction.offerCancel(params.account, params.sequence);
+    transaction.offerCancel(account, sequence);
   };
 };
 

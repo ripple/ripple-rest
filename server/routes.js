@@ -224,6 +224,6 @@ module.exports = {
       makeMiddleware(addTrustLine, respond.created),
   },
   DELETE: {
-    '/accounts/:account/orders/:sequence': api.orders.cancelOrder
+    '/accounts/:account/orders/:sequence': makeMiddleware(cancelOrder)
   }
 };
