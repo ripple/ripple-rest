@@ -13,7 +13,8 @@ module.exports = {
   parseLedger: parseLedger,
   parseCurrencyAmount: parseCurrencyAmount,
   parseCurrencyQuery: parseCurrencyQuery,
-  txFromRestAmount: txFromRestAmount
+  txFromRestAmount: txFromRestAmount,
+  compareTransactions: compareTransactions
 };
 
 function dropsToXrp(drops) {
@@ -104,3 +105,22 @@ function parseCurrencyQuery(query) {
     };
   }
 }
+
+/**
+ *  Order two rippled transactions based on their ledger_index.
+ *  If two transactions took place in the same ledger, sort
+ *  them based on TransactionIndex
+ *  See: https://ripple.com/build/transactions/
+ *
+ *  @param {Object} first
+ *  @param {Object} second
+ *  @returns {Number} [-1, 1]
+ */
+function compareTransactions(first, second) {
+  if (first.ledger_index === second.ledger_index) {
+    return first.meta.TransactionIndex < second.meta.TransactionIndex ? -1 : 1;
+  } else {
+    return first.ledger_index < second.ledger_index ? -1 : 1;
+  }
+}
+

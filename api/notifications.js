@@ -214,14 +214,7 @@ function attachPreviousAndNextTransactionIdentifiers(notificationDetails, callba
       return tx.hash;
     });
 
-    // Sort transactions in ascending order (earliestFirst) by ledger_index
-    transactions.sort(function(a, b) {
-      if (a.ledger_index === b.ledger_index) {
-        return a.Sequence <= b.Sequence ? -1 : 1;
-      } else {
-        return a.ledger_index < b.ledger_index ? -1 : 1;
-      }
-    });
+    transactions.sort(utils.compareTransactions);
 
     async_callback(null, transactions);
   }
