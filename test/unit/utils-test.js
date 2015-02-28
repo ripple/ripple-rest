@@ -173,3 +173,48 @@ suite('unit - utils.parseCurrencyQuery()', function() {
     });
   });
 });
+
+
+suite('unit - utils.compareTransactions()', function() {
+  test('compareTransactions() -- different ledgers', function() {
+    var tx1 = {
+      ledger_index: 1
+    };
+
+    var tx2 = {
+      ledger_index: 2
+    };
+
+    assert.strictEqual(utils.compareTransactions(tx1,tx2), -1);
+  });
+
+  test('compareTransactions() -- same ledger', function() {
+    var tx1 = {
+      ledger_index: 1,
+      meta: {
+        TransactionIndex: 2
+      }
+    };
+
+    var tx2 = {
+      ledger_index: 1,
+      meta: {
+        TransactionIndex: 1
+      }
+    };
+
+    assert.strictEqual(utils.compareTransactions(tx1,tx2), 1);
+  });
+
+  test('compareTransactions() -- same transaction', function() {
+    var tx1 = {
+      ledger_index: 1,
+      meta: {
+        TransactionIndex: 2
+      }
+    };
+
+    assert.strictEqual(utils.compareTransactions(tx1,tx1), 0);
+  });
+
+});
