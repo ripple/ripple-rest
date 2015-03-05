@@ -288,7 +288,7 @@ function getTransaction(account, identifier, callback) {
 
       // Request transaction based on either the hash supplied in the request
       // or the hash found in the database
-      remote.requestTx(requestHash || dbEntryHash, function(error, transaction) {
+      remote.requestTx({ hash: requestHash || dbEntryHash }, function(error, transaction) {
         if (error) {
           return async_callback(error);
         }
