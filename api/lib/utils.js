@@ -106,6 +106,10 @@ function parseCurrencyQuery(query) {
   }
 }
 
+function signum(num) {
+  return (num === 0) ? 0 : (num > 0 ? 1 : -1);
+}
+
 /**
  *  Order two rippled transactions based on their ledger_index.
  *  If two transactions took place in the same ledger, sort
@@ -114,11 +118,11 @@ function parseCurrencyQuery(query) {
  *
  *  @param {Object} first
  *  @param {Object} second
- *  @returns {Number} [-1, 1]
+ *  @returns {Number} [-1, 0, 1]
  */
 function compareTransactions(first, second) {
   if (first.ledger_index === second.ledger_index) {
-    return first.meta.TransactionIndex < second.meta.TransactionIndex ? -1 : 1;
+    return signum(first.meta.TransactionIndex - second.meta.TransactionIndex);
   } else {
     return first.ledger_index < second.ledger_index ? -1 : 1;
   }

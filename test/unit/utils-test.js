@@ -201,18 +201,17 @@ suite('unit - utils.txFromRestAmount()', function() {
   });
 });
 
-
 suite('unit - utils.compareTransactions()', function() {
   test('compareTransactions() -- different ledgers', function() {
     var tx1 = {
-      ledger_index: '1'
+      ledger_index: 1
     };
 
     var tx2 = {
-      ledger_index: '2'
+      ledger_index: 2
     };
 
-    assert.deepEqual(utils.compareTransactions(tx1,tx2), -1);
+    assert.strictEqual(utils.compareTransactions(tx1,tx2), -1);
   });
 
   test('compareTransactions() -- same ledger', function() {
@@ -230,6 +229,18 @@ suite('unit - utils.compareTransactions()', function() {
       }
     };
 
-    assert.deepEqual(utils.compareTransactions(tx1,tx2), 1);
+    assert.strictEqual(utils.compareTransactions(tx1,tx2), 1);
   });
+
+  test('compareTransactions() -- same transaction', function() {
+    var tx1 = {
+      ledger_index: 1,
+      meta: {
+        TransactionIndex: 2
+      }
+    };
+
+    assert.strictEqual(utils.compareTransactions(tx1,tx1), 0);
+  });
+
 });
