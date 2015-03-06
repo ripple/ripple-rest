@@ -24,8 +24,8 @@ module.exports = {
  *  @param {RippleAddress} req.params.account
  *  @param {Hex-encoded String|ResourceId} req.params.identifier
  */
-function getNotification(request, callback) {
-  getNotificationHelper(request, function(error, notification) {
+function getNotification(account, identifier, urlBase, callback) {
+  getNotificationHelper(account, identifier, function(error, notification) {
     if (error) {
       return callback(error);
     }
@@ -35,7 +35,6 @@ function getNotification(request, callback) {
     };
 
     // Add urlBase to each url in notification
-    var urlBase = utils.getUrlBase(request);
     Object.keys(responseBody.notification).forEach(function(key) {
       if (/url/.test(key) && responseBody.notification[key]) {
         responseBody.notification[key] = urlBase + responseBody.notification[key];
@@ -70,10 +69,7 @@ function getNotification(request, callback) {
  *  @param {Error} error
  *  @param {Notification} notification
  */
-function getNotificationHelper(request, callback) {
-  var account = request.params.account;
-  var identifier = request.params.identifier
-
+function getNotificationHelper(account, identifier, callback) {
   if (!account) {
     return callback(new errors.InvalidRequestError('Missing parameter: account. Must be a valid Ripple Address'));
   } else if (!ripple.UInt160.is_valid(account)) {
@@ -81,7 +77,7 @@ function getNotificationHelper(request, callback) {
   }
 
   function getTransaction(async_callback) {
-    transactions.getTransaction(request.params.account, request.params.identifier, async_callback);
+    transactions.getTransaction(account, identifier, async_callback);
   }
 
   function checkLedger(baseTransaction, async_callback) {

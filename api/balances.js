@@ -5,6 +5,7 @@ var remote    = require('./lib/remote.js');
 var utils     = require('./lib/utils');
 var errors    = require('./lib/errors.js');
 var validator = require('./lib/schema-validator.js');
+var validate  = require('./lib/validate');
 
 var InvalidRequestError = errors.InvalidRequestError;
 const DefaultPageLimit = 200;
@@ -28,67 +29,49 @@ const DefaultPageLimit = 200;
  *  @param {Number String} [request.query.ledger] - identifier
  *
  */
-function getBalances(request, callback) {
-  var options = {
-    account: request.params.account,
-    currency: request.query.currency,
-    counterparty: request.query.counterparty,
-    frozen: request.query.frozen === 'true',
-    isAggregate: request.query.limit === 'all',
-    ledger: utils.parseLedger(request.params.ledger)
-  };
+function getBalances(account, options, callback) {
+  if(validate.fail([
+    validate.account(account),
+    validate.currency(options.currency, true),
+    validate.counterparty(options.counterparty, true)
+  ], callback)) {
+    return;
+  }
 
-  var currencyRE = new RegExp(options.currency ? ('^' + options.currency.toUpperCase() + '$') : /./);
+  const currencyRE = new RegExp(options.currency ?
+    ('^' + options.currency.toUpperCase() + '$') : /./);
 
-  validateOptions(options)
-  .then(getAccountBalances)
+  getAccountBalances()
   .then(respondWithBalances)
   .catch(callback)
 
-  function validateOptions(options) {
-    if (!ripple.UInt160.is_valid(options.account)) {
-      return Promise.reject(new InvalidRequestError('Parameter is not a valid Ripple address: account'));
-    }
-    if (options.counterparty && !ripple.UInt160.is_valid(options.counterparty)) {
-      return Promise.reject(new InvalidRequestError('Parameter is not a valid Ripple address: counterparty'));
-    }
-    if (options.currency && !validator.isValid(options.currency, 'Currency')) {
-      return Promise.reject(new InvalidRequestError('Parameter is not a valid currency: currency'));
-    }
-
-    return Promise.resolve(options);
-  };
-
-  function getAccountBalances(options) {
+  function getAccountBalances() {
     if (options.counterparty || options.frozen) {
-      return getLineBalances(options);
+      return getLineBalances();
     }
 
     if (options.currency) {
       if (options.currency === 'XRP') {
-        return getXRPBalance(options);
+        return getXRPBalance();
       } else {
-        return getLineBalances(options);
+        return getLineBalances();
       }
     }
 
-    return getXRPBalance(options)
-    .then(function(XRPResult) {
-      options.XRPLines = XRPResult.lines;
-      return Promise.resolve(options);
-    })
-    .then(getLineBalances)
-    .then(function(lineBalances) {
-      lineBalances.lines.unshift(options.XRPLines[0]);
+    return Promise.all([getXRPBalance(), getLineBalances()])
+    .then(function(values) {
+      const xrpBalance = values[0].lines[0];
+      var lineBalances = values[1];
+      lineBalances.lines.unshift(xrpBalance);
       return Promise.resolve(lineBalances);
     });
   }
 
-  function getXRPBalance(options) {
+  function getXRPBalance() {
     var promise = new Promise(function(resolve, reject) {
       var accountInfoRequest = remote.requestAccountInfo({
-        account: options.account,
-        ledger: options.ledger
+        account: account,
+        ledger: utils.parseLedger(options.ledger)
       });
 
       var lines = [];
@@ -110,8 +93,9 @@ function getBalances(request, callback) {
     return promise;
   };
 
-  function getLineBalances(options, prevResult) {
-    if (prevResult && (!options.isAggregate || !prevResult.marker)) {
+  function getLineBalances(prevResult) {
+    const isAggregate = options.limit === 'all';
+    if (prevResult && (!isAggregate || !prevResult.marker)) {
       return Promise.resolve(prevResult)
     }
 
@@ -126,13 +110,14 @@ function getBalances(request, callback) {
         limit  = prevResult.limit;
         ledger = prevResult.ledger_index;
       } else {
-        marker = request.query.marker;
-        limit  = validator.isValid(request.query.limit, 'UINT32') ? Number(request.query.limit) : DefaultPageLimit;
-        ledger = utils.parseLedger(request.query.ledger);
+        marker = options.marker;
+        limit  = validator.isValid(options.limit, 'UINT32')
+          ? Number(options.limit) : DefaultPageLimit;
+        ledger = utils.parseLedger(options.ledger);
       }
 
       accountLinesRequest = remote.requestAccountLines({
-        account: options.account,
+        account: account,
         marker: marker,
         limit: limit,
         ledger: ledger
@@ -161,12 +146,12 @@ function getBalances(request, callback) {
         });
 
         nextResult.lines = prevResult ? prevResult.lines.concat(lines) : lines;
-        resolve([options, nextResult]);
+        resolve(nextResult);
       });
       accountLinesRequest.request();
     });
 
-    return promise.spread(getLineBalances);
+    return promise.then(getLineBalances);
   };
 
   function respondWithBalances(result) {
