@@ -7,13 +7,20 @@ var logger = new winston.Logger({
       prettyPrint: true,
       colorize: true,
       timestamp: true,
-      handleExceptions: true,
+      handleExceptions: false,
       logLevel: 'info',
       showLevel: true,
       silent: config.get('NODE_ENV') === 'test'
     })
   ],
-  exitOnError: false
+  exceptionHandlers: [
+    new winston.transports.Console({
+      prettyPrint: true,
+      colorize: true,
+      timestamp: true
+    })
+  ],
+  exitOnError: true
 });
 
 exports.logger = logger;
