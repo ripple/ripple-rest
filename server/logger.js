@@ -9,14 +9,21 @@ var logger = exports.logger = new winston.Logger({
     new winston.transports.Console({
       prettyPrint: true,
       colorize: true,
-      handleExceptions: true,
+      handleExceptions: false,
       level: 'info',
       showLevel: true,
       timestamp: true,
       silent: config.get('NODE_ENV') === 'test'
     })
   ],
-  exitOnError: false
+  exceptionHandlers: [
+    new winston.transports.Console({
+      prettyPrint: true,
+      colorize: true,
+      timestamp: true
+    })
+  ],
+  exitOnError: true
 });
 
 /**
