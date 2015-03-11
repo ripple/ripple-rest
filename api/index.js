@@ -1,22 +1,23 @@
-var Info          = require('./info');
-var Balances      = require('./balances');
-var Settings      = require('./settings');
-var Transactions  = require('./transactions');
-var TrustLines    = require('./trustlines');
+'use strict';
+var Info = require('./info');
+var Balances = require('./balances');
+var Settings = require('./settings');
+var Transactions = require('./transactions');
+var TrustLines = require('./trustlines');
 var Notifications = require('./notifications');
-var Orders        = require('./orders');
-var Payments      = require('./payments');
-var Wallet        = require('./wallet');
-var errors        = require('./lib/errors');
-var serverLib     = require('./lib/server-lib');
-var remote        = require('./lib/remote');
+var Orders = require('./orders');
+var Payments = require('./payments');
+var Wallet = require('./wallet');
+var errors = require('./lib/errors');
+var serverLib = require('./lib/server-lib');
+var remote = require('./lib/remote');
 
 module.exports = {
   info: {
     serverStatus: Info.serverStatus,
     isConnected: Info.isConnected,
     fee: Info.fee,
-    uuid: Info.uuid,
+    uuid: Info.uuid
   },
 
   balances: {
@@ -60,5 +61,7 @@ module.exports = {
 
   errors: errors,
 
-  isConnected: function() { return serverLib.isConnected(remote); }
+  isConnected: function() {
+      return serverLib.isConnected(remote);
+  }
 };

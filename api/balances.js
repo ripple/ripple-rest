@@ -1,36 +1,37 @@
-var Promise   = require('bluebird');
-var async     = require('async');
-var ripple    = require('ripple-lib');
-var remote    = require('./lib/remote.js');
-var utils     = require('./lib/utils');
-var errors    = require('./lib/errors.js');
+/* globals Promise: true */
+/* eslint-disable valid-jsdoc */
+'use strict';
+var Promise = require('bluebird');
+var remote = require('./lib/remote.js');
+var utils = require('./lib/utils');
 var validator = require('./lib/schema-validator.js');
-var validate  = require('./lib/validate');
+var validate = require('./lib/validate');
 
-var InvalidRequestError = errors.InvalidRequestError;
-const DefaultPageLimit = 200;
-
+var DefaultPageLimit = 200;
 
 /**
  *  Request the balances for a given account
  *
  *  Notes:
- *  In order to use paging, you must provide at least ledger as a query parameter.
- *  Additionally, any limit lower than 10 will be bumped up to 10.
+ *  In order to use paging, you must provide at least ledger as a query
+ *  parameter.  Additionally, any limit lower than 10 will be bumped up to 10.
  *
  *  @url
- *  @param {RippleAddress} request.params.account - account to retrieve balances for
+ *  @param {RippleAddress} request.params.account
+ *          - account to retrieve balances for
  *
  *  @query
- *  @param {String ISO 4217 Currency Code} [request.query.currency] - only request balances with given currency
- *  @param {RippleAddress} [request.query.counterparty] - only request balances with given counterparty
+ *  @param {String ISO 4217 Currency Code} [request.query.currency]
+ *          - only request balances with given currency
+ *  @param {RippleAddress} [request.query.counterparty]
+ *          - only request balances with given counterparty
  *  @param {String} [request.query.marker] - start position in response paging
  *  @param {Number String} [request.query.limit] - max results per response
  *  @param {Number String} [request.query.ledger] - identifier
  *
  */
 function getBalances(account, options, callback) {
-  if(validate.fail([
+  if (validate.fail([
     validate.account(account),
     validate.currency(options.currency, true),
     validate.counterparty(options.counterparty, true)
@@ -38,34 +39,8 @@ function getBalances(account, options, callback) {
     return;
   }
 
-  const currencyRE = new RegExp(options.currency ?
+  var currencyRE = new RegExp(options.currency ?
     ('^' + options.currency.toUpperCase() + '$') : /./);
-
-  getAccountBalances()
-  .then(respondWithBalances)
-  .catch(callback)
-
-  function getAccountBalances() {
-    if (options.counterparty || options.frozen) {
-      return getLineBalances();
-    }
-
-    if (options.currency) {
-      if (options.currency === 'XRP') {
-        return getXRPBalance();
-      } else {
-        return getLineBalances();
-      }
-    }
-
-    return Promise.all([getXRPBalance(), getLineBalances()])
-    .then(function(values) {
-      const xrpBalance = values[0].lines[0];
-      var lineBalances = values[1];
-      lineBalances.lines.unshift(xrpBalance);
-      return Promise.resolve(lineBalances);
-    });
-  }
 
   function getXRPBalance() {
     var promise = new Promise(function(resolve, reject) {
@@ -91,12 +66,12 @@ function getBalances(account, options, callback) {
     });
 
     return promise;
-  };
+  }
 
   function getLineBalances(prevResult) {
-    const isAggregate = options.limit === 'all';
+    var isAggregate = options.limit === 'all';
     if (prevResult && (!isAggregate || !prevResult.marker)) {
-      return Promise.resolve(prevResult)
+      return Promise.resolve(prevResult);
     }
 
     var promise = new Promise(function(resolve, reject) {
@@ -107,11 +82,11 @@ function getBalances(account, options, callback) {
 
       if (prevResult) {
         marker = prevResult.marker;
-        limit  = prevResult.limit;
+        limit = prevResult.limit;
         ledger = prevResult.ledger_index;
       } else {
         marker = options.marker;
-        limit  = validator.isValid(options.limit, 'UINT32')
+        limit = validator.isValid(options.limit, 'UINT32')
           ? Number(options.limit) : DefaultPageLimit;
         ledger = utils.parseLedger(options.ledger);
       }
@@ -138,9 +113,9 @@ function getBalances(account, options, callback) {
 
           if (currencyRE.test(line.currency)) {
             lines.push({
-              value:         line.balance,
-              currency:      line.currency,
-              counterparty:  line.account
+              value: line.balance,
+              currency: line.currency,
+              counterparty: line.account
             });
           }
         });
@@ -152,27 +127,51 @@ function getBalances(account, options, callback) {
     });
 
     return promise.then(getLineBalances);
-  };
+  }
+
+  function getAccountBalances() {
+    if (options.counterparty || options.frozen) {
+      return getLineBalances();
+    }
+
+    if (options.currency) {
+      if (options.currency === 'XRP') {
+        return getXRPBalance();
+      }
+      return getLineBalances();
+    }
+
+    return Promise.all([getXRPBalance(), getLineBalances()])
+    .then(function(values) {
+      var xrpBalance = values[0].lines[0];
+      var lineBalances = values[1];
+      lineBalances.lines.unshift(xrpBalance);
+      return Promise.resolve(lineBalances);
+    });
+  }
 
   function respondWithBalances(result) {
-    var promise = new Promise(function (resolve, reject) {
+    var promise = new Promise(function (resolve) {
       var balances = {};
 
       if (result.marker) {
         balances.marker = result.marker;
       }
 
-      balances.limit     = result.limit;
-      balances.ledger    = result.ledger_index;
+      balances.limit = result.limit;
+      balances.ledger = result.ledger_index;
       balances.validated = result.validated;
-      balances.balances  = result.lines;
+      balances.balances = result.lines;
 
       resolve(callback(null, balances));
     });
 
     return promise;
   }
-};
+
+  getAccountBalances()
+  .then(respondWithBalances)
+  .catch(callback);
+}
 
 module.exports.get = getBalances;
-
