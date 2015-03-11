@@ -2,6 +2,7 @@
 'use strict';
 var bignum = require('bignumber.js');
 var validator = require('./schema-validator.js');
+var ripple = require('ripple-lib');
 
 function dropsToXrp(drops) {
   return bignum(drops).dividedBy(1000000.0).toString();
@@ -94,7 +95,22 @@ function compareTransactions(first, second) {
   return first.ledger_index < second.ledger_index ? -1 : 1;
 }
 
+function isValidLedgerSequence(ledger) {
+  return (Number(ledger) >= 0) && isFinite(Number(ledger));
+}
+
+function isValidLedgerHash(ledger) {
+  return ripple.UInt256.is_valid(ledger);
+}
+
+function isValidLedgerWord(ledger) {
+  return (/^current$|^closed$|^validated$/.test(ledger));
+}
+
 module.exports = {
+  isValidLedgerSequence: isValidLedgerSequence,
+  isValidLedgerWord: isValidLedgerWord,
+  isValidLedgerHash: isValidLedgerHash,
   dropsToXrp: dropsToXrp,
   xrpToDrops: xrpToDrops,
   parseLedger: parseLedger,
@@ -103,3 +119,4 @@ module.exports = {
   txFromRestAmount: txFromRestAmount,
   compareTransactions: compareTransactions
 };
+

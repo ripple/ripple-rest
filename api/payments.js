@@ -11,11 +11,13 @@ var utils = require('./lib/utils');
 var RestToTxConverter = require('./lib/rest-to-tx-converter.js');
 var TxToRestConverter = require('./lib/tx-to-rest-converter.js');
 var SubmitTransactionHooks = require('./lib/submit_transaction_hooks.js');
-var errors = require('./lib/errors.js');
 
-var InvalidRequestError = errors.InvalidRequestError;
-var NotFoundError = errors.NotFoundError;
-var TimeOutError = errors.TimeOutError;
+var errors = require('./lib/errors');
+var InvalidRequestError     = errors.InvalidRequestError;
+var NetworkError            = errors.NetworkError;
+var NotFoundError           = errors.NotFoundError;
+var TimeOutError            = errors.TimeOutError;
+var ApiError                = errors.ApiError;
 
 var DEFAULT_RESULTS_PER_PAGE = 10;
 

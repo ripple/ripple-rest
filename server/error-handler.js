@@ -11,7 +11,13 @@ var NotFoundError = errors.NotFoundError;
 var TimeOutError = errors.TimeOutError;
 var ApiError = errors.ApiError;
 var DatabaseError = errors.DatabaseError;
+var RippleError = errors.RippleError;
+var RippleLibError = require('ripple-lib').RippleError;
 
+
+function isRippleError(error) {
+  return error instanceof RippleError || error instanceof RippleLibError;
+}
 
 function handleError(error, req, res, next) {
   // If in debug mode, print errors
@@ -23,6 +29,9 @@ function handleError(error, req, res, next) {
     } else {
       logger.error(error);
     }
+  } else if (!isRippleError(error)) {
+    // always log stack traces for uncaught exceptions
+    error.stack && logger.error(error.stack);
   }
 
   var err_obj = {

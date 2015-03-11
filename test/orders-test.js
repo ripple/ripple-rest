@@ -104,9 +104,9 @@ suite('get orders', function() {
 
     self.app
     .get('/v1/accounts/' + addresses.VALID + '/orders?ledger=foo')
-    .expect(testutils.checkStatus(200))
+    .expect(testutils.checkStatus(400))
     .expect(testutils.checkHeaders)
-    .expect(testutils.checkBody(fixtures.RESTAccountOrdersResponse()))
+    .expect(testutils.checkBody(errors.restInvalidParameter('ledger')))
     .end(done);
   });
 
@@ -154,19 +154,6 @@ suite('get orders', function() {
     .end(done);
   });
 
-  test('/accounts/:account/orders -- with invalid marker', function(done) {
-    self.wss.once('request_account_offers', function(message, conn) {
-      assert(false);
-    });
-
-    self.app
-    .get('/v1/accounts/' + addresses.VALID + '/orders?marker=abcd')
-    .expect(testutils.checkStatus(500))
-    .expect(testutils.checkHeaders)
-    .expect(testutils.checkBody(errors.RESTLedgerMissingWithMarker))
-    .end(done);
-  });
-
   test('/accounts/:account/orders -- with valid marker and invalid limit', function(done) {
     self.wss.once('request_account_offers', function(message, conn) {
       assert(false);
@@ -174,22 +161,22 @@ suite('get orders', function() {
 
     self.app
     .get('/v1/accounts/' + addresses.VALID + '/orders?marker=' + MARKER + '&limit=foo')
-    .expect(testutils.checkStatus(500))
+    .expect(testutils.checkStatus(400))
     .expect(testutils.checkHeaders)
-    .expect(testutils.checkBody(errors.RESTLedgerMissingWithMarker))
+    .expect(testutils.checkBody(errors.restInvalidParameter('limit')))
     .end(done);
   });
 
-  test('/accounts/:account/orders -- with valid marker and valid limit', function(done) {
+  test('/accounts/:account/orders -- with valid marker, valid limit, missing ledger', function(done) {
     self.wss.once('request_account_offers', function(message, conn) {
       assert(false);
     });
 
     self.app
     .get('/v1/accounts/' + addresses.VALID + '/orders?marker=' + MARKER + '&limit=' + LIMIT)
-    .expect(testutils.checkStatus(500))
+    .expect(testutils.checkStatus(400))
     .expect(testutils.checkHeaders)
-    .expect(testutils.checkBody(errors.RESTLedgerMissingWithMarker))
+    .expect(testutils.checkBody(errors.restInvalidParameter('ledger')))
     .end(done);
   });
 
@@ -246,9 +233,9 @@ suite('get orders', function() {
 
     self.app
     .get('/v1/accounts/' + addresses.VALID + '/orders?marker=' + MARKER + '&limit=' + LIMIT + '&ledger=foo')
-    .expect(testutils.checkStatus(500))
+    .expect(testutils.checkStatus(400))
     .expect(testutils.checkHeaders)
-    .expect(testutils.checkBody(errors.RESTLedgerMissingWithMarker))
+    .expect(testutils.checkBody(errors.restInvalidParameter('ledger')))
     .end(done);
   });
 
@@ -259,9 +246,9 @@ suite('get orders', function() {
 
     self.app
     .get('/v1/accounts/' + addresses.VALID + '/orders?marker=' + MARKER + '&limit=' + LIMIT + '&ledger=validated')
-    .expect(testutils.checkStatus(500))
+    .expect(testutils.checkStatus(400))
     .expect(testutils.checkHeaders)
-    .expect(testutils.checkBody(errors.RESTLedgerMissingWithMarker))
+    .expect(testutils.checkBody(errors.restInvalidParameter('ledger')))
     .end(done);
   });
 
@@ -272,9 +259,9 @@ suite('get orders', function() {
 
     self.app
     .get('/v1/accounts/' + addresses.VALID + '/orders?marker=' + MARKER + '&limit=' + LIMIT + '&ledger=current')
-    .expect(testutils.checkStatus(500))
+    .expect(testutils.checkStatus(400))
     .expect(testutils.checkHeaders)
-    .expect(testutils.checkBody(errors.RESTLedgerMissingWithMarker))
+    .expect(testutils.checkBody(errors.restInvalidParameter('ledger')))
     .end(done);
   });
 
@@ -285,9 +272,9 @@ suite('get orders', function() {
 
     self.app
     .get('/v1/accounts/' + addresses.VALID + '/orders?marker=' + MARKER + '&limit=' + LIMIT + '&ledger=closed')
-    .expect(testutils.checkStatus(500))
+    .expect(testutils.checkStatus(400))
     .expect(testutils.checkHeaders)
-    .expect(testutils.checkBody(errors.RESTLedgerMissingWithMarker))
+    .expect(testutils.checkBody(errors.restInvalidParameter('ledger')))
     .end(done);
   });
 

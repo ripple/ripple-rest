@@ -1,3 +1,12 @@
+module.exports.restInvalidParameter = function restInvalidParameter(parameter) {
+  return JSON.stringify({
+    success: false,
+    error_type: 'invalid_request',
+    error: 'restINVALID_PARAMETER',
+    message: 'Invalid or Missing Parameter: ' + parameter
+  });
+}
+
 module.exports.RESTMissingSecret = JSON.stringify({
   success: false,
   error_type: 'invalid_request',
@@ -108,12 +117,6 @@ module.exports.RESTResponseLedgerSequenceTooHigh = JSON.stringify({
   error_type: 'transaction',
   error: 'tejMaxLedger',
   message: 'Transaction LastLedgerSequence exceeded'
-});
-
-module.exports.RESTLedgerMissingWithMarker = JSON.stringify({
-  success: false,
-  error_type: 'transaction',
-  error: 'A ledger_index or ledger_hash must be provided when using a marker' 
 });
 
 module.exports.RESTMaxFeeExceeded = JSON.stringify({

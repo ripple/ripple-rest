@@ -108,17 +108,14 @@ suite('get balances', function() {
     });
 
     self.wss.once('request_account_lines', function(message, conn) {
-      assert.strictEqual(message.command, 'account_lines');
-      assert.strictEqual(message.account, addresses.VALID);
-      assert.strictEqual(message.ledger_index, 'validated');
-      conn.send(fixtures.accountLinesResponse(message));
+      assert(false);
     });
 
     self.app
     .get(requestPath(addresses.VALID, '?ledger=foo'))
-    .expect(testutils.checkStatus(200))
+    .expect(testutils.checkStatus(400))
     .expect(testutils.checkHeaders)
-    .expect(testutils.checkBody(fixtures.RESTAccountBalancesResponse()))
+    .expect(testutils.checkBody(errors.restInvalidParameter('ledger')))
     .end(done);
   });
 
@@ -208,7 +205,7 @@ suite('get balances', function() {
     .end(done);
   });
 
-  test('/accounts/:account/balances -- with invalid marker', function(done) {
+  test('/accounts/:account/balances -- with invalid limit', function(done) {
     self.wss.once('request_account_info', function(message, conn) {
       assert.strictEqual(message.command, 'account_info');
       assert.strictEqual(message.account, addresses.VALID);
@@ -220,14 +217,14 @@ suite('get balances', function() {
     });
 
     self.app
-    .get(requestPath(addresses.VALID, '?marker=abcd'))
-    .expect(testutils.checkStatus(500))
+    .get(requestPath(addresses.VALID, '?limit=foo'))
+    .expect(testutils.checkStatus(400))
     .expect(testutils.checkHeaders)
-    .expect(testutils.checkBody(errors.RESTLedgerMissingWithMarker))
+    .expect(testutils.checkBody(errors.restInvalidParameter('limit')))
     .end(done);
   });
 
-  test('/accounts/:account/balances -- with valid marker and invalid limit', function(done) {
+  test('/accounts/:account/balances -- with marker and missing ledger', function(done) {
     self.wss.once('request_account_info', function(message, conn) {
       assert.strictEqual(message.command, 'account_info');
       assert.strictEqual(message.account, addresses.VALID);
@@ -239,33 +236,14 @@ suite('get balances', function() {
     });
 
     self.app
-    .get(requestPath(addresses.VALID, '?marker=' + MARKER + '&limit=foo'))
-    .expect(testutils.checkStatus(500))
+    .get(requestPath(addresses.VALID, '?marker=' + MARKER))
+    .expect(testutils.checkStatus(400))
     .expect(testutils.checkHeaders)
-    .expect(testutils.checkBody(errors.RESTLedgerMissingWithMarker))
+    .expect(testutils.checkBody(errors.restInvalidParameter('ledger')))
     .end(done);
   });
 
-  test('/accounts/:account/balances -- with valid marker and valid limit', function(done) {
-    self.wss.once('request_account_info', function(message, conn) {
-      assert.strictEqual(message.command, 'account_info');
-      assert.strictEqual(message.account, addresses.VALID);
-      conn.send(fixtures.accountInfoResponse(message));
-    });
-
-    self.wss.once('request_account_lines', function(message, conn) {
-      assert(false);
-    });
-
-    self.app
-    .get(requestPath(addresses.VALID, '?marker=' + MARKER + '&limit=' + LIMIT))
-    .expect(testutils.checkStatus(500))
-    .expect(testutils.checkHeaders)
-    .expect(testutils.checkBody(errors.RESTLedgerMissingWithMarker))
-    .end(done);
-  });
-
-  test('/accounts/:account/balances -- with valid marker and valid ledger', function(done) {
+  test('/accounts/:account/balances -- with marker and valid ledger', function(done) {
     self.wss.once('request_account_info', function(message, conn) {
       assert.strictEqual(message.command, 'account_info');
       assert.strictEqual(message.account, addresses.VALID);
@@ -294,7 +272,7 @@ suite('get balances', function() {
     .end(done);
   });
 
-  test('/accounts/:account/balances -- valid ledger and valid limit', function(done) {
+  test('/accounts/:account/balances -- with valid marker, ledger and limit', function(done) {
     self.wss.once('request_account_info', function(message, conn) {
       assert.strictEqual(message.command, 'account_info');
       assert.strictEqual(message.account, addresses.VALID);
@@ -337,9 +315,9 @@ suite('get balances', function() {
 
     self.app
     .get(requestPath(addresses.VALID, '?marker=' + MARKER + '&limit=' + LIMIT + '&ledger=foo'))
-    .expect(testutils.checkStatus(500))
+    .expect(testutils.checkStatus(400))
     .expect(testutils.checkHeaders)
-    .expect(testutils.checkBody(errors.RESTLedgerMissingWithMarker))
+    .expect(testutils.checkBody(errors.restInvalidParameter('ledger')))
     .end(done);
   });
 
@@ -356,9 +334,9 @@ suite('get balances', function() {
 
     self.app
     .get(requestPath(addresses.VALID, '?marker=' + MARKER + '&limit=' + LIMIT + '&ledger=validated'))
-    .expect(testutils.checkStatus(500))
+    .expect(testutils.checkStatus(400))
     .expect(testutils.checkHeaders)
-    .expect(testutils.checkBody(errors.RESTLedgerMissingWithMarker))
+    .expect(testutils.checkBody(errors.restInvalidParameter('ledger')))
     .end(done);
   });
 
@@ -375,9 +353,9 @@ suite('get balances', function() {
 
     self.app
     .get(requestPath(addresses.VALID, '?marker=' + MARKER + '&limit=' + LIMIT + '&ledger=closed'))
-    .expect(testutils.checkStatus(500))
+    .expect(testutils.checkStatus(400))
     .expect(testutils.checkHeaders)
-    .expect(testutils.checkBody(errors.RESTLedgerMissingWithMarker))
+    .expect(testutils.checkBody(errors.restInvalidParameter('ledger')))
     .end(done);
   });
 
@@ -394,9 +372,9 @@ suite('get balances', function() {
 
     self.app
     .get(requestPath(addresses.VALID, '?marker=' + MARKER + '&limit=' + LIMIT + '&ledger=current'))
-    .expect(testutils.checkStatus(500))
+    .expect(testutils.checkStatus(400))
     .expect(testutils.checkHeaders)
-    .expect(testutils.checkBody(errors.RESTLedgerMissingWithMarker))
+    .expect(testutils.checkBody(errors.restInvalidParameter('ledger')))
     .end(done);
   });
 
