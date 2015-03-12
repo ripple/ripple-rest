@@ -1,9 +1,11 @@
-var _      = require('lodash');
+/* eslint-disable valid-jsdoc */
+'use strict';
+var _ = require('lodash');
 var ripple = require('ripple-lib');
 var bignum = require('bignumber.js');
-var utils  = require(__dirname+'/utils');
+var utils = require('./utils');
 
-function RestToTxConverter() {};
+function RestToTxConverter() {}
 
 /**
  *  Convert a payment in the ripple-rest format
@@ -18,26 +20,34 @@ function RestToTxConverter() {};
  */
 RestToTxConverter.prototype.convert = function(payment, callback) {
   try {
-
-    // Convert blank counterparty to sender's address (Ripple convention for 'any counterparty')
-    // https://ripple.com/build/transactions/#special-issuer-values-for-sendmax-and-amount
+    // Convert blank counterparty to sender's address
+    //   (Ripple convention for 'any counterparty')
+    // https://ripple.com/build/transactions/
+    //    #special-issuer-values-for-sendmax-and-amount
     // https://ripple.com/build/ripple-rest/#counterparties-in-payments
-    if (payment.source_amount && payment.source_amount.currency !== 'XRP' && payment.source_amount.counterparty === '') {
+    if (payment.source_amount && payment.source_amount.currency !== 'XRP'
+        && payment.source_amount.counterparty === '') {
       payment.source_amount.counterparty = payment.source_account;
     }
 
-    // Convert blank counterparty to destinations's address (Ripple convention for 'any counterparty')
-    // https://ripple.com/build/transactions/#special-issuer-values-for-sendmax-and-amount
+    // Convert blank counterparty to destinations's address
+    //   (Ripple convention for 'any counterparty')
+    // https://ripple.com/build/transactions/
+    //    #special-issuer-values-for-sendmax-and-amount
     // https://ripple.com/build/ripple-rest/#counterparties-in-payments
-    if (payment.destination_amount && payment.destination_amount.currency !== 'XRP' && payment.destination_amount.counterparty === '') {
+    if (payment.destination_amount
+        && payment.destination_amount.currency !== 'XRP'
+        && payment.destination_amount.counterparty === '') {
       payment.destination_amount.counterparty = payment.destination_account;
     }
     // Uppercase currency codes
     if (payment.source_amount) {
-      payment.source_amount.currency = payment.source_amount.currency.toUpperCase();
+      payment.source_amount.currency =
+        payment.source_amount.currency.toUpperCase();
     }
     if (payment.destination_amount) {
-      payment.destination_amount.currency = payment.destination_amount.currency.toUpperCase();
+      payment.destination_amount.currency =
+        payment.destination_amount.currency.toUpperCase();
     }
     /* Construct payment */
     var transaction = new ripple.Transaction();
@@ -47,7 +57,8 @@ RestToTxConverter.prototype.convert = function(payment, callback) {
       amount: utils.txFromRestAmount(payment.destination_amount)
     };
 
-    // invoice_id  Because transactionData is a object,  transaction.payment function is ignored invoiceID
+    // invoice_id  Because transactionData is a object, transaction.payment
+    //  function is ignored invoiceID
     if (payment.invoice_id) {
       transaction.invoiceID(payment.invoice_id);
     }
@@ -62,8 +73,12 @@ RestToTxConverter.prototype.convert = function(payment, callback) {
     // SendMax
     if (payment.source_amount) {
       // Only set send max if source and destination currencies are different
-      if (!(payment.source_amount.currency === payment.destination_amount.currency && payment.source_amount.counterparty === payment.destination_amount.counterparty)) {
-        var max_value = bignum(payment.source_amount.value).plus(payment.source_slippage).toString();
+      if (!(payment.source_amount.currency
+            === payment.destination_amount.currency
+            && payment.source_amount.counterparty
+            === payment.destination_amount.counterparty)) {
+        var max_value = bignum(payment.source_amount.value)
+                        .plus(payment.source_slippage).toString();
         if (payment.source_amount.currency === 'XRP') {
           transaction.sendMax(utils.xrpToDrops(max_value));
         } else {
@@ -102,24 +117,25 @@ RestToTxConverter.prototype.convert = function(payment, callback) {
     if (flags.length > 0) {
       transaction.setFlags(flags);
     }
+    callback(null, transaction);
   } catch (exception) {
     return callback(exception);
   }
-  callback(null, transaction);
-
 };
 
 /**
  *  Convert a numerical transfer rate in ripple-rest format to ripple-lib
  *
- *  Note: A fee of 1% requires 101% of the destination to be sent for the destination to receive 100%.
+ *  Note: A fee of 1% requires 101% of the destination to be sent for the
+ *        destination to receive 100%.
  *  The transfer rate is specified as the input amount as fraction of 1.
- *  To specify the default rate of 0%, a 100% input amount, specify 1. 
+ *  To specify the default rate of 0%, a 100% input amount, specify 1.
  *  To specify a rate of 1%, a 101% input amount, specify 1.01
  *
  *  @param {Number|String} transferRate
  *
- *  @returns {Number|String} numbers will be converted while strings are returned
+ *  @returns {Number|String} numbers will be converted while strings
+ *                           are returned
  */
 RestToTxConverter.prototype.convertTransferRate = function(transferRate) {
   if (_.isNumber(transferRate)) {
