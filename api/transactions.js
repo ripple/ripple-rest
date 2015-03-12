@@ -35,6 +35,46 @@ var DEFAULT_RESULTS_PER_PAGE = 10;
  */
 
 function submitTransaction(options, hooks, callback) {
+  function blockDuplicates(transaction, _options, _callback) {
+    dbinterface.getTransaction({
+      source_account: transaction.tx_json.Account,
+      client_resource_id: _options.clientResourceId,
+      type: transaction.tx_json.TransactionType.toLowerCase()
+    }, function(error, db_record) {
+        if (error) {
+          return _callback(error);
+        }
+        if (db_record) {
+          return _callback(new errors.DuplicateTransactionError(
+            'Duplicate Transaction. A record already exists in the database ' +
+            'for a transaction of this type with the same client_resource_id.' +
+            ' If this was not an accidental resubmission please submit ' +
+            'the transaction again with a unique client_resource_id')
+          );
+        }
+
+        _callback(null, transaction);
+    });
+  }
+
+  function formatTransactionResponseWrapper(transaction, message,
+      waitForValidated, _callback) {
+    var summary = transaction.summary();
+
+    transaction.removeListener('error', _callback);
+
+    var meta = {};
+
+    if (summary.result) {
+      meta.hash = summary.result.transaction_hash;
+      meta.ledger = String(summary.submitIndex);
+    }
+
+    meta.state = message.validated === true ? 'validated' : 'pending';
+
+    hooks.formatTransactionResponse(message, meta, _callback, waitForValidated);
+  }
+
   var steps = [
     // General options validation is performed here before passing the
     // options to the caller to validate
@@ -129,46 +169,6 @@ function submitTransaction(options, hooks, callback) {
       transaction.submit();
     }
   ];
-
-  function formatTransactionResponseWrapper(transaction, message,
-      waitForValidated, _callback) {
-    var summary = transaction.summary();
-
-    transaction.removeListener('error', _callback);
-
-    var meta = {};
-
-    if (summary.result) {
-      meta.hash = summary.result.transaction_hash;
-      meta.ledger = String(summary.submitIndex);
-    }
-
-    meta.state = message.validated === true ? 'validated' : 'pending';
-
-    hooks.formatTransactionResponse(message, meta, _callback, waitForValidated);
-  }
-
-  function blockDuplicates(transaction, _options, _callback) {
-    dbinterface.getTransaction({
-      source_account: transaction.tx_json.Account,
-      client_resource_id: _options.clientResourceId,
-      type: transaction.tx_json.TransactionType.toLowerCase()
-    }, function(error, db_record) {
-        if (error) {
-          return _callback(error);
-        }
-        if (db_record) {
-          return _callback(new errors.DuplicateTransactionError(
-            'Duplicate Transaction. A record already exists in the database ' +
-            'for a transaction of this type with the same client_resource_id.' +
-            ' If this was not an accidental resubmission please submit ' +
-            'the transaction again with a unique client_resource_id')
-          );
-        }
-
-        _callback(null, transaction);
-    });
-  }
 
   async.waterfall(steps, callback);
 }

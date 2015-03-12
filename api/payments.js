@@ -22,6 +22,76 @@ var TimeOutError = errors.TimeOutError;
 var DEFAULT_RESULTS_PER_PAGE = 10;
 
 /**
+ * Formats the local database transaction into ripple-rest Payment format
+ *
+ * @param {RippleAddress} account
+ * @param {Transaction} transaction
+ * @param {Function} callback
+ *
+ * @callback
+ * @param {Error} error
+ * @param {RippleRestTransaction} transaction
+ */
+function formatPaymentHelper(account, transaction, callback) {
+  function checkIsPayment(_callback) {
+    var isPayment = transaction
+                  && /^payment$/i.test(transaction.TransactionType);
+
+    if (isPayment) {
+      _callback(null, transaction);
+    } else {
+      _callback(new InvalidRequestError('Not a payment. The transaction '
+        + 'corresponding to the given identifier is not a payment.'));
+    }
+  }
+
+  function getPaymentMetadata(_transaction) {
+    return {
+      client_resource_id: _transaction.client_resource_id || '',
+      hash: _transaction.hash || '',
+      ledger: !_.isUndefined(transaction.inLedger)
+        ? String(_transaction.inLedger) : String(_transaction.ledger_index),
+      state: _transaction.state || _transaction.meta
+        ? (_transaction.meta.TransactionResult === 'tesSUCCESS'
+            ? 'validated' : 'failed') : ''
+    };
+  }
+
+  function formatTransaction(_transaction, _callback) {
+    if (_transaction) {
+      TxToRestConverter.parsePaymentFromTx(_transaction, {account: account},
+          function(err, parsedPayment) {
+        if (err) {
+          return _callback(err);
+        }
+
+        var result = {
+          payment: parsedPayment
+        };
+
+        _.extend(result, getPaymentMetadata(_transaction));
+
+        return _callback(null, result);
+      });
+    } else {
+      _callback(new NotFoundError('Payment Not Found. This may indicate that '
+        + 'the payment was never validated and written into the Ripple ledger '
+        + 'and it was not submitted through this ripple-rest instance. '
+        + 'This error may also be seen if the databases of either ripple-rest '
+        + 'or rippled were recently created or deleted.'));
+    }
+  }
+
+  var steps = [
+    checkIsPayment,
+    formatTransaction
+  ];
+
+  async.waterfall(steps, callback);
+}
+
+
+/**
  * Submit a payment in the ripple-rest format.
  *
  * @global
@@ -275,75 +345,6 @@ function submitPayment(account, payment, clientResourceID, secret,
 
     callback(null, paymentResult);
   });
-}
-
-/**
- * Formats the local database transaction into ripple-rest Payment format
- *
- * @param {RippleAddress} account
- * @param {Transaction} transaction
- * @param {Function} callback
- *
- * @callback
- * @param {Error} error
- * @param {RippleRestTransaction} transaction
- */
-function formatPaymentHelper(account, transaction, callback) {
-  function checkIsPayment(_callback) {
-    var isPayment = transaction
-                  && /^payment$/i.test(transaction.TransactionType);
-
-    if (isPayment) {
-      _callback(null, transaction);
-    } else {
-      _callback(new InvalidRequestError('Not a payment. The transaction '
-        + 'corresponding to the given identifier is not a payment.'));
-    }
-  }
-
-  function getPaymentMetadata(_transaction) {
-    return {
-      client_resource_id: _transaction.client_resource_id || '',
-      hash: _transaction.hash || '',
-      ledger: !_.isUndefined(transaction.inLedger)
-        ? String(_transaction.inLedger) : String(_transaction.ledger_index),
-      state: _transaction.state || _transaction.meta
-        ? (_transaction.meta.TransactionResult === 'tesSUCCESS'
-            ? 'validated' : 'failed') : ''
-    };
-  }
-
-  function formatTransaction(_transaction, _callback) {
-    if (_transaction) {
-      TxToRestConverter.parsePaymentFromTx(_transaction, {account: account},
-          function(err, parsedPayment) {
-        if (err) {
-          return _callback(err);
-        }
-
-        var result = {
-          payment: parsedPayment
-        };
-
-        _.extend(result, getPaymentMetadata(_transaction));
-
-        return _callback(null, result);
-      });
-    } else {
-      _callback(new NotFoundError('Payment Not Found. This may indicate that '
-        + 'the payment was never validated and written into the Ripple ledger '
-        + 'and it was not submitted through this ripple-rest instance. '
-        + 'This error may also be seen if the databases of either ripple-rest '
-        + 'or rippled were recently created or deleted.'));
-    }
-  }
-
-  var steps = [
-    checkIsPayment,
-    formatTransaction
-  ];
-
-  async.waterfall(steps, callback);
 }
 
 /**

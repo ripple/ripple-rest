@@ -1,14 +1,15 @@
-const _ = require('lodash');
-const errors = require('./errors.js');
-const validator = require('./schema-validator');
-const ripple = require('ripple-lib');
+'use strict';
+var _ = require('lodash');
+var errors = require('./errors.js');
+var validator = require('./schema-validator');
+var ripple = require('ripple-lib');
 
-function addOptionalOption(validator) {
+function addOptionalOption(validatorFunction) {
   return function(parameter, optional) {
     if (optional && parameter === undefined) {
       return null;
     }
-    return validator(parameter);
+    return validatorFunction(parameter);
   };
 }
 
@@ -44,7 +45,7 @@ function validateIssue(issue) {
 }
 
 function fail(results, callback) {
-  const error = _.find(results);
+  var error = _.find(results);
   if (error) {
     callback(error);
     return true;

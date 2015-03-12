@@ -1,26 +1,11 @@
+/* eslint-disable valid-jsdoc */
 'use strict';
 var async = require('async');
 
 /**
  * If a ledger is not received in this time, consider the connection offline
  */
-
 var CONNECTION_TIMEOUT = 1000 * 30;
-
-/**
- * Check if remote is connected and attempt to reconnect if not
- *
- * @param {Remote} remote
- * @param {Function} callback
- */
-
-function ensureConnected(remote, callback) {
-  if (remote.getServer()) {
-    callback(null, isConnected(remote));
-  } else {
-    callback(null, false);
-  }
-}
 
 /**
  * Determine if remote is connected based on time of last ledger closed
@@ -28,7 +13,6 @@ function ensureConnected(remote, callback) {
  * @param {Server} server
  * @return {Boolean}
  */
-
 function isConnected(remote) {
   if (isNaN(remote._ledger_current_index)) {
     // Remote is missing the index of last ledger closed. Unprepared to submit
@@ -51,10 +35,23 @@ function isConnected(remote) {
 }
 
 /**
+ * Check if remote is connected and attempt to reconnect if not
+ *
  * @param {Remote} remote
  * @param {Function} callback
  */
+function ensureConnected(remote, callback) {
+  if (remote.getServer()) {
+    callback(null, isConnected(remote));
+  } else {
+    callback(null, false);
+  }
+}
 
+/**
+ * @param {Remote} remote
+ * @param {Function} callback
+ */
 function getStatus(remote, callback) {
   function checkConnectivity(_callback) {
     ensureConnected(remote, _callback);
@@ -87,7 +84,6 @@ function getStatus(remote, callback) {
  * @param {Number|String} ledger
  * @param {Function} callback
  */
-
 function remoteHasLedger(remote, ledger, callback) {
   var ledger_index = Number(ledger);
 
