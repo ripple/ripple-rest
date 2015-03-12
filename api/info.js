@@ -1,9 +1,10 @@
-var _         = require('lodash');
-var uuid      = require('node-uuid');
+'use strict';
+var _ = require('lodash');
+var uuid = require('node-uuid');
 var serverlib = require('./lib/server-lib');
-var remote    = require('./lib/remote.js');
-var errors    = require('./lib/errors.js');
-var utils     = require('./lib/utils.js');
+var remote = require('./lib/remote.js');
+var errors = require('./lib/errors.js');
+var utils = require('./lib/utils.js');
 
 function getServerStatus(callback) {
   serverlib.getStatus(remote, function(error, status) {
@@ -15,7 +16,7 @@ function getServerStatus(callback) {
       }, status));
     }
   });
-};
+}
 
 /**
  *  Check server connectivity.  If we hit this method it means the server is
@@ -23,16 +24,16 @@ function getServerStatus(callback) {
  */
 
 function getServerConnected(callback) {
-  callback(null, { connected: true });
-};
+  callback(null, {connected: true});
+}
 
 /**
  * Get UUID, for use by the client as transaction identifier
  */
 
 function getUUID(callback) {
-  callback(null, { uuid: uuid.v4() });
-};
+  callback(null, {uuid: uuid.v4()});
+}
 
 /**
  * Get the current transaction fee
@@ -40,8 +41,8 @@ function getUUID(callback) {
 
 function getFee(callback) {
   var fee = remote.createTransaction()._computeFee();
-  callback(null, { fee: utils.dropsToXrp(fee) });
-};
+  callback(null, {fee: utils.dropsToXrp(fee)});
+}
 
 module.exports.serverStatus = getServerStatus;
 module.exports.isConnected = getServerConnected;
