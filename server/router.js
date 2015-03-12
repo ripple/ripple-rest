@@ -1,12 +1,10 @@
-const _         = require('lodash');
-const ripple    = require('ripple-lib');
-const express   = require('express');
-const api       = require('../api');
-const errors    = require('../api').errors;
-const respond   = require('./response-handler');
-const version   = require('./version');
-const routes    = require('./routes');
-const generateIndexPage = require('./indexpage');
+'use strict';
+var _ = require('lodash');
+var express = require('express');
+var api = require('../api');
+var errors = require('../api').errors;
+var routes = require('./routes');
+var generateIndexPage = require('./indexpage');
 
 var router = new express.Router();
 router.get('/', generateIndexPage);
@@ -21,7 +19,7 @@ router.all('*', function(req, res, next) {
   if (api.isConnected()) {
     next();
   } else {
-    next(new errors.RippledNetworkError(void(0)));
+    next(new errors.RippledNetworkError(undefined));
   }
 });
 

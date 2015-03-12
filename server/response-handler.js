@@ -1,3 +1,5 @@
+/* eslint-disable valid-jsdoc */
+'use strict';
 /**
  * Response handler
  * Format http(s) responses and appropriate error codes
@@ -11,9 +13,12 @@
  * HTTP Status Codes
  *
  * 200 OK - Everything worked as expected.
- * 201 Created - POST request has been accepted and resulted in successful creation.
- * 202 Accepted - Request has been accepted for processing. E.g. submitting a transaction.
- * 400 Bad Request - Invalid or malformed request. E.g. missing or invalid parameter.
+ * 201 Created - POST request has been accepted and resulted in successful
+ *               creation.
+ * 202 Accepted - Request has been accepted for processing.
+ *                E.g. submitting a transaction.
+ * 400 Bad Request - Invalid or malformed request.
+ *                   E.g. missing or invalid parameter.
  * 403 Forbidden - Unauthorized access to endpoint
  * 404 Not Found - The requested item doesn't exist.
  * 500 Internal Server Error - Unexpected condition occurred
@@ -24,7 +29,8 @@
  *
  * Error Types
  *
- * invalid_request  - invalid request errors arise when the request has invalid parameters.
+ * invalid_request  - invalid request errors arise when the request has
+ *                    invalid parameters.
  * connection       - rippled is busy or could not be connected, timed out, etc.
  * transaction      - response from rippled or internal processing error
  * server           - unexpected condition in the server occurred
@@ -35,9 +41,9 @@ var _ = require('lodash');
 
 var ErrorType = {
   invalidRequest: 'invalid_request',
-  connection:     'connection',
-  transaction:    'transaction',
-  server:         'server'
+  connection: 'connection',
+  transaction: 'transaction',
+  server: 'server'
 };
 
 var StatusCode = {
@@ -50,24 +56,23 @@ var StatusCode = {
   timeout: 504
 };
 
-module.exports = {
-  success: success,
-  created: created,
-  transactionError: transactionError,
-  transactionNotFoundError: transactionNotFoundError,
-  invalidRequest: invalidRequestError,
-  internalError: internalError,
-  connectionError: connectionError,
-  notFoundError: notFoundError,
-  timeOutError: timeOutError,
-  apiError: apiError
-};
+/**
+ * Send a JSON response
+ *
+ * @param response - response object
+ * @param body
+ * @param statusCode
+ */
+function send(response, body, statusCode) {
+  response.status(statusCode).json(body);
+}
 
 /**
  * Send a success response
  *
  * @param response - response object
- * @param body - (optional) body to the response, in addition to the success property
+ * @param body - (optional) body to the response, in addition to the
+ *                success property
  */
 function success(response, body) {
 
@@ -76,7 +81,7 @@ function success(response, body) {
     success: true
   };
 
-  if (body !== void(0)) {
+  if (body !== undefined) {
     content = _.extend(content, body);
   }
 
@@ -87,7 +92,8 @@ function success(response, body) {
  * Send a created response
  *
  * @param response - response object
- * @param body - (optional) body to the response, in addition to the success property
+ * @param body - (optional) body to the response, in addition to the
+ *                success property
  */
 function created(response, body) {
 
@@ -96,7 +102,7 @@ function created(response, body) {
     success: true
   };
 
-  if (body !== void(0)) {
+  if (body !== undefined) {
     content = _.extend(content, body);
   }
 
@@ -106,9 +112,10 @@ function created(response, body) {
 /**
  * Send an transaction error response
  *
- * @param response  - response object
- * @param message   - (optional) message to accompany and describe the invalid response
- * @param body      - (optional) additional body to the response
+ * @param response - response object
+ * @param message  - (optional) message to accompany and describe the
+ *                    invalid response
+ * @param body     - (optional) additional body to the response
  */
 function transactionError(response, message, body) {
 
@@ -158,7 +165,8 @@ function transactionNotFoundError(response, message, body) {
  * Send an api error response
  *
  * @param response  - response object
- * @param message   - (optional) message to accompany and describe the invalid response
+ * @param message   - (optional) message to accompany and describe the
+ *                    invalid response
  * @param body      - (optional) additional body to the response
  */
 function apiError(response, error) {
@@ -199,7 +207,8 @@ function invalidRequestError(response, error) {
  * Send an internal error response
  *
  * @param response  - response object
- * @param message   - (optional) additional error message, e.g. description for provided error
+ * @param message   - (optional) additional error message
+ *                    e.g. description for provided error
  * @param body      - (optional) additional body to the response
  */
 function internalError(response, message, body) {
@@ -291,14 +300,15 @@ function timeOutError(response, message, body) {
   send(response, content, StatusCode.timeout);
 }
 
-
-/**
- * Send a JSON response
- *
- * @param response - response object
- * @param body
- * @param statusCode
- */
-function send(response, body, statusCode) {
-  response.status(statusCode).json(body);
-}
+module.exports = {
+  success: success,
+  created: created,
+  transactionError: transactionError,
+  transactionNotFoundError: transactionNotFoundError,
+  invalidRequest: invalidRequestError,
+  internalError: internalError,
+  connectionError: connectionError,
+  notFoundError: notFoundError,
+  timeOutError: timeOutError,
+  apiError: apiError
+};

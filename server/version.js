@@ -1,4 +1,5 @@
-var packageJson     = require('../package.json');
+'use strict';
+var packageJson = require('../package.json');
 
 function getPackageVersion() {
   return packageJson.version;
