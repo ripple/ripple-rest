@@ -1,3 +1,4 @@
+'use strict';
 var fs = require('fs');
 var path = require('path');
 var nconf = require('nconf');
@@ -12,7 +13,7 @@ var exampleConfig = require('../../config-example.json');
 
 function resolvePath(p) {
   return path.resolve(__dirname, '../..', p);
-};
+}
 
 /**
  * Load Configuration according to the following hierarchy
@@ -27,11 +28,11 @@ function resolvePath(p) {
 nconf.argv();
 
 // These variables should be reconsidered
-nconf.env([ 'NODE_ENV', 'DATABASE_URL' ]);
+nconf.env(['NODE_ENV', 'DATABASE_URL']);
 
 var configPath = nconf.get('config')
-|| process.env['TEST_CONFIG']
-|| path.join(process.cwd(), 'config.json');
+  || process.env.TEST_CONFIG
+  || path.join(process.cwd(), 'config.json');
 
 if (nconf.get('NODE_ENV') !== 'test' && !fs.existsSync(configPath)) {
   console.error('ERROR: configuration file not found or not accessible at: '
@@ -56,7 +57,7 @@ if (nconf.get('NODE_ENV') === 'test') {
 // Override `rippled_servers` with `rippled` if it exists
 if (/^(wss|ws):\/\/.+:[0-9]+$/.test(nconf.get('rippled'))) {
   nconf.overrides({
-    rippled_servers: [ nconf.get('rippled') ]
+    rippled_servers: [nconf.get('rippled')]
   });
 }
 

@@ -1,9 +1,6 @@
-const Wallet  = require('ripple-lib').Wallet;
-const errors  = require('./lib/errors.js');
-
-module.exports = {
-  generate: generate
-};
+'use strict';
+var Wallet = require('ripple-lib').Wallet;
+var errors = require('./lib/errors.js');
 
 function generate(callback) {
   var wallet = Wallet.generate();
@@ -13,3 +10,7 @@ function generate(callback) {
     callback(new errors.ApiError('Could not generate wallet'));
   }
 }
+
+module.exports = {
+  generate: generate
+};

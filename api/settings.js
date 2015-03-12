@@ -1,52 +1,59 @@
-var _                       = require('lodash');
-var assert                  = require('assert');
-var ripple                  = require('ripple-lib');
-var transactions            = require('./transactions.js');
-var SubmitTransactionHooks  = require('./lib/submit_transaction_hooks.js');
-var remote                  = require('./lib/remote.js');
-var errors                  = require('./lib/errors.js');
-var TxToRestConverter       = require('./lib/tx-to-rest-converter.js');
-var RestToTxConverter       = require('./lib/rest-to-tx-converter.js');
+/* eslint-disable valid-jsdoc */
+'use strict';
+var _ = require('lodash');
+var assert = require('assert');
+var ripple = require('ripple-lib');
+var transactions = require('./transactions.js');
+var SubmitTransactionHooks = require('./lib/submit_transaction_hooks.js');
+var remote = require('./lib/remote.js');
+var errors = require('./lib/errors.js');
+var TxToRestConverter = require('./lib/tx-to-rest-converter.js');
+var RestToTxConverter = require('./lib/rest-to-tx-converter.js');
 
-const InvalidRequestError = errors.InvalidRequestError;
+var InvalidRequestError = errors.InvalidRequestError;
 
-const AccountRootFlags = {
-  PasswordSpent:   { name:  'password_spent', value: 0x00010000 },
-  RequireDestTag:  { name:  'require_destination_tag', value: 0x00020000 },
-  RequireAuth:     { name:  'require_authorization', value: 0x00040000 },
-  DisallowXRP:     { name:  'disallow_xrp', value: 0x00080000 },
-  DisableMaster:   { name:  'disable_master', value: 0x00100000 },
-  NoFreeze:        { name:  'no_freeze', value: 0x00200000 },
-  GlobalFreeze:    { name:  'global_freeze', value: 0x00400000 }
+var AccountRootFlags = {
+  PasswordSpent: {name: 'password_spent', value: 0x00010000},
+  RequireDestTag: {name: 'require_destination_tag', value: 0x00020000},
+  RequireAuth: {name: 'require_authorization', value: 0x00040000},
+  DisallowXRP: {name: 'disallow_xrp', value: 0x00080000},
+  DisableMaster: {name: 'disable_master', value: 0x00100000},
+  NoFreeze: {name: 'no_freeze', value: 0x00200000},
+  GlobalFreeze: {name: 'global_freeze', value: 0x00400000}
 };
 
-const AccountRootFields = {
-  Sequence:       { name:  'transaction_sequence' },
-  EmailHash:      { name:  'email_hash', encoding: 'hex', length: 32, defaults: '0' },
-  WalletLocator:  { name:  'wallet_locator', encoding: 'hex', length: 64, defaults: '0' },
-  WalletSize:     { name:  'wallet_size', defaults: 0 },
-  MessageKey:     { name:  'message_key' },
-  Domain:         { name:  'domain', encoding: 'hex' },
-  TransferRate:   { name:  'transfer_rate', defaults: 0 },
-  Signers:        { name:  'signers' }
+var AccountRootFields = {
+  Sequence: {name: 'transaction_sequence'},
+  EmailHash: {name: 'email_hash', encoding: 'hex', length: 32, defaults: '0'},
+  WalletLocator: {name: 'wallet_locator', encoding: 'hex',
+                  length: 64, defaults: '0'},
+  WalletSize: {name: 'wallet_size', defaults: 0},
+  MessageKey: {name: 'message_key'},
+  Domain: {name: 'domain', encoding: 'hex'},
+  TransferRate: {name: 'transfer_rate', defaults: 0},
+  Signers: {name: 'signers'}
 };
 
-const AccountSetIntFlags = {
-  NoFreeze:       { name:   'no_freeze', value: ripple.Transaction.set_clear_flags.AccountSet.asfNoFreeze },
-  GlobalFreeze:   { name:   'global_freeze', value: ripple.Transaction.set_clear_flags.AccountSet.asfGlobalFreeze }
+var AccountSetIntFlags = {
+  NoFreeze: {name: 'no_freeze',
+    value: ripple.Transaction.set_clear_flags.AccountSet.asfNoFreeze},
+  GlobalFreeze: {name: 'global_freeze',
+    value: ripple.Transaction.set_clear_flags.AccountSet.asfGlobalFreeze}
 };
 
-const AccountSetFlags = {
-  RequireDestTag: { name:   'require_destination_tag', set: 'RequireDestTag', unset: 'OptionalDestTag' },
-  RequireAuth:    { name:   'require_authorization', set: 'RequireAuth', unset: 'OptionalAuth' },
-  DisallowXRP:    { name:   'disallow_xrp', set: 'DisallowXRP', unset: 'AllowXRP' }
+var AccountSetFlags = {
+  RequireDestTag: {name: 'require_destination_tag', set: 'RequireDestTag',
+                   unset: 'OptionalDestTag'},
+  RequireAuth: {name: 'require_authorization', set: 'RequireAuth',
+                unset: 'OptionalAuth'},
+  DisallowXRP: {name: 'disallow_xrp', set: 'DisallowXRP', unset: 'AllowXRP'}
 };
 
 // Emptry string passed to setting will clear it
-const CLEAR_SETTING = '';
+var CLEAR_SETTING = '';
 
 /**
- * Pad the value of a  fixed-length field
+ * Pad the value of a fixed-length field
  *
  * @param {String} value
  * @param {Number} length
@@ -63,7 +70,7 @@ function padValue(value, length) {
   }
 
   return result;
-};
+}
 
 function parseFieldsFromResponse(responseBody, fields) {
   var parsedBody = {};
@@ -77,15 +84,17 @@ function parseFieldsFromResponse(responseBody, fields) {
     parsedBody[field.name] = value;
   }
 
-  return parsedBody
-};
+  return parsedBody;
+}
 
 /**
  * Set integer flags on a transaction based on input and a flag map
- * 
+ *
  * @param {Transaction} transaction
- * @param {Object} input - Object whose properties determine whether to update the transaction's SetFlag or ClearFlag property
- * @param {Object} flags - Object that maps property names to transaction integer flag values
+ * @param {Object} input - Object whose properties determine whether
+ *                to update the transaction's SetFlag or ClearFlag property
+ * @param {Object} flags - Object that maps property names to transaction
+ *                integer flag values
  *
  * @returns undefined
  */
@@ -105,13 +114,14 @@ function setTransactionIntFlags(transaction, input, flags) {
       transaction.tx_json.ClearFlag = flag.value;
     }
   }
-};
+}
 
 /**
  * Set fields on a transaction based on input and fields schema object
- * 
+ *
  * @param {Transaction} transaction
- * @param {Object} input       - Object whose properties are used to set fields on the transaction
+ * @param {Object} input - Object whose properties are used to set fields on
+ *                         the transaction
  * @param {Object} fieldSchema - Object that holds the schema of each field
  *
  * @returns undefined
@@ -131,9 +141,11 @@ function setTransactionFields(transaction, input, fieldSchema) {
     }
 
     if (field.encoding === 'hex') {
-      // If the field is supposed to be hex, why don't we do a toString('hex') on it?
+      // If the field is supposed to be hex, why don't we do a
+      //  toString('hex') on it?
       if (field.length) {
-        // Field is fixed length, why are we checking here though? We could move this to validateInputs
+        // Field is fixed length, why are we checking here though?
+        // We could move this to validateInputs
         if (value.length > field.length) {
           throw new InvalidRequestError(
             'Parameter length exceeded: ' + fieldName);
@@ -151,18 +163,19 @@ function setTransactionFields(transaction, input, fieldSchema) {
 
     transaction.tx_json[fieldName] = value;
   }
-};
+}
 
 /**
- *  Retrieves account settings for a given account
+ * Retrieves account settings for a given account
  *
- *  @url
- *  @param {String} request.params.account
+ * @url
+ * @param {String} request.params.account
  *
  */
 function getSettings(account, callback) {
   if (!ripple.UInt160.is_valid(account)) {
-    return callback(new errors.InvalidRequestError('Parameter is not a valid Ripple address: account'));
+    return callback(new errors.InvalidRequestError(
+      'Parameter is not a valid Ripple address: account'));
   }
 
   remote.requestAccountInfo({account: account}, function(error, info) {
@@ -177,26 +190,28 @@ function getSettings(account, callback) {
     };
 
     // Attach account flags
-    _.extend(settings, TxToRestConverter.parseFlagsFromResponse(data.Flags, AccountRootFlags));
+    _.extend(settings, TxToRestConverter.parseFlagsFromResponse(data.Flags,
+      AccountRootFlags));
 
     // Attach account fields
     _.extend(settings, parseFieldsFromResponse(data, AccountRootFields));
 
     settings.transaction_sequence = String(settings.transaction_sequence);
 
-    callback(null, { settings: settings });
+    callback(null, {settings: settings});
   });
-};
+}
 
 /**
- *  Change account settings
+ * Change account settings
  *
- *  @body
- *  @param {Settings} request.body.settings
- *  @param {String} request.body.secret
+ * @body
+ * @param {Settings} request.body.settings
+ * @param {String} request.body.secret
  *
- *  @query
- *  @param {String "true"|"false"} request.query.validated Used to force request to wait until rippled has finished validating the submitted transaction
+ * @query
+ * @param {String "true"|"false"} request.query.validated Used to force request
+ *     to wait until rippled has finished validating the submitted transaction
  *
  */
 function changeSettings(account, settings, secret, options, callback) {
@@ -205,82 +220,69 @@ function changeSettings(account, settings, secret, options, callback) {
     validated: options.validated
   };
 
-  var hooks = {
-    validateParams: validateParams,
-    formatTransactionResponse: TxToRestConverter.parseSettingResponseFromTx.bind(void(0), settings),
-    setTransactionParameters: setTransactionParameters
-  };
 
-  transactions.submit(params, new SubmitTransactionHooks(hooks), function(err, settings) {
-    if (err) {
-      return callback(err);
-    }
-
-    callback(null, settings);
-  });
-
-  function validateParams(callback) {
+  function validateParams(_callback) {
     if (typeof settings !== 'object') {
-      return callback(new InvalidRequestError('Parameter missing: settings'));
+      return _callback(new InvalidRequestError('Parameter missing: settings'));
     }
     if (!ripple.UInt160.is_valid(account)) {
-      return callback(new InvalidRequestError(
+      return _callback(new InvalidRequestError(
         'Parameter is not a valid Ripple address: account'));
     }
     if (!/(undefined|string)/.test(typeof settings.domain)) {
-      return callback(new InvalidRequestError(
+      return _callback(new InvalidRequestError(
         'Parameter must be a string: domain'));
     }
     if (!/(undefined|string)/.test(typeof settings.wallet_locator)) {
-      return callback(new InvalidRequestError(
+      return _callback(new InvalidRequestError(
         'Parameter must be a string: wallet_locator'));
     }
     if (!/(undefined|string)/.test(typeof settings.email_hash)) {
-      return callback(new InvalidRequestError(
+      return _callback(new InvalidRequestError(
         'Parameter must be a string: email_hash'));
     }
     if (!/(undefined|string)/.test(typeof settings.message_key)) {
-      return callback(new InvalidRequestError(
+      return _callback(new InvalidRequestError(
         'Parameter must be a string: message_key'));
     }
     if (!/(undefined|number)/.test(typeof settings.transfer_rate)) {
       if (settings.transfer_rate !== '') {
-        return callback(new InvalidRequestError(
+        return _callback(new InvalidRequestError(
           'Parameter must be a number: transfer_rate'));
       }
     }
     if (!/(undefined|number)/.test(typeof settings.wallet_size)) {
       if (settings.wallet_size !== '') {
-        return callback(new InvalidRequestError(
+        return _callback(new InvalidRequestError(
           'Parameter must be a number: wallet_size'));
       }
     }
     if (!/(undefined|boolean)/.test(typeof settings.no_freeze)) {
-      return callback(new InvalidRequestError(
+      return _callback(new InvalidRequestError(
         'Parameter must be a boolean: no_freeze'));
     }
     if (!/(undefined|boolean)/.test(typeof settings.global_freeze)) {
-      return callback(new InvalidRequestError(
+      return _callback(new InvalidRequestError(
         'Parameter must be a boolean: global_freeze'));
     }
     if (!/(undefined|boolean)/.test(typeof settings.password_spent)) {
-      return callback(new InvalidRequestError(
+      return _callback(new InvalidRequestError(
         'Parameter must be a boolean: password_spent'));
     }
     if (!/(undefined|boolean)/.test(typeof settings.disable_master)) {
-      return callback(new InvalidRequestError(
+      return _callback(new InvalidRequestError(
         'Parameter must be a boolean: disable_master'));
     }
     if (!/(undefined|boolean)/.test(typeof settings.require_destination_tag)) {
-      return callback(new InvalidRequestError(
+      return _callback(new InvalidRequestError(
         'Parameter must be a boolean: require_destination_tag'));
     }
     if (!/(undefined|boolean)/.test(typeof settings.require_authorization)) {
-      return callback(new InvalidRequestError(
+      return _callback(new InvalidRequestError(
         'Parameter must be a boolean: require_authorization'));
     }
     if (!/(undefined|boolean)/.test(typeof settings.disallow_xrp)) {
-      return callback(new InvalidRequestError(
+      return _callback(new InvalidRequestError(
         'Parameter must be a boolean: disallow_xrp'));
     }
 
@@ -289,12 +291,12 @@ function changeSettings(account, settings, secret, options, callback) {
       && settings.no_freeze === settings.global_freeze;
 
     if (setCollision) {
-      return callback(new InvalidRequestError(
+      return _callback(new InvalidRequestError(
         'Unable to set/clear no_freeze and global_freeze'));
     }
 
-    callback();
-  };
+    _callback();
+  }
 
   function setTransactionParameters(transaction) {
     transaction.accountSet(account);
@@ -307,9 +309,26 @@ function changeSettings(account, settings, secret, options, callback) {
     setTransactionIntFlags(transaction, settings, AccountSetIntFlags);
     setTransactionFields(transaction, settings, AccountRootFields);
 
-    transaction.tx_json.TransferRate = RestToTxConverter.convertTransferRate(transaction.tx_json.TransferRate);
+    transaction.tx_json.TransferRate = RestToTxConverter.convertTransferRate(
+      transaction.tx_json.TransferRate);
+  }
+
+  var hooks = {
+    validateParams: validateParams,
+    formatTransactionResponse: TxToRestConverter.parseSettingResponseFromTx
+                               .bind(undefined, settings),
+    setTransactionParameters: setTransactionParameters
   };
-};
+
+  transactions.submit(params, new SubmitTransactionHooks(hooks),
+      function(err, settingsResult) {
+    if (err) {
+      return callback(err);
+    }
+
+    callback(null, settingsResult);
+  });
+}
 
 module.exports = {
   get: getSettings,

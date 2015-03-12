@@ -1,3 +1,4 @@
+'use strict';
 var winston = require('winston');
 var config = require('./config');
 
