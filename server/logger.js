@@ -1,7 +1,9 @@
-const winston = require('winston');
-const config  = require('../api/lib/config');
-const morgan  = require('morgan');
-const version = require('./version');
+/* eslint-disable valid-jsdoc */
+'use strict';
+var winston = require('winston');
+var config = require('../api/lib/config');
+var morgan = require('morgan');
+var version = require('./version');
 
 
 var logger = exports.logger = new winston.Logger({
@@ -41,11 +43,12 @@ function elfDate() {
 }
 
 // ELF Headers
-var elfHeaders = 
+var elfHeaders =
   '\n#Version: 1.0\n' +
-  '#Date: ' + elfDate() + '\n' + 
-  '#Software: ' + version.getPackageVersion() + '\n' + 
-  '#Fields: c-ip date time cs-method cs-uri cs(Version) sc-status time-taken cs(User-Agent)';
+  '#Date: ' + elfDate() + '\n' +
+  '#Software: ' + version.getPackageVersion() + '\n' +
+  '#Fields: c-ip date time cs-method cs-uri cs(Version) sc-status time-taken '
+  + 'cs(User-Agent)';
 
 // Logging in ELF format (http://www.w3.org/TR/WD-logfile)
 var morganFormat = ':remote-addr :datetime :method :url :http-version :status '
@@ -62,7 +65,7 @@ var stream = {
 morgan.token('datetime', elfDate);
 
 // Define the user-agent token in ELF format
-morgan.token('user-agent', function(req, res) {
+morgan.token('user-agent', function(req) {
   return req.get('User-Agent').split(' ').join('+');
 });
 
@@ -70,14 +73,13 @@ exports.morgan = function(app) {
   if (config.get('NODE_ENV') === 'production') {
     app.use(morgan(morganFormat));
 
-    logger.timestamp   = false;
+    logger.timestamp = false;
     logger.prettyPrint = false;
-    logger.colorize    = false;
-    logger.showLevel   = false;
+    logger.colorize = false;
+    logger.showLevel = false;
 
     logger.info(elfHeaders);
   } else {
     app.use(morgan('dev', {stream: stream}));
   }
 };
-

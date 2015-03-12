@@ -1,20 +1,20 @@
-const ripple     = require('ripple-lib');
-const express    = require('express');
-const bodyParser = require('body-parser');
-const logger     = require('./logger.js').logger;
-const morgan     = require('./logger.js').morgan;
-const config     = require('../api/lib/config');
-const router     = require('./router.js');
-const version    = require('./version.js');
-const compress   = require('compression');
-const generateIndexPage = require('./indexpage');
+'use strict';
+var express = require('express');
+var bodyParser = require('body-parser');
+var logger = require('./logger.js').logger;
+var morgan = require('./logger.js').morgan;
+var config = require('../api/lib/config');
+var router = require('./router.js');
+var version = require('./version.js');
+var compress = require('compression');
+var generateIndexPage = require('./indexpage');
 
 var app = express();
 
 app.set('json spaces', 2);
 app.disable('x-powered-by');
 
-app.use(bodyParser.urlencoded({ extended: false }));
+app.use(bodyParser.urlencoded({extended: false}));
 app.use(bodyParser.json());
 
 app.use(compress());
@@ -31,7 +31,7 @@ if (config.get('debug')) {
   app.use(function (req, res, next) {
     logger.info(req.method, req.url, req.body);
     next();
-  })
+  });
 }
 
 app.use('/v' + version.getApiVersion(), router);
