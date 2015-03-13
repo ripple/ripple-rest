@@ -33,19 +33,19 @@ function makeMiddleware(handler, type) {
 }
 
 function getUUID(request, callback) {
-  api.info.uuid(callback);
+  api.getUUID(callback);
 }
 
-function isConnected(request, callback) {
-  api.info.isConnected(callback);
+function isTrue(request, callback) {
+  api.isTrue(callback);
 }
 
 function getFee(request, callback) {
-  api.info.fee(callback);
+  api.getFee(callback);
 }
 
 function getServerStatus(request, callback) {
-  api.info.serverStatus(callback);
+  api.getServerStatus(callback);
 }
 
 function generateWallet(request, callback) {
@@ -65,14 +65,14 @@ function getAccountPayments(request, callback) {
     results_per_page: request.query.results_per_page,
     page: request.query.page
   };
-  api.payments.getAccountPayments(account, source_account, destination_account,
+  api.getAccountPayments(account, source_account, destination_account,
     direction, options, callback);
 }
 
 function getPayment(request, callback) {
   var account = request.params.account;
   var identifier = request.params.identifier;
-  api.payments.get(account, identifier, callback);
+  api.getPayment(account, identifier, callback);
 }
 
 function getPathFind(request, callback) {
@@ -80,7 +80,7 @@ function getPathFind(request, callback) {
   var destination_account = request.params.destination_account;
   var destination_amount_string = request.params.destination_amount_string;
   var source_currency_strings = request.query.source_currencies;
-  api.payments.getPathFind(source_account, destination_account,
+  api.getPathFind(source_account, destination_account,
     destination_amount_string, source_currency_strings, callback);
 }
 
@@ -91,7 +91,7 @@ function getOrders(request, callback) {
     limit: request.query.limit,
     marker: request.query.marker
   };
-  api.orders.getOrders(account, options, callback);
+  api.getOrders(account, options, callback);
 }
 
 function getOrderBook(request, callback) {
@@ -103,20 +103,20 @@ function getOrderBook(request, callback) {
     limit: request.query.limit,
     marker: request.query.marker
   };
-  api.orders.getOrderBook(account, base, counter, options, callback);
+  api.getOrderBook(account, base, counter, options, callback);
 }
 
 function getOrder(request, callback) {
   var account = request.params.account;
   var identifier = request.params.identifier;
-  api.orders.getOrder(account, identifier, callback);
+  api.getOrder(account, identifier, callback);
 }
 
 function getNotification(request, callback) {
   var account = request.params.account;
   var identifier = request.params.identifier;
   var urlBase = getUrlBase(request);
-  api.notifications.getNotification(account, identifier, urlBase, callback);
+  api.getNotification(account, identifier, urlBase, callback);
 }
 
 function getBalances(request, callback) {
@@ -129,21 +129,21 @@ function getBalances(request, callback) {
     ledger: request.query.ledger,
     marker: request.query.marker
   };
-  api.balances.get(account, options, callback);
+  api.getBalances(account, options, callback);
 }
 
 function getSettings(request, callback) {
   var account = request.params.account;
-  api.settings.get(account, callback);
+  api.getSettings(account, callback);
 }
 
 function getTransaction(request, callback) {
   var account = request.params.account;
   var identifier = request.params.identifier;
-  api.transactions.get(account, identifier, callback);
+  api.getTransaction(account, identifier, callback);
 }
 
-function getTrustlines(request, callback) {
+function getTrustLines(request, callback) {
   var account = request.params.account;
   var options = {
     currency: request.query.currency,
@@ -152,7 +152,7 @@ function getTrustlines(request, callback) {
     ledger: request.query.ledger,
     marker: request.query.marker
   };
-  api.trustlines.get(account, options, callback);
+  api.getTrustLines(account, options, callback);
 }
 
 function submitPayment(request, callback) {
@@ -167,16 +167,16 @@ function submitPayment(request, callback) {
     fixed_fee: request.body.fixed_fee,
     validated: request.query.validated === 'true'
   };
-  api.payments.submit(account, payment, clientResourceID, secret,
+  api.submitPayment(account, payment, clientResourceID, secret,
     lastLedgerSequence, urlBase, options, callback);
 }
 
-function placeOrder(request, callback) {
+function submitOrder(request, callback) {
   var account = request.params.account;
   var order = request.body.order;
   var secret = request.body.secret;
   var options = {validated: request.query.validated === 'true'};
-  api.orders.placeOrder(account, order, secret, options, callback);
+  api.submitOrder(account, order, secret, options, callback);
 }
 
 function changeSettings(request, callback) {
@@ -184,7 +184,7 @@ function changeSettings(request, callback) {
   var settings = request.body.settings;
   var secret = request.body.secret;
   var options = {validated: request.query.validated === 'true'};
-  api.settings.change(account, settings, secret, options, callback);
+  api.changeSettings(account, settings, secret, options, callback);
 }
 
 function addTrustLine(request, callback) {
@@ -192,7 +192,7 @@ function addTrustLine(request, callback) {
   var trustline = request.body.trustline;
   var secret = request.body.secret;
   var options = {validated: request.query.validated === 'true'};
-  api.trustlines.add(account, trustline, secret, options, callback);
+  api.addTrustLine(account, trustline, secret, options, callback);
 }
 
 function cancelOrder(request, callback) {
@@ -200,13 +200,13 @@ function cancelOrder(request, callback) {
   var sequence = request.params.sequence;
   var secret = request.body.secret;
   var options = {validated: request.query.validated === 'true'};
-  api.orders.cancelOrder(account, sequence, secret, options, callback);
+  api.cancelOrder(account, sequence, secret, options, callback);
 }
 
 module.exports = {
   GET: {
     '/uuid': makeMiddleware(getUUID),
-    '/server/connected': makeMiddleware(isConnected),
+    '/server/connected': makeMiddleware(isTrue),
     '/transaction-fee': makeMiddleware(getFee),
     '/server': makeMiddleware(getServerStatus),
     '/wallet/new': makeMiddleware(generateWallet),
@@ -226,11 +226,11 @@ module.exports = {
     '/accounts/:account/balances': makeMiddleware(getBalances),
     '/accounts/:account/settings': makeMiddleware(getSettings),
     '/transactions/:identifier': makeMiddleware(getTransaction),
-    '/accounts/:account/trustlines': makeMiddleware(getTrustlines)
+    '/accounts/:account/trustlines': makeMiddleware(getTrustLines)
   },
   POST: {
     '/accounts/:account/payments': makeMiddleware(submitPayment),
-    '/accounts/:account/orders': makeMiddleware(placeOrder),
+    '/accounts/:account/orders': makeMiddleware(submitOrder),
     '/accounts/:account/settings': makeMiddleware(changeSettings),
     '/accounts/:account/trustlines':
       makeMiddleware(addTrustLine, respond.created)

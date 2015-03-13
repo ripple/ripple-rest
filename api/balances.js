@@ -2,7 +2,6 @@
 /* eslint-disable valid-jsdoc */
 'use strict';
 var Promise = require('bluebird');
-var remote = require('./lib/remote.js');
 var utils = require('./lib/utils');
 var validator = require('./lib/schema-validator.js');
 var validate = require('./lib/validate');
@@ -38,13 +37,14 @@ function getBalances(account, options, callback) {
   ], callback)) {
     return;
   }
+  var self = this;
 
   var currencyRE = new RegExp(options.currency ?
     ('^' + options.currency.toUpperCase() + '$') : /./);
 
   function getXRPBalance() {
     var promise = new Promise(function(resolve, reject) {
-      var accountInfoRequest = remote.requestAccountInfo({
+      var accountInfoRequest = self.remote.requestAccountInfo({
         account: account,
         ledger: utils.parseLedger(options.ledger)
       });
@@ -91,7 +91,7 @@ function getBalances(account, options, callback) {
         ledger = utils.parseLedger(options.ledger);
       }
 
-      accountLinesRequest = remote.requestAccountLines({
+      accountLinesRequest = self.remote.requestAccountLines({
         account: account,
         marker: marker,
         limit: limit,

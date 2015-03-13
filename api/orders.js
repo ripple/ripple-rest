@@ -4,7 +4,6 @@
 var _ = require('lodash');
 var Promise = require('bluebird');
 var ripple = require('ripple-lib');
-var remote = require('./lib/remote.js');
 var transactions = require('./transactions');
 var SubmitTransactionHooks = require('./lib/submit_transaction_hooks.js');
 var utils = require('./lib/utils');
@@ -41,6 +40,7 @@ var DefaultPageLimit = 200;
  *
  */
 function getOrders(account, options, callback) {
+  var self = this;
 
   function validateOptions() {
     if (!ripple.UInt160.is_valid(account)) {
@@ -74,7 +74,7 @@ function getOrders(account, options, callback) {
         ledger = utils.parseLedger(options.ledger);
       }
 
-      accountOrdersRequest = remote.requestAccountOffers({
+      accountOrdersRequest = self.remote.requestAccountOffers({
         account: account,
         marker: marker,
         limit: limit,
@@ -173,7 +173,6 @@ function placeOrder(account, order, secret, options, callback) {
     validated: options.validated
   };
 
-
   function validateParams(_callback) {
     if (!order) {
       return _callback(new InvalidRequestError(
@@ -190,7 +189,6 @@ function placeOrder(account, order, secret, options, callback) {
       order.taker_pays.issuer = order.taker_pays.counterparty;
       delete order.taker_pays.counterparty;
     }
-
 
     if (!ripple.UInt160.is_valid(account)) {
       return _callback(new errors.InvalidRequestError(
@@ -249,7 +247,7 @@ function placeOrder(account, order, secret, options, callback) {
     setTransactionParameters: setTransactionParameters
   };
 
-  transactions.submit(params, new SubmitTransactionHooks(hooks),
+  transactions.submit(this.remote, params, new SubmitTransactionHooks(hooks),
       function(err, placedOrder) {
     if (err) {
       return callback(err);
@@ -300,7 +298,7 @@ function cancelOrder(account, sequence, secret, options, callback) {
     setTransactionParameters: setTransactionParameters
   };
 
-  transactions.submit(params, new SubmitTransactionHooks(hooks),
+  transactions.submit(this.remote, params, new SubmitTransactionHooks(hooks),
       function(err, canceledOrder) {
     if (err) {
       return callback(err);
@@ -329,6 +327,7 @@ function cancelOrder(account, sequence, secret, options, callback) {
  *  @param {Express.js Request} request
  */
 function getOrderBook(account, base, counter, options, callback) {
+  var self = this;
 
   function parseParameters() {
     var parameters = _.merge(options, {
@@ -399,7 +398,7 @@ function getOrderBook(account, base, counter, options, callback) {
 
   function getLastValidatedLedger(parameters) {
     var promise = new Promise(function (resolve, reject) {
-      var ledgerRequest = remote.requestLedger('validated');
+      var ledgerRequest = self.remote.requestLedger('validated');
 
       ledgerRequest.once('success', function(res) {
         parameters.ledger = res.ledger.ledger_index;
@@ -415,7 +414,7 @@ function getOrderBook(account, base, counter, options, callback) {
 
   function getBookOffers(taker_gets, taker_pays, parameters) {
     var promise = new Promise(function (resolve, reject) {
-      var bookOffersRequest = remote.requestBookOffers({
+      var bookOffersRequest = self.remote.requestBookOffers({
         taker_gets: {currency: taker_gets.currency,
                      issuer: taker_gets.counterparty},
         taker_pays: {currency: taker_pays.currency,
@@ -543,6 +542,7 @@ function getOrderBook(account, base, counter, options, callback) {
  *  @param {Express.js Request} request
  */
 function getOrder(account, identifier, callback) {
+  var self = this;
 
   function validateOptions() {
     return new Promise(function(resolve, reject) {
@@ -561,7 +561,7 @@ function getOrder(account, identifier, callback) {
 
   function getOrderTx() {
     return new Promise(function(resolve, reject) {
-      var txRequest = remote.requestTx({
+      var txRequest = self.remote.requestTx({
         hash: identifier
       });
 

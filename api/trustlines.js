@@ -6,7 +6,6 @@ var Promise = require('bluebird');
 var ripple = require('ripple-lib');
 var transactions = require('./transactions.js');
 var SubmitTransactionHooks = require('./lib/submit_transaction_hooks.js');
-var remote = require('./lib/remote.js');
 var utils = require('./lib/utils');
 var errors = require('./lib/errors.js');
 var validator = require('./lib/schema-validator');
@@ -51,6 +50,7 @@ function getTrustLines(account, options, callback) {
   ], callback)) {
     return;
   }
+  var self = this;
 
   var currencyRE = new RegExp(options.currency ?
     ('^' + options.currency.toUpperCase() + '$') : /./);
@@ -78,7 +78,7 @@ function getTrustLines(account, options, callback) {
         ledger = utils.parseLedger(options.ledger);
       }
 
-      accountLinesRequest = remote.requestAccountLines({
+      accountLinesRequest = self.remote.requestAccountLines({
         account: account,
         marker: marker,
         limit: limit,
@@ -246,7 +246,7 @@ function addTrustLine(account, trustline, secret, options, callback) {
     setTransactionParameters: setTransactionParameters
   };
 
-  transactions.submit(params, new SubmitTransactionHooks(hooks),
+  transactions.submit(this.remote, params, new SubmitTransactionHooks(hooks),
       function(err, trustlineResult) {
     if (err) {
       return callback(err);

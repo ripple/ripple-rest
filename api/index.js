@@ -12,56 +12,46 @@ var errors = require('./lib/errors');
 var serverLib = require('./lib/server-lib');
 var remote = require('./lib/remote');
 
-module.exports = {
-  info: {
-    serverStatus: Info.serverStatus,
-    isConnected: Info.isConnected,
-    fee: Info.fee,
-    uuid: Info.uuid
-  },
+function RippleAPI() {
+  this.remote = remote;
+}
 
-  balances: {
-    get: Balances.get
-  },
+RippleAPI.prototype = {
+  getServerStatus: Info.serverStatus,
+  isTrue: Info.isConnected,
+  getFee: Info.fee,
+  getUUID: Info.uuid,
 
-  settings: {
-    get: Settings.get,
-    change: Settings.change
-  },
+  getBalances: Balances.get,
 
-  transactions: {
-    get: Transactions.get
-  },
+  getSettings: Settings.get,
+  changeSettings: Settings.change,
 
-  trustlines: {
-    get: TrustLines.get,
-    add: TrustLines.add
-  },
+  getTransaction: Transactions.get,
 
-  payments: {
-    submit: Payments.submit,
-    get: Payments.get,
-    getAccountPayments: Payments.getAccountPayments,
-    getPathFind: Payments.getPathFind
-  },
+  getTrustLines: TrustLines.get,
+  addTrustLine: TrustLines.add,
 
-  orders: {
-    getOrderBook: Orders.getOrderBook,
-    getOrders: Orders.getOrders,
-    placeOrder: Orders.placeOrder,
-    cancelOrder: Orders.cancelOrder,
-    getOrder: Orders.getOrder
-  },
+  submitPayment: Payments.submit,
+  getPayment: Payments.get,
+  getAccountPayments: Payments.getAccountPayments,
+  getPathFind: Payments.getPathFind,
 
-  notifications: {
-    getNotification: Notifications.getNotification
-  },
+  getOrderBook: Orders.getOrderBook,
+  getOrders: Orders.getOrders,
+  submitOrder: Orders.placeOrder,
+  cancelOrder: Orders.cancelOrder,
+  getOrder: Orders.getOrder,
+
+  getNotification: Notifications.getNotification,
 
   wallet: Wallet,
 
   errors: errors,
 
   isConnected: function() {
-      return serverLib.isConnected(remote);
+    return serverLib.isConnected(this.remote);
   }
 };
+
+module.exports = new RippleAPI();
