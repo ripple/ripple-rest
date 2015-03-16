@@ -1,5 +1,5 @@
 'use strict';
-var config = require('../api/lib/config');
+var config = require('./config');
 var respond = require('./response-handler.js');
 var errors = require('./api').errors;
 var logger = require('./logger.js').logger;

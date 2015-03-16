@@ -2,7 +2,7 @@
 var fs = require('fs');
 var constants = require('constants');
 var app = require('./express_app.js');
-var config = require('../api/lib/config');
+var config = require('./config');
 var logger = require('./logger.js').logger;
 var version = require('./version.js');
 

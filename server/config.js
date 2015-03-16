@@ -4,15 +4,15 @@ var path = require('path');
 var nconf = require('nconf');
 var JaySchema = require('jayschema');
 var formatJaySchemaErrors = require('jayschema-error-messages');
-var configSchema = require('../../schemas/config.json');
-var exampleConfig = require('../../config-example.json');
+var configSchema = require('../schemas/config.json');
+var exampleConfig = require('../config-example.json');
 
 /**
  * Resolve absolute path of configuration property
  */
 
 function resolvePath(p) {
-  return path.resolve(__dirname, '../..', p);
+  return path.resolve(__dirname, '..', p);
 }
 
 /**

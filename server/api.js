@@ -1,5 +1,5 @@
 'use strict';
-var config = require('../api/lib/config');
+var config = require('./config');
 var RippleAPI = require('../api');
 var logger = require('./logger').logger;
 

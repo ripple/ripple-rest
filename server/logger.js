@@ -1,7 +1,7 @@
 /* eslint-disable valid-jsdoc */
 'use strict';
 var winston = require('winston');
-var config = require('../api/lib/config');
+var config = require('./config');
 var morgan = require('morgan');
 var version = require('./version');
 
