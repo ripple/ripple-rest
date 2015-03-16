@@ -247,7 +247,7 @@ function placeOrder(account, order, secret, options, callback) {
     setTransactionParameters: setTransactionParameters
   };
 
-  transactions.submit(this.remote, params, new SubmitTransactionHooks(hooks),
+  transactions.submit(this, params, new SubmitTransactionHooks(hooks),
       function(err, placedOrder) {
     if (err) {
       return callback(err);
@@ -298,7 +298,7 @@ function cancelOrder(account, sequence, secret, options, callback) {
     setTransactionParameters: setTransactionParameters
   };
 
-  transactions.submit(this.remote, params, new SubmitTransactionHooks(hooks),
+  transactions.submit(this, params, new SubmitTransactionHooks(hooks),
       function(err, canceledOrder) {
     if (err) {
       return callback(err);

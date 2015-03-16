@@ -4,7 +4,6 @@ var _ = require('lodash');
 var async = require('async');
 var ripple = require('ripple-lib');
 var validator = require('./lib/schema-validator');
-var dbinterface = require('./lib/db-interface.js');
 var errors = require('./lib/errors.js');
 
 var DEFAULT_RESULTS_PER_PAGE = 10;
@@ -33,9 +32,9 @@ var DEFAULT_RESULTS_PER_PAGE = 10;
  * @param {Object} transaction - Transaction data received from ripple
  */
 
-function submitTransaction(remote, options, hooks, callback) {
+function submitTransaction(api, options, hooks, callback) {
   function blockDuplicates(transaction, _options, _callback) {
-    dbinterface.getTransaction({
+    api.db.getTransaction({
       source_account: transaction.tx_json.Account,
       client_resource_id: _options.clientResourceId,
       type: transaction.tx_json.TransactionType.toLowerCase()
@@ -91,7 +90,7 @@ function submitTransaction(remote, options, hooks, callback) {
     },
     // Duplicate blocking is performed here
     function(transaction, _callback) {
-      transaction.remote = remote;
+      transaction.remote = api.remote;
 
       if (options.blockDuplicates === true) {
         blockDuplicates(transaction, options, _callback);
@@ -156,12 +155,12 @@ function submitTransaction(remote, options, hooks, callback) {
         transaction.on('state', function() {
           var transactionSummary = transaction.summary();
           if (transactionSummary.submitIndex !== undefined) {
-            dbinterface.saveTransaction(transactionSummary);
+            api.db.saveTransaction(transactionSummary);
           }
         });
 
         transaction.on('postsubmit', function() {
-          dbinterface.saveTransaction(transaction.summary());
+          api.db.saveTransaction(transaction.summary());
         });
       }
 
@@ -231,7 +230,7 @@ function setTransactionBitFlags(transaction, options) {
  * @param {Error} error
  * @param {Transaction} transaction
  */
-function getTransaction(remote, account, identifier, callback) {
+function getTransaction(api, account, identifier, callback) {
   var options = {};
 
   function validateOptions(async_callback) {
@@ -258,7 +257,7 @@ function getTransaction(remote, account, identifier, callback) {
   }
 
   function queryTransaction(async_callback) {
-    dbinterface.getTransaction(options, function(error, entry) {
+    api.db.getTransaction(options, function(error, entry) {
       if (error) {
         return async_callback(error);
       }
@@ -289,7 +288,7 @@ function getTransaction(remote, account, identifier, callback) {
 
       // Request transaction based on either the hash supplied in the request
       // or the hash found in the database
-      remote.requestTx({hash: requestHash || dbEntryHash},
+      api.remote.requestTx({hash: requestHash || dbEntryHash},
           function(_error, transaction) {
         if (_error) {
           return async_callback(_error);
@@ -330,7 +329,7 @@ function getTransaction(remote, account, identifier, callback) {
       return async_callback(null, transaction);
     }
 
-    remote.requestLedger(transaction.ledger_index,
+    api.remote.requestLedger(transaction.ledger_index,
         function(error, ledgerRequest) {
       if (error) {
         return async_callback(new errors.NotFoundError(
@@ -365,8 +364,8 @@ function getTransaction(remote, account, identifier, callback) {
  * See getTransaction for parameter details
  */
 function getTransactionAndRespond(account, identifier, callback) {
-  var remote = this.remote;
-  getTransaction(remote, account, identifier, function(error, transaction) {
+  var api = this;
+  getTransaction(api, account, identifier, function(error, transaction) {
     if (error) {
       callback(error);
     } else {
@@ -392,7 +391,7 @@ function getTransactionAndRespond(account, identifier, callback) {
  * @param {Array of transactions in JSON format} response.transactions
  * @param {opaque value} response.marker
  */
-function getAccountTx(_remote, options, callback) {
+function getAccountTx(api, options, callback) {
   var params = {
     account: options.account,
     ledger_index_min: options.ledger_index_min || options.ledger_index || -1,
@@ -404,7 +403,7 @@ function getAccountTx(_remote, options, callback) {
   if (options.binary) {
     params.binary = true;
   }
-  _remote.requestAccountTx(params, function(error, account_tx_results) {
+  api.remote.requestAccountTx(params, function(error, account_tx_results) {
     if (error) {
       return callback(error);
     }
@@ -442,10 +441,10 @@ function getAccountTx(_remote, options, callback) {
  * @param {Error} error
  * @param {Array of transactions in JSON format} transactions
  */
-function getLocalAndRemoteTransactions(remote, options, callback) {
+function getLocalAndRemoteTransactions(api, options, callback) {
 
   function queryRippled(_callback) {
-    getAccountTx(remote, options, function(error, results) {
+    getAccountTx(api, options, function(error, results) {
       if (error) {
         _callback(error);
       } else {
@@ -462,7 +461,7 @@ function getLocalAndRemoteTransactions(remote, options, callback) {
     if (options.exclude_failed) {
       _callback(null, []);
     } else {
-      dbinterface.getFailedTransactions(options, _callback);
+      api.db.getFailedTransactions(options, _callback);
     }
   }
 
@@ -602,7 +601,7 @@ function compareTransactions(first, second, earliestFirst) {
  * @param {Error} error
  * @param {Array of transactions in JSON format} transactions
  */
-function getAccountTransactions(remote, options, callback) {
+function getAccountTransactions(api, options, callback) {
   if (!options.min) {
     options.min = module.exports.DEFAULT_RESULTS_PER_PAGE;
   }
@@ -633,7 +632,7 @@ function getAccountTransactions(remote, options, callback) {
   }
 
   function queryTransactions(async_callback) {
-    getLocalAndRemoteTransactions(remote, options, async_callback);
+    getLocalAndRemoteTransactions(api, options, async_callback);
   }
 
   function filterTransactions(transactions, async_callback) {
@@ -672,7 +671,7 @@ function getAccountTransactions(remote, options, callback) {
     } else {
       options.previous_transactions = transactions;
       setImmediate(function() {
-        getAccountTransactions(remote, options, callback);
+        getAccountTransactions(api, options, callback);
       });
     }
   }

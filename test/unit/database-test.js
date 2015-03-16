@@ -1,7 +1,7 @@
 var assert = require('assert');
 var async = require('async');
 var ripple = require('ripple-lib');
-var dbinterface = require('../../api/lib/db-interface');
+var dbinterface = require('../../server/api').db;
 var fixtures = require('./fixtures').database;
 var _ = require('lodash');
 

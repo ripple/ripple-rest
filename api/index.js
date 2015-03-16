@@ -11,9 +11,12 @@ var Wallet = require('./wallet');
 var errors = require('./lib/errors');
 var serverLib = require('./lib/server-lib');
 var createRemote = require('./lib/remote');
+var DatabaseInterface = require('./lib/db-interface');
 
 function RippleAPI(options) {
   this.remote = createRemote(options);
+  this.db = new DatabaseInterface(options.database_path || ':memory:',
+                                  options.logger);
 }
 
 RippleAPI.prototype = {

@@ -10,7 +10,7 @@ var app = require('../server/express_app');
 var dbinterface = require('../api/lib/db-interface');
 var crypto = require('crypto');
 var UInt256 = ripple.UInt256;
-var remote = require('../server/api').remote;
+var api = require('../server/api');
 
 const LEDGER_OFFSET = 3;
 
@@ -18,7 +18,8 @@ function setup(done) {
   var self = this;
 
   self.app = supertest(app);
-  self.remote = remote;
+  self.remote = api.remote;
+  self.db = api.db;
 
   self.wss = new WSS({ port: 5995 });
 
@@ -38,8 +39,8 @@ function setup(done) {
 
   self.remote.once('connect', function() {
     self.remote.getServer().once('ledger_closed', function() {
-      dbinterface.clear().then(function() {
-        dbinterface.init(done);
+      self.db.clear().then(function() {
+        self.db.init(done);
       });
     });
     self.remote.getServer().emit('message', fixtures.ledgerClose());

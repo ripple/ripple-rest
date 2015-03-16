@@ -3,12 +3,16 @@ var assert = require('assert');
 var knex = require('knex');
 var ripple = require('ripple-lib');
 var validator = require('./schema-validator');
-var config = require('./config.js');
-var logger = require('./logger.js').logger;
-
 
 function noop() {
   return;
+}
+
+var defaultLogger = {
+  debug: noop,
+  info: noop,
+  warn: noop,
+  error: noop
 }
 
 /**
@@ -16,11 +20,12 @@ function noop() {
  * @param {String} filePath
  */
 
-function DatabaseInterface(filePath) {
+function DatabaseInterface(filePath, logger) {
   assert.strictEqual(typeof filePath, 'string', 'Invalid database path');
 
   this.initialized = false;
   this.filePath = filePath;
+  this.logger = logger || defaultLogger;
 
   this.db = knex({
     dialect: 'sqlite3',
@@ -77,7 +82,7 @@ DI.init = function(callback) {
   var self = this;
 
   if (this.initialized) {
-    logger.info('[DB] Warning: Re-initializing');
+    self.logger.info('[DB] Warning: Re-initializing');
   }
 
   // Create transaction_history table if it does not already exist
@@ -103,14 +108,14 @@ DI.init = function(callback) {
     self.initialized = true;
     self.emit('ready');
 
-    logger.info('[DB] Initialized: ' + self.filePath);
+    self.logger.info('[DB] Initialized: ' + self.filePath);
 
     (callback || noop)(null, res);
 
     return res;
   })
   .caught(function(err) {
-    logger.error('[DB] Error. Failed to initialize database:' + err);
+    self.logger.error('[DB] Error. Failed to initialize database:' + err);
 
     (callback || noop)(err);
   });
@@ -212,12 +217,12 @@ DI.saveTransaction = function(transaction, callback) {
 
     var info = txData.hash + ': ' + txData.rippled_result;
 
-    logger.info('[DB] Saved transaction: ' + txData.state + ': ' + info);
+    self.logger.info('[DB] Saved transaction: ' + txData.state + ': ' + info);
 
     return res;
   })
   .caught(function(err) {
-    logger.error('[DB] Error. Cannot save transaction to database: '
+    self.logger.error('[DB] Error. Cannot save transaction to database: '
                 + err);
 
     (callback || noop)(err);
@@ -366,8 +371,4 @@ DI.convertOutgoingTransaction = function(txEntry) {
   return transaction;
 };
 
-if (config.get('NODE_ENV') === 'test') {
-  module.exports = new DatabaseInterface(':memory:');
-} else {
-  module.exports = new DatabaseInterface(config.get('db_path'));
-}
+module.exports = DatabaseInterface;
