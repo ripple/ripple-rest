@@ -1,5 +1,5 @@
 'use strict';
-var api = require('../api');
+var api = require('./api');
 var respond = require('./response-handler');
 var config = require('../api/lib/config');
 

@@ -1,8 +1,7 @@
 'use strict';
 var _ = require('lodash');
 var express = require('express');
-var api = require('../api');
-var errors = require('../api').errors;
+var api = require('./api');
 var routes = require('./routes');
 var generateIndexPage = require('./indexpage');
 
@@ -19,7 +18,7 @@ router.all('*', function(req, res, next) {
   if (api.isConnected()) {
     next();
   } else {
-    next(new errors.RippledNetworkError(undefined));
+    next(new api.errors.RippledNetworkError(undefined));
   }
 });
 

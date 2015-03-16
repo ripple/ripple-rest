@@ -1,20 +1,23 @@
 'use strict';
 var ripple = require('ripple-lib');
-var config = require('./config');
-var logger = require('./logger.js').logger;
 
-var remoteOpts = {
-  servers: config.get('rippled_servers'),
-  max_fee: parseFloat(config.get('max_transaction_fee'))
-};
-
-if (config.get('debug')) {
-  remoteOpts.trace = true;
+function noop() {
+  return;
 }
 
-var remote = new ripple.Remote(remoteOpts);
+var defaultLogger = {
+  debug: noop,
+  info: noop,
+  warn: noop,
+  error: noop
+};
 
-function prepareRemote() {
+function createRemote(options) {
+  var remote = new ripple.Remote(options);
+  if (options.mock) {
+    return remote;
+  }
+  var logger = options.logger || defaultLogger;
   var connect = remote.connect;
   var connected = false;
 
@@ -62,10 +65,7 @@ function prepareRemote() {
   }, 1000 * 15);
 
   remote.connect();
+  return remote;
 }
 
-if (config.get('NODE_ENV') !== 'test') {
-  prepareRemote();
-}
-
-module.exports = remote;
+module.exports = createRemote;

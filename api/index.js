@@ -10,10 +10,10 @@ var Payments = require('./payments');
 var Wallet = require('./wallet');
 var errors = require('./lib/errors');
 var serverLib = require('./lib/server-lib');
-var remote = require('./lib/remote');
+var createRemote = require('./lib/remote');
 
-function RippleAPI() {
-  this.remote = remote;
+function RippleAPI(options) {
+  this.remote = createRemote(options);
 }
 
 RippleAPI.prototype = {
@@ -54,4 +54,4 @@ RippleAPI.prototype = {
   }
 };
 
-module.exports = new RippleAPI();
+module.exports = RippleAPI;

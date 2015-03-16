@@ -10,7 +10,7 @@ var app = require('../server/express_app');
 var dbinterface = require('../api/lib/db-interface');
 var crypto = require('crypto');
 var UInt256 = ripple.UInt256;
-var remote = require('../api/lib/remote');
+var remote = require('../server/api').remote;
 
 const LEDGER_OFFSET = 3;
 

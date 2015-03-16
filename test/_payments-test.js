@@ -6,7 +6,7 @@ var ws            = require('ws');
 var route         = new (require('events').EventEmitter);
 var fixtures      = require('./fixtures')._payments;
 var RL            = require('ripple-lib');
-var remote        = require('../api/lib/remote');
+var remote        = require('../server/api').remote;
 
 var testutils = { };
 
