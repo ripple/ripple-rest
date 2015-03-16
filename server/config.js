@@ -4,7 +4,7 @@ var path = require('path');
 var nconf = require('nconf');
 var JaySchema = require('jayschema');
 var formatJaySchemaErrors = require('jayschema-error-messages');
-var configSchema = require('../schemas/config.json');
+var configSchema = require('./config-schema.json');
 var exampleConfig = require('../config-example.json');
 
 /**

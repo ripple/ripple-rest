@@ -13,7 +13,7 @@ var defaultLogger = {
   info: noop,
   warn: noop,
   error: noop
-}
+};
 
 /**
  * @constructor DatabaseInterface

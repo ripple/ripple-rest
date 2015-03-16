@@ -364,8 +364,7 @@ function getTransaction(api, account, identifier, callback) {
  * See getTransaction for parameter details
  */
 function getTransactionAndRespond(account, identifier, callback) {
-  var api = this;
-  getTransaction(api, account, identifier, function(error, transaction) {
+  getTransaction(this, account, identifier, function(error, transaction) {
     if (error) {
       callback(error);
     } else {

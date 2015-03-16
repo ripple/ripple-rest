@@ -3,7 +3,7 @@ var fs = require('fs');
 var path = require('path');
 var JaySchema = require('jayschema');
 
-var baseDir = path.join(__dirname, '../../schemas');
+var baseDir = path.join(__dirname, './schemas');
 
 module.exports = (function() {
   var validator = new JaySchema();
