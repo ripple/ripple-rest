@@ -5,7 +5,6 @@ var assert = require('assert');
 var ripple = require('ripple-lib');
 var transactions = require('./transactions.js');
 var SubmitTransactionHooks = require('./lib/submit_transaction_hooks.js');
-var remote = require('./lib/remote.js');
 var errors = require('./lib/errors.js');
 var TxToRestConverter = require('./lib/tx-to-rest-converter.js');
 var RestToTxConverter = require('./lib/rest-to-tx-converter.js');
@@ -178,7 +177,7 @@ function getSettings(account, callback) {
       'Parameter is not a valid Ripple address: account'));
   }
 
-  remote.requestAccountInfo({account: account}, function(error, info) {
+  this.remote.requestAccountInfo({account: account}, function(error, info) {
     if (error) {
       return callback(error);
     }
@@ -219,7 +218,6 @@ function changeSettings(account, settings, secret, options, callback) {
     secret: secret,
     validated: options.validated
   };
-
 
   function validateParams(_callback) {
     if (typeof settings !== 'object') {
@@ -320,7 +318,7 @@ function changeSettings(account, settings, secret, options, callback) {
     setTransactionParameters: setTransactionParameters
   };
 
-  transactions.submit(params, new SubmitTransactionHooks(hooks),
+  transactions.submit(this.remote, params, new SubmitTransactionHooks(hooks),
       function(err, settingsResult) {
     if (err) {
       return callback(err);

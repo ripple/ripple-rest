@@ -2,12 +2,11 @@
 var _ = require('lodash');
 var uuid = require('node-uuid');
 var serverlib = require('./lib/server-lib');
-var remote = require('./lib/remote.js');
 var errors = require('./lib/errors.js');
 var utils = require('./lib/utils.js');
 
 function getServerStatus(callback) {
-  serverlib.getStatus(remote, function(error, status) {
+  serverlib.getStatus(this.remote, function(error, status) {
     if (error) {
       callback(new errors.RippledNetworkError(error.message));
     } else {
@@ -40,7 +39,7 @@ function getUUID(callback) {
  */
 
 function getFee(callback) {
-  var fee = remote.createTransaction()._computeFee();
+  var fee = this.remote.createTransaction()._computeFee();
   callback(null, {fee: utils.dropsToXrp(fee)});
 }
 

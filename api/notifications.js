@@ -5,7 +5,6 @@ var async = require('async');
 var ripple = require('ripple-lib');
 var transactions = require('./transactions');
 var serverLib = require('./lib/server-lib');
-var remote = require('./lib/remote.js');
 var NotificationParser = require('./lib/notification_parser.js');
 var errors = require('./lib/errors.js');
 var utils = require('./lib/utils.js');
@@ -31,8 +30,8 @@ var utils = require('./lib/utils.js');
  *    "next_transaction_identifier", "next_hash",
  *    "previous_transaction_identifier", "previous_hash"} notificationDetails
  */
-function attachPreviousAndNextTransactionIdentifiers(notificationDetails,
-    topCallback) {
+function attachPreviousAndNextTransactionIdentifiers(remote,
+    notificationDetails, topCallback) {
 
   // Get all of the transactions affecting the specified
   // account in the given ledger. This is done so that
@@ -50,7 +49,7 @@ function attachPreviousAndNextTransactionIdentifiers(notificationDetails,
       limit: 200 // arbitrary, just checking number of transactions in ledger
     };
 
-    transactions.getAccountTransactions(params, callback);
+    transactions.getAccountTransactions(remote, params, callback);
   }
 
   // All we care about is the count of the transactions
@@ -81,7 +80,7 @@ function attachPreviousAndNextTransactionIdentifiers(notificationDetails,
         params.ledger_index_min = -1;
       }
 
-      transactions.getAccountTransactions(params, concat_callback);
+      transactions.getAccountTransactions(remote, params, concat_callback);
 
     }, callback);
 
@@ -169,7 +168,7 @@ function attachPreviousAndNextTransactionIdentifiers(notificationDetails,
  *  @param {Error} error
  *  @param {Notification} notification
  */
-function getNotificationHelper(account, identifier, topCallback) {
+function getNotificationHelper(remote, account, identifier, topCallback) {
   if (!account) {
     return topCallback(new errors.InvalidRequestError(
       'Missing parameter: account. Must be a valid Ripple Address'));
@@ -179,7 +178,7 @@ function getNotificationHelper(account, identifier, topCallback) {
   }
 
   function getTransaction(callback) {
-    transactions.getTransaction(account, identifier, callback);
+    transactions.getTransaction(remote, account, identifier, callback);
   }
 
   function checkLedger(baseTransaction, callback) {
@@ -212,7 +211,8 @@ function getNotificationHelper(account, identifier, topCallback) {
       notificationDetails.client_resource_id =
         baseTransaction.client_resource_id;
     }
-    attachPreviousAndNextTransactionIdentifiers(notificationDetails, callback);
+    attachPreviousAndNextTransactionIdentifiers(remote, notificationDetails,
+      callback);
   }
 
   // Parse the Notification object from the notificationDetails
@@ -243,7 +243,9 @@ function getNotificationHelper(account, identifier, topCallback) {
  *  @param {Hex-encoded String|ResourceId} req.params.identifier
  */
 function getNotification(account, identifier, urlBase, callback) {
-  getNotificationHelper(account, identifier, function(error, notification) {
+  var remote = this.remote;
+  getNotificationHelper(remote, account, identifier,
+      function(error, notification) {
     if (error) {
       return callback(error);
     }

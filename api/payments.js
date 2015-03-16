@@ -6,7 +6,6 @@ var bignum = require('bignumber.js');
 var ripple = require('ripple-lib');
 var transactions = require('./transactions');
 var validator = require('./lib/schema-validator');
-var remote = require('./lib/remote.js');
 var serverLib = require('./lib/server-lib');
 var utils = require('./lib/utils');
 var dbinterface = require('./lib/db-interface.js');
@@ -115,6 +114,7 @@ function formatPaymentHelper(account, transaction, callback) {
  */
 function submitPayment(account, payment, clientResourceID, secret,
     lastLedgerSequence, urlBase, options, callback) {
+  var self = this;
   var max_fee = Number(options.max_fee) > 0 ?
     utils.xrpToDrops(options.max_fee) : undefined;
   var fixed_fee = Number(options.fixed_fee) > 0 ?
@@ -313,7 +313,7 @@ function submitPayment(account, payment, clientResourceID, secret,
     if (Number(lastLedgerSequence) > 0) {
       ledgerIndex = Number(lastLedgerSequence);
     } else {
-      ledgerIndex = Number(remote._ledger_current_index)
+      ledgerIndex = Number(self.remote._ledger_current_index)
         + transactions.DEFAULT_LEDGER_BUFFER;
     }
 
@@ -337,7 +337,7 @@ function submitPayment(account, payment, clientResourceID, secret,
     setTransactionParameters: setTransactionParameters
   };
 
-  transactions.submit(params, new SubmitTransactionHooks(hooks),
+  transactions.submit(this.remote, params, new SubmitTransactionHooks(hooks),
       function(err, paymentResult) {
     if (err) {
       return callback(err);
@@ -358,6 +358,8 @@ function submitPayment(account, payment, clientResourceID, secret,
  *            req.params.identifier
  */
 function getPayment(account, identifier, callback) {
+  var self = this;
+
   function validateOptions(_callback) {
     var invalid;
     if (!account) {
@@ -387,7 +389,7 @@ function getPayment(account, identifier, callback) {
   // If the transaction was not in the outgoing_transactions db,
   // get it from rippled
   function getTransaction(_callback) {
-    transactions.getTransaction(account, identifier,
+    transactions.getTransaction(self.remote, account, identifier,
         function(error, transaction) {
       _callback(error, transaction);
     });
@@ -434,6 +436,7 @@ function getPayment(account, identifier, callback) {
  */
 function getAccountPayments(account, source_account, destination_account,
     direction, options, callback) {
+  var self = this;
 
   function getTransactions(_callback) {
     var args = {
@@ -448,7 +451,8 @@ function getAccountPayments(account, source_account, destination_account,
       types: ['payment']
     };
 
-    transactions.getAccountTransactions(_.merge(options, args), _callback);
+    transactions.getAccountTransactions(self.remote,
+      _.merge(options, args), _callback);
   }
 
   function attachDate(_transactions, _callback) {
@@ -457,7 +461,7 @@ function getAccountPayments(account, source_account, destination_account,
     });
 
     async.each(_.keys(groupedTx), function(ledger, next) {
-      remote.requestLedger({
+      self.remote.requestLedger({
         ledger_index: Number(ledger)
       }, function(err, data) {
         if (err) {
@@ -545,6 +549,7 @@ function getAccountPayments(account, source_account, destination_account,
  */
 function getPathFind(source_account, destination_account,
     destination_amount_string, source_currency_strings, callback) {
+  var self = this;
   if (!source_account) {
     callback(new InvalidRequestError(
       'Missing parameter: source_account. Must be a valid Ripple address'));
@@ -655,7 +660,7 @@ function getPathFind(source_account, destination_account,
   }
 
   function findPath(pathfindParams, _callback) {
-    var request = remote.requestRipplePathFind(pathfindParams);
+    var request = self.remote.requestRipplePathFind(pathfindParams);
     request.once('error', _callback);
     request.once('success', function(pathfindResults) {
       pathfindResults.source_account = pathfindParams.src_account;
@@ -665,8 +670,8 @@ function getPathFind(source_account, destination_account,
     });
 
     function reconnectRippled() {
-      remote.disconnect(function() {
-        remote.connect();
+      self.remote.disconnect(function() {
+        self.remote.connect();
       });
     }
     request.timeout(serverLib.CONNECTION_TIMEOUT, function() {
@@ -684,7 +689,7 @@ function getPathFind(source_account, destination_account,
       return _callback(null, pathfindResults);
     }
     // Check source_account balance
-    remote.requestAccountInfo({account: pathfindResults.source_account},
+    self.remote.requestAccountInfo({account: pathfindResults.source_account},
         function(error, result) {
       if (error) {
         return _callback(new Error(

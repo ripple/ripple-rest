@@ -4,7 +4,6 @@ var _ = require('lodash');
 var async = require('async');
 var ripple = require('ripple-lib');
 var validator = require('./lib/schema-validator');
-var remote = require('./lib/remote.js');
 var dbinterface = require('./lib/db-interface.js');
 var errors = require('./lib/errors.js');
 
@@ -34,7 +33,7 @@ var DEFAULT_RESULTS_PER_PAGE = 10;
  * @param {Object} transaction - Transaction data received from ripple
  */
 
-function submitTransaction(options, hooks, callback) {
+function submitTransaction(remote, options, hooks, callback) {
   function blockDuplicates(transaction, _options, _callback) {
     dbinterface.getTransaction({
       source_account: transaction.tx_json.Account,
@@ -232,7 +231,7 @@ function setTransactionBitFlags(transaction, options) {
  * @param {Error} error
  * @param {Transaction} transaction
  */
-function getTransaction(account, identifier, callback) {
+function getTransaction(remote, account, identifier, callback) {
   var options = {};
 
   function validateOptions(async_callback) {
@@ -366,7 +365,8 @@ function getTransaction(account, identifier, callback) {
  * See getTransaction for parameter details
  */
 function getTransactionAndRespond(account, identifier, callback) {
-  getTransaction(account, identifier, function(error, transaction) {
+  var remote = this.remote;
+  getTransaction(remote, account, identifier, function(error, transaction) {
     if (error) {
       callback(error);
     } else {
@@ -442,7 +442,7 @@ function getAccountTx(_remote, options, callback) {
  * @param {Error} error
  * @param {Array of transactions in JSON format} transactions
  */
-function getLocalAndRemoteTransactions(options, callback) {
+function getLocalAndRemoteTransactions(remote, options, callback) {
 
   function queryRippled(_callback) {
     getAccountTx(remote, options, function(error, results) {
@@ -602,8 +602,7 @@ function compareTransactions(first, second, earliestFirst) {
  * @param {Error} error
  * @param {Array of transactions in JSON format} transactions
  */
-function getAccountTransactions(options, callback) {
-
+function getAccountTransactions(remote, options, callback) {
   if (!options.min) {
     options.min = module.exports.DEFAULT_RESULTS_PER_PAGE;
   }
@@ -634,7 +633,7 @@ function getAccountTransactions(options, callback) {
   }
 
   function queryTransactions(async_callback) {
-    getLocalAndRemoteTransactions(options, async_callback);
+    getLocalAndRemoteTransactions(remote, options, async_callback);
   }
 
   function filterTransactions(transactions, async_callback) {
@@ -673,7 +672,7 @@ function getAccountTransactions(options, callback) {
     } else {
       options.previous_transactions = transactions;
       setImmediate(function() {
-        getAccountTransactions(options, callback);
+        getAccountTransactions(remote, options, callback);
       });
     }
   }

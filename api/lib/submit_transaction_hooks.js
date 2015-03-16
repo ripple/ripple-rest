@@ -1,7 +1,7 @@
 /* eslint-disable valid-jsdoc */
 'use strict';
 var _ = require('lodash');
-var remote = require('./remote.js');
+var ripple = require('ripple-lib');
 
 /**
  *  Used to hold methods defined by caller to customize transaction submit
@@ -31,7 +31,7 @@ SubmitTransactionHooks.prototype.initializeTransaction =
     return this.hooks.initializeTransaction(async_callback);
   }
 
-  async_callback(null, remote.transaction());
+  async_callback(null, new ripple.Transaction());
 };
 
 /**
