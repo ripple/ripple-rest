@@ -13,7 +13,7 @@ var logger = exports.logger = new winston.Logger({
       handleExceptions: true,
       level: config.get('NODE_ENV') === 'test' ? 'error' : 'info',
       showLevel: true,
-      timestamp: true,
+      timestamp: true
     })
   ],
   exitOnError: true

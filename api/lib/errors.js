@@ -7,7 +7,7 @@
 function RippleError(message) {
   this.message = message;
 }
-RippleError.prototype = new Error;
+RippleError.prototype = new Error();
 RippleError.prototype.name = 'RippleError';
 
 
@@ -18,7 +18,7 @@ RippleError.prototype.name = 'RippleError';
 function InvalidRequestError(message) {
   this.message = message;
 }
-InvalidRequestError.prototype = new RippleError;
+InvalidRequestError.prototype = new RippleError();
 InvalidRequestError.prototype.name = 'InvalidRequestError';
 InvalidRequestError.prototype.error = 'restINVALID_PARAMETER';
 
@@ -29,7 +29,7 @@ InvalidRequestError.prototype.error = 'restINVALID_PARAMETER';
 function NetworkError(message) {
   this.message = message;
 }
-NetworkError.prototype = new RippleError;
+NetworkError.prototype = new RippleError();
 NetworkError.prototype.name = 'NetworkError';
 
 /**
@@ -49,7 +49,7 @@ RippledNetworkError.prototype.error = 'restRIPPLED_NETWORK_ERR';
 function TransactionError(message) {
   this.message = message;
 }
-TransactionError.prototype = new RippleError;
+TransactionError.prototype = new RippleError();
 TransactionError.prototype.name = 'TransactionError';
 
 /**
@@ -59,7 +59,7 @@ TransactionError.prototype.name = 'TransactionError';
 function NotFoundError(message) {
   this.message = message;
 }
-NotFoundError.prototype = new RippleError;
+NotFoundError.prototype = new RippleError();
 NotFoundError.prototype.name = 'NotFoundError';
 NotFoundError.prototype.error = 'restNOT_FOUND';
 
@@ -70,7 +70,7 @@ NotFoundError.prototype.error = 'restNOT_FOUND';
 function TimeOutError(message) {
   this.message = message;
 }
-TimeOutError.prototype = new RippleError;
+TimeOutError.prototype = new RippleError();
 TimeOutError.prototype.name = 'TimeOutError';
 
 /**
@@ -80,7 +80,7 @@ TimeOutError.prototype.name = 'TimeOutError';
 function ApiError(message) {
   this.message = message;
 }
-ApiError.prototype = new RippleError;
+ApiError.prototype = new RippleError();
 ApiError.prototype.name = 'ApiError';
 
 /**
@@ -100,7 +100,7 @@ DuplicateTransactionError.prototype.error = 'restDUPLICATE_TRANSACTION';
 function DatabaseError(message) {
   this.message = message;
 }
-DatabaseError.prototype = new RippleError;
+DatabaseError.prototype = new RippleError();
 DatabaseError.prototype.name = 'DatabaseError';
 
 module.exports = {

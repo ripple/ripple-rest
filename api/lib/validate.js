@@ -49,8 +49,7 @@ function validateIssue(issue) {
 function validateLedger(ledger) {
   if (!(utils.isValidLedgerSequence(ledger)
         || utils.isValidLedgerHash(ledger)
-        || utils.isValidLedgerWord(ledger)))
-  {
+        || utils.isValidLedgerWord(ledger))) {
     return new errors.InvalidRequestError(
       'Invalid or Missing Parameter: ledger');
   }
@@ -61,9 +60,8 @@ function validateLedger(ledger) {
 function validatePaging(options) {
   if (options.marker) {
     if (!options.ledger ||
-        !(utils.isValidLedgerSequence(options.ledger
-          || utils.isValidLedgerHash(options.ledger))))
-      {
+        !(utils.isValidLedgerSequence(options.ledger)
+          || utils.isValidLedgerHash(options.ledger))) {
       return new errors.InvalidRequestError(
         'Invalid or Missing Parameter: ledger');
     }

@@ -29,9 +29,9 @@ function handleError(error, req, res, next) {
     } else {
       logger.error(error);
     }
-  } else if (!isRippleError(error)) {
+  } else if (error.stack && !isRippleError(error)) {
     // always log stack traces for uncaught exceptions
-    error.stack && logger.error(error.stack);
+    logger.error(error.stack);
   }
 
   var err_obj = {

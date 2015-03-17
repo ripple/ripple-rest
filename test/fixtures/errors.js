@@ -1,3 +1,8 @@
+/* eslint-disable new-cap */
+/* eslint-disable max-len */
+
+'use strict';
+
 module.exports.restInvalidParameter = function restInvalidParameter(parameter) {
   return JSON.stringify({
     success: false,
@@ -5,7 +10,7 @@ module.exports.restInvalidParameter = function restInvalidParameter(parameter) {
     error: 'restINVALID_PARAMETER',
     message: 'Invalid or Missing Parameter: ' + parameter
   });
-}
+};
 
 module.exports.RESTMissingSecret = JSON.stringify({
   success: false,
@@ -14,7 +19,7 @@ module.exports.RESTMissingSecret = JSON.stringify({
   message: 'Parameter missing: secret'
 });
 
-module.exports.RESTInvalidSecret = JSON.stringify({ 
+module.exports.RESTInvalidSecret = JSON.stringify({
   success: false,
   error_type: 'transaction',
   error: 'tejSecretInvalid',
@@ -129,17 +134,17 @@ module.exports.RESTMaxFeeExceeded = JSON.stringify({
 /**
  * Construct REST error response
  *
- * @param options
- *   @param {String} type - error type
- *   @param {String} error - error code
- *   @param {String} message - error message
+ * @param {Object} params - error response parameters
+ * @param {String} params.type - error type
+ * @param {String} params.error - error code
+ * @param {String} params.message - error message
  * @return {String} REST error response message
  */
-module.exports.RESTErrorResponse = function(options) {
+module.exports.RESTErrorResponse = function(params) {
   return JSON.stringify({
     success: false,
-    error_type: options.type,
-    error: options.error,
-    message: options.message
+    error_type: params.type,
+    error: params.error,
+    message: params.message
   });
 };

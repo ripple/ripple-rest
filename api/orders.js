@@ -47,7 +47,7 @@ function getOrders(account, options, callback) {
     validate.account(account),
     validate.ledger(options.ledger, true),
     validate.limit(options.limit, true),
-    validate.paging(options,true)
+    validate.paging(options, true)
   ], callback)) {
     return;
   }

@@ -36,7 +36,7 @@ function getBalances(account, options, callback) {
     validate.counterparty(options.counterparty, true),
     validate.ledger(options.ledger, true),
     validate.limit(options.limit, true),
-    validate.paging(options,true)
+    validate.paging(options, true)
   ], callback)) {
     return;
   }

@@ -1,23 +1,27 @@
+/* eslint-disable new-cap */
+/* eslint-disable max-len */
+'use strict';
 var assert = require('assert');
-var ripple = require('ripple-lib');
 var testutils = require('./testutils');
 var fixtures = require('./fixtures').balances;
 var errors = require('./fixtures').errors;
 var addresses = require('./fixtures').addresses;
 var requestPath = fixtures.requestPath;
 
-const MARKER = '29F992CC252056BF690107D1E8F2D9FBAFF29FF107B62B1D1F4E4E11ADF2CC73';
-const NEXT_MARKER = '0C812C919D343EAE789B29E8027C62C5792C22172D37EA2B2C0121D2381F80E1';
-const LEDGER = 9592219;
-const LEDGER_HASH = 'FD22E2A8D665A01711C0147173ECC0A32466BA976DE697E95197933311267BE8';
-const LIMIT = 5;
-const DEFAULT_LIMIT = 200;
+var MARKER = '29F992CC252056BF690107D1E8F2D9FBAFF29FF107B62B1D1F4E4E11ADF2CC73';
+var NEXT_MARKER =
+  '0C812C919D343EAE789B29E8027C62C5792C22172D37EA2B2C0121D2381F80E1';
+var LEDGER = 9592219;
+var LEDGER_HASH =
+  'FD22E2A8D665A01711C0147173ECC0A32466BA976DE697E95197933311267BE8';
+var LIMIT = 5;
+var DEFAULT_LIMIT = 200;
 
 suite('get balances', function() {
   var self = this;
 
-  //self.wss: rippled mock
-  //self.app: supertest-enabled REST handler
+  // self.wss: rippled mock
+  // self.app: supertest-enabled REST handler
 
   setup(testutils.setup.bind(self));
   teardown(testutils.teardown.bind(self));
@@ -34,7 +38,7 @@ suite('get balances', function() {
       assert.strictEqual(message.account, addresses.VALID);
       assert.strictEqual(message.ledger_index, 'validated');
       assert.strictEqual(message.limit, DEFAULT_LIMIT);
-      conn.send(fixtures.accountLinesResponse(message,{
+      conn.send(fixtures.accountLinesResponse(message, {
         ledger: LEDGER,
         marker: NEXT_MARKER,
         limit: DEFAULT_LIMIT
@@ -65,9 +69,9 @@ suite('get balances', function() {
         assert.strictEqual(message.command, 'account_lines');
         assert.strictEqual(message.account, addresses.VALID);
         assert.strictEqual(message.ledger_index, 'validated');
-        assert.strictEqual(message.marker, void(0));
+        assert.strictEqual(message.marker, undefined);
         assert.strictEqual(message.limit, DEFAULT_LIMIT);
-        conn.send(fixtures.accountLinesResponse(message,{
+        conn.send(fixtures.accountLinesResponse(message, {
           ledger: LEDGER,
           marker: NEXT_MARKER
         }));
@@ -77,9 +81,9 @@ suite('get balances', function() {
         assert.strictEqual(message.ledger_index, LEDGER);
         assert.strictEqual(message.marker, NEXT_MARKER);
         assert.notEqual(message.limit, 'all');
-        conn.send(fixtures.accountLinesResponse(message,{
+        conn.send(fixtures.accountLinesResponse(message, {
           ledger: LEDGER,
-          marker: void(0)
+          marker: undefined
         }));
       }
     });
@@ -89,10 +93,12 @@ suite('get balances', function() {
     .expect(testutils.checkStatus(200))
     .expect(testutils.checkHeaders)
     .end(function(err, res) {
-      if (err) return done(err);
+      if (err) {
+        return done(err);
+      }
 
       assert.strictEqual(res.body.balances.length, 49);
-      assert.strictEqual(res.body.marker, void(0));
+      assert.strictEqual(res.body.marker, undefined);
       assert.strictEqual(res.body.ledger, LEDGER);
       assert.strictEqual(res.body.validated, true);
 
@@ -107,7 +113,7 @@ suite('get balances', function() {
       conn.send(fixtures.accountInfoResponse(message));
     });
 
-    self.wss.once('request_account_lines', function(message, conn) {
+    self.wss.once('request_account_lines', function() {
       assert(false);
     });
 
@@ -212,7 +218,7 @@ suite('get balances', function() {
       conn.send(fixtures.accountInfoResponse(message));
     });
 
-    self.wss.once('request_account_lines', function(message, conn) {
+    self.wss.once('request_account_lines', function() {
       assert(false);
     });
 
@@ -231,7 +237,7 @@ suite('get balances', function() {
       conn.send(fixtures.accountInfoResponse(message));
     });
 
-    self.wss.once('request_account_lines', function(message, conn) {
+    self.wss.once('request_account_lines', function() {
       assert(false);
     });
 
@@ -309,7 +315,7 @@ suite('get balances', function() {
       conn.send(fixtures.accountInfoResponse(message));
     });
 
-    self.wss.once('request_account_lines', function(message, conn) {
+    self.wss.once('request_account_lines', function() {
       assert(false);
     });
 
@@ -328,7 +334,7 @@ suite('get balances', function() {
       conn.send(fixtures.accountInfoResponse(message));
     });
 
-    self.wss.once('request_account_lines', function(message, conn) {
+    self.wss.once('request_account_lines', function() {
       assert(false);
     });
 
@@ -347,7 +353,7 @@ suite('get balances', function() {
       conn.send(fixtures.accountInfoResponse(message));
     });
 
-    self.wss.once('request_account_lines', function(message, conn) {
+    self.wss.once('request_account_lines', function() {
       assert(false);
     });
 
@@ -366,7 +372,7 @@ suite('get balances', function() {
       conn.send(fixtures.accountInfoResponse(message));
     });
 
-    self.wss.once('request_account_lines', function(message, conn) {
+    self.wss.once('request_account_lines', function() {
       assert(false);
     });
 
@@ -411,11 +417,11 @@ suite('get balances', function() {
   });
 
   test('/accounts/:account/balances -- invalid account', function(done) {
-    self.wss.once('request_account_info', function(message, conn) {
+    self.wss.once('request_account_info', function() {
       assert(false, 'Should not request account info');
     });
 
-    self.wss.once('request_account_lines', function(message, conn) {
+    self.wss.once('request_account_lines', function() {
       assert(false, 'Should not request account lines');
     });
 
@@ -449,7 +455,7 @@ suite('get balances', function() {
   });
 
   test('/accounts/:account/balances?currency', function(done) {
-    self.wss.once('request_account_info', function(message, conn) {
+    self.wss.once('request_account_info', function() {
       assert(false, 'Should not request account info');
     });
 
@@ -477,12 +483,12 @@ suite('get balances', function() {
       assert.strictEqual(message.command, 'account_info');
       assert.strictEqual(message.account, addresses.VALID);
       assert.strictEqual(message.ledger_index, 'validated');
-      conn.send(fixtures.accountInfoResponse(message,{
+      conn.send(fixtures.accountInfoResponse(message, {
         ledger: LEDGER
       }));
     });
 
-    self.wss.once('request_account_lines', function(message, conn) {
+    self.wss.once('request_account_lines', function() {
       assert(false, 'Should not request account lines');
     });
 
@@ -497,11 +503,11 @@ suite('get balances', function() {
   });
 
   test('/accounts/:account/balances?currency -- invalid currency', function(done) {
-    self.wss.once('request_account_info', function(message, conn) {
+    self.wss.once('request_account_info', function() {
       assert(false, 'Should not request account info');
     });
 
-    self.wss.once('request_account_lines', function(message, conn) {
+    self.wss.once('request_account_lines', function() {
       assert(false, 'Should not request account lines');
     });
 
@@ -514,7 +520,7 @@ suite('get balances', function() {
   });
 
   test('/accounts/:account/balances?counterparty', function(done) {
-    self.wss.once('request_account_info', function(message, conn) {
+    self.wss.once('request_account_info', function() {
       assert(false, 'Should not request account info');
     });
 
@@ -523,7 +529,7 @@ suite('get balances', function() {
       assert.strictEqual(message.account, addresses.VALID);
       assert.strictEqual(message.peer, addresses.COUNTERPARTY);
       assert.strictEqual(message.ledger_index, 'validated');
-      conn.send(fixtures.accountLinesCounterpartyResponse(message,{
+      conn.send(fixtures.accountLinesCounterpartyResponse(message, {
         marker: NEXT_MARKER,
         ledger: LEDGER
       }));
@@ -541,11 +547,11 @@ suite('get balances', function() {
   });
 
   test('/accounts/:account/balances?counterparty -- invalid counterparty', function(done) {
-    self.wss.once('request_account_info', function(message, conn) {
+    self.wss.once('request_account_info', function() {
       assert(false, 'Should not request account info');
     });
 
-    self.wss.once('request_account_lines', function(message, conn) {
+    self.wss.once('request_account_lines', function() {
       assert(false, 'Should not request account lines');
     });
 
@@ -558,7 +564,7 @@ suite('get balances', function() {
   });
 
   test('/accounts/:account/balances?counterparty -- non-existent counterparty', function(done) {
-    self.wss.once('request_account_info', function(message, conn) {
+    self.wss.once('request_account_info', function() {
       assert(false, 'Should not request account info');
     });
 
@@ -578,7 +584,7 @@ suite('get balances', function() {
   });
 
   test('/accounts/:account/balances?counterparty&currency=EUR', function(done) {
-    self.wss.once('request_account_info', function(message, conn) {
+    self.wss.once('request_account_info', function() {
       assert(false, 'Should not request account info');
     });
 
@@ -586,7 +592,7 @@ suite('get balances', function() {
       assert.strictEqual(message.command, 'account_lines');
       assert.strictEqual(message.account, addresses.VALID);
       assert.strictEqual(message.peer, addresses.COUNTERPARTY);
-      conn.send(fixtures.accountLinesCounterpartyResponse(message,{
+      conn.send(fixtures.accountLinesCounterpartyResponse(message, {
         marker: NEXT_MARKER,
         ledger: LEDGER
       }));
@@ -604,7 +610,7 @@ suite('get balances', function() {
   });
 
   test('/accounts/:account/balances?frozen', function(done) {
-    self.wss.once('request_account_info', function(message, conn) {
+    self.wss.once('request_account_info', function() {
       assert(false, 'Should not request account_info');
     });
 
