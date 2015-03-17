@@ -3,6 +3,7 @@ var _ = require('lodash');
 var errors = require('./errors.js');
 var validator = require('./schema-validator');
 var ripple = require('ripple-lib');
+var utils = require('./utils');
 
 function addOptionalOption(validatorFunction) {
   return function(parameter, optional) {
@@ -44,6 +45,39 @@ function validateIssue(issue) {
   ]) || null;
 }
 
+
+function validateLedger(ledger) {
+  if (!(utils.isValidLedgerSequence(ledger)
+        || utils.isValidLedgerHash(ledger)
+        || utils.isValidLedgerWord(ledger))) {
+    return new errors.InvalidRequestError(
+      'Invalid or Missing Parameter: ledger');
+  }
+
+  return null;
+}
+
+function validatePaging(options) {
+  if (options.marker) {
+    if (!options.ledger ||
+        !(utils.isValidLedgerSequence(options.ledger)
+          || utils.isValidLedgerHash(options.ledger))) {
+      return new errors.InvalidRequestError(
+        'Invalid or Missing Parameter: ledger');
+    }
+  }
+  return null;
+}
+
+function validateLimit(limit) {
+  if (!(limit === 'all' || !_.isNaN(Number(limit)))) {
+    return new errors.InvalidRequestError(
+      'Invalid or Missing Parameter: limit');
+  }
+  return null;
+}
+
+
 function fail(results, callback) {
   var error = _.find(results);
   if (error) {
@@ -53,8 +87,13 @@ function fail(results, callback) {
   return false;
 }
 
-module.exports.account = addOptionalOption(validateAccount);
-module.exports.currency = addOptionalOption(validateCurrency);
-module.exports.counterparty = addOptionalOption(validateCounterparty);
-module.exports.issue = addOptionalOption(validateIssue);
-module.exports.fail = fail;
+module.exports = {
+  account: addOptionalOption(validateAccount),
+  currency: addOptionalOption(validateCurrency),
+  counterparty: addOptionalOption(validateCounterparty),
+  issue: addOptionalOption(validateIssue),
+  ledger: addOptionalOption(validateLedger),
+  limit: addOptionalOption(validateLimit),
+  paging: addOptionalOption(validatePaging),
+  fail: fail
+};

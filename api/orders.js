@@ -11,6 +11,7 @@ var errors = require('./lib/errors.js');
 var TxToRestConverter = require('./lib/tx-to-rest-converter.js');
 var validator = require('./lib/schema-validator.js');
 var bignum = require('bignumber.js');
+var validate = require('./lib/validate');
 
 var InvalidRequestError = errors.InvalidRequestError;
 
@@ -42,13 +43,13 @@ var DefaultPageLimit = 200;
 function getOrders(account, options, callback) {
   var self = this;
 
-  function validateOptions() {
-    if (!ripple.UInt160.is_valid(account)) {
-      return Promise.reject(new InvalidRequestError(
-        'Parameter is not a valid Ripple address: account'));
-    }
-
-    return Promise.resolve();
+  if (validate.fail([
+    validate.account(account),
+    validate.ledger(options.ledger, true),
+    validate.limit(options.limit, true),
+    validate.paging(options, true)
+  ], callback)) {
+    return;
   }
 
   function getAccountOrders(prevResult) {
@@ -132,10 +133,10 @@ function getOrders(account, options, callback) {
 
     return promise;
   }
-  validateOptions(options)
-  .then(getAccountOrders)
-  .then(respondWithOrders)
-  .catch(callback);
+
+  getAccountOrders()
+    .then(respondWithOrders)
+    .catch(callback);
 }
 
 /**

@@ -33,7 +33,10 @@ function getBalances(account, options, callback) {
   if (validate.fail([
     validate.account(account),
     validate.currency(options.currency, true),
-    validate.counterparty(options.counterparty, true)
+    validate.counterparty(options.counterparty, true),
+    validate.ledger(options.ledger, true),
+    validate.limit(options.limit, true),
+    validate.paging(options, true)
   ], callback)) {
     return;
   }

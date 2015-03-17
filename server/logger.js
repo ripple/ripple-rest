@@ -5,23 +5,14 @@ var config = require('./config');
 var morgan = require('morgan');
 var version = require('./version');
 
-
 var logger = exports.logger = new winston.Logger({
   transports: [
     new winston.transports.Console({
       prettyPrint: true,
       colorize: true,
-      handleExceptions: false,
-      level: 'info',
+      handleExceptions: true,
+      level: config.get('NODE_ENV') === 'test' ? 'error' : 'info',
       showLevel: true,
-      timestamp: true,
-      silent: config.get('NODE_ENV') === 'test'
-    })
-  ],
-  exceptionHandlers: [
-    new winston.transports.Console({
-      prettyPrint: true,
-      colorize: true,
       timestamp: true
     })
   ],
