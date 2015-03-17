@@ -8,7 +8,6 @@ var transactions = require('./transactions');
 var validator = require('./lib/schema-validator');
 var serverLib = require('./lib/server-lib');
 var utils = require('./lib/utils');
-var dbinterface = require('./lib/db-interface.js');
 var RestToTxConverter = require('./lib/rest-to-tx-converter.js');
 var TxToRestConverter = require('./lib/tx-to-rest-converter.js');
 var SubmitTransactionHooks = require('./lib/submit_transaction_hooks.js');
@@ -337,7 +336,7 @@ function submitPayment(account, payment, clientResourceID, secret,
     setTransactionParameters: setTransactionParameters
   };
 
-  transactions.submit(this.remote, params, new SubmitTransactionHooks(hooks),
+  transactions.submit(this, params, new SubmitTransactionHooks(hooks),
       function(err, paymentResult) {
     if (err) {
       return callback(err);
@@ -389,7 +388,7 @@ function getPayment(account, identifier, callback) {
   // If the transaction was not in the outgoing_transactions db,
   // get it from rippled
   function getTransaction(_callback) {
-    transactions.getTransaction(self.remote, account, identifier,
+    transactions.getTransaction(self, account, identifier,
         function(error, transaction) {
       _callback(error, transaction);
     });
@@ -451,7 +450,7 @@ function getAccountPayments(account, source_account, destination_account,
       types: ['payment']
     };
 
-    transactions.getAccountTransactions(self.remote,
+    transactions.getAccountTransactions(self,
       _.merge(options, args), _callback);
   }
 
@@ -500,7 +499,7 @@ function getAccountPayments(account, source_account, destination_account,
     async.map(_transactions, function(paymentResult, async_map_callback) {
       var hash = paymentResult.hash;
 
-      dbinterface.getTransaction({hash: hash}, function(error, db_entry) {
+      self.db.getTransaction({hash: hash}, function(error, db_entry) {
         if (error) {
           return async_map_callback(error);
         }

@@ -1,7 +1,7 @@
 'use strict';
-var api = require('../api');
+var api = require('./api');
 var respond = require('./response-handler');
-var config = require('../api/lib/config');
+var config = require('./config');
 
 function getUrlBase(request) {
   if (config.get('url_base')) {

@@ -246,7 +246,7 @@ function addTrustLine(account, trustline, secret, options, callback) {
     setTransactionParameters: setTransactionParameters
   };
 
-  transactions.submit(this.remote, params, new SubmitTransactionHooks(hooks),
+  transactions.submit(this, params, new SubmitTransactionHooks(hooks),
       function(err, trustlineResult) {
     if (err) {
       return callback(err);

@@ -1,6 +1,6 @@
 'use strict';
 var router = require('./server/router.js');
-var remote = require('./api/lib/remote.js');
+var remote = require('./server/api').remote;
 
 function RippleRestPlugin() {
   this.router = router;
