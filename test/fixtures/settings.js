@@ -38,7 +38,7 @@ module.exports.accountInfoResponse = function(request) {
         Balance: '922913243',
         Domain: '6578616D706C652E636F6D',
         EmailHash: '23463B99B62A72F26ED677CC556C44E8',
-        Flags: 655360,
+        Flags: 9043968,
         LedgerEntryType: 'AccountRoot',
         OwnerCount: 1,
         PreviousTxnID: '19899273706A9E040FDB5885EE991A1DC2BAD878A0D6E7DBCFB714E63BF737F7',
@@ -201,7 +201,8 @@ module.exports.RESTAccountSettingsResponse = JSON.stringify({
     wallet_size: '',
     message_key: '',
     domain: 'example.com',
-    signers: ''
+    signers: '',
+    default_ripple: true
   }
 });
 

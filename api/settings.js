@@ -13,13 +13,14 @@ var RestToTxConverter       = require('./../lib/rest-to-tx-converter.js');
 const InvalidRequestError = errors.InvalidRequestError;
 
 const AccountRootFlags = {
-  PasswordSpent:   { name:  'password_spent', value: 0x00010000 },
-  RequireDestTag:  { name:  'require_destination_tag', value: 0x00020000 },
-  RequireAuth:     { name:  'require_authorization', value: 0x00040000 },
-  DisallowXRP:     { name:  'disallow_xrp', value: 0x00080000 },
-  DisableMaster:   { name:  'disable_master', value: 0x00100000 },
-  NoFreeze:        { name:  'no_freeze', value: 0x00200000 },
-  GlobalFreeze:    { name:  'global_freeze', value: 0x00400000 }
+  PasswordSpent:   { name:  'password_spent', value: ripple.Remote.flags.account_root.PasswordSpent },
+  RequireDestTag:  { name:  'require_destination_tag', value: ripple.Remote.flags.account_root.RequireDestTag },
+  RequireAuth:     { name:  'require_authorization', value: ripple.Remote.flags.account_root.RequireAuth },
+  DisallowXRP:     { name:  'disallow_xrp', value: ripple.Remote.flags.account_root.DisallowXRP },
+  DisableMaster:   { name:  'disable_master', value: ripple.Remote.flags.account_root.DisableMaster },
+  NoFreeze:        { name:  'no_freeze', value: 0x00200000},
+  GlobalFreeze:    { name:  'global_freeze', value: 0x00400000},
+  DefaultRipple:   { name:  'default_ripple', value: ripple.Remote.flags.account_root.DefaultRipple }
 };
 
 const AccountRootFields = {
@@ -35,7 +36,8 @@ const AccountRootFields = {
 
 const AccountSetIntFlags = {
   NoFreeze:       { name:   'no_freeze', value: ripple.Transaction.set_clear_flags.AccountSet.asfNoFreeze },
-  GlobalFreeze:   { name:   'global_freeze', value: ripple.Transaction.set_clear_flags.AccountSet.asfGlobalFreeze }
+  GlobalFreeze:   { name:   'global_freeze', value: ripple.Transaction.set_clear_flags.AccountSet.asfGlobalFreeze },
+  DefaultRipple:  { name:   'default_ripple', value: ripple.Transaction.set_clear_flags.AccountSet.asfDefaultRipple }
 };
 
 const AccountSetFlags = {
