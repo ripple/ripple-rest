@@ -25,6 +25,21 @@ module.exports.paymentRestXRP = {
   }
 };
 
+module.exports.paymentRestXRPtoXRP = {
+  'source_account': addresses.VALID,
+  'source_amount': {
+    'value': '1',
+    'currency': 'XRP',
+    'issuer': ''
+  },
+  'destination_account': addresses.COUNTERPARTY,
+  'destination_amount': {
+    'value': '1',
+    'currency': 'XRP',
+    'issuer': ''
+  }
+};
+
 module.exports.paymentRestComplex = {
   'source_account': addresses.VALID,
   'source_tag': '',
@@ -118,9 +133,11 @@ module.exports.exportsPaymentRestIssuers = function(options) {
   _.defaults(options, {
     sourceAccount: addresses.VALID,
     destinationAccount: addresses.COUNTERPARTY,
-    sourceIssuer: addresses.VALID,
-    destinationIssuer: addresses.COUNTERPARTY,
-    sourceValue: '10'
+    sourceIssuer: '',
+    destinationIssuer: '',
+    sourceValue: '10',
+    destinationCurrency: 'USD',
+    sourceCurrency: 'USD'
   });
 
   return {
@@ -128,16 +145,16 @@ module.exports.exportsPaymentRestIssuers = function(options) {
     source_tag: '',
     source_amount: {
       value: options.sourceValue,
-        currency: 'USD',
+        currency: options.sourceCurrency,
         issuer: options.sourceIssuer
     },
     source_slippage: options.sourceSlippage,
-      destination_account: options.destinationAccount,
-      destination_tag: '',
-      destination_amount: {
+    destination_account: options.destinationAccount,
+    destination_tag: '',
+    destination_amount: {
       value: '10',
-        currency: 'USD',
-        issuer: options.destinationIssuer
+      currency: options.destinationCurrency,
+      issuer: options.destinationIssuer
     },
     invoice_id: '',
     paths: '[]',
