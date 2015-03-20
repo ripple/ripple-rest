@@ -112,7 +112,8 @@ suite('unit - converter - Tx to Rest', function() {
         wallet_size: 1,
         transfer_rate: 2,
         no_freeze: false,
-        global_freeze: true
+        global_freeze: true,
+        default_ripple: true
       }
     };
 

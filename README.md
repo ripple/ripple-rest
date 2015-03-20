@@ -763,7 +763,8 @@ POST /v1/accounts/{:address}/settings?validated=true
     "require_authorization": false,
     "disallow_xrp": false,
     "disable_master": false,
-    "transaction_sequence": 22
+    "default_ripple": false
+    "transaction_sequence": 22,
   }
 }
 ```
@@ -802,6 +803,7 @@ The `settings` object can contain any of the following fields (any omitted field
 | require_authorization | Boolean | If true, require authorization for users to hold balances issued by this account. (This prevents users unknown to a gateway from holding funds issued by that gateway.) |
 | disallow_xrp | Boolean | If true, XRP should not be sent to this account. (Enforced in clients but not in the server, because it could cause accounts to become unusable if all their XRP were spent.) |
 | disable_master | Boolean | If true, the master secret key cannot be used to sign transactions for this account. Can only be set to true if a Regular Key is defined for the account. |
+| default_ripple | Boolean | If true, enables [rippling](https://ripple.com/knowledge_center/understanding-the-noripple-flag/) on this account's trustlines by default.  |
 | transaction_sequence | String (Quoted integer) | The sequence number of the next valid transaction for this account.  |
 | email_hash | String | Hash of an email address to be used for generating an avatar image. Conventionally, clients use [Gravatar](http://en.gravatar.com/site/implement/hash/) to display this image. |
 | message_key | String | A [secp256k1](https://en.bitcoin.it/wiki/Secp256k1) public key that should be used to encrypt secret messages to this account, as hex. |

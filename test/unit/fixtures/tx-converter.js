@@ -1095,6 +1095,7 @@ module.exports.settingResponseRest = {
     require_destination_tag: true,
     require_authorization: true,
     disallow_xrp: true,
+    default_ripple: true
   },
   hash: '0F480D344CFC610DFA5CAC62CC1621C92953A05FE8C319281CA49C5C162AF40E',
   ledger: 8820076,
