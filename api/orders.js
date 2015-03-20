@@ -99,8 +99,8 @@ function getOrders(request, response, next) {
   function getParsedOrders(offers) {
     return _.reduce(offers, function(orders, off) {
       var sequence = off.seq;
-      var passive = off.flags === ripple.Remote.flags.offer.Passive;
-      var type = off.flags === ripple.Remote.flags.offer.Sell ? 'sell' : 'buy'
+      var type = off.flags & ripple.Remote.flags.offer.Sell ? 'sell' : 'buy';
+      var passive = (off.flags & ripple.Remote.flags.offer.Passive) !== 0;
 
       var taker_gets = utils.parseCurrencyAmount(off.taker_gets);
       var taker_pays = utils.parseCurrencyAmount(off.taker_pays);
@@ -449,8 +449,8 @@ function getOrderBook(request, response, next) {
       var sequence = off.Sequence;
 
       // Transaction Flags
-      var passive = off.Flags === ripple.Remote.flags.offer.Passive;
-      var sell = off.Flags === ripple.Remote.flags.offer.Sell;
+      var passive = (off.Flags & ripple.Remote.flags.offer.Passive) !== 0;
+      var sell = (off.Flags & ripple.Remote.flags.offer.Sell) !==0;
 
       var taker_gets_total =  utils.parseCurrencyAmount(off.TakerGets);
       var taker_gets_funded = off.taker_gets_funded ? utils.parseCurrencyAmount(off.taker_gets_funded) : taker_gets_total;
