@@ -1,7 +1,7 @@
 {
   "$schema": "http://json-schema.org/draft-04/schema#",
-  "title": "Options",
-  "description": "An Options object for preparing a transaction",
+  "title": "Instructions",
+  "description": "Instructions for executing a transaction",
   "type": "object",
   "properties": {
     "sequence": {

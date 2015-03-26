@@ -1,0 +1,30 @@
+{
+  "$schema": "http://json-schema.org/draft-04/schema#",
+  "title": "TrustlineRequest",
+  "type": "object",
+  "properties": {
+    "address": {
+      "$ref": "RippleAddress"
+    },
+    "currency": {
+      "$ref": "Currency"
+    },
+    "counterparty": {
+      "$ref": "RippleAddress"
+    },
+    "limit": {
+      "$ref": "FloatString"
+    },
+    "allow_rippling": {
+      "type": "boolean"
+    },
+    "frozen": {
+      "type": "boolean"
+    },
+    "instructions": {
+      "$ref": "Instructions"
+    }
+  },
+  "additionalProperties": false,
+  "required": ["address", "currency", "counterparty", "limit"]
+}
