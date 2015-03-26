@@ -1,6 +1,6 @@
 'use strict';
 var _ = require('lodash');
-var assert = require('assert');
+var assert = require('assert-diff');
 var validator = require('server/schema-validator');
 
 var defaultRequest = {
@@ -14,7 +14,7 @@ var defaultRequest = {
 };
 
 function validationErrors(request) {
-  return validator.validate(request, 'TrustlineRequest').err;
+  return validator.validate(request, 'TrustlineRequest').errors;
 }
 
 function isValid(request) {
@@ -24,7 +24,7 @@ function isValid(request) {
 suite('TrustlineRequest Schema', function() {
   suite('valid trustline request', function() {
     test('minimal with instructions', function() {
-      assert.deepEqual(validationErrors(defaultRequest), []);
+      assert.deepEqual(validationErrors(defaultRequest), validator.noError);
     });
   });
 

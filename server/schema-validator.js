@@ -2,6 +2,7 @@
 var fs = require('fs');
 var path = require('path');
 var JaySchema = require('jayschema');
+var formatJaySchemaErrors = require('jayschema-error-messages');
 
 var baseDir = path.join(__dirname, './schemas');
 
@@ -9,12 +10,15 @@ module.exports = (function() {
   var validator = new JaySchema();
   var validate = validator.validate;
 
-  // If schema is valid, return true. Otherwise
-  // return array of validation errors
+  validator.noError = {fields: {}};
+
   validator.validate = function() {
-    var result = {err: validate.apply(validator, arguments)};
-    result.isValid = !Boolean(result.err.length);
-    return result;
+    var errors = validate.apply(validator, arguments);
+    return {
+      err: errors,
+      errors: formatJaySchemaErrors(errors),
+      isValid: errors.length === 0
+    };
   };
 
   validator.isValid = function() {
