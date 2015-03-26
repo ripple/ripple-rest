@@ -13,16 +13,33 @@
       "description": "The three-character code or hex string used to denote currencies",
       "$ref": "Currency"
     },
-    "issuer": {
-      "description": "The Ripple account address of the currency's issuer or gateway, or an empty string if the currency is XRP",
-      "type": "string",
-      "pattern": "^$|^r[1-9A-HJ-NP-Za-km-z]{25,33}$"
-    },
     "counterparty": {
       "description": "The Ripple account address of the currency's issuer or gateway, or an empty string if the currency is XRP",
-      "type": "string",
-      "pattern": "^$|^r[1-9A-HJ-NP-Za-km-z]{25,33}$"
+      "$ref": "RippleAddress"
     }
   },
-  "required": ["value", "currency"]
+  "additionalProperties": false,
+  "required": ["value", "currency"],
+  "oneOf": [
+    {
+      "properties": {
+        "currency": {
+          "not": {
+            "enum": ["XRP"]
+          }
+        }
+      },
+      "required": ["counterparty"]
+    },
+    {
+      "properties": {
+        "currency": {
+          "enum": ["XRP"]
+        }
+      },
+      "not": {
+        "required": ["counterparty"]
+      }
+    }
+  ]
 }

@@ -1,0 +1,25 @@
+{
+  "$schema": "http://json-schema.org/draft-04/schema#",
+  "title": "OrderRequest",
+  "type": "object",
+  "properties": {
+    "address": {
+      "$ref": "RippleAddress"
+    },
+    "direction": {
+      "type": "string",
+      "enum": ["buy", "sell"]
+    },
+    "quantity": {
+      "$ref": "Amount"
+    },
+    "totalPrice": {
+      "$ref": "Amount"
+    },
+    "instructions": {
+      "$ref": "Instructions"
+    }
+  },
+  "additionalProperties": false,
+  "required": ["address", "direction", "quantity", "totalPrice"]
+}

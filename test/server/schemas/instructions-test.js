@@ -13,50 +13,50 @@ suite('Instructions Schema', function() {
           {sequence: validSequence}, 'Instructions'));
     });
 
-    test('with max_fee', function() {
+    test('with maxFee', function() {
       assert(
         validator.isValid(
-          {max_fee: validFee}, 'Instructions'));
+          {maxFee: validFee}, 'Instructions'));
     });
 
-    test('with fixed_fee', function() {
+    test('with fixedFee', function() {
       assert(
         validator.isValid(
-          {fixed_fee: validFee}, 'Instructions'));
+          {fixedFee: validFee}, 'Instructions'));
     });
 
-    test('with max_ledger_version', function() {
+    test('with maxLedgerVersion', function() {
       assert(
         validator.isValid(
-          {max_ledger_version: validSequence}, 'Instructions'));
+          {maxLedgerVersion: validSequence}, 'Instructions'));
     });
 
-    test('with sequence, max_ledger_version, max_fee', function() {
+    test('with sequence, maxLedgerVersion, maxFee', function() {
       assert(
         validator.isValid({
           sequence: validSequence,
-          max_ledger_version: validSequence,
-          max_fee: validFee}, 'Instructions'));
+          maxLedgerVersion: validSequence,
+          maxFee: validFee}, 'Instructions'));
     });
   });
 
   suite('invalid instructions', function() {
-    test('with max_fee and fixed_fee', function() {
+    test('with maxFee and fixedFee', function() {
       assert(
         !validator.isValid(
-          {max_fee: validFee, fixed_fee: validFee}, 'Instructions'));
+          {maxFee: validFee, fixedFee: validFee}, 'Instructions'));
     });
 
     test('with invalid ledger version -- negative', function() {
       assert(
         !validator.isValid(
-          {max_ledger_version: -1}, 'Instructions'));
+          {maxLedgerVersion: -1}, 'Instructions'));
     });
 
     test('with invalid ledger version -- float', function() {
       assert(
         !validator.isValid(
-          {max_ledger_version: 1.1}, 'Instructions'));
+          {maxLedgerVersion: 1.1}, 'Instructions'));
     });
   });
 });
