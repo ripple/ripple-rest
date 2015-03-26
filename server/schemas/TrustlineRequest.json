@@ -15,7 +15,7 @@
     "limit": {
       "$ref": "FloatString"
     },
-    "allow_rippling": {
+    "allowRippling": {
       "type": "boolean"
     },
     "frozen": {

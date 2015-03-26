@@ -9,15 +9,15 @@
       "type": "integer",
       "minimum": 0
     },
-    "fixed_fee": {
+    "fixedFee": {
       "description": "Fixed Fee",
       "$ref": "FloatString"
     },
-    "max_fee": {
+    "maxFee": {
       "description": "Max Fee",
       "$ref": "FloatString"
     },
-    "max_ledger_version": {
+    "maxLedgerVersion": {
       "description": "Highest ledger sequence number that a transaction can appear in.",
       "type": "integer",
       "minimum": 0
@@ -26,6 +26,6 @@
   "not": {
     "description": "Fixed and max fee are mutually exclusive",
     "type": "object",
-    "required": ["fixed_fee", "max_fee"]
+    "required": ["fixedFee", "maxFee"]
   }
 }
