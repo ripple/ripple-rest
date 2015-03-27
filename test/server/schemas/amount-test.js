@@ -1,6 +1,6 @@
 'use strict';
 var _ = require('lodash');
-var assert = require('assert');
+var assert = require('assert-diff');
 var validator = require('server/schema-validator');
 
 var iouAmount = {
@@ -15,7 +15,7 @@ var xrpAmount = {
 };
 
 function validationErrors(request) {
-  return validator.validate(request, 'Amount').err;
+  return validator.validate(request, 'Amount').errors;
 }
 
 function isValid(request) {
@@ -25,10 +25,10 @@ function isValid(request) {
 suite('Amount Schema', function() {
   suite('valid amount', function() {
     test('IOU amount', function() {
-      assert.deepEqual(validationErrors(iouAmount), []);
+      assert.deepEqual(validationErrors(iouAmount), validator.noError);
     });
     test('XRP amount', function() {
-      assert.deepEqual(validationErrors(xrpAmount), []);
+      assert.deepEqual(validationErrors(xrpAmount), validator.noError);
     });
   });
 

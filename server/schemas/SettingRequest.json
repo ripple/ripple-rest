@@ -1,0 +1,21 @@
+{
+  "$schema": "http://json-schema.org/draft-04/schema#",
+  "title": "SettingRequest",
+  "type": "object",
+  "properties": {
+    "address": {
+      "$ref": "RippleAddress"
+    },
+    "name": {
+      "type": "string"
+    },
+    "value": {
+      "type": "string"
+    },
+    "instructions": {
+      "$ref": "Instructions"
+    }
+  },
+  "additionalProperties": false,
+  "required": ["address", "name", "value"]
+}

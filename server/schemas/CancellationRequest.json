@@ -1,0 +1,19 @@
+{
+  "$schema": "http://json-schema.org/draft-04/schema#",
+  "title": "CancellationRequest",
+  "type": "object",
+  "properties": {
+    "address": {
+      "$ref": "RippleAddress"
+    },
+    "orderSequence": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "instructions": {
+      "$ref": "Instructions"
+    }
+  },
+  "additionalProperties": false,
+  "required": ["address", "orderSequence"]
+}
