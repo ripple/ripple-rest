@@ -3,7 +3,6 @@ node_js:
 - '0.10'
 install:
 - npm install
-- cp config-example.json config.json
 before_script:
   - npm install -g eslint
   - curl 'https://raw.githubusercontent.com/ripple/javascript-style-guide/master/eslintrc' > ./eslintrc
