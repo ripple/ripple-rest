@@ -10,7 +10,7 @@ var options = {
     ? ':memory:' : config.get('db_path'),
   logger: logger,
   mock: config.get('NODE_ENV') === 'test',
-  trace: config.get('debug')
+  trace: config.get('debug') || false
 };
 
 module.exports = new RippleAPI(options);
