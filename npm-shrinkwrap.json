@@ -667,9 +667,9 @@
       "resolved": "https://registry.npmjs.org/node-uuid/-/node-uuid-1.4.2.tgz"
     },
     "ripple-lib": {
-      "version": "0.12.1-rc4",
-      "from": "ripple-lib@0.12.1-rc4",
-      "resolved": "https://registry.npmjs.org/ripple-lib/-/ripple-lib-0.12.1-rc4.tgz",
+      "version": "0.12.2-rc1",
+      "from": "ripple-lib@0.12.2-rc1",
+      "resolved": "https://registry.npmjs.org/ripple-lib/-/ripple-lib-0.12.2-rc1.tgz",
       "dependencies": {
         "async": {
           "version": "0.9.0",
@@ -677,9 +677,9 @@
           "resolved": "https://registry.npmjs.org/async/-/async-0.9.0.tgz"
         },
         "bignumber.js": {
-          "version": "2.0.3",
+          "version": "2.0.5",
           "from": "bignumber.js@^2.0.3",
-          "resolved": "https://registry.npmjs.org/bignumber.js/-/bignumber.js-2.0.3.tgz"
+          "resolved": "https://registry.npmjs.org/bignumber.js/-/bignumber.js-2.0.5.tgz"
         },
         "extend": {
           "version": "1.2.1",
@@ -687,9 +687,9 @@
           "resolved": "https://registry.npmjs.org/extend/-/extend-1.2.1.tgz"
         },
         "lodash": {
-          "version": "3.5.0",
+          "version": "3.6.0",
           "from": "lodash@^3.1.0",
-          "resolved": "https://registry.npmjs.org/lodash/-/lodash-3.5.0.tgz"
+          "resolved": "https://registry.npmjs.org/lodash/-/lodash-3.6.0.tgz"
         },
         "lru-cache": {
           "version": "2.5.0",
