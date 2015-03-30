@@ -116,7 +116,6 @@ module.exports.exportsPaymentRestIssuers = function(options) {
     destinationAccount: addresses.COUNTERPARTY,
     sourceIssuer: addresses.VALID,
     destinationIssuer: addresses.COUNTERPARTY,
-    sourceSlippage: '0',
     sourceValue: '10'
   });
 
