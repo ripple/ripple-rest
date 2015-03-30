@@ -138,7 +138,7 @@ suite('post payments', function() {
   setup(testutils.setup.bind(self));
   teardown(testutils.teardown.bind(self));
 
-  test('/payments -- counterparty', function(done){
+  test('/payments -- issuer', function(done){
     var hash = testutils.generateHash();
 
     self.wss.once('request_account_info', function(message, conn) {
@@ -157,7 +157,7 @@ suite('post payments', function() {
       .send(fixtures.payment({
         value: '0.001',
         currency: 'USD',
-        counterparty: addresses.ISSUER,
+        issuer: addresses.ISSUER,
         hash: hash
       }))
       .expect(testutils.checkStatus(200))
@@ -166,7 +166,7 @@ suite('post payments', function() {
       .end(done);
   });
 
-  test('/payments -- no counterparty', function(done){
+  test('/payments -- no issuer', function(done){
     var hash = testutils.generateHash();
 
     self.wss.once('request_account_info', function(message, conn) {
@@ -247,7 +247,7 @@ suite('post payments', function() {
       .send(fixtures.payment({
         value: '0.0001',
         currency: '015841550000000041F78E0A28CBF19200000000',
-        counterparty: addresses.VALID,
+        issuer: addresses.VALID,
         hash: hash
       }))
       .expect(testutils.checkStatus(200))
@@ -363,7 +363,7 @@ suite('post payments', function() {
       .send(fixtures.payment({
         value: '0.0001',
         currency: '015841550000000041F78E0A28CBF19200000000',
-        counterparty: addresses.VALID,
+        issuer: addresses.VALID,
         hash: hash
       }))
       .expect(testutils.checkStatus(200))
@@ -441,7 +441,7 @@ suite('post payments', function() {
     .send(fixtures.payment({
       value: '0.001',
       currency: 'USD',
-      counterparty: addresses.ISSUER,
+      issuer: addresses.ISSUER,
       max_fee: utils.dropsToXrp(10)
     }))
     .expect(testutils.checkBody(errors.RESTMaxFeeExceeded))
@@ -490,7 +490,7 @@ suite('post payments', function() {
     .send(fixtures.payment({
       value: '0.001',
       currency: 'USD',
-      counterparty: addresses.ISSUER,
+      issuer: addresses.ISSUER,
       max_fee: 0.000010
     }))
     .expect(testutils.checkStatus(500))
@@ -720,7 +720,7 @@ suite('post payments', function() {
     .send(fixtures.payment({
       value: '0.001',
       currency: 'USD',
-      counterparty: addresses.issuer,
+      issuer: addresses.issuer,
       lastLedgerSequence: 9036185
     }))
     .expect(testutils.checkStatus(200))
@@ -756,7 +756,7 @@ suite('post payments', function() {
     .send(fixtures.payment({
       value: '0.001',
       currency: 'USD',
-      counterparty: addresses.ISSUER,
+      issuer: addresses.ISSUER,
       max_fee: 0.000015
     }))
     .expect(testutils.checkBody(errors.RESTResponseLedgerSequenceTooHigh))
@@ -781,7 +781,7 @@ suite('post payments', function() {
     .send(fixtures.payment({
       value: '0.001',
       currency: 'USD',
-      counterparty: addresses.ISSUER,
+      issuer: addresses.ISSUER,
       max_fee: 0.000010
     }))
     .expect(testutils.checkStatus(500))
@@ -809,7 +809,7 @@ suite('post payments', function() {
     .send(fixtures.payment({
       value: '0.001',
       currency: 'USD',
-      counterparty: addresses.ISSUER,
+      issuer: addresses.ISSUER,
       max_fee: 0.001200
     }))
     .expect(testutils.checkStatus(200))
@@ -1224,7 +1224,7 @@ suite('post payments', function() {
       .send(fixtures.payment({
         value: '0.001',
         currency: 'USD',
-        counterparty: addresses.ISSUER,
+        issuer: addresses.ISSUER,
         hash: hash,
         clientResourceId: ''
       }))
@@ -1257,7 +1257,7 @@ suite('post payments', function() {
       .send(fixtures.payment({
         value: '0.001',
         currency: 'USD',
-        counterparty: addresses.ISSUER,
+        issuer: addresses.ISSUER,
         hash: hash,
         clientResourceId: testutils.generateHash()
       }))
@@ -1290,7 +1290,7 @@ suite('post payments', function() {
       .send(fixtures.payment({
         value: '0.001',
         currency: 'USD',
-        counterparty: addresses.ISSUER,
+        issuer: addresses.ISSUER,
         hash: hash,
         sourceAccount: 'foo'
       }))
@@ -1323,7 +1323,7 @@ suite('post payments', function() {
       .send(fixtures.payment({
         value: '0.001',
         currency: 'USD',
-        counterparty: addresses.ISSUER,
+        issuer: addresses.ISSUER,
         hash: hash,
         destinationAccount: 'foo'
       }))
@@ -1337,13 +1337,13 @@ suite('post payments', function() {
       .end(done);
   });
 
-  test.skip('/payments -- counterparty with XRP source_amount', function(done) {
+  test.skip('/payments -- issuer with XRP source_amount', function(done) {
   });
 
-  test.skip('/payments -- counterparty with XRP destination_amount', function(done) {
+  test.skip('/payments -- issuer with XRP destination_amount', function(done) {
   });
 
-  test.skip('/payments -- counterparty with XRP destination_amount', function(done) {
+  test.skip('/payments -- issuer with XRP destination_amount', function(done) {
   });
 
   test.skip('/payments -- valid source_tag', function(done) {

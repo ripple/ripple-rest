@@ -1617,7 +1617,6 @@ suite('get order book', function() {
   });
 
   test('v1/accounts/:account/order_book/:base/:counter -- with XRP as base', function(done) {
-
     self.wss.on('request_ledger', function(message, conn) {
       assert.strictEqual(message.ledger_index, 'validated');
       conn.send(fixtures.requestLedgerResponse(message, {

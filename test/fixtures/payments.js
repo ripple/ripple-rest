@@ -483,14 +483,14 @@ module.exports.RESTTransactionResponse = function(options) {
       source_amount: {
         value: '1.112209',
         currency: 'XRP',
-        counterparty: ''
+        issuer: ''
       },
       source_slippage: '0',
       destination_account: options.toAccount,
       destination_tag: '',
       destination_amount: {
         currency: 'USD',
-        counterparty: options.toAccount,
+        issuer: options.toAccount,
         value: '0.001'
       },
       invoice_id: '',
@@ -505,29 +505,29 @@ module.exports.RESTTransactionResponse = function(options) {
         {
           currency: 'XRP',
           value: '-1.101208',
-          counterparty: ''
+          issuer: ''
         }
       ],
       source_balance_changes: [
         {
           value: '-1.101208',
           currency: 'XRP',
-          counterparty: ''
+          issuer: ''
         }
       ],
       destination_balance_changes: [
         {
           value: '0.001',
           currency: 'USD',
-          counterparty: addresses.COUNTERPARTY
+          issuer: addresses.COUNTERPARTY
         }
       ],
       order_changes: [
         {
-          taker_pays: { currency: 'XRP', counterparty: '', value: '-1.101198' },
+          taker_pays: { currency: 'XRP', issuer: '', value: '-1.101198' },
           taker_gets:
           { currency: 'USD',
-            counterparty: addresses.COUNTERPARTY,
+            issuer: addresses.COUNTERPARTY,
             value: '-0.001002' },
           sequence: 58,
             status: 'open' }
@@ -563,14 +563,14 @@ module.exports.RESTAccountTransactionsResponse = function(options) {
           source_amount: {
             value: '1.112209',
             currency: 'XRP',
-            counterparty: ''
+            issuer: ''
           },
           source_slippage: '0',
           destination_account: options.toAccount,
           destination_tag: '',
           destination_amount: {
             currency: 'USD',
-            counterparty: options.toAccount,
+            issuer: options.toAccount,
             value: '0.001'
           },
           invoice_id: '',
@@ -585,28 +585,28 @@ module.exports.RESTAccountTransactionsResponse = function(options) {
             {
               currency: 'XRP',
               value: '-1.101208',
-              counterparty: ''
+              issuer: ''
             }
           ],
           source_balance_changes: [
             {
               value: '-1.101208',
               currency: 'XRP',
-              counterparty: ''
+              issuer: ''
             }
           ],
           destination_balance_changes: [
             {
               value: '0.001',
               currency: 'USD',
-              counterparty: addresses.COUNTERPARTY
+              issuer: addresses.COUNTERPARTY
             }
           ],
           order_changes: [
-            { taker_pays: { currency: 'XRP', counterparty: '', value: '-1.101198' },
+            { taker_pays: { currency: 'XRP', issuer: '', value: '-1.101198' },
               taker_gets:
               { currency: 'USD',
-                counterparty: addresses.COUNTERPARTY,
+                issuer: addresses.COUNTERPARTY,
                 value: '-0.001002' },
               sequence: 58,
               status: 'open'
@@ -639,7 +639,7 @@ module.exports.RESTTransactionResponseComplexCurrencies = function(options) {
       source_tag: '',
       source_amount: {
         currency: '0158415500000000C1F76FF6ECB0BAC600000000',
-        counterparty: addresses.COUNTERPARTY,
+        issuer: addresses.COUNTERPARTY,
         value: '0.00000001'
       },
       source_slippage: '0',
@@ -647,7 +647,7 @@ module.exports.RESTTransactionResponseComplexCurrencies = function(options) {
       destination_tag: '',
       destination_amount: {
         currency: '0158415500000000C1F76FF6ECB0BAC600000000',
-        counterparty: addresses.COUNTERPARTY,
+        issuer: addresses.COUNTERPARTY,
         value: '0.00000001'
       },
       invoice_id: '',
@@ -662,31 +662,31 @@ module.exports.RESTTransactionResponseComplexCurrencies = function(options) {
         {
           currency: 'XRP',
           value: '-0.012',
-          counterparty: ''
+          issuer: ''
         },
         {
           currency: '0158415500000000C1F76FF6ECB0BAC600000000',
           value: '-1e-8',
-          counterparty: 'rvYAfWj5gh67oV6fW32ZzP3Aw4Eubs59B'
+          issuer: 'rvYAfWj5gh67oV6fW32ZzP3Aw4Eubs59B'
         }
       ],
       source_balance_changes: [
         {
           value: '-0.012',
           currency: 'XRP',
-          counterparty: ''
+          issuer: ''
         },
         {
           value: '-1e-8',
           currency: '0158415500000000C1F76FF6ECB0BAC600000000',
-          counterparty: addresses.COUNTERPARTY
+          issuer: addresses.COUNTERPARTY
         }
       ],
       destination_balance_changes: [
         {
           value: '1e-8',
           currency: '0158415500000000C1F76FF6ECB0BAC600000000',
-          counterparty: addresses.VALID
+          issuer: addresses.VALID
         }
       ],
       order_changes: []
@@ -705,9 +705,9 @@ module.exports.payment = function(options) {
     clientResourceId: '1',
     value: '1',
     currency: 'XRP',
-    counterparty: '',
-    destinationAccount: addresses.COUNTERPARTY,
-    sourceAccount: addresses.VALID
+    issuer: '',
+    sourceAccount: addresses.VALID,
+    destinationAccount: addresses.COUNTERPARTY
   });
 
   return {
@@ -722,7 +722,7 @@ module.exports.payment = function(options) {
       destination_amount: {
         value: options.value,
         currency: options.currency,
-        counterparty: options.counterparty
+        issuer: options.issuer
       },
       memos: options.memos
     }

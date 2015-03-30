@@ -380,13 +380,13 @@ module.exports.paymentTx = function(options) {
 module.exports.paymentRest = {
   source_account: addresses.VALID,
   source_tag: '',
-  source_amount: { value: '1.112209', currency: 'XRP', counterparty: '' },
+  source_amount: { value: '1.112209', currency: 'XRP', issuer: '' },
   source_slippage: '0',
   destination_account: addresses.ISSUER,
   destination_tag: '',
   destination_amount:
   { currency: 'USD',
-    counterparty: addresses.ISSUER,
+    issuer: addresses.ISSUER,
     value: '0.001' },
   invoice_id: '',
   paths: '[[{"currency":"USD","issuer":"rvYAfWj5gh67oV6fW32ZzP3Aw4Eubs59B","type":48,"type_hex":"0000000000000030"},{"account":"rvYAfWj5gh67oV6fW32ZzP3Aw4Eubs59B","currency":"USD","issuer":"rvYAfWj5gh67oV6fW32ZzP3Aw4Eubs59B","type":49,"type_hex":"0000000000000031"}]]',
@@ -400,24 +400,24 @@ module.exports.paymentRest = {
     {
       currency: 'XRP',
       value: '-1.101208',
-      counterparty: ''
+      issuer: ''
     }
   ],
-  source_balance_changes: [ { value: '-1.101208', currency: 'XRP', counterparty: '' } ],
+  source_balance_changes: [ { value: '-1.101208', currency: 'XRP', issuer: '' } ],
   destination_balance_changes:
     [ { value: '0.001',
       currency: 'USD',
-      counterparty: addresses.COUNTERPARTY } ],
+      issuer: addresses.COUNTERPARTY } ],
   order_changes: [
     {
       taker_pays: {
         currency: 'XRP',
-        counterparty: '',
+        issuer: '',
         value: '-1.101198',
       },
       taker_gets: {
         currency: 'USD',
-        counterparty: addresses.COUNTERPARTY,
+        issuer: addresses.COUNTERPARTY,
         value: '-0.001002',
       },
       sequence: 58,
@@ -736,7 +736,7 @@ module.exports.pathPaymentsRest = [
     "source_amount": {
       "value": "0.1117218827811721",
       "currency": "JPY",
-      "counterparty": ""
+      "issuer": ""
     },
     "source_slippage": "0",
     "destination_account": addresses.VALID,
@@ -744,7 +744,7 @@ module.exports.pathPaymentsRest = [
     "destination_amount": {
       "value": "100",
       "currency": "USD",
-      "counterparty": addresses.ISSUER
+      "issuer": addresses.ISSUER
     },
     "invoice_id": "",
     "paths": "[[{\"account\":\"rMAz5ZnK73nyNUL4foAvaxdreczCkG3vA6\",\"type\":1,\"type_hex\":\"0000000000000001\"},{\"currency\":\"USD\",\"issuer\":\"r3PDtZSa5LiYp1Ysn1vMuMzB59RzV3W9QH\",\"type\":48,\"type_hex\":\"0000000000000030\"},{\"account\":\"r3PDtZSa5LiYp1Ysn1vMuMzB59RzV3W9QH\",\"type\":1,\"type_hex\":\"0000000000000001\"}],[{\"account\":\"rMAz5ZnK73nyNUL4foAvaxdreczCkG3vA6\",\"type\":1,\"type_hex\":\"0000000000000001\"},{\"currency\":\"XRP\",\"type\":16,\"type_hex\":\"0000000000000010\"},{\"currency\":\"USD\",\"issuer\":\"r3PDtZSa5LiYp1Ysn1vMuMzB59RzV3W9QH\",\"type\":48,\"type_hex\":\"0000000000000030\"},{\"account\":\"r3PDtZSa5LiYp1Ysn1vMuMzB59RzV3W9QH\",\"type\":1,\"type_hex\":\"0000000000000001\"}],[{\"account\":\"rMAz5ZnK73nyNUL4foAvaxdreczCkG3vA6\",\"type\":1,\"type_hex\":\"0000000000000001\"},{\"currency\":\"XRP\",\"type\":16,\"type_hex\":\"0000000000000010\"},{\"currency\":\"USD\",\"issuer\":\"rpHgehzdpfWRXKvSv6duKvVuo1aZVimdaT\",\"type\":48,\"type_hex\":\"0000000000000030\"},{\"account\":\"rpHgehzdpfWRXKvSv6duKvVuo1aZVimdaT\",\"type\":1,\"type_hex\":\"0000000000000001\"},{\"account\":\"r3PDtZSa5LiYp1Ysn1vMuMzB59RzV3W9QH\",\"type\":1,\"type_hex\":\"0000000000000001\"}],[{\"account\":\"rMAz5ZnK73nyNUL4foAvaxdreczCkG3vA6\",\"type\":1,\"type_hex\":\"0000000000000001\"},{\"currency\":\"XRP\",\"type\":16,\"type_hex\":\"0000000000000010\"},{\"currency\":\"USD\",\"issuer\":\"rHHa9t2kLQyXRbdLkSzEgkzwf9unmFgZs9\",\"type\":48,\"type_hex\":\"0000000000000030\"},{\"account\":\"rHHa9t2kLQyXRbdLkSzEgkzwf9unmFgZs9\",\"type\":1,\"type_hex\":\"0000000000000001\"},{\"account\":\"r3PDtZSa5LiYp1Ysn1vMuMzB59RzV3W9QH\",\"type\":1,\"type_hex\":\"0000000000000001\"}]]",
@@ -757,7 +757,7 @@ module.exports.pathPaymentsRest = [
     "source_amount": {
       "value": "0.001002",
       "currency": "USD",
-      "counterparty": ""
+      "issuer": ""
     },
     "source_slippage": "0",
     "destination_account": addresses.VALID,
@@ -765,7 +765,7 @@ module.exports.pathPaymentsRest = [
     "destination_amount": {
       "value": "100",
       "currency": "USD",
-      "counterparty": addresses.ISSUER
+      "issuer": addresses.ISSUER
     },
     "invoice_id": "",
     "paths": "[[{\"account\":\"r3PDtZSa5LiYp1Ysn1vMuMzB59RzV3W9QH\",\"type\":1,\"type_hex\":\"0000000000000001\"}],[{\"account\":\"rMwjYedjc7qqtKYVLiAccJSmCwih4LnE2q\",\"type\":1,\"type_hex\":\"0000000000000001\"},{\"currency\":\"USD\",\"issuer\":\"r3PDtZSa5LiYp1Ysn1vMuMzB59RzV3W9QH\",\"type\":48,\"type_hex\":\"0000000000000030\"},{\"account\":\"r3PDtZSa5LiYp1Ysn1vMuMzB59RzV3W9QH\",\"type\":1,\"type_hex\":\"0000000000000001\"}],[{\"account\":\"rMwjYedjc7qqtKYVLiAccJSmCwih4LnE2q\",\"type\":1,\"type_hex\":\"0000000000000001\"},{\"currency\":\"XRP\",\"type\":16,\"type_hex\":\"0000000000000010\"},{\"currency\":\"USD\",\"issuer\":\"r3PDtZSa5LiYp1Ysn1vMuMzB59RzV3W9QH\",\"type\":48,\"type_hex\":\"0000000000000030\"},{\"account\":\"r3PDtZSa5LiYp1Ysn1vMuMzB59RzV3W9QH\",\"type\":1,\"type_hex\":\"0000000000000001\"}],[{\"account\":\"rMwjYedjc7qqtKYVLiAccJSmCwih4LnE2q\",\"type\":1,\"type_hex\":\"0000000000000001\"},{\"currency\":\"XRP\",\"type\":16,\"type_hex\":\"0000000000000010\"},{\"currency\":\"USD\",\"issuer\":\"rpHgehzdpfWRXKvSv6duKvVuo1aZVimdaT\",\"type\":48,\"type_hex\":\"0000000000000030\"},{\"account\":\"rpHgehzdpfWRXKvSv6duKvVuo1aZVimdaT\",\"type\":1,\"type_hex\":\"0000000000000001\"},{\"account\":\"r3PDtZSa5LiYp1Ysn1vMuMzB59RzV3W9QH\",\"type\":1,\"type_hex\":\"0000000000000001\"}]]",
@@ -778,7 +778,7 @@ module.exports.pathPaymentsRest = [
     "source_amount": {
       "value": "0.207669",
       "currency": "XRP",
-      "counterparty": ""
+      "issuer": ""
     },
     "source_slippage": "0",
     "destination_account": addresses.VALID,
@@ -786,7 +786,7 @@ module.exports.pathPaymentsRest = [
     "destination_amount": {
       "value": "100",
       "currency": "USD",
-      "counterparty": addresses.ISSUER
+      "issuer": addresses.ISSUER
     },
     "invoice_id": "",
     "paths": "[[{\"currency\":\"USD\",\"issuer\":\"r3PDtZSa5LiYp1Ysn1vMuMzB59RzV3W9QH\",\"type\":48,\"type_hex\":\"0000000000000030\"},{\"account\":\"r3PDtZSa5LiYp1Ysn1vMuMzB59RzV3W9QH\",\"type\":1,\"type_hex\":\"0000000000000001\"}],[{\"currency\":\"USD\",\"issuer\":\"rsP3mgGb2tcYUrxiLFiHJiQXhsziegtwBc\",\"type\":48,\"type_hex\":\"0000000000000030\"},{\"account\":\"rsP3mgGb2tcYUrxiLFiHJiQXhsziegtwBc\",\"type\":1,\"type_hex\":\"0000000000000001\"},{\"account\":\"rf9X8QoYnWLHMHuDfjkmRcD2UE5qX5aYV\",\"type\":1,\"type_hex\":\"0000000000000001\"},{\"account\":\"r3PDtZSa5LiYp1Ysn1vMuMzB59RzV3W9QH\",\"type\":1,\"type_hex\":\"0000000000000001\"}],[{\"currency\":\"USD\",\"issuer\":\"rDVdJ62foD1sn7ZpxtXyptdkBSyhsQGviT\",\"type\":48,\"type_hex\":\"0000000000000030\"},{\"account\":\"rDVdJ62foD1sn7ZpxtXyptdkBSyhsQGviT\",\"type\":1,\"type_hex\":\"0000000000000001\"},{\"account\":\"rfQPFZ3eLcaSUKjUy7A3LAmDNM4F9Hz9j1\",\"type\":1,\"type_hex\":\"0000000000000001\"},{\"account\":\"r3PDtZSa5LiYp1Ysn1vMuMzB59RzV3W9QH\",\"type\":1,\"type_hex\":\"0000000000000001\"}],[{\"currency\":\"USD\",\"issuer\":\"rpHgehzdpfWRXKvSv6duKvVuo1aZVimdaT\",\"type\":48,\"type_hex\":\"0000000000000030\"},{\"account\":\"rpHgehzdpfWRXKvSv6duKvVuo1aZVimdaT\",\"type\":1,\"type_hex\":\"0000000000000001\"},{\"account\":\"r3PDtZSa5LiYp1Ysn1vMuMzB59RzV3W9QH\",\"type\":1,\"type_hex\":\"0000000000000001\"}]]",

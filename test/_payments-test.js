@@ -463,11 +463,11 @@ suite('payments', function() {
       var statusPayment = {
         source_account: 'rJRLoJSErtNRFnbCyHEUYnRUKNwkVYDM7U',
         source_tag: '',
-        source_amount: {value: '200', currency: 'XRP', counterparty: ''},
+        source_amount: {value: '200', currency: 'XRP', issuer: ''},
         source_slippage: '0',
         destination_account: 'rwmityd4Ss34DBUsRy7Pacv6UA5n7yjfe5',
         destination_tag: '',
-        destination_amount: {value: '200', currency: 'XRP', counterparty: ''},
+        destination_amount: {value: '200', currency: 'XRP', issuer: ''},
         invoice_id: '',
         paths: '[]',
         no_direct_ripple: false,
@@ -512,11 +512,11 @@ suite('payments', function() {
         var statusPayment = {
           source_account: 'rJRLoJSErtNRFnbCyHEUYnRUKNwkVYDM7U',
           source_tag: '',
-          source_amount: {value: '200', currency: 'XRP', counterparty: ''},
+          source_amount: {value: '200', currency: 'XRP', issuer: ''},
           source_slippage: '0',
           destination_account: 'rwmityd4Ss34DBUsRy7Pacv6UA5n7yjfe5',
           destination_tag: '',
-          destination_amount: {value: '200', currency: 'XRP', counterparty: ''},
+          destination_amount: {value: '200', currency: 'XRP', issuer: ''},
           invoice_id: '',
           paths: '[]',
           no_direct_ripple: false,
@@ -828,7 +828,7 @@ suite('payments', function() {
               source_amount: {
                 value: '10',
                 currency: 'USD',
-                counterparty: ''
+                issuer: ''
               },
               source_slippage: '0',
               destination_account: 'rwmityd4Ss34DBUsRy7Pacv6UA5n7yjfe5',
@@ -836,7 +836,7 @@ suite('payments', function() {
               destination_amount: {
                 value: '10',
                 currency: 'USD',
-                counterparty: 'rJRLoJSErtNRFnbCyHEUYnRUKNwkVYDM7U'
+                issuer: 'rJRLoJSErtNRFnbCyHEUYnRUKNwkVYDM7U'
               },
               invoice_id: '',
               paths: '[]',
@@ -870,7 +870,7 @@ suite('payments', function() {
           error_type: 'invalid_request',
           error: 'restINVALID_PARAMETER',
           message: 'Invalid parameter: destination_amount. Must be an amount '
-            + 'string in the form value+currency+counterparty'
+            + 'string in the form value+currency+issuer'
         });
         done();
       });
@@ -889,7 +889,7 @@ suite('payments', function() {
           error_type: 'invalid_request',
           error: 'restINVALID_PARAMETER',
           message: 'Invalid parameter: destination_amount. Must be an amount '
-            + 'string in the form value+currency+counterparty'
+            + 'string in the form value+currency+issuer'
         });
         done();
       });

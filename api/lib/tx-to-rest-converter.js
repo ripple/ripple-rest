@@ -11,6 +11,36 @@ var parseOrderBookChanges = require('ripple-lib-transactionparser')
 
 function TxToRestConverter() {}
 
+// This is just to support the legacy naming of "counterparty", this
+// function should be removed when "issuer" is eliminated
+function renameCounterpartyToIssuer(orderChanges) {
+  return  _.mapValues(orderChanges, function(changes) {
+    return _.map(changes, function(change) {
+
+      var converted;
+      if (change.taker_pays) {
+        converted = _.omit(change, ['taker_pays', 'taker_gets']);
+        converted.taker_pays = {
+          issuer: change.taker_pays.counterparty,
+          value: change.taker_pays.value,
+          currency: change.taker_pays.currency
+        };
+        converted.taker_gets = {
+          issuer: change.taker_gets.counterparty,
+          value: change.taker_gets.value,
+          currency: change.taker_gets.currency
+        };
+      } else {
+        converted = _.omit(change, 'counterparty');
+        converted.issuer = change.counterparty;
+      }
+
+      return converted;
+
+    });
+  });
+}
+
 // Orders
 var OfferCreateFlags = {
   Passive: {name: 'passive',
@@ -80,14 +110,18 @@ TxToRestConverter.prototype.parsePaymentFromTx =
     Amount = tx.Amount;
   }
 
-  var balanceChanges = tx.meta ? parseBalanceChanges(tx.meta) : [];
+  var balanceChanges = tx.meta ?
+    renameCounterpartyToIssuer(parseBalanceChanges(tx.meta)) : [];
 
-  var order_changes = tx.meta
-    ? parseOrderBookChanges(tx.meta)[options.account] : [];
+  var order_changes = tx.meta ?
+    renameCounterpartyToIssuer(
+      parseOrderBookChanges(tx.meta))[options.account] : [];
 
-  var source_amount = tx.SendMax
-    ? utils.parseCurrencyAmount(tx.SendMax) : utils.parseCurrencyAmount(Amount);
-  var destination_amount = utils.parseCurrencyAmount(Amount);
+  var source_amount = tx.SendMax ?
+    utils.parseCurrencyAmount(tx.SendMax, true) :
+    utils.parseCurrencyAmount(Amount, true);
+
+  var destination_amount = utils.parseCurrencyAmount(Amount, true);
 
   var payment = {
     // User supplied
@@ -186,7 +220,6 @@ TxToRestConverter.prototype.parseOrderFromTx = function(tx, options) {
     }
 
     var order;
-    var direction;
     var flags = TxToRestConverter.prototype.parseFlagsFromResponse(tx.flags,
       OfferCreateFlags);
     var action = tx.TransactionType === 'OfferCreate'
@@ -195,15 +228,15 @@ TxToRestConverter.prototype.parseOrderFromTx = function(tx, options) {
       ? parseBalanceChanges(tx.meta)[options.account] || [] : [];
     var timestamp = tx.date
       ? new Date(ripple.utils.toTimestamp(tx.date)).toISOString() : '';
-    var order_changes = tx.meta
-      ? parseOrderBookChanges(tx.meta)[options.account] || [] : [];
+    var order_changes = tx.meta ? parseOrderBookChanges(tx.meta)[options.account] : [];
 
+    var direction;
     if (options.account === tx.Account) {
       direction = 'outgoing';
     } else if (balance_changes.length && order_changes.length) {
       direction = 'incoming';
     } else {
-      direction = 'unaffected';
+      direction = 'passthrough';
     }
 
     if (action === 'order_create') {
@@ -236,7 +269,7 @@ TxToRestConverter.prototype.parseOrderFromTx = function(tx, options) {
       direction: direction,
       order: order,
       balance_changes: balance_changes,
-      order_changes: order_changes
+      order_changes: order_changes || []
     });
   });
 };
@@ -270,12 +303,12 @@ TxToRestConverter.prototype.parsePaymentsFromPathFind =
       {
         value: utils.dropsToXrp(alternative.source_amount),
         currency: 'XRP',
-        counterparty: ''
+        issuer: ''
       } :
       {
         value: alternative.source_amount.value,
         currency: alternative.source_amount.currency,
-        counterparty: (typeof alternative.source_amount.issuer !== 'string'
+        issuer: (typeof alternative.source_amount.issuer !== 'string'
           || alternative.source_amount.issuer === pathfindResults.source_account
           ? '' : alternative.source_amount.issuer)
       }),
@@ -287,12 +320,12 @@ TxToRestConverter.prototype.parsePaymentsFromPathFind =
       {
         value: utils.dropsToXrp(pathfindResults.destination_amount),
         currency: 'XRP',
-        counterparty: ''
+        issuer: ''
       } :
       {
         value: pathfindResults.destination_amount.value,
         currency: pathfindResults.destination_amount.currency,
-        counterparty: pathfindResults.destination_amount.issuer
+        issuer: pathfindResults.destination_amount.issuer
       }),
       invoice_id: '',
       paths: JSON.stringify(alternative.paths_computed),

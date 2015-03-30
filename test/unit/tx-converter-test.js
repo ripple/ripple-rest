@@ -30,13 +30,13 @@ suite('unit - converter - Tx to Rest', function() {
       assert.strictEqual(err, null);
 
       assert.deepEqual(payment.source_balance_changes, [
-        { value: '-0.834999999999999', currency: 'EUR', counterparty: 'r3PDtZSa5LiYp1Ysn1vMuMzB59RzV3W9QH' },
-        { value: '-0.015', currency: 'XRP', counterparty: '' }
+        { value: '-0.834999999999999', currency: 'EUR', issuer: 'r3PDtZSa5LiYp1Ysn1vMuMzB59RzV3W9QH' },
+        { value: '-0.015', currency: 'XRP', issuer: '' }
       ]);
 
       assert.deepEqual(payment.destination_balance_changes, [
-        { value: '-1', currency: 'USD', counterparty: 'r3PDtZSa5LiYp1Ysn1vMuMzB59RzV3W9QH' },
-        { value: '0.833333333333', currency: 'EUR', counterparty: 'r3PDtZSa5LiYp1Ysn1vMuMzB59RzV3W9QH' }
+        { value: '-1', currency: 'USD', issuer: 'r3PDtZSa5LiYp1Ysn1vMuMzB59RzV3W9QH' },
+        { value: '0.833333333333', currency: 'EUR', issuer: 'r3PDtZSa5LiYp1Ysn1vMuMzB59RzV3W9QH' }
       ]);
 
       done();

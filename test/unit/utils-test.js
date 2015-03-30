@@ -199,6 +199,30 @@ suite('unit - utils.txFromRestAmount()', function() {
       issuer: addresses.COUNTERPARTY
     });
   });
+
+  test('txFromRestAmount() -- XRP, using issuer in amount', function() {
+    var amount = {
+      value: '1',
+      currency: 'XRP',
+      issuer: ''
+    };
+
+    assert.strictEqual(utils.txFromRestAmount(amount), '1000000');
+  });
+
+  test('txFromRestAmount() -- USD, using issuer in amount', function() {
+    var amount = {
+      value: '1',
+      currency: 'USD',
+      issuer: addresses.COUNTERPARTY
+    };
+
+    assert.deepEqual(utils.txFromRestAmount(amount), {
+      value: '1',
+      currency: 'USD',
+      issuer: addresses.COUNTERPARTY
+    });
+  });
 });
 
 suite('unit - utils.compareTransactions()', function() {
