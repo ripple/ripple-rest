@@ -1,46 +1,48 @@
-var _         = require('lodash');
+'use strict';
+
+var _ = require('lodash');
 var addresses = require('./../../fixtures').addresses;
 
 module.exports.paymentRest = {
-  "source_account": addresses.VALID,
-  "destination_account": addresses.COUNTERPARTY,
-  "destination_amount": {
-    "value": "0.001",
-    "currency": "USD",
-    "counterparty": addresses.COUNTERPARTY
+  'source_account': addresses.VALID,
+  'destination_account': addresses.COUNTERPARTY,
+  'destination_amount': {
+    'value': '0.001',
+    'currency': 'USD',
+    'counterparty': addresses.COUNTERPARTY
   }
 };
 
 module.exports.paymentRestXRP = {
-  "source_account": addresses.VALID,
-  "destination_account": addresses.COUNTERPARTY,
-  "destination_amount": {
-    "value": "1",
-    "currency": "XRP",
-    "counterparty": ""
+  'source_account': addresses.VALID,
+  'destination_account': addresses.COUNTERPARTY,
+  'destination_amount': {
+    'value': '1',
+    'currency': 'XRP',
+    'counterparty': ''
   }
 };
 
 module.exports.paymentRestComplex = {
-  "source_account": addresses.VALID,
-  "source_tag": "",
-  "source_amount": {
-    "value": "10",
-    "currency": "USD",
-    "counterparty": addresses.VALID
+  'source_account': addresses.VALID,
+  'source_tag': '',
+  'source_amount': {
+    'value': '10',
+    'currency': 'USD',
+    'counterparty': addresses.VALID
   },
-  "source_slippage": "0",
-  "destination_account": addresses.COUNTERPARTY,
-  "destination_tag": "",
-  "destination_amount": {
-    "value": "10",
-    "currency": "USD",
-    "counterparty": addresses.VALID
+  'source_slippage': '0',
+  'destination_account': addresses.COUNTERPARTY,
+  'destination_tag': '',
+  'destination_amount': {
+    'value': '10',
+    'currency': 'USD',
+    'counterparty': addresses.VALID
   },
-  "invoice_id": "",
-  "paths": "[]",
-  "partial_payment": false,
-  "no_direct_ripple": false
+  'invoice_id': '',
+  'paths': '[]',
+  'partial_payment': false,
+  'no_direct_ripple': false
 };
 
 module.exports.paymentTx = {
@@ -116,7 +118,6 @@ module.exports.exportsPaymentRestIssuers = function(options) {
     destinationAccount: addresses.COUNTERPARTY,
     sourceIssuer: addresses.VALID,
     destinationIssuer: addresses.COUNTERPARTY,
-    sourceSlippage: '0',
     sourceValue: '10'
   });
 
@@ -140,6 +141,6 @@ module.exports.exportsPaymentRestIssuers = function(options) {
     paths: '[]',
     partial_payment: false,
     no_direct_ripple: false
-  }
+  };
 
 };

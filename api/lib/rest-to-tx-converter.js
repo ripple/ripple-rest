@@ -78,7 +78,7 @@ RestToTxConverter.prototype.convert = function(payment, callback) {
             && payment.source_amount.counterparty
             === payment.destination_amount.counterparty)) {
         var max_value = bignum(payment.source_amount.value)
-                        .plus(payment.source_slippage).toString();
+                        .plus(payment.source_slippage || 0).toString();
         if (payment.source_amount.currency === 'XRP') {
           transaction.sendMax(utils.xrpToDrops(max_value));
         } else {
