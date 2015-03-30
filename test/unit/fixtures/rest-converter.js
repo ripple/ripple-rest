@@ -1,3 +1,5 @@
+/* eslint-disable new-cap */
+/* eslint-disable max-len */
 'use strict';
 
 var _ = require('lodash');

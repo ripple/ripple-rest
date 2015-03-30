@@ -374,7 +374,7 @@ function getPayment(account, identifier, callback) {
     }
     if (!validator.isValid(identifier, 'Hash256') &&
       !validator.isValid(identifier, 'ResourceId')) {
-        invalid = 'Invalid Parameter: hash or client_resource_id. Must '
+      invalid = 'Invalid Parameter: hash or client_resource_id. Must '
         + 'provide a transaction hash or client_resource_id to get payment '
         + 'details';
     }
@@ -397,7 +397,7 @@ function getPayment(account, identifier, callback) {
   var steps = [
     validateOptions,
     getTransaction,
-    function (transaction, _callback) {
+    function(transaction, _callback) {
       return formatPaymentHelper(account, transaction, _callback);
     }
   ];
@@ -487,7 +487,7 @@ function getAccountPayments(account, source_account, destination_account,
       return _callback(null);
     }
     async.map(_transactions,
-      function (transaction, async_map_callback) {
+      function(transaction, async_map_callback) {
         return formatPaymentHelper(account, transaction, async_map_callback);
       },
       _callback
@@ -629,7 +629,7 @@ function getPathFind(source_account, destination_account,
           return;
         }
       } else if (validator.isValid(sourceCurrencyStrings[c], 'Currency')) {
-          source_currencies.push({currency: sourceCurrencyStrings[c]});
+        source_currencies.push({currency: sourceCurrencyStrings[c]});
       } else {
         callback(new InvalidRequestError('Invalid parameter: '
           + 'source_currencies. Must be a list of valid currencies'));

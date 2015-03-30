@@ -13,16 +13,16 @@ var testutils = { };
 
 // check if obj has keys
 testutils.hasKeys = function(obj, keys) {
-    var list = Object.keys(obj);
-    var hasAllKeys = true;
-    var missing = {};
-    keys.forEach(function(key) {
-        if (list.indexOf(key) === -1) {
-            hasAllKeys = false;
-            missing[key] = true;
-        }
-    });
-    return {hasAllKeys: hasAllKeys, missing: missing};
+  var list = Object.keys(obj);
+  var hasAllKeys = true;
+  var missing = {};
+  keys.forEach(function(key) {
+    if (list.indexOf(key) === -1) {
+      hasAllKeys = false;
+      missing[key] = true;
+    }
+  });
+  return {hasAllKeys: hasAllKeys, missing: missing};
 };
 
 // used to mark the orderings and count of incoming rippled
@@ -32,27 +32,27 @@ function OrderList(list) {
     var idx = 0;
     this.isMock = true;
     this.create = function(__list) {
-        _list = __list;
-        idx = 0;
+      _list = __list;
+      idx = 0;
     };
     this.mark = function(command) {
-        if ((_list[idx]) && (_list[idx].command === command)) {
-            idx++;
-        } else {
-            throw new Error('out of order rippled command', command);
-        }
+      if ((_list[idx]) && (_list[idx].command === command)) {
+        idx++;
+      } else {
+        throw new Error('out of order rippled command', command);
+      }
     };
     this.test = function() {
-        if (this.isMock) {
-          return idx === _list.length;
-        }
-        return true;
+      if (this.isMock) {
+        return idx === _list.length;
+      }
+      return true;
     };
     this.reset = function() {
-        _list = [];
-        idx = 0;
+      _list = [];
+      idx = 0;
     };
-}
+  }
 
 var orderlist = new OrderList();
 
@@ -200,7 +200,7 @@ suite('payments', function() {
       });
 
       orderlist.mark('submit');
-     }
+    }
 
     orderlist.create([
       {command: 'subscribe'},
@@ -235,24 +235,24 @@ suite('payments', function() {
     ]);
 
     function _account_info(data) {
-        delete data.id;
-        assert.deepEqual(data, {
-          command: 'account_info',
-          account: 'rJRLoJSErtNRFnbCyHEUYnRUKNwkVYDM7U',
-          ledger_index: 'validated'
-        });
-        orderlist.mark('account_info');
+      delete data.id;
+      assert.deepEqual(data, {
+        command: 'account_info',
+        account: 'rJRLoJSErtNRFnbCyHEUYnRUKNwkVYDM7U',
+        ledger_index: 'validated'
+      });
+      orderlist.mark('account_info');
     }
 
     function _account_lines(data) {
-        delete data.id;
-        assert.deepEqual(data, {
-          command: 'account_lines',
-          account: 'rJRLoJSErtNRFnbCyHEUYnRUKNwkVYDM7U',
-          ledger_index: 'validated',
-          limit: 200
-        });
-        orderlist.mark('account_lines');
+      delete data.id;
+      assert.deepEqual(data, {
+        command: 'account_lines',
+        account: 'rJRLoJSErtNRFnbCyHEUYnRUKNwkVYDM7U',
+        ledger_index: 'validated',
+        limit: 200
+      });
+      orderlist.mark('account_lines');
     }
 
     route.once('account_info', _account_info);
@@ -291,12 +291,12 @@ suite('payments', function() {
     }
 
     function _account_info(data) {
-        orderlist.mark('account_info');
-        delete data.id;
-        assert.deepEqual(data, {
-          command: 'account_info',
-          account: 'rJRLoJSErtNRFnbCyHEUYnRUKNwkVYDM7U'
-        });
+      orderlist.mark('account_info');
+      delete data.id;
+      assert.deepEqual(data, {
+        command: 'account_info',
+        account: 'rJRLoJSErtNRFnbCyHEUYnRUKNwkVYDM7U'
+      });
     }
 
     route.once('ripple_path_find', _ripple_path_find);

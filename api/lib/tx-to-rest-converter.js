@@ -14,7 +14,7 @@ function TxToRestConverter() {}
 // This is just to support the legacy naming of "counterparty", this
 // function should be removed when "issuer" is eliminated
 function renameCounterpartyToIssuer(orderChanges) {
-  return  _.mapValues(orderChanges, function(changes) {
+  return _.mapValues(orderChanges, function(changes) {
     return _.map(changes, function(change) {
 
       var converted;
@@ -228,7 +228,8 @@ TxToRestConverter.prototype.parseOrderFromTx = function(tx, options) {
       ? parseBalanceChanges(tx.meta)[options.account] || [] : [];
     var timestamp = tx.date
       ? new Date(ripple.utils.toTimestamp(tx.date)).toISOString() : '';
-    var order_changes = tx.meta ? parseOrderBookChanges(tx.meta)[options.account] : [];
+    var order_changes = tx.meta ?
+      parseOrderBookChanges(tx.meta)[options.account] : [];
 
     var direction;
     if (options.account === tx.Account) {

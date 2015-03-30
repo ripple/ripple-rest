@@ -36,14 +36,21 @@ function parseCurrencyAmount(rippledAmount, useIssuer) {
   var amount = {};
 
   if (typeof rippledAmount === 'string') {
-      amount.currency = 'XRP';
-      useIssuer ? amount.issuer = '' : amount.counterparty = '';
-      amount.value =  dropsToXrp(rippledAmount)
+    amount.currency = 'XRP';
+    amount.value = dropsToXrp(rippledAmount);
+    if (useIssuer) {
+      amount.issuer = '';
+    } else {
+      amount.counterparty = '';
+    }
   } else {
     amount.currency = rippledAmount.currency;
-    useIssuer ?  amount.issuer = rippledAmount.issuer
-      : amount.counterparty = rippledAmount.issuer;
     amount.value = rippledAmount.value;
+    if (useIssuer) {
+      amount.issuer = rippledAmount.issuer;
+    } else {
+      amount.counterparty = rippledAmount.issuer;
+    }
   }
 
   return amount;

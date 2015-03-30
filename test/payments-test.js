@@ -1,18 +1,20 @@
-var _           = require('lodash');
-var assert      = require('assert-diff');
-var ripple      = require('ripple-lib');
-var testutils   = require('./testutils');
-var fixtures    = require('./fixtures').payments;
-var errors      = require('./fixtures').errors;
-var addresses   = require('./fixtures').addresses;
-var utils       = require('../api/lib/utils');
+/* eslint-disable new-cap */
+/* eslint-disable max-len */
+'use strict';
+var assert = require('assert-diff');
+var ripple = require('ripple-lib');
+var testutils = require('./testutils');
+var fixtures = require('./fixtures').payments;
+var errors = require('./fixtures').errors;
+var addresses = require('./fixtures').addresses;
+var utils = require('../api/lib/utils');
 var requestPath = fixtures.requestPath;
 
 suite('get payments', function() {
   var self = this;
 
-  //self.wss: rippled mock
-  //self.app: supertest-enabled REST handler
+  // self.wss: rippled mock
+  // self.app: supertest-enabled REST handler
 
   setup(testutils.setup.bind(self));
   teardown(testutils.teardown.bind(self));
@@ -36,8 +38,7 @@ suite('get payments', function() {
     .end(done);
   });
 
-  test.skip('/accounts/:account/payments/:identifier -- with identifier as client_resource_id', function(done) {
-  });
+  test('/accounts/:account/payments/:identifier -- with identifier as client_resource_id');
 
   test('/accounts/:account/payments/:identifier -- with identifier as txn hash', function(done) {
     self.wss.once('request_tx', function(message, conn) {
@@ -99,7 +100,7 @@ suite('get payments', function() {
   });
 
   test('/accounts/:account/payments/:identifier -- invalid identifier', function(done) {
-    self.wss.once('request_tx', function(message, conn) {
+    self.wss.once('request_tx', function() {
       assert(false, 'Should not request transaction');
     });
 
@@ -116,7 +117,7 @@ suite('get payments', function() {
   });
 
   test('/accounts/:account/payments/:identifier -- invalid account', function(done) {
-    self.wss.once('request_tx', function(message, conn) {
+    self.wss.once('request_tx', function() {
       assert(false, 'Should not request transaction');
     });
 
@@ -132,13 +133,13 @@ suite('get payments', function() {
 suite('post payments', function() {
   var self = this;
 
-  //self.wss: rippled mock
-  //self.app: supertest-enabled REST handler
+  // self.wss: rippled mock
+  // self.app: supertest-enabled REST handler
 
   setup(testutils.setup.bind(self));
   teardown(testutils.teardown.bind(self));
 
-  test('/payments -- issuer', function(done){
+  test('/payments -- issuer', function(done) {
     var hash = testutils.generateHash();
 
     self.wss.once('request_account_info', function(message, conn) {
@@ -166,7 +167,7 @@ suite('post payments', function() {
       .end(done);
   });
 
-  test('/payments -- no issuer', function(done){
+  test('/payments -- no issuer', function(done) {
     var hash = testutils.generateHash();
 
     self.wss.once('request_account_info', function(message, conn) {
@@ -228,7 +229,7 @@ suite('post payments', function() {
       .end(done);
   });
 
-  test('/payments -- hex currency gold', function(done){
+  test('/payments -- hex currency gold', function(done) {
     var hash = testutils.generateHash();
 
     self.wss.once('request_account_info', function(message, conn) {
@@ -256,7 +257,7 @@ suite('post payments', function() {
       .end(done);
   });
 
-  test('/payments?validated=true', function(done){
+  test('/payments?validated=true', function(done) {
     var currentLedger = self.remote._ledger_current_index;
 
     self.wss.once('request_account_info', function(message, conn) {
@@ -269,7 +270,7 @@ suite('post payments', function() {
       assert.strictEqual(message.command, 'submit');
       conn.send(fixtures.requestSubmitResponse(message));
 
-      process.nextTick(function () {
+      process.nextTick(function() {
         conn.send(fixtures.transactionVerifiedResponse({
           ledger: currentLedger
         }));
@@ -284,7 +285,7 @@ suite('post payments', function() {
     }))
     .expect(testutils.checkStatus(200))
     .expect(testutils.checkHeaders)
-    .expect(testutils.checkBody(fixtures.RESTTransactionResponse({ 
+    .expect(testutils.checkBody(fixtures.RESTTransactionResponse({
       hash: fixtures.VALID_SUBMITTED_TRANSACTION_HASH,
       ledger: currentLedger
     })))
@@ -310,7 +311,7 @@ suite('post payments', function() {
         fee: '5000000'
       }));
 
-      process.nextTick(function () {
+      process.nextTick(function() {
         conn.send(fixtures.transactionVerifiedResponse({
           hash: hash,
           fee: '5000000',
@@ -328,7 +329,7 @@ suite('post payments', function() {
       }))
       .expect(testutils.checkStatus(200))
       .expect(testutils.checkHeaders)
-      .expect(testutils.checkBody(fixtures.RESTTransactionResponse({ 
+      .expect(testutils.checkBody(fixtures.RESTTransactionResponse({
         hash: hash,
         fee: '5',
         ledger: currentLedger
@@ -336,7 +337,7 @@ suite('post payments', function() {
       .end(done);
   });
 
-  test('/payments?validated=true -- hex currency gold', function(done){
+  test('/payments?validated=true -- hex currency gold', function(done) {
     var hash = testutils.generateHash();
     var currentLedger = self.remote._ledger_current_index;
 
@@ -350,7 +351,7 @@ suite('post payments', function() {
       assert.strictEqual(message.command, 'submit');
       conn.send(fixtures.requestSubmitResponse(message, {hash: hash}));
 
-      process.nextTick(function () {
+      process.nextTick(function() {
         conn.send(fixtures.verifiedResponseComplexCurrency({
           hash: hash,
           ledger: currentLedger
@@ -432,7 +433,7 @@ suite('post payments', function() {
       conn.send(fixtures.accountInfoResponse(message));
     });
 
-    self.wss.once('request_submit', function(message, conn) {
+    self.wss.once('request_submit', function() {
       assert(false);
     });
 
@@ -481,7 +482,7 @@ suite('post payments', function() {
       conn.send(fixtures.accountInfoResponse(message));
     });
 
-    self.wss.once('request_submit', function(message, conn) {
+    self.wss.once('request_submit', function() {
       assert(false);
     });
 
@@ -682,11 +683,11 @@ suite('post payments', function() {
   });
 
   test('/payments -- secret invalid', function(done) {
-    self.wss.once('request_account_info', function(message, conn) {
+    self.wss.once('request_account_info', function() {
       assert(false);
     });
 
-    self.wss.once('request_submit', function(message, conn) {
+    self.wss.once('request_submit', function() {
       assert(false);
     });
 
@@ -712,7 +713,7 @@ suite('post payments', function() {
       var so = new ripple.SerializedObject(message.tx_blob).to_json();
       assert.strictEqual(message.command, 'submit');
       assert.strictEqual(so.LastLedgerSequence, 9036185);
-      conn.send(fixtures.requestSubmitResponse(message, { LastLedgerSequence: 9036185 }));
+      conn.send(fixtures.requestSubmitResponse(message, {LastLedgerSequence: 9036185}));
     });
 
     self.app
@@ -772,7 +773,7 @@ suite('post payments', function() {
       conn.send(fixtures.accountInfoResponse(message));
     });
 
-    self.wss.once('request_submit', function(message, conn) {
+    self.wss.once('request_submit', function() {
       assert(false);
     });
 
@@ -801,7 +802,7 @@ suite('post payments', function() {
       var so = new ripple.SerializedObject(message.tx_blob).to_json();
       assert.strictEqual(message.command, 'submit');
       assert.strictEqual(so.Fee, '12');
-      conn.send(fixtures.requestSubmitResponse(message, { Fee: '12' }));
+      conn.send(fixtures.requestSubmitResponse(message, {Fee: '12'}));
     });
 
     self.app
@@ -844,7 +845,7 @@ suite('post payments', function() {
         hash: hash
       }));
 
-      process.nextTick(function () {
+      process.nextTick(function() {
         conn.send(fixtures.rippledValidatedErrorResponse(message, {
           engineResult: 'tecNO_DST_INSUF_XRP',
           engineResultCode: '125',
@@ -883,7 +884,6 @@ suite('post payments', function() {
     });
 
     self.wss.once('request_submit', function(message, conn) {
-      var so = new ripple.SerializedObject(message.tx_blob).to_json();
       assert.strictEqual(message.command, 'submit');
       conn.send(fixtures.rippledSubmitErrorResponse(message, {
         engineResult: 'terINSUF_FEE_B',
@@ -956,13 +956,13 @@ suite('post payments', function() {
       assert.strictEqual(message.command, 'submit');
       conn.send(fixtures.requestSubmitResponse(message));
 
-      self.wss.once('request_submit', function(message, conn) {
+      self.wss.once('request_submit', function() {
         // second payment should not hit submit
         assert(false);
       });
     });
 
-    var secondPayment = function(err) {
+    function secondPayment(err) {
       if (err) {
         assert(false);
         return done(err);
@@ -981,7 +981,7 @@ suite('post payments', function() {
           message: 'Duplicate Transaction. A record already exists in the database for a transaction of this type with the same client_resource_id. If this was not an accidental resubmission please submit the transaction again with a unique client_resource_id'
         })))
         .end(done);
-    };
+    }
 
     self.app
       .post('/v1/accounts/' + addresses.VALID + '/payments')
@@ -1015,13 +1015,13 @@ suite('post payments', function() {
         hash: hash
       }));
 
-      self.wss.once('request_submit', function(message, conn) {
+      self.wss.once('request_submit', function() {
         // second payment should not hit submit
         assert(false);
       });
     });
 
-    var secondPayment = function(err) {
+    function secondPayment(err) {
       if (err) {
         assert(false);
         return done(err);
@@ -1040,7 +1040,7 @@ suite('post payments', function() {
           message: 'Duplicate Transaction. A record already exists in the database for a transaction of this type with the same client_resource_id. If this was not an accidental resubmission please submit the transaction again with a unique client_resource_id'
         })))
         .end(done);
-    };
+    }
 
     self.app
       .post('/v1/accounts/' + addresses.VALID + '/payments')
@@ -1079,7 +1079,7 @@ suite('post payments', function() {
         hash: hash
       }));
 
-      process.nextTick(function () {
+      process.nextTick(function() {
         conn.send(fixtures.rippledValidatedErrorResponse(message, {
           engineResult: 'tecNO_DST_INSUF_XRP',
           engineResultCode: '125',
@@ -1088,13 +1088,13 @@ suite('post payments', function() {
         }));
       });
 
-      self.wss.once('request_submit', function(message, conn) {
+      self.wss.once('request_submit', function() {
         // second payment should not hit submit
         assert(false);
       });
     });
 
-    var secondPayment = function(err) {
+    function secondPayment(err) {
       if (err) {
         assert(false);
         return done(err);
@@ -1113,7 +1113,7 @@ suite('post payments', function() {
           message: 'Duplicate Transaction. A record already exists in the database for a transaction of this type with the same client_resource_id. If this was not an accidental resubmission please submit the transaction again with a unique client_resource_id'
         })))
         .end(done);
-    };
+    }
 
     self.app
       .post('/v1/accounts/' + addresses.VALID + '/payments?validated=true')
@@ -1154,7 +1154,7 @@ suite('post payments', function() {
         hash: hash
       }));
 
-      process.nextTick(function () {
+      process.nextTick(function() {
         conn.send(fixtures.rippledValidatedErrorResponse(message, {
           engineResult: 'tecNO_DST_INSUF_XRP',
           engineResultCode: '125',
@@ -1163,13 +1163,13 @@ suite('post payments', function() {
         }));
       });
 
-      self.wss.once('request_submit', function(message, conn) {
+      self.wss.once('request_submit', function() {
         // second payment should not hit submit
         assert(false);
       });
     });
 
-    var secondPayment = function(err) {
+    function secondPayment(err) {
       if (err) {
         assert(false);
         return done(err);
@@ -1188,7 +1188,7 @@ suite('post payments', function() {
           message: 'Duplicate Transaction. A record already exists in the database for a transaction of this type with the same client_resource_id. If this was not an accidental resubmission please submit the transaction again with a unique client_resource_id'
         })))
         .end(done);
-    };
+    }
 
     self.app
       .post('/v1/accounts/' + addresses.VALID + '/payments?validated=true')
@@ -1337,46 +1337,32 @@ suite('post payments', function() {
       .end(done);
   });
 
-  test.skip('/payments -- issuer with XRP source_amount', function(done) {
-  });
+  test('/payments -- issuer with XRP source_amount');
 
-  test.skip('/payments -- issuer with XRP destination_amount', function(done) {
-  });
+  test('/payments -- issuer with XRP destination_amount');
 
-  test.skip('/payments -- issuer with XRP destination_amount', function(done) {
-  });
+  test('/payments -- issuer with XRP destination_amount');
 
-  test.skip('/payments -- valid source_tag', function(done) {
-  });
+  test('/payments -- valid source_tag');
 
-  test.skip('/payments -- invalid source_tag', function(done) {
-  });
+  test('/payments -- invalid source_tag');
 
-  test.skip('/payments -- valid destination_tag', function(done) {
-  });
+  test('/payments -- valid destination_tag');
 
-  test.skip('/payments -- invalid destination_tag', function(done) {
-  });
+  test('/payments -- invalid destination_tag');
 
-  test.skip('/payments -- invalid source_slippage', function(done) {
-  });
+  test('/payments -- invalid source_slippage');
 
-  test.skip('/payments -- invalid invoice_id', function(done) {
-  });
+  test('/payments -- invalid invoice_id');
 
-  test.skip('/payments -- invalid invoice_id', function(done) {
-  });
+  test('/payments -- invalid invoice_id');
 
-  test.skip('/payments -- invalid paths (object)', function(done) {
-  });
+  test('/payments -- invalid paths (object)');
 
-  test.skip('/payments -- invalid paths (string)', function(done) {
-  });
+  test('/payments -- invalid paths (string)');
 
-  test.skip('/payments -- invalid partial_payment flag', function(done) {
-  });
+  test('/payments -- invalid partial_payment flag');
 
-  test.skip('/payments -- invalid no_direct_ripple flag', function(done) {
-  });
+  test('/payments -- invalid no_direct_ripple flag');
 
 });
