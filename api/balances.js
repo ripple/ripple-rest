@@ -1,97 +1,55 @@
-var Promise   = require('bluebird');
-var async     = require('async');
-var ripple    = require('ripple-lib');
-var remote    = require('./../lib/remote.js');
-var respond   = require('../lib/response-handler.js');
-var utils     = require('./../lib/utils');
-var errors    = require('./../lib/errors.js');
-var validator = require('./../lib/schema-validator.js');
+/* globals Promise: true */
+/* eslint-disable valid-jsdoc */
+'use strict';
+var Promise = require('bluebird');
+var utils = require('./lib/utils');
+var validator = require('./lib/schema-validator.js');
+var validate = require('./lib/validate');
 
-var InvalidRequestError = errors.InvalidRequestError;
-const DefaultPageLimit = 200;
-
+var DefaultPageLimit = 200;
 
 /**
  *  Request the balances for a given account
  *
  *  Notes:
- *  In order to use paging, you must provide at least ledger as a query parameter.
- *  Additionally, any limit lower than 10 will be bumped up to 10.
+ *  In order to use paging, you must provide at least ledger as a query
+ *  parameter.  Additionally, any limit lower than 10 will be bumped up to 10.
  *
  *  @url
- *  @param {RippleAddress} request.params.account - account to retrieve balances for
+ *  @param {RippleAddress} request.params.account
+ *          - account to retrieve balances for
  *
  *  @query
- *  @param {String ISO 4217 Currency Code} [request.query.currency] - only request balances with given currency
- *  @param {RippleAddress} [request.query.counterparty] - only request balances with given counterparty
+ *  @param {String ISO 4217 Currency Code} [request.query.currency]
+ *          - only request balances with given currency
+ *  @param {RippleAddress} [request.query.counterparty]
+ *          - only request balances with given counterparty
  *  @param {String} [request.query.marker] - start position in response paging
  *  @param {Number String} [request.query.limit] - max results per response
  *  @param {Number String} [request.query.ledger] - identifier
  *
- *  @param {Express.js Response} response
- *  @param {Express.js Next} next
  */
-function getBalances(request, response, next) {
-  var options = {
-    account: request.params.account,
-    currency: request.query.currency,
-    counterparty: request.query.counterparty,
-    frozen: request.query.frozen === 'true',
-    isAggregate: request.param('limit') === 'all',
-    ledger: utils.parseLedger(request.param('ledger'))
-  };
-
-  var currencyRE = new RegExp(options.currency ? ('^' + options.currency.toUpperCase() + '$') : /./);
-
-  validateOptions(options)
-  .then(getAccountBalances)
-  .then(respondWithBalances)
-  .catch(next)
-
-  function validateOptions(options) {
-    if (!ripple.UInt160.is_valid(options.account)) {
-      return Promise.reject(new InvalidRequestError('Parameter is not a valid Ripple address: account'));
-    }
-    if (options.counterparty && !ripple.UInt160.is_valid(options.counterparty)) {
-      return Promise.reject(new InvalidRequestError('Parameter is not a valid Ripple address: counterparty'));
-    }
-    if (options.currency && !validator.isValid(options.currency, 'Currency')) {
-      return Promise.reject(new InvalidRequestError('Parameter is not a valid currency: currency'));
-    }
-
-    return Promise.resolve(options);
-  };
-
-  function getAccountBalances(options) {
-    if (options.counterparty || options.frozen) {
-      return getLineBalances(options);
-    }
-
-    if (options.currency) {
-      if (options.currency === 'XRP') {
-        return getXRPBalance(options);
-      } else {
-        return getLineBalances(options);
-      }
-    }
-
-    return getXRPBalance(options)
-    .then(function(XRPResult) {
-      options.XRPLines = XRPResult.lines;
-      return Promise.resolve(options);
-    })
-    .then(getLineBalances)
-    .then(function(lineBalances) {
-      lineBalances.lines.unshift(options.XRPLines[0]);
-      return Promise.resolve(lineBalances);
-    });
+function getBalances(account, options, callback) {
+  if (validate.fail([
+    validate.account(account),
+    validate.currency(options.currency, true),
+    validate.counterparty(options.counterparty, true),
+    validate.ledger(options.ledger, true),
+    validate.limit(options.limit, true),
+    validate.paging(options, true)
+  ], callback)) {
+    return;
   }
+  var self = this;
 
-  function getXRPBalance(options) {
+  var currencyRE = new RegExp(options.currency ?
+    ('^' + options.currency.toUpperCase() + '$') : /./);
+
+  function getXRPBalance() {
     var promise = new Promise(function(resolve, reject) {
-      var accountInfoRequest = remote.requestAccountInfo({
-        account: options.account,
-        ledger: options.ledger
+      var accountInfoRequest = self.remote.requestAccountInfo({
+        account: account,
+        ledger: utils.parseLedger(options.ledger)
       });
 
       var lines = [];
@@ -111,11 +69,12 @@ function getBalances(request, response, next) {
     });
 
     return promise;
-  };
+  }
 
-  function getLineBalances(options, prevResult) {
-    if (prevResult && (!options.isAggregate || !prevResult.marker)) {
-      return Promise.resolve(prevResult)
+  function getLineBalances(prevResult) {
+    var isAggregate = options.limit === 'all';
+    if (prevResult && (!isAggregate || !prevResult.marker)) {
+      return Promise.resolve(prevResult);
     }
 
     var promise = new Promise(function(resolve, reject) {
@@ -126,16 +85,17 @@ function getBalances(request, response, next) {
 
       if (prevResult) {
         marker = prevResult.marker;
-        limit  = prevResult.limit;
+        limit = prevResult.limit;
         ledger = prevResult.ledger_index;
       } else {
-        marker = request.query.marker;
-        limit  = validator.isValid(request.query.limit, 'UINT32') ? Number(request.query.limit) : DefaultPageLimit;
-        ledger = utils.parseLedger(request.query.ledger);
+        marker = options.marker;
+        limit = validator.isValid(options.limit, 'UINT32')
+          ? Number(options.limit) : DefaultPageLimit;
+        ledger = utils.parseLedger(options.ledger);
       }
 
-      accountLinesRequest = remote.requestAccountLines({
-        account: options.account,
+      accountLinesRequest = self.remote.requestAccountLines({
+        account: account,
         marker: marker,
         limit: limit,
         ledger: ledger
@@ -156,41 +116,65 @@ function getBalances(request, response, next) {
 
           if (currencyRE.test(line.currency)) {
             lines.push({
-              value:         line.balance,
-              currency:      line.currency,
-              counterparty:  line.account
+              value: line.balance,
+              currency: line.currency,
+              counterparty: line.account
             });
           }
         });
 
         nextResult.lines = prevResult ? prevResult.lines.concat(lines) : lines;
-        resolve([options, nextResult]);
+        resolve(nextResult);
       });
       accountLinesRequest.request();
     });
 
-    return promise.spread(getLineBalances);
-  };
+    return promise.then(getLineBalances);
+  }
+
+  function getAccountBalances() {
+    if (options.counterparty || options.frozen) {
+      return getLineBalances();
+    }
+
+    if (options.currency) {
+      if (options.currency === 'XRP') {
+        return getXRPBalance();
+      }
+      return getLineBalances();
+    }
+
+    return Promise.all([getXRPBalance(), getLineBalances()])
+    .then(function(values) {
+      var xrpBalance = values[0].lines[0];
+      var lineBalances = values[1];
+      lineBalances.lines.unshift(xrpBalance);
+      return Promise.resolve(lineBalances);
+    });
+  }
 
   function respondWithBalances(result) {
-    var promise = new Promise(function (resolve, reject) {
+    var promise = new Promise(function (resolve) {
       var balances = {};
 
       if (result.marker) {
         balances.marker = result.marker;
       }
 
-      balances.limit     = result.limit;
-      balances.ledger    = result.ledger_index;
+      balances.limit = result.limit;
+      balances.ledger = result.ledger_index;
       balances.validated = result.validated;
-      balances.balances  = result.lines;
+      balances.balances = result.lines;
 
-      resolve(respond.success(response, balances));
+      resolve(callback(null, balances));
     });
 
     return promise;
   }
-};
+
+  getAccountBalances()
+  .then(respondWithBalances)
+  .catch(callback);
+}
 
 module.exports.get = getBalances;
-

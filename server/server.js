@@ -1,18 +1,18 @@
-var fs        = require('fs');
-var https     = require('https');
-var constants = require('constants')
-var app       = require('./lib/express_app.js');
-var config    = require('./lib/config');
-var logger    = require('./lib/logger.js').logger;
-var utils     = require('./lib/utils.js');
+'use strict';
+var fs = require('fs');
+var constants = require('constants');
+var app = require('./express_app.js');
+var config = require('./config');
+var logger = require('./logger.js').logger;
+var version = require('./version.js');
 
 var port = config.get('port') || 5990;
 var host = config.get('host');
 
-logger.info('ripple-rest (v' + utils.getPackageVersion() + ')');
+logger.info('ripple-rest (v' + version.getPackageVersion() + ')');
 
 function loadSSLConfig() {
-  var keyPath  = config.get('ssl').key_path || './certs/server.key';
+  var keyPath = config.get('ssl').key_path || './certs/server.key';
   var certPath = config.get('ssl').cert_path || './certs/server.crt';
 
   if (!fs.existsSync(keyPath)) {
@@ -48,11 +48,12 @@ function loadSSLConfig() {
     // from the list of supported protocols that SSLv23_method supports.
     secureOptions: constants.SSL_OP_NO_SSLv3
   };
-};
+}
 
 if (config.get('ssl_enabled')) {
-  require('https').createServer(loadSSLConfig(), app).listen(port, host, function() {
-    logger.info('server listening over HTTPS at port ' + port);
+  require('https').createServer(loadSSLConfig(), app).listen(port, host,
+    function() {
+      logger.info('server listening over HTTPS at port ' + port);
   });
 } else {
   app.listen(port, host, function() {

@@ -1,46 +1,50 @@
-var _         = require('lodash');
+/* eslint-disable new-cap */
+/* eslint-disable max-len */
+'use strict';
+
+var _ = require('lodash');
 var addresses = require('./../../fixtures').addresses;
 
 module.exports.paymentRest = {
-  "source_account": addresses.VALID,
-  "destination_account": addresses.COUNTERPARTY,
-  "destination_amount": {
-    "value": "0.001",
-    "currency": "USD",
-    "issuer": addresses.COUNTERPARTY
+  'source_account': addresses.VALID,
+  'destination_account': addresses.COUNTERPARTY,
+  'destination_amount': {
+    'value': '0.001',
+    'currency': 'USD',
+    'issuer': addresses.COUNTERPARTY
   }
 };
 
 module.exports.paymentRestXRP = {
-  "source_account": addresses.VALID,
-  "destination_account": addresses.COUNTERPARTY,
-  "destination_amount": {
-    "value": "1",
-    "currency": "XRP",
-    "issuer": ""
+  'source_account': addresses.VALID,
+  'destination_account': addresses.COUNTERPARTY,
+  'destination_amount': {
+    'value': '1',
+    'currency': 'XRP',
+    'issuer': ''
   }
 };
 
 module.exports.paymentRestComplex = {
-  "source_account": addresses.VALID,
-  "source_tag": "",
-  "source_amount": {
-    "value": "10",
-    "currency": "USD",
-    "issuer": addresses.VALID
+  'source_account': addresses.VALID,
+  'source_tag': '',
+  'source_amount': {
+    'value': '10',
+    'currency': 'USD',
+    'issuer': addresses.VALID
   },
-  "source_slippage": "0",
-  "destination_account": addresses.COUNTERPARTY,
-  "destination_tag": "",
-  "destination_amount": {
-    "value": "10",
-    "currency": "USD",
-    "issuer": addresses.VALID
+  'source_slippage': '0',
+  'destination_account': addresses.COUNTERPARTY,
+  'destination_tag': '',
+  'destination_amount': {
+    'value': '10',
+    'currency': 'USD',
+    'issuer': addresses.VALID
   },
-  "invoice_id": "",
-  "paths": "[]",
-  "partial_payment": false,
-  "no_direct_ripple": false
+  'invoice_id': '',
+  'paths': '[]',
+  'partial_payment': false,
+  'no_direct_ripple': false
 };
 
 module.exports.paymentTx = {
@@ -116,7 +120,6 @@ module.exports.exportsPaymentRestIssuers = function(options) {
     destinationAccount: addresses.COUNTERPARTY,
     sourceIssuer: addresses.VALID,
     destinationIssuer: addresses.COUNTERPARTY,
-    sourceSlippage: '0',
     sourceValue: '10'
   });
 
@@ -137,9 +140,9 @@ module.exports.exportsPaymentRestIssuers = function(options) {
         issuer: options.destinationIssuer
     },
     invoice_id: '',
-      paths: '[]',
-      partial_payment: false,
-      no_direct_ripple: false
-  }
+    paths: '[]',
+    partial_payment: false,
+    no_direct_ripple: false
+  };
 
 };

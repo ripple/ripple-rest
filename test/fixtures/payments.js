@@ -1,11 +1,14 @@
+/* eslint-disable new-cap */
+/* eslint-disable valid-jsdoc */
+/* eslint-disable max-len */
+'use strict';
+
 var _ = require('lodash');
 var addresses = require('./../fixtures').addresses;
-var paths = require('./paths');
 var SerializedObject = require('ripple-lib').SerializedObject;
 
-var fromAccount   = addresses.VALID;
-var fromSecret    = addresses.SECRET;
-var toAccount     = addresses.COUNTERPARTY;
+var fromAccount = addresses.VALID;
+var toAccount = addresses.COUNTERPARTY;
 var issuerAccount = addresses.ISSUER;
 
 module.exports.VALID_TRANSACTION_HASH = '22F45FBD4DFDE03CF5AED05F3F858C06E9206D07098E469363F9D48D9D019589';
@@ -157,7 +160,7 @@ var METADATA = module.exports.METADATA = {
   TransactionResult: 'tesSUCCESS'
 };
 
-module.exports.binaryTransactionSynth = function (options) {
+module.exports.binaryTransactionSynth = function(options) {
   return {
     date: 416447810,
     hash: options.hash,
@@ -167,7 +170,7 @@ module.exports.binaryTransactionSynth = function (options) {
   };
 };
 
-module.exports.binaryTransaction = function (options) {
+module.exports.binaryTransaction = function(options) {
   options = options || {};
   _.defaults(options, {
     memos: []
@@ -199,18 +202,18 @@ module.exports.binaryTransaction = function (options) {
           type: 49,
           type_hex: '0000000000000031'
         }
-      ] 
+      ]
     ],
     SendMax: '1112209',
     Sequence: 4,
     SigningPubKey: '02BC8C02199949B15C005B997E7C8594574E9B02BA2D0628902E0532989976CF9D',
     TransactionType: 'Payment',
-    TxnSignature: '304502204EE3E9D1B01D8959B08450FCA9E22025AF503DEF310E34A93863A85CAB3C0BC5022100B61F5B567F77026E8DEED89EED0B7CAF0E6C96C228A2A65216F0DC2D04D52083',
+    TxnSignature: '304502204EE3E9D1B01D8959B08450FCA9E22025AF503DEF310E34A93863A85CAB3C0BC5022100B61F5B567F77026E8DEED89EED0B7CAF0E6C96C228A2A65216F0DC2D04D52083'
   };
 };
 
 module.exports.requestPath = function(address, params) {
-  return '/v1/accounts/' + address + '/payments' + ( params || '' );
+  return '/v1/accounts/' + address + '/payments' + (params || '');
 };
 
 module.exports.accountTransactionsResponse = function(request, options) {
@@ -246,7 +249,7 @@ module.exports.accountTransactionsResponse = function(request, options) {
           type: 49,
           type_hex: '0000000000000031'
         }
-      ] 
+      ]
     ],
     SendMax: '1112209',
     Sequence: 4,
@@ -494,13 +497,20 @@ module.exports.RESTTransactionResponse = function(options) {
         value: '0.001'
       },
       invoice_id: '',
-      paths: '[[{"currency":"USD","issuer":"' + addresses.COUNTERPARTY + '","type":48,"type_hex":"0000000000000030"},{"account":"' + addresses.COUNTERPARTY + '","currency":"USD","issuer":"' + addresses.COUNTERPARTY + '","type":49,"type_hex":"0000000000000031"}]]',
+      paths: '[[{\"currency\":\"USD\",\"issuer\":\"' + addresses.COUNTERPARTY + '\",\"type\":48,\"type_hex\":\"0000000000000030\"},{\"account\":\"' + addresses.COUNTERPARTY + '\",\"currency\":\"USD\",\"issuer\":\"' + addresses.COUNTERPARTY + '\",\"type\":49,\"type_hex\":\"0000000000000031\"}]]',
       no_direct_ripple: false,
       partial_payment: false,
       direction: 'outgoing',
       result: 'tesSUCCESS',
       timestamp: '2013-03-12T23:56:50.000Z',
       fee: options.fee,
+      balance_changes: [
+        {
+          currency: 'XRP',
+          value: '-1.101208',
+          issuer: ''
+        }
+      ],
       source_balance_changes: [
         {
           value: '-1.101208',
@@ -517,13 +527,13 @@ module.exports.RESTTransactionResponse = function(options) {
       ],
       order_changes: [
         {
-          taker_pays: { currency: 'XRP', counterparty: '', value: '-1.101198' },
+          taker_pays: {currency: 'XRP', issuer: '', value: '-1.101198'},
           taker_gets:
-          { currency: 'USD',
-            counterparty: addresses.COUNTERPARTY,
-            value: '-0.001002' },
+          {currency: 'USD',
+            issuer: addresses.COUNTERPARTY,
+            value: '-0.001002'},
           sequence: 58,
-            status: 'open' }
+            status: 'open'}
         ],
       memos: options.memos
     },
@@ -574,6 +584,13 @@ module.exports.RESTAccountTransactionsResponse = function(options) {
           result: 'tesSUCCESS',
           timestamp: '2014-09-24T21:21:50.000Z',
           fee: options.fee,
+          balance_changes: [
+            {
+              currency: 'XRP',
+              value: '-1.101208',
+              issuer: ''
+            }
+          ],
           source_balance_changes: [
             {
               value: '-1.101208',
@@ -589,11 +606,11 @@ module.exports.RESTAccountTransactionsResponse = function(options) {
             }
           ],
           order_changes: [
-            { taker_pays: { currency: 'XRP', counterparty: '', value: '-1.101198' },
+            {taker_pays: {currency: 'XRP', issuer: '', value: '-1.101198'},
               taker_gets:
-              { currency: 'USD',
-                counterparty: addresses.COUNTERPARTY,
-                value: '-0.001002' },
+              {currency: 'USD',
+                issuer: addresses.COUNTERPARTY,
+                value: '-0.001002'},
               sequence: 58,
               status: 'open'
             }
@@ -644,6 +661,18 @@ module.exports.RESTTransactionResponseComplexCurrencies = function(options) {
       result: 'tesSUCCESS',
       timestamp: '2014-11-25T21:03:00.000Z',
       fee: '0.012',
+      balance_changes: [
+        {
+          currency: 'XRP',
+          value: '-0.012',
+          issuer: ''
+        },
+        {
+          currency: '0158415500000000C1F76FF6ECB0BAC600000000',
+          value: '-1e-8',
+          issuer: 'rvYAfWj5gh67oV6fW32ZzP3Aw4Eubs59B'
+        }
+      ],
       source_balance_changes: [
         {
           value: '-0.012',
@@ -668,7 +697,7 @@ module.exports.RESTTransactionResponseComplexCurrencies = function(options) {
     client_resource_id: options.client_resource_id,
     hash: options.hash,
     ledger: options.ledger,
-    state: 'validated',
+    state: 'validated'
   });
 };
 
@@ -679,18 +708,20 @@ module.exports.payment = function(options) {
     clientResourceId: '1',
     value: '1',
     currency: 'XRP',
-    issuer: ''
+    issuer: '',
+    sourceAccount: addresses.VALID,
+    destinationAccount: addresses.COUNTERPARTY
   });
 
-  return { 
+  return {
     secret: options.secret,
     client_resource_id: options.clientResourceId,
     fixed_fee: options.fixed_fee ? String(options.fixed_fee) : undefined,
     max_fee: options.max_fee ? String(options.max_fee) : undefined,
     last_ledger_sequence: options.lastLedgerSequence,
     payment: {
-      source_account: addresses.VALID,
-      destination_account: addresses.COUNTERPARTY,
+      source_account: options.sourceAccount,
+      destination_account: options.destinationAccount,
       destination_amount: {
         value: options.value,
         currency: options.currency,
@@ -878,7 +909,7 @@ module.exports.rippledSubmitErrorResponse = function(request, options) {
   );
 };
 
-module.exports.rippledSubscribeRequest = function(request, lastLedger) {
+module.exports.rippledSubscribeRequest = function(request) {
   return JSON.stringify({
     id: request.id,
     command: 'subscribe',
@@ -1382,7 +1413,7 @@ module.exports.verifiedResponseComplexCurrency = function(options) {
     type: 'transaction',
     validated: true
   });
-}
+};
 
 module.exports.ledgerSequenceTooHighResponse = function(request) {
   return JSON.stringify(
@@ -1434,7 +1465,8 @@ module.exports.RESTSuccessResponse = function(options) {
     {
       success: true,
       client_resource_id: options.clientResourceId,
-      status_url: 'http://127.0.0.1:5990/v1/accounts/'+fromAccount+'/payments/'+options.clientResourceId
+      status_url: 'http://127.0.0.1:5990/v1/accounts/' + fromAccount +
+        '/payments/' + options.clientResourceId
     }
   );
 };

@@ -1,7 +1,11 @@
-var assert            = require('assert');
-var fixtures          = require('./fixtures').restConverter;
-var addresses         = require('./../fixtures').addresses;
-var restToTxConverter = require('./../../lib/rest-to-tx-converter.js');
+/* eslint-disable new-cap */
+/* eslint-disable max-len */
+'use strict';
+
+var assert = require('assert');
+var fixtures = require('./fixtures').restConverter;
+var addresses = require('./../fixtures').addresses;
+var restToTxConverter = require('./../../api/lib/rest-to-tx-converter.js');
 
 suite('unit - converter - Rest to Tx', function() {
 
@@ -31,18 +35,18 @@ suite('unit - converter - Rest to Tx', function() {
 
   test('convert() -- payment with currency that has same issuer for source and destination amount', function(done) {
     restToTxConverter.convert(fixtures.exportsPaymentRestIssuers({
-      sourceIssuer:  addresses.VALID,
+      sourceIssuer: addresses.VALID,
       destinationIssuer: addresses.VALID
     }), function(err, transaction) {
       assert.strictEqual(err, null);
-      assert.strictEqual(transaction.tx_json.SendMax, void(0));
+      assert.strictEqual(transaction.tx_json.SendMax, undefined);
       done();
     });
   });
 
   test('convert() -- payment with currency that has different issuers for source and destination amount', function(done) {
     restToTxConverter.convert(fixtures.exportsPaymentRestIssuers({
-      sourceIssuer:  addresses.VALID,
+      sourceIssuer: addresses.VALID,
       destinationIssuer: addresses.COUNTERPARTY
     }), function(err, transaction) {
       assert.strictEqual(err, null);
@@ -57,7 +61,7 @@ suite('unit - converter - Rest to Tx', function() {
 
   test('convert() -- payment with currency that has different issuers for source and destination amount and a source_slippage of 0.1', function(done) {
     restToTxConverter.convert(fixtures.exportsPaymentRestIssuers({
-      sourceIssuer:  addresses.VALID,
+      sourceIssuer: addresses.VALID,
       destinationIssuer: addresses.COUNTERPARTY,
       sourceSlippage: '0.1',
       sourceAmount: '10'

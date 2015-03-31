@@ -1,22 +1,31 @@
-var async = require('async');
+'use strict';
 var assert = require('assert');
-var Promise = require('bluebird');
 var knex = require('knex');
 var ripple = require('ripple-lib');
 var validator = require('./schema-validator');
-var config = require('./config.js');
-var logger = require('./logger.js').logger;
+
+function noop() {
+  return;
+}
+
+var defaultLogger = {
+  debug: noop,
+  info: noop,
+  warn: noop,
+  error: noop
+};
 
 /**
  * @constructor DatabaseInterface
  * @param {String} filePath
  */
 
-function DatabaseInterface(filePath) {
+function DatabaseInterface(filePath, logger) {
   assert.strictEqual(typeof filePath, 'string', 'Invalid database path');
 
   this.initialized = false;
   this.filePath = filePath;
+  this.logger = logger || defaultLogger;
 
   this.db = knex({
     dialect: 'sqlite3',
@@ -56,11 +65,11 @@ function DatabaseInterface(filePath) {
   this.db.client.pool.genericPool.min = 1;
 
   this.init();
-};
+}
 
-const DI = DatabaseInterface.prototype;
 
-DI.__proto__ = process.EventEmitter.prototype;
+DatabaseInterface.prototype = new process.EventEmitter();
+var DI = DatabaseInterface.prototype;
 
 /**
  * Initialize database tables
@@ -73,7 +82,7 @@ DI.init = function(callback) {
   var self = this;
 
   if (this.initialized) {
-    logger.info('[DB] Warning: Re-initializing');
+    self.logger.info('[DB] Warning: Re-initializing');
   }
 
   // Create transaction_history table if it does not already exist
@@ -99,16 +108,16 @@ DI.init = function(callback) {
     self.initialized = true;
     self.emit('ready');
 
-    logger.info('[DB] Initialized: ' + self.filePath);
+    self.logger.info('[DB] Initialized: ' + self.filePath);
 
-    (callback || new Function)(null, res);
+    (callback || noop)(null, res);
 
     return res;
   })
   .caught(function(err) {
-    logger.error('[DB] Error. Failed to initialize database:' + err);
+    self.logger.error('[DB] Error. Failed to initialize database:' + err);
 
-    (callback || new Function)(err);
+    (callback || noop)(err);
   });
 
   return promise;
@@ -127,12 +136,12 @@ DI.clear = function(callback) {
   var promise = self.db.schema
   .dropTableIfExists('transaction_history')
   .then(function(res) {
-    (callback || new Function)(null, res);
+    (callback || noop)(null, res);
 
     return res;
   })
   .caught(function(err) {
-    (callback || new Function)(err);
+    (callback || noop)(err);
   });
 
   return promise;
@@ -154,7 +163,7 @@ DI.saveTransaction = function(transaction, callback) {
     'Transaction missing property: tx_json.TransactionType');
   assert(transaction.tx_json.Account,
     'Transaction missing property: tx_json.Account');
-  //assert(transaction.clientID, 'Transaction missing property: clientID');
+  // assert(transaction.clientID, 'Transaction missing property: clientID');
 
   // Transaction shouldn't be saved unless it was successfully submitted
   assert(transaction.submitIndex,
@@ -179,13 +188,11 @@ DI.saveTransaction = function(transaction, callback) {
     finalized: transaction.finalized
   };
 
-  txData.hash = result.transaction_hash !== void(0)
-  ? result.transaction_hash
-  : transaction.submittedIDs[0];
+  txData.hash = result.transaction_hash !== undefined
+    ? result.transaction_hash : transaction.submittedIDs[0];
 
-  txData.ledger = result.ledger_index !== void(0)
-  ? result.ledger_index
-  : transaction.submitIndex;
+  txData.ledger = result.ledger_index !== undefined
+    ? result.ledger_index : transaction.submitIndex;
 
   if (result.engine_result) {
     txData.rippled_result = result.engine_result;
@@ -201,28 +208,24 @@ DI.saveTransaction = function(transaction, callback) {
   .where(txQuery)
   .then(function(res) {
     if (res.length) {
-      return self.db('transaction_history')
-      .where(txQuery)
-      .update(txData);
-    } else {
-      return self.db('transaction_history')
-      .insert(txData);
+      return self.db('transaction_history').where(txQuery).update(txData);
     }
+    return self.db('transaction_history').insert(txData);
   })
   .then(function(res) {
-    (callback || new Function)(null, res);
+    (callback || noop)(null, res);
 
     var info = txData.hash + ': ' + txData.rippled_result;
 
-    logger.info('[DB] Saved transaction: ' + txData.state + ': ' + info);
+    self.logger.info('[DB] Saved transaction: ' + txData.state + ': ' + info);
 
     return res;
   })
   .caught(function(err) {
-    logger.error('[DB] Error. Cannot save transaction to database: '
+    self.logger.error('[DB] Error. Cannot save transaction to database: '
                 + err);
 
-    (callback || new Function)(err);
+    (callback || noop)(err);
   });
 
   return promise;
@@ -254,8 +257,6 @@ DI.getFailedTransactions = function(options, callback) {
   assert(ripple.UInt160.is_valid(options.account),
          'Specified account is invalid');
 
-  var self = this;
-
   var promise = this.db('transaction_history')
   .where(function() {
     var failedQuery = this.where('state', 'failed')
@@ -283,11 +284,11 @@ DI.getFailedTransactions = function(options, callback) {
     return txEntry;
   })
   .then(function(txEntries) {
-    (callback || new Function)(null, txEntries);
+    (callback || noop)(null, txEntries);
     return txEntries;
   })
   .caught(function(err) {
-    (callback || new Function)(err);
+    (callback || noop)(err);
   });
 
   return promise;
@@ -304,8 +305,7 @@ DI.getFailedTransactions = function(options, callback) {
 DI.getTransaction = function(options, callback) {
   assert.strictEqual(typeof options, 'object');
 
-  var self = this;
-  var txQuery = { };
+  var txQuery = {};
 
   if (options.hasOwnProperty('hash')) {
     assert(validator.isValid(options.hash, 'Hash256'),
@@ -338,12 +338,12 @@ DI.getTransaction = function(options, callback) {
       txEntry.finalized = Boolean(txEntry.finalized);
     }
 
-    (callback || new Function)(null, txEntry);
+    (callback || noop)(null, txEntry);
 
     return txEntry;
   })
   .caught(function(err) {
-    (callback || new Function)(err);
+    (callback || noop)(err);
   });
 
   return promise;
@@ -361,7 +361,8 @@ DI.convertOutgoingTransaction = function(txEntry) {
   transaction.ledger_index = txEntry.ledger;
   transaction.hash = txEntry.hash;
   transaction.finalized = Boolean(txEntry.finalized);
-  //transaction.date = ripple.utils.fromTimestamp(new Date(txEntry.updated_at));
+  // transaction.date = ripple.utils.fromTimestamp(
+  //   new Date(txEntry.updated_at));
   transaction.client_resource_id = txEntry.client_resource_id;
 
   // Note that this value is used by notifications.js
@@ -370,8 +371,4 @@ DI.convertOutgoingTransaction = function(txEntry) {
   return transaction;
 };
 
-if (config.get('NODE_ENV') === 'test') {
-  module.exports = new DatabaseInterface(':memory:');
-} else {
-  module.exports = new DatabaseInterface(config.get('db_path'));
-}
+module.exports = DatabaseInterface;

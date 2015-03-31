@@ -1,19 +1,23 @@
-var ripple  = require('ripple-lib');
-var config = require('./config');
-var logger = require('./logger.js').logger;
+'use strict';
+var ripple = require('ripple-lib');
 
-var remoteOpts = {
-  servers: config.get('rippled_servers'),
-  max_fee: parseFloat(config.get('max_transaction_fee'))
-};
-
-if (config.get('debug')) {
-  remoteOpts.trace = true;
+function noop() {
+  return;
 }
 
-var remote = new ripple.Remote(remoteOpts);
+var defaultLogger = {
+  debug: noop,
+  info: noop,
+  warn: noop,
+  error: noop
+};
 
-function prepareRemote() {
+function createRemote(options) {
+  var remote = new ripple.Remote(options);
+  if (options.mock) {
+    return remote;
+  }
+  var logger = options.logger || defaultLogger;
   var connect = remote.connect;
   var connected = false;
 
@@ -22,7 +26,7 @@ function prepareRemote() {
       logger.info('[RIPD] Connection established');
       connected = true;
     }
-  };
+  }
 
   remote.connect = function() {
     logger.info('[RIPD] Attempting to connect to the Ripple network...');
@@ -44,7 +48,8 @@ function prepareRemote() {
       server.once('ledger_closed', ready);
     });
     server.on('disconnect', function() {
-      logger.info('[RIPD] Disconnected from rippled server:', server.getServerID());
+      logger.info('[RIPD] Disconnected from rippled server:',
+        server.getServerID());
     });
   });
 
@@ -55,15 +60,12 @@ function prepareRemote() {
 
   setInterval(function() {
     var pingRequest = remote.request('ping');
-    pingRequest.on('error', function(){});
+    pingRequest.on('error', function() {});
     pingRequest.broadcast();
   }, 1000 * 15);
 
   remote.connect();
-};
-
-if (config.get('NODE_ENV') !== 'test') {
-  prepareRemote();
+  return remote;
 }
 
-module.exports = remote;
+module.exports = createRemote;

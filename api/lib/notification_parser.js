@@ -1,3 +1,5 @@
+/* eslint-disable valid-jsdoc */
+'use strict';
 var ripple = require('ripple-lib');
 
 /**
@@ -7,18 +9,22 @@ var ripple = require('ripple-lib');
  *
  * @param {Ripple Transaction in JSON Format} notification_details.transaction
  * @param {RippleAddress} notification_details.account
- * @param {Hex-encoded String|ResourceId} notification_details.previous_transaction_identifier
- * @param {Hex-encoded String|ResourceId} notification_details.next_transaction_identifier
+ * @param {Hex-encoded String|ResourceId}
+ *                    notification_details.previous_transaction_identifier
+ * @param {Hex-encoded String|ResourceId}
+ *                    notification_details.next_transaction_identifier
  *
  * @returns {Notification}
  */
-function NotificationParser() {};
+function NotificationParser() {}
 
 NotificationParser.prototype.parse = function(notification_details) {
   var transaction = notification_details.transaction;
   var account = notification_details.account;
-  var previous_transaction_identifier = notification_details.previous_transaction_identifier;
-  var next_transaction_identifier = notification_details.next_transaction_identifier;
+  var previous_transaction_identifier =
+    notification_details.previous_transaction_identifier;
+  var next_transaction_identifier =
+    notification_details.next_transaction_identifier;
 
   var metadata = transaction.meta || { };
 
@@ -26,7 +32,8 @@ NotificationParser.prototype.parse = function(notification_details) {
     account: account,
     type: transaction.TransactionType.toLowerCase(),
     direction: '', // set below
-    state: (metadata.TransactionResult === 'tesSUCCESS' ? 'validated' : 'failed'),
+    state: (metadata.TransactionResult === 'tesSUCCESS'
+      ? 'validated' : 'failed'),
     result: metadata.TransactionResult || '',
     ledger: '' + transaction.ledger_index,
     hash: transaction.hash,
@@ -39,25 +46,29 @@ NotificationParser.prototype.parse = function(notification_details) {
     client_resource_id: notification_details.client_resource_id
   };
 
-  notification.timestamp = new Date(
-    ripple.utils.time.fromRipple(transaction.date)
-  ).toISOString();
+  notification.timestamp = transaction.date ?
+    new Date(ripple.utils.time.fromRipple(transaction.date)).toISOString() : '';
 
   if (account === transaction.Account) {
     notification.direction = 'outgoing';
-  } else if (transaction.TransactionType === 'Payment' && transaction.Destination !== account) {
+  } else if (transaction.TransactionType === 'Payment'
+             && transaction.Destination !== account) {
     notification.direction = 'passthrough';
   } else {
     notification.direction = 'incoming';
   }
   if (notification.type === 'payment') {
-    notification.transaction_url = '/v1/accounts/' + notification.account + '/payments/' + (transaction.from_local_db ? notification.client_resource_id : notification.hash);
+    notification.transaction_url = '/v1/accounts/' + notification.account
+      + '/payments/' + (transaction.from_local_db
+        ? notification.client_resource_id : notification.hash);
   } else {
     notification.transaction_url = '/v1/transactions/' + notification.hash;
   }
-  if (notification.type === 'offercreate' || notification.type === 'offercancel') {
+  if (notification.type === 'offercreate'
+      || notification.type === 'offercancel') {
     notification.type = 'order';
-    notification.transaction_url = '/v1/accounts/' + notification.account + '/orders/' + notification.hash;
+    notification.transaction_url = '/v1/accounts/' + notification.account
+                                 + '/orders/' + notification.hash;
   } else if (notification.type === 'trustset') {
     notification.type = 'trustline';
   } else if (notification.type === 'accountset') {
@@ -80,4 +91,3 @@ NotificationParser.prototype.parse = function(notification_details) {
 };
 
 module.exports = new NotificationParser();
-

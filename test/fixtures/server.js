@@ -1,4 +1,4 @@
-var utils   = require('./../../lib/utils.js');
+var utils   = require('./../../api/lib/utils.js');
 var pJson  = require('./../../package.json');
 
 module.exports.serverInfoResponse = function(request) {
