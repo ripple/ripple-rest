@@ -1,99 +1,137 @@
 'use strict';
 var _ = require('lodash');
-var errors = require('./errors.js');
+var InvalidRequestError = require('./errors.js').InvalidRequestError;
 var validator = require('./schema-validator');
 var ripple = require('ripple-lib');
 var utils = require('./utils');
 
-function addOptionalOption(validatorFunction) {
-  return function(parameter, optional) {
-    if (optional && parameter === undefined) {
-      return null;
-    }
-    return validatorFunction(parameter);
-  };
+function isValidBoolString(boolString) {
+  return (boolString === 'true' || boolString === false);
 }
 
-function validateAccount(account) {
-  if (!ripple.UInt160.is_valid(account)) {
-    return new errors.InvalidRequestError(
-      'Parameter is not a valid Ripple address: account');
+function error(text) {
+  return new InvalidRequestError(text);
+}
+
+function invalid(type, value) {
+  return error('Not a valid ' + type + ': ' + value.toString());
+}
+
+function missing(name) {
+  return error('Missing parameter: ' + name);
+}
+
+function validateAddress(address) {
+  if (!ripple.UInt160.is_valid(address)) {
+    throw error('Parameter is not a valid Ripple address: account');
+    // TODO: thow invalid('Ripple address', address);
   }
-  return null;
+}
+
+function validateAddressAndSecret(obj) {
+  var address = obj.address;
+  var secret = obj.secret;
+  if (!address) {
+    throw missing('address');
+  }
+  if (!secret) {
+    throw missing('secret');
+  }
+  if (secret[0] !== 's' || !ripple.UInt160.is_valid('r' + secret.slice(1))) {
+    throw invalid('Ripple secret', secret);
+  }
+  if (!ripple.Seed.from_json(secret).get_key(address)) {
+    throw error('Secret does not match specified address', secret);
+  }
 }
 
 function validateCurrency(currency) {
   if (!validator.isValid(currency, 'Currency')) {
-    return new errors.InvalidRequestError(
-      'Parameter is not a valid currency: currency');
+    throw error('Parameter is not a valid currency: currency');
+    // TODO: throw invalid('currency', currency);
   }
-  return null;
 }
 
 function validateCounterparty(counterparty) {
   if (!ripple.UInt160.is_valid(counterparty)) {
-    return new errors.InvalidRequestError(
-      'Parameter is not a valid Ripple address: counterparty');
+    throw error('Parameter is not a valid Ripple address: counterparty');
+    // TODO: throw invalid('counterparty', counterparty);
   }
-  return null;
 }
 
 function validateIssue(issue) {
-  return _.find([
-    validateCurrency(issue.currency),
-    validateCounterparty(issue.counterparty)
-  ]) || null;
+  validateCurrency(issue.currency);
+  validateCounterparty(issue.counterparty);
 }
-
 
 function validateLedger(ledger) {
   if (!(utils.isValidLedgerSequence(ledger)
         || utils.isValidLedgerHash(ledger)
         || utils.isValidLedgerWord(ledger))) {
-    return new errors.InvalidRequestError(
-      'Invalid or Missing Parameter: ledger');
+    throw error('Invalid or Missing Parameter: ledger');
+    // TODO: throw invalid('ledger', ledger);
   }
-
-  return null;
 }
 
 function validatePaging(options) {
   if (options.marker) {
-    if (!options.ledger ||
-        !(utils.isValidLedgerSequence(options.ledger)
+    if (!options.ledger) {
+      throw error('Invalid or Missing Parameter: ledger');
+      // TODO: throw missing('ledger');
+    }
+    if (!(utils.isValidLedgerSequence(options.ledger)
           || utils.isValidLedgerHash(options.ledger))) {
-      return new errors.InvalidRequestError(
-        'Invalid or Missing Parameter: ledger');
+      throw error('Invalid or Missing Parameter: ledger');
+      // TODO: throw invalid('ledger', options.ledger);
     }
   }
-  return null;
 }
 
 function validateLimit(limit) {
   if (!(limit === 'all' || !_.isNaN(Number(limit)))) {
-    return new errors.InvalidRequestError(
-      'Invalid or Missing Parameter: limit');
+    throw error('Invalid or Missing Parameter: limit');
+    // TODO: throw invalid('limit', limit);
   }
-  return null;
 }
 
-
-function fail(results, callback) {
-  var error = _.find(results);
-  if (error) {
-    callback(error);
-    return true;
+function validateTrustline(trustline) {
+  var errs = validator.validate(trustline, 'Trustline').err;
+  if (errs.length > 0) {
+    throw invalid('trustline', errs[0]);
   }
-  return false;
 }
 
-module.exports = {
-  account: addOptionalOption(validateAccount),
-  currency: addOptionalOption(validateCurrency),
-  counterparty: addOptionalOption(validateCounterparty),
-  issue: addOptionalOption(validateIssue),
-  ledger: addOptionalOption(validateLedger),
-  limit: addOptionalOption(validateLimit),
-  paging: addOptionalOption(validatePaging),
-  fail: fail
-};
+function validateValidated(validated) {
+  if (!isValidBoolString(validated)) {
+    throw error('validated must be "true" or "false", not', validated);
+  }
+}
+
+function createValidators(validatorMap) {
+  var result = {};
+  _.forEach(validatorMap, function(validateFunction, key) {
+    result[key] = function(value, optional) {
+      if (value === undefined || value === null) {
+        if (!optional) {
+          throw missing(key);
+        }
+      } else {
+        validateFunction(value);
+      }
+    };
+  });
+  return result;
+}
+
+module.exports = createValidators({
+  address: validateAddress,
+  addressAndSecret: validateAddressAndSecret,
+  currency: validateCurrency,
+  counterparty: validateCounterparty,
+  issue: validateIssue,
+  ledger: validateLedger,
+  limit: validateLimit,
+  paging: validatePaging,
+  trustline: validateTrustline,
+  validated: validateValidated
+});
