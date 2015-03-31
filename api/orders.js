@@ -43,14 +43,10 @@ var DefaultPageLimit = 200;
 function getOrders(account, options, callback) {
   var self = this;
 
-  if (validate.fail([
-    validate.account(account),
-    validate.ledger(options.ledger, true),
-    validate.limit(options.limit, true),
-    validate.paging(options, true)
-  ], callback)) {
-    return;
-  }
+  validate.address(account);
+  validate.ledger(options.ledger, true);
+  validate.limit(options.limit, true);
+  validate.paging(options, true);
 
   function getAccountOrders(prevResult) {
     var isAggregate = options.limit === 'all';
@@ -116,7 +112,7 @@ function getOrders(account, options, callback) {
   }
 
   function respondWithOrders(result) {
-    var promise = new Promise(function (resolve) {
+    var promise = new Promise(function(resolve) {
       var orders = {};
 
       if (result.marker) {
@@ -398,7 +394,7 @@ function getOrderBook(account, base, counter, options, callback) {
   }
 
   function getLastValidatedLedger(parameters) {
-    var promise = new Promise(function (resolve, reject) {
+    var promise = new Promise(function(resolve, reject) {
       var ledgerRequest = self.remote.requestLedger('validated');
 
       ledgerRequest.once('success', function(res) {
@@ -414,7 +410,7 @@ function getOrderBook(account, base, counter, options, callback) {
   }
 
   function getBookOffers(taker_gets, taker_pays, parameters) {
-    var promise = new Promise(function (resolve, reject) {
+    var promise = new Promise(function(resolve, reject) {
       var bookOffersRequest = self.remote.requestBookOffers({
         taker_gets: {currency: taker_gets.currency,
                      issuer: taker_gets.counterparty},
@@ -465,7 +461,7 @@ function getOrderBook(account, base, counter, options, callback) {
 
       // Transaction Flags
       var passive = (off.Flags & ripple.Remote.flags.offer.Passive) !== 0;
-      var sell = (off.Flags & ripple.Remote.flags.offer.Sell) !==0;
+      var sell = (off.Flags & ripple.Remote.flags.offer.Sell) !== 0;
 
       var taker_gets_total = utils.parseCurrencyAmount(off.TakerGets);
       var taker_gets_funded = off.taker_gets_funded ?
@@ -510,7 +506,7 @@ function getOrderBook(account, base, counter, options, callback) {
   }
 
   function respondWithOrderBook(bids, asks, parameters) {
-    var promise = new Promise(function (resolve) {
+    var promise = new Promise(function(resolve) {
       var orderBook = {
         order_book: parameters.order_book,
         ledger: parameters.ledger,

@@ -30,16 +30,13 @@ var DefaultPageLimit = 200;
  *
  */
 function getBalances(account, options, callback) {
-  if (validate.fail([
-    validate.account(account),
-    validate.currency(options.currency, true),
-    validate.counterparty(options.counterparty, true),
-    validate.ledger(options.ledger, true),
-    validate.limit(options.limit, true),
-    validate.paging(options, true)
-  ], callback)) {
-    return;
-  }
+  validate.address(account);
+  validate.currency(options.currency, true);
+  validate.counterparty(options.counterparty, true);
+  validate.ledger(options.ledger, true);
+  validate.limit(options.limit, true);
+  validate.paging(options, true);
+
   var self = this;
 
   var currencyRE = new RegExp(options.currency ?
@@ -154,7 +151,7 @@ function getBalances(account, options, callback) {
   }
 
   function respondWithBalances(result) {
-    var promise = new Promise(function (resolve) {
+    var promise = new Promise(function(resolve) {
       var balances = {};
 
       if (result.marker) {
