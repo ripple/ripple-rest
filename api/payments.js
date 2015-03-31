@@ -1,5 +1,6 @@
 /* eslint-disable valid-jsdoc */
 'use strict';
+
 var _ = require('lodash');
 var async = require('async');
 var bignum = require('bignumber.js');
@@ -373,10 +374,10 @@ function getPayment(account, identifier, callback) {
         'transaction hash or client_resource_id to get payment details';
     }
     if (!validator.isValid(identifier, 'Hash256') &&
-      !validator.isValid(identifier, 'ResourceId')) {
+        !validator.isValid(identifier, 'ResourceId')) {
       invalid = 'Invalid Parameter: hash or client_resource_id. Must '
-        + 'provide a transaction hash or client_resource_id to get payment '
-        + 'details';
+      + 'provide a transaction hash or client_resource_id to get payment '
+      + 'details';
     }
     if (invalid) {
       _callback(new InvalidRequestError(invalid));
@@ -388,7 +389,7 @@ function getPayment(account, identifier, callback) {
   // If the transaction was not in the outgoing_transactions db,
   // get it from rippled
   function getTransaction(_callback) {
-    transactions.getTransaction(self, account, identifier,
+    transactions.getTransaction(self, account, identifier, {},
         function(error, transaction) {
       _callback(error, transaction);
     });

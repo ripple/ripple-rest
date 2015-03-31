@@ -178,7 +178,7 @@ function getNotificationHelper(api, account, identifier, topCallback) {
   }
 
   function getTransaction(callback) {
-    transactions.getTransaction(api, account, identifier, callback);
+    transactions.getTransaction(api, account, identifier, {}, callback);
   }
 
   function checkLedger(baseTransaction, callback) {
