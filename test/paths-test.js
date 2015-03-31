@@ -1,29 +1,30 @@
+/* eslint-disable new-cap */
+/* eslint-disable max-len */
+'use strict';
+
 var assert = require('assert');
-var ripple = require('ripple-lib');
 var _ = require('lodash');
 var testutils = require('./testutils');
 var fixtures = require('./fixtures').payments;
 var pathFixtures = require('./fixtures').paths;
 var errors = require('./fixtures').errors;
 var addresses = require('./fixtures').addresses;
-var requestPath = fixtures.requestPath;
-var Payments = require('./../api/payments');
 
 suite('get payment paths', function() {
   var self = this;
 
-  //self.wss: rippled mock
-  //self.app: supertest-enabled REST handler
+  // self.wss: rippled mock
+  // self.app: supertest-enabled REST handler
 
   setup(testutils.setup.bind(self));
   teardown(testutils.teardown.bind(self));
 
   test('/accounts/:account/payments/paths/:destination/:amount -- invalid source account', function(done) {
-    self.wss.once('request_ripple_path_find', function(message, conn) {
+    self.wss.once('request_ripple_path_find', function() {
       assert(false);
     });
 
-    self.wss.once('request_account_info', function(message, conn) {
+    self.wss.once('request_account_info', function() {
       assert(false);
     });
 
@@ -40,11 +41,11 @@ suite('get payment paths', function() {
   });
 
   test('/accounts/:account/payments/paths/:destination/:amount -- invalid destination account', function(done) {
-    self.wss.once('request_ripple_path_find', function(message, conn) {
+    self.wss.once('request_ripple_path_find', function() {
       assert(false);
     });
 
-    self.wss.once('request_account_info', function(message, conn) {
+    self.wss.once('request_account_info', function() {
       assert(false);
     });
 
@@ -61,11 +62,11 @@ suite('get payment paths', function() {
   });
 
   test('/accounts/:account/payments/paths/:destination/:amount -- missing destination currency', function(done) {
-    self.wss.once('request_ripple_path_find', function(message, conn) {
+    self.wss.once('request_ripple_path_find', function() {
       assert(false);
     });
 
-    self.wss.once('request_account_info', function(message, conn) {
+    self.wss.once('request_account_info', function() {
       assert(false);
     });
 
@@ -76,17 +77,17 @@ suite('get payment paths', function() {
     .expect(testutils.checkBody(errors.RESTErrorResponse({
       type: 'invalid_request',
       error: 'restINVALID_PARAMETER',
-      message: 'Invalid parameter: destination_amount. Must be an amount string in the form value+currency+counterparty'
+      message: 'Invalid parameter: destination_amount. Must be an amount string in the form value+currency+issuer'
     })))
     .end(done);
   });
 
   test('/accounts/:account/payments/paths/:destination/:amount -- invalid destination currency format', function(done) {
-    self.wss.once('request_ripple_path_find', function(message, conn) {
+    self.wss.once('request_ripple_path_find', function() {
       assert(false);
     });
 
-    self.wss.once('request_account_info', function(message, conn) {
+    self.wss.once('request_account_info', function() {
       assert(false);
     });
 
@@ -97,17 +98,17 @@ suite('get payment paths', function() {
     .expect(testutils.checkBody(errors.RESTErrorResponse({
       type: 'invalid_request',
       error: 'restINVALID_PARAMETER',
-      message: 'Invalid parameter: destination_amount. Must be an amount string in the form value+currency+counterparty'
+      message: 'Invalid parameter: destination_amount. Must be an amount string in the form value+currency+issuer'
     })))
     .end(done);
   });
 
-  test('/accounts/:account/payments/paths/:destination/:amount -- invalid destination currency counterparty', function(done) {
-    self.wss.once('request_ripple_path_find', function(message, conn) {
+  test('/accounts/:account/payments/paths/:destination/:amount -- invalid destination currency issuer', function(done) {
+    self.wss.once('request_ripple_path_find', function() {
       assert(false);
     });
 
-    self.wss.once('request_account_info', function(message, conn) {
+    self.wss.once('request_account_info', function() {
       assert(false);
     });
 
@@ -118,17 +119,17 @@ suite('get payment paths', function() {
     .expect(testutils.checkBody(errors.RESTErrorResponse({
       type: 'invalid_request',
       error: 'restINVALID_PARAMETER',
-      message: 'Invalid parameter: destination_amount. Must be an amount string in the form value+currency+counterparty'
+      message: 'Invalid parameter: destination_amount. Must be an amount string in the form value+currency+issuer'
     })))
     .end(done);
   });
 
-  test('/accounts/:account/payments/paths/:destination/:amount -- invalid IOU source currency without counterparty', function(done) {
-    self.wss.once('request_ripple_path_find', function(message, conn) {
+  test('/accounts/:account/payments/paths/:destination/:amount -- invalid IOU source currency without issuer', function(done) {
+    self.wss.once('request_ripple_path_find', function() {
       assert(false);
     });
 
-    self.wss.once('request_account_info', function(message, conn) {
+    self.wss.once('request_account_info', function() {
       assert(false);
     });
 
@@ -144,12 +145,12 @@ suite('get payment paths', function() {
     .end(done);
   });
 
-  test('/accounts/:account/payments/paths/:destination/:amount -- valid IOU source currency with invalid counterparty', function(done) {
-    self.wss.once('request_ripple_path_find', function(message, conn) {
+  test('/accounts/:account/payments/paths/:destination/:amount -- valid IOU source currency with invalid issuer', function(done) {
+    self.wss.once('request_ripple_path_find', function() {
       assert(false);
     });
 
-    self.wss.once('request_account_info', function(message, conn) {
+    self.wss.once('request_account_info', function() {
       assert(false);
     });
 
@@ -165,16 +166,16 @@ suite('get payment paths', function() {
     .end(done);
   });
 
-  test('/accounts/:account/payments/paths/:destination/:amount -- valid IOU source currency with valid counterparty', function(done) {
+  test('/accounts/:account/payments/paths/:destination/:amount -- valid IOU source currency with valid issuer', function(done) {
     self.wss.once('request_ripple_path_find', function(message, conn) {
       assert.strictEqual(message.command, 'ripple_path_find');
       assert.strictEqual(message.source_account, addresses.VALID);
       assert.strictEqual(message.destination_account, addresses.VALID);
       assert.strictEqual(message.source_currencies.length, 1);
-      assert.deepEqual(message.source_currencies[0], { 
+      assert.deepEqual(message.source_currencies[0], {
         issuer: 'r3GgMwvgvP8h4yVWvjH1dPZNvC37TjzBBE',
-        currency: '0000000000000000000000005553440000000000' 
-      })
+        currency: '0000000000000000000000005553440000000000'
+      });
 
       conn.send(pathFixtures.generateXRPPaymentPaths(message.id, message.source_account, message.destination_account, message.destination_amount));
     });
@@ -192,19 +193,19 @@ suite('get payment paths', function() {
     .end(done);
   });
 
-  test('/accounts/:account/payments/paths/:destination/:amount -- multiple valid IOU source currencies with valid counterparty', function(done) {
+  test('/accounts/:account/payments/paths/:destination/:amount -- multiple valid IOU source currencies with valid issuer', function(done) {
     self.wss.once('request_ripple_path_find', function(message, conn) {
       assert.strictEqual(message.command, 'ripple_path_find');
       assert.strictEqual(message.source_account, addresses.VALID);
       assert.strictEqual(message.destination_account, addresses.VALID);
       assert.strictEqual(message.source_currencies.length, 2);
-      assert.deepEqual(message.source_currencies[0], { 
+      assert.deepEqual(message.source_currencies[0], {
         issuer: 'r3GgMwvgvP8h4yVWvjH1dPZNvC37TjzBBE',
-        currency: '0000000000000000000000005553440000000000' 
+        currency: '0000000000000000000000005553440000000000'
       });
-      assert.deepEqual(message.source_currencies[1], { 
+      assert.deepEqual(message.source_currencies[1], {
         issuer: 'r3GgMwvgvP8h4yVWvjH1dPZNvC37TjzBBE',
-        currency: '0000000000000000000000004944520000000000' 
+        currency: '0000000000000000000000004944520000000000'
       });
 
       conn.send(pathFixtures.generateXRPPaymentPaths(message.id, message.source_account, message.destination_account, message.destination_amount));
@@ -224,11 +225,11 @@ suite('get payment paths', function() {
   });
 
   test('/accounts/:account/payments/paths/:destination/:amount -- mutliple source currencies with invalid last source currency', function(done) {
-    self.wss.once('request_ripple_path_find', function(message, conn) {
+    self.wss.once('request_ripple_path_find', function() {
       assert(false);
     });
 
-    self.wss.once('request_account_info', function(message, conn) {
+    self.wss.once('request_account_info', function() {
       assert(false);
     });
 
@@ -244,12 +245,12 @@ suite('get payment paths', function() {
     .end(done);
   });
 
-  test('/accounts/:account/payments/paths/:destination/:amount -- multiple source currencies with invalid last source currency counterparty', function(done) {
-    self.wss.once('request_ripple_path_find', function(message, conn) {
+  test('/accounts/:account/payments/paths/:destination/:amount -- multiple source currencies with invalid last source currency issuer', function(done) {
+    self.wss.once('request_ripple_path_find', function() {
       assert(false);
     });
 
-    self.wss.once('request_account_info', function(message, conn) {
+    self.wss.once('request_account_info', function() {
       assert(false);
     });
 
@@ -265,7 +266,7 @@ suite('get payment paths', function() {
     .end(done);
   });
 
-  test('/accounts/:account/payments/paths/:destination/:amount -- XRP source amount response has source account, destination account, and destination amount counterparty correctly set', function(done) {
+  test('/accounts/:account/payments/paths/:destination/:amount -- XRP source amount response has source account, destination account, and destination amount issuer correctly set', function(done) {
     self.wss.once('request_ripple_path_find', function(message, conn) {
       assert.strictEqual(message.command, 'ripple_path_find');
       assert.strictEqual(message.source_account, addresses.VALID);
@@ -284,12 +285,14 @@ suite('get payment paths', function() {
     .expect(testutils.checkStatus(200))
     .expect(testutils.checkHeaders)
     .end(function(err, res) {
-      if (err) return done(err);
+      if (err) {
+        return done(err);
+      }
 
       _.each(res.body.payments, function(paymentObj) {
         assert.strictEqual(paymentObj.source_account, addresses.VALID);
         assert.strictEqual(paymentObj.destination_account, addresses.VALID);
-        assert.strictEqual(paymentObj.destination_amount.counterparty, '');
+        assert.strictEqual(paymentObj.destination_amount.issuer, '');
       });
 
       done();
@@ -317,19 +320,21 @@ suite('get payment paths', function() {
       .expect(testutils.checkStatus(200))
       .expect(testutils.checkHeaders)
       .end(function(err, res) {
-        if (err) return done(err);
+        if (err) {
+          return done(err);
+        }
 
         _.each(res.body.payments, function(paymentObj) {
           assert.strictEqual(paymentObj.source_account, addresses.VALID);
           assert.strictEqual(paymentObj.destination_account, addresses.VALID);
-          assert.strictEqual(paymentObj.destination_amount.counterparty, addresses.VALID);
+          assert.strictEqual(paymentObj.destination_amount.issuer, addresses.VALID);
         });
 
         done();
       });
   });
 
-  test('/accounts/:account/payments/paths/:destination/:amount -- IOU destination amount response has source amount counterparty set to alternative\'s source amount counterparty but defaults to source account for all non-XRP source amounts', function(done) {
+  test('/accounts/:account/payments/paths/:destination/:amount -- IOU destination amount response has source amount issuer set to alternative\'s source amount issuer but defaults to source account for all non-XRP source amounts', function(done) {
     self.wss.once('request_ripple_path_find', function(message, conn) {
       assert.strictEqual(message.command, 'ripple_path_find');
       assert.strictEqual(message.source_account, addresses.COUNTERPARTY);
@@ -348,11 +353,13 @@ suite('get payment paths', function() {
     .expect(testutils.checkStatus(200))
     .expect(testutils.checkHeaders)
     .end(function(err, res) {
-      if (err) return done(err);
+      if (err) {
+        return done(err);
+      }
 
-      assert.strictEqual(res.body.payments[0].source_amount.counterparty, '');
-      assert.strictEqual(res.body.payments[1].source_amount.counterparty, addresses.VALID);
-      assert.strictEqual(res.body.payments[2].source_amount.counterparty, '');
+      assert.strictEqual(res.body.payments[0].source_amount.issuer, '');
+      assert.strictEqual(res.body.payments[1].source_amount.issuer, addresses.VALID);
+      assert.strictEqual(res.body.payments[2].source_amount.issuer, '');
 
       _.each(res.body.payments, function(paymentObj) {
         assert.strictEqual(paymentObj.source_account, addresses.COUNTERPARTY);
@@ -363,12 +370,14 @@ suite('get payment paths', function() {
     });
   });
 
-  test('/accounts/:account/payments/paths/:destination/:amount -- IOU destination amount has source account, destination account, and destination amount counterparty correctly set', function(done) {
+  test('/accounts/:account/payments/paths/:destination/:amount -- IOU destination amount has source account, destination account, and destination amount issuer correctly set', function(done) {
     self.wss.once('request_ripple_path_find', function(message, conn) {
       assert.strictEqual(message.command, 'ripple_path_find');
       assert.strictEqual(message.source_account, addresses.VALID);
       assert.strictEqual(message.destination_account, addresses.VALID);
-      conn.send(pathFixtures.generateIOUPaymentPaths(message.id, message.source_account, message.destination_account, message.destination_amount));
+      conn.send(pathFixtures.generateIOUPaymentPaths(
+        message.id, message.source_account, message.destination_account,
+        message.destination_amount));
     });
 
     self.app
@@ -376,12 +385,14 @@ suite('get payment paths', function() {
     .expect(testutils.checkStatus(200))
     .expect(testutils.checkHeaders)
     .end(function(err, res) {
-      if (err) return done(err);
+      if (err) {
+        return done(err);
+      }
 
       _.each(res.body.payments, function(paymentObj) {
         assert.strictEqual(paymentObj.source_account, addresses.VALID);
         assert.strictEqual(paymentObj.destination_account, addresses.VALID);
-        assert.strictEqual(paymentObj.destination_amount.counterparty, addresses.ISSUER);
+        assert.strictEqual(paymentObj.destination_amount.issuer, addresses.ISSUER);
       });
 
       done();
@@ -401,10 +412,12 @@ suite('get payment paths', function() {
     .expect(testutils.checkStatus(200))
     .expect(testutils.checkHeaders)
     .end(function(err, res) {
-      if (err) return done(err);
+      if (err) {
+        return done(err);
+      }
 
       _.each(res.body.payments, function(paymentObj) {
-        assert.strictEqual(paymentObj.destination_amount.counterparty, addresses.VALID);
+        assert.strictEqual(paymentObj.destination_amount.issuer, addresses.VALID);
       });
 
       done();

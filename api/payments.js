@@ -180,18 +180,18 @@ function submitPayment(account, payment, clientResourceID, secret,
           'Invalid parameter: source_amount. Must be a valid Amount object'));
     }
 
-    // No counterparty for XRP
+    // No issuer for XRP
     if (payment.destination_amount
         && payment.destination_amount.currency.toUpperCase() === 'XRP'
-        && payment.destination_amount.counterparty) {
+        && payment.destination_amount.issuer) {
       return _callback(new InvalidRequestError(
-        'Invalid parameter: destination_amount. XRP cannot have counterparty'));
+        'Invalid parameter: destination_amount. XRP cannot have issuer'));
     }
     if (payment.source_amount
         && payment.source_amount.currency.toUpperCase() === 'XRP'
-        && payment.source_amount.counterparty) {
+        && payment.source_amount.issuer) {
       return _callback(new InvalidRequestError(
-        'Invalid parameter: source_amount. XRP cannot have counterparty'));
+        'Invalid parameter: source_amount. XRP cannot have issuer'));
     }
 
     // Slippage
@@ -374,7 +374,7 @@ function getPayment(account, identifier, callback) {
     }
     if (!validator.isValid(identifier, 'Hash256') &&
       !validator.isValid(identifier, 'ResourceId')) {
-        invalid = 'Invalid Parameter: hash or client_resource_id. Must '
+      invalid = 'Invalid Parameter: hash or client_resource_id. Must '
         + 'provide a transaction hash or client_resource_id to get payment '
         + 'details';
     }
@@ -397,7 +397,7 @@ function getPayment(account, identifier, callback) {
   var steps = [
     validateOptions,
     getTransaction,
-    function (transaction, _callback) {
+    function(transaction, _callback) {
       return formatPaymentHelper(account, transaction, _callback);
     }
   ];
@@ -487,7 +487,7 @@ function getAccountPayments(account, source_account, destination_account,
       return _callback(null);
     }
     async.map(_transactions,
-      function (transaction, async_map_callback) {
+      function(transaction, async_map_callback) {
         return formatPaymentHelper(account, transaction, async_map_callback);
       },
       _callback
@@ -576,11 +576,13 @@ function getPathFind(source_account, destination_account,
   // Parse destination amount
   if (!destination_amount_string) {
     callback(new InvalidRequestError('Missing parameter: destination_amount. '
-      + 'Must be an amount string in the form value+currency+counterparty'));
+      + 'Must be an amount string in the form value+currency+issuer'));
     return;
   }
 
-  var destination_amount = utils.parseCurrencyQuery(destination_amount_string);
+  var _destination_amount = utils.parseCurrencyQuery(destination_amount_string);
+  var destination_amount = _.omit(_destination_amount, 'counterparty');
+  destination_amount.issuer = _destination_amount.counterparty;
 
   if (!ripple.UInt160.is_valid(source_account)) {
     callback(new InvalidRequestError(
@@ -596,14 +598,14 @@ function getPathFind(source_account, destination_account,
 
   if (!validator.isValid(destination_amount, 'Amount')) {
     callback(new InvalidRequestError('Invalid parameter: destination_amount. '
-      + 'Must be an amount string in the form value+currency+counterparty'));
+      + 'Must be an amount string in the form value+currency+issuer'));
     return;
   }
 
   var source_currencies = [];
   // Parse source currencies
   // Note that the source_currencies should be in the form
-  // "USD r...,BTC,XRP". The counterparty is optional but if provided should be
+  // "USD r...,BTC,XRP". The issuer is optional but if provided should be
   // separated from the currency by a single space.
   if (source_currency_strings) {
     var sourceCurrencyStrings = source_currency_strings.split(',');
@@ -613,10 +615,10 @@ function getPathFind(source_account, destination_account,
                                                         /(^[ ])|([ ]$)/g, '');
       // If there is a space, there should be a valid issuer after the space
       if (/ /.test(sourceCurrencyStrings[c])) {
-        var currencyCounterpartyArray = sourceCurrencyStrings[c].split(' ');
+        var currencyIssuerArray = sourceCurrencyStrings[c].split(' ');
         var currencyObject = {
-          currency: currencyCounterpartyArray[0],
-          issuer: currencyCounterpartyArray[1]
+          currency: currencyIssuerArray[0],
+          issuer: currencyIssuerArray[1]
         };
         if (validator.isValid(currencyObject.currency, 'Currency')
             && ripple.UInt160.is_valid(currencyObject.issuer)) {
@@ -627,7 +629,7 @@ function getPathFind(source_account, destination_account,
           return;
         }
       } else if (validator.isValid(sourceCurrencyStrings[c], 'Currency')) {
-          source_currencies.push({currency: sourceCurrencyStrings[c]});
+        source_currencies.push({currency: sourceCurrencyStrings[c]});
       } else {
         callback(new InvalidRequestError('Invalid parameter: '
           + 'source_currencies. Must be a list of valid currencies'));

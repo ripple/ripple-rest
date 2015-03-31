@@ -1,6 +1,7 @@
 /* eslint-disable new-cap */
 /* eslint-disable max-len */
 'use strict';
+
 var assert = require('assert');
 var ripple = require('ripple-lib');
 var testutils = require('./testutils');
@@ -341,7 +342,7 @@ suite('post orders', function() {
         hash: hash
       }));
 
-      process.nextTick(function () {
+      process.nextTick(function() {
         conn.send(fixtures.submitTransactionVerifiedResponse({
           hash: hash
         }));
@@ -462,7 +463,7 @@ suite('post orders', function() {
       conn.send(fixtures.accountInfoResponse(message));
     });
 
-    self.wss.once('request_submit', function (message, conn) {
+    self.wss.once('request_submit', function(message, conn) {
       var so = new ripple.SerializedObject(message.tx_blob).to_json();
       assert.strictEqual(so.TakerGets.value, VALUE);
       assert.strictEqual(so.TakerGets.currency, HEX_CURRENCY);
@@ -516,7 +517,7 @@ suite('post orders', function() {
       conn.send(fixtures.accountInfoResponse(message));
     });
 
-    self.wss.once('request_submit', function (message, conn) {
+    self.wss.once('request_submit', function(message, conn) {
       var so = new ripple.SerializedObject(message.tx_blob).to_json();
       assert.strictEqual(so.TakerPays.value, VALUE);
       assert.strictEqual(so.TakerPays.currency, HEX_CURRENCY);
@@ -1617,7 +1618,6 @@ suite('get order book', function() {
   });
 
   test('v1/accounts/:account/order_book/:base/:counter -- with XRP as base', function(done) {
-
     self.wss.on('request_ledger', function(message, conn) {
       assert.strictEqual(message.ledger_index, 'validated');
       conn.send(fixtures.requestLedgerResponse(message, {

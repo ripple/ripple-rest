@@ -20,25 +20,25 @@ function RestToTxConverter() {}
  */
 RestToTxConverter.prototype.convert = function(payment, callback) {
   try {
-    // Convert blank counterparty to sender's address
-    //   (Ripple convention for 'any counterparty')
+    // Convert blank issuer to sender's address
+    //   (Ripple convention for 'any issuer')
     // https://ripple.com/build/transactions/
     //    #special-issuer-values-for-sendmax-and-amount
     // https://ripple.com/build/ripple-rest/#counterparties-in-payments
     if (payment.source_amount && payment.source_amount.currency !== 'XRP'
-        && payment.source_amount.counterparty === '') {
-      payment.source_amount.counterparty = payment.source_account;
+        && payment.source_amount.issuer === '') {
+      payment.source_amount.issuer = payment.source_account;
     }
 
-    // Convert blank counterparty to destinations's address
-    //   (Ripple convention for 'any counterparty')
+    // Convert blank issuer to destinations's address
+    //   (Ripple convention for 'any issuer')
     // https://ripple.com/build/transactions/
     //    #special-issuer-values-for-sendmax-and-amount
     // https://ripple.com/build/ripple-rest/#counterparties-in-payments
     if (payment.destination_amount
         && payment.destination_amount.currency !== 'XRP'
-        && payment.destination_amount.counterparty === '') {
-      payment.destination_amount.counterparty = payment.destination_account;
+        && payment.destination_amount.issuer === '') {
+      payment.destination_amount.issuer = payment.destination_account;
     }
     // Uppercase currency codes
     if (payment.source_amount) {
@@ -75,8 +75,8 @@ RestToTxConverter.prototype.convert = function(payment, callback) {
       // Only set send max if source and destination currencies are different
       if (!(payment.source_amount.currency
             === payment.destination_amount.currency
-            && payment.source_amount.counterparty
-            === payment.destination_amount.counterparty)) {
+            && payment.source_amount.issuer
+            === payment.destination_amount.issuer)) {
         var max_value = bignum(payment.source_amount.value)
                         .plus(payment.source_slippage || 0).toString();
         if (payment.source_amount.currency === 'XRP') {
@@ -85,7 +85,7 @@ RestToTxConverter.prototype.convert = function(payment, callback) {
           transaction.sendMax({
             value: max_value,
             currency: payment.source_amount.currency,
-            issuer: payment.source_amount.counterparty
+            issuer: payment.source_amount.issuer
           });
         }
       }

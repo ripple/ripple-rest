@@ -312,7 +312,7 @@ Example error:
     "success": false,
     "error_type": "invalid_request",
     "error": "Invalid parameter: destination_amount",
-    "message": "Non-XRP payment must have a counterparty"
+    "message": "Non-XRP payment must have an issuer"
 }
 ```
 
@@ -407,7 +407,7 @@ An example Payment object looks like this:
     "source_amount": {
         "value": "0.001",
         "currency": "XRP",
-        "counterparty": ""
+        "issuer": ""
     },
     "source_slippage": "0",
     "destination_address": "rNw4ozCG514KEjPs5cDrqEcdsi31Jtfm5r",
@@ -415,7 +415,7 @@ An example Payment object looks like this:
     "destination_amount": {
         "value": "0.001",
         "currency": "XRP",
-        "counterparty": ""
+        "issuer": ""
     },
     "invoice_id": "",
     "paths": "[]",
@@ -891,7 +891,7 @@ You can then choose one of the returned payment objects, modify it as desired (f
       "source_amount": {
         "value": "1.008413509923106",
         "currency": "USD",
-        "counterparty": ""
+        "issuer": ""
       },
       "source_slippage": "0",
       "destination_account": "rN7n7otQDd6FczFgLdSqtcsAUxDkw6fzRH",
@@ -899,7 +899,7 @@ You can then choose one of the returned payment objects, modify it as desired (f
       "destination_amount": {
         "value": "1",
         "currency": "USD",
-        "counterparty": "rMwjYedjc7qqtKYVLiAccJSmCwih4LnE2q"
+        "issuer": "rMwjYedjc7qqtKYVLiAccJSmCwih4LnE2q"
       },
       "invoice_id": "",
       "paths": "[[{\"account\":\"rvYAfWj5gh67oV6fW32ZzP3Aw4Eubs59B\",\"type\":1,\"type_hex\":\"0000000000000001\"},{\"currency\":\"USD\",\"issuer\":\"rMwjYedjc7qqtKYVLiAccJSmCwih4LnE2q\",\"type\":48,\"type_hex\":\"0000000000000030\"},{\"account\":\"rMwjYedjc7qqtKYVLiAccJSmCwih4LnE2q\",\"type\":1,\"type_hex\":\"0000000000000001\"}],[{\"account\":\"rvYAfWj5gh67oV6fW32ZzP3Aw4Eubs59B\",\"type\":1,\"type_hex\":\"0000000000000001\"},{\"currency\":\"XRP\",\"type\":16,\"type_hex\":\"0000000000000010\"},{\"currency\":\"USD\",\"issuer\":\"rMwjYedjc7qqtKYVLiAccJSmCwih4LnE2q\",\"type\":48,\"type_hex\":\"0000000000000030\"},{\"account\":\"rMwjYedjc7qqtKYVLiAccJSmCwih4LnE2q\",\"type\":1,\"type_hex\":\"0000000000000001\"}]]",
@@ -912,7 +912,7 @@ You can then choose one of the returned payment objects, modify it as desired (f
       "source_amount": {
         "value": "61.06103",
         "currency": "XRP",
-        "counterparty": ""
+        "issuer": ""
       },
       "source_slippage": "0",
       "destination_account": "rN7n7otQDd6FczFgLdSqtcsAUxDkw6fzRH",
@@ -920,7 +920,7 @@ You can then choose one of the returned payment objects, modify it as desired (f
       "destination_amount": {
         "value": "1",
         "currency": "USD",
-        "counterparty": "rMwjYedjc7qqtKYVLiAccJSmCwih4LnE2q"
+        "issuer": "rMwjYedjc7qqtKYVLiAccJSmCwih4LnE2q"
       },
       "invoice_id": "",
       "paths": "[[{\"currency\":\"USD\",\"issuer\":\"rMwjYedjc7qqtKYVLiAccJSmCwih4LnE2q\",\"type\":48,\"type_hex\":\"0000000000000030\"},{\"account\":\"rMwjYedjc7qqtKYVLiAccJSmCwih4LnE2q\",\"type\":1,\"type_hex\":\"0000000000000001\"}],[{\"currency\":\"USD\",\"issuer\":\"rpDMez6pm6dBve2TJsmDpv7Yae6V5Pyvy2\",\"type\":48,\"type_hex\":\"0000000000000030\"},{\"account\":\"rpDMez6pm6dBve2TJsmDpv7Yae6V5Pyvy2\",\"type\":1,\"type_hex\":\"0000000000000001\"},{\"account\":\"rHAwwozJw6FHfnJfRQaFXrkGHocGoaNYSy\",\"type\":1,\"type_hex\":\"0000000000000001\"},{\"account\":\"rMwjYedjc7qqtKYVLiAccJSmCwih4LnE2q\",\"type\":1,\"type_hex\":\"0000000000000001\"}],[{\"currency\":\"USD\",\"issuer\":\"rsP3mgGb2tcYUrxiLFiHJiQXhsziegtwBc\",\"type\":48,\"type_hex\":\"0000000000000030\"},{\"account\":\"rsP3mgGb2tcYUrxiLFiHJiQXhsziegtwBc\",\"type\":1,\"type_hex\":\"0000000000000001\"},{\"account\":\"rEtr3Kzh5MmhPbeNu6PDtQZsKBpgFEEEo5\",\"type\":1,\"type_hex\":\"0000000000000001\"},{\"account\":\"rMwjYedjc7qqtKYVLiAccJSmCwih4LnE2q\",\"type\":1,\"type_hex\":\"0000000000000001\"}],[{\"currency\":\"USD\",\"issuer\":\"rsP3mgGb2tcYUrxiLFiHJiQXhsziegtwBc\",\"type\":48,\"type_hex\":\"0000000000000030\"},{\"account\":\"rsP3mgGb2tcYUrxiLFiHJiQXhsziegtwBc\",\"type\":1,\"type_hex\":\"0000000000000001\"},{\"account\":\"rKvPTQrD8ap1Y8TSmKjcK6G7q7Kvx7RAqQ\",\"type\":1,\"type_hex\":\"0000000000000001\"},{\"account\":\"rMwjYedjc7qqtKYVLiAccJSmCwih4LnE2q\",\"type\":1,\"type_hex\":\"0000000000000001\"}]]",
@@ -961,7 +961,7 @@ POST /v1/accounts/{address}/payments?validated=true
     "source_amount": {
       "value": "5.01",
       "currency": "USD",
-      "counterparty": ""
+      "issuer": ""
     },
     "source_slippage": "0",
     "destination_account": "r9cZA1mLK5R5Am25ArfXFmqgNwjZgnfk59",
@@ -969,7 +969,7 @@ POST /v1/accounts/{address}/payments?validated=true
     "destination_amount": {
       "value": "5",
       "currency": "USD",
-      "counterparty": ""
+      "issuer": ""
     },
     "invoice_id": "",
     "paths": "[[{\"account\":\"rvYAfWj5gh67oV6fW32ZzP3Aw4Eubs59B\",\"type\":1,\"type_hex\":\"0000000000000001\"}]]",
@@ -1070,7 +1070,7 @@ The following URL parameters are required by this API endpoint:
     "source_amount": {
       "value": "0.00001",
       "currency": "XRP",
-      "counterparty": ""
+      "issuer": ""
     },
     "source_slippage": "0",
     "destination_account": "ra5nK24KXen9AHvsdFTKHSANinZseWnPcX",
@@ -1078,7 +1078,7 @@ The following URL parameters are required by this API endpoint:
     "destination_amount": {
       "value": "0.00000005080000000000001",
       "currency": "USD",
-      "counterparty": "rsP3mgGb2tcYUrxiLFiHJiQXhsziegtwBc"
+      "issuer": "rsP3mgGb2tcYUrxiLFiHJiQXhsziegtwBc"
     },
     "invoice_id": "",
     "paths": "[]",
@@ -1187,7 +1187,7 @@ Optionally, you can also include the following query parameters:
       "source_amount": {
         "value": "20",
         "currency": "XRP",
-        "counterparty": ""
+        "issuer": ""
       },
       "source_slippage": "0",
       "destination_account": "raKEEVSGnKSD9Zyvxu4z6Pqpm4ABH8FS6n",
@@ -1195,7 +1195,7 @@ Optionally, you can also include the following query parameters:
       "destination_amount": {
         "value": "20",
         "currency": "XRP",
-        "counterparty": ""
+        "issuer": ""
       },
       "invoice_id": "",
       "paths": "[]",

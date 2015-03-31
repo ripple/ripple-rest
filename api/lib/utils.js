@@ -32,19 +32,28 @@ function parseLedger(ledger) {
   return 'validated';
 }
 
-function parseCurrencyAmount(rippledAmount) {
+function parseCurrencyAmount(rippledAmount, useIssuer) {
+  var amount = {};
+
   if (typeof rippledAmount === 'string') {
-    return {
-      currency: 'XRP',
-      counterparty: '',
-      value: dropsToXrp(rippledAmount)
-    };
+    amount.currency = 'XRP';
+    amount.value = dropsToXrp(rippledAmount);
+    if (useIssuer) {
+      amount.issuer = '';
+    } else {
+      amount.counterparty = '';
+    }
+  } else {
+    amount.currency = rippledAmount.currency;
+    amount.value = rippledAmount.value;
+    if (useIssuer) {
+      amount.issuer = rippledAmount.issuer;
+    } else {
+      amount.counterparty = rippledAmount.issuer;
+    }
   }
-  return {
-    currency: rippledAmount.currency,
-    counterparty: rippledAmount.issuer,
-    value: rippledAmount.value
-  };
+
+  return amount;
 }
 
 function txFromRestAmount(restAmount) {
@@ -53,7 +62,8 @@ function txFromRestAmount(restAmount) {
   }
   return {
     currency: restAmount.currency,
-    issuer: restAmount.counterparty,
+    issuer: restAmount.counterparty ?
+      restAmount.counterparty : restAmount.issuer,
     value: restAmount.value
   };
 }
