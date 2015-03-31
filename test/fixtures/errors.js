@@ -67,6 +67,12 @@ module.exports.RESTTransactionNotFound = JSON.stringify({
   error: 'txnNotFound',
   message: 'Transaction not found.'
 });
+module.exports.RESTLedgerNotFound = JSON.stringify({
+  success: false,
+  error_type: 'invalid_request',
+  error: 'restNOT_FOUND',
+  message: 'Ledger not found'
+});
 
 module.exports.RESTInvalidCurrency = JSON.stringify({
   success: false,

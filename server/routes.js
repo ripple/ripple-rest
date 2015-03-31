@@ -1,4 +1,5 @@
 'use strict';
+
 var api = require('./api');
 var respond = require('./response-handler');
 var config = require('./config');
@@ -140,7 +141,11 @@ function getSettings(request, callback) {
 function getTransaction(request, callback) {
   var account = request.params.account;
   var identifier = request.params.identifier;
-  api.getTransaction(account, identifier, callback);
+  var options = {
+    ledger: request.query.ledger
+  };
+
+  api.getTransaction(account, identifier, options, callback);
 }
 
 function getTrustLines(request, callback) {
@@ -203,6 +208,7 @@ function cancelOrder(request, callback) {
   api.cancelOrder(account, sequence, secret, options, callback);
 }
 
+/* eslint-disable max-len */
 module.exports = {
   GET: {
     '/uuid': makeMiddleware(getUUID),
@@ -212,17 +218,12 @@ module.exports = {
     '/wallet/new': makeMiddleware(generateWallet),
     '/accounts/:account/payments': makeMiddleware(getAccountPayments),
     '/accounts/:account/payments/:identifier': makeMiddleware(getPayment),
-    /* eslint-disable max-len */
-    '/accounts/:account/payments/paths/:destination_account/:destination_amount_string':
-    /* eslint-enable max-len */
-      makeMiddleware(getPathFind),
+    '/accounts/:account/payments/paths/:destination_account/:destination_amount_string': makeMiddleware(getPathFind),
     '/accounts/:account/orders': makeMiddleware(getOrders),
-    '/accounts/:account/order_book/:base/:counter':
-      makeMiddleware(getOrderBook),
+    '/accounts/:account/order_book/:base/:counter': makeMiddleware(getOrderBook),
     '/accounts/:account/orders/:identifier': makeMiddleware(getOrder),
     '/accounts/:account/notifications': makeMiddleware(getNotification),
-    '/accounts/:account/notifications/:identifier':
-      makeMiddleware(getNotification),
+    '/accounts/:account/notifications/:identifier': makeMiddleware(getNotification),
     '/accounts/:account/balances': makeMiddleware(getBalances),
     '/accounts/:account/settings': makeMiddleware(getSettings),
     '/transactions/:identifier': makeMiddleware(getTransaction),
@@ -232,10 +233,10 @@ module.exports = {
     '/accounts/:account/payments': makeMiddleware(submitPayment),
     '/accounts/:account/orders': makeMiddleware(submitOrder),
     '/accounts/:account/settings': makeMiddleware(changeSettings),
-    '/accounts/:account/trustlines':
-      makeMiddleware(addTrustLine, respond.created)
+    '/accounts/:account/trustlines': makeMiddleware(addTrustLine, respond.created)
   },
   DELETE: {
     '/accounts/:account/orders/:sequence': makeMiddleware(cancelOrder)
   }
 };
+/* eslint-enable max-len */

@@ -1,6 +1,8 @@
 /* eslint-disable valid-jsdoc */
 'use strict';
+
 var _ = require('lodash');
+var assert = require('assert');
 var async = require('async');
 var ripple = require('ripple-lib');
 var validator = require('./lib/schema-validator');
@@ -34,24 +36,26 @@ var DEFAULT_RESULTS_PER_PAGE = 10;
 
 function submitTransaction(api, options, hooks, callback) {
   function blockDuplicates(transaction, _options, _callback) {
-    api.db.getTransaction({
+    var transactionOptions = {
       source_account: transaction.tx_json.Account,
       client_resource_id: _options.clientResourceId,
       type: transaction.tx_json.TransactionType.toLowerCase()
-    }, function(error, db_record) {
-        if (error) {
-          return _callback(error);
-        }
-        if (db_record) {
-          return _callback(new errors.DuplicateTransactionError(
-            'Duplicate Transaction. A record already exists in the database ' +
-            'for a transaction of this type with the same client_resource_id.' +
-            ' If this was not an accidental resubmission please submit ' +
-            'the transaction again with a unique client_resource_id')
-          );
-        }
+    };
 
-        _callback(null, transaction);
+    api.db.getTransaction(transactionOptions, function(error, db_record) {
+      if (error) {
+        return _callback(error);
+      }
+
+      if (db_record) {
+        return _callback(new errors.DuplicateTransactionError(
+          'Duplicate Transaction. A record already exists in the database ' +
+          'for a transaction of this type with the same client_resource_id.' +
+          ' If this was not an accidental resubmission please submit ' +
+          'the transaction again with a unique client_resource_id'));
+      }
+
+      _callback(null, transaction);
     });
   }
 
@@ -224,14 +228,17 @@ function setTransactionBitFlags(transaction, options) {
  *
  * @param {RippleAddress} account
  * @param {Hex-encoded String|ASCII printable character String} identifier
+ * @param {Object} options
  * @param {Function} callback
  *
  * @callback
  * @param {Error} error
  * @param {Transaction} transaction
  */
-function getTransaction(api, account, identifier, callback) {
-  var options = {};
+function getTransaction(api, account, identifier, requestOptions, callback) {
+  assert.strictEqual(typeof requestOptions, 'object');
+
+  var options = { };
 
   function validateOptions(async_callback) {
     if (account && !ripple.UInt160.is_valid(account)) {
@@ -242,6 +249,16 @@ function getTransaction(api, account, identifier, callback) {
     if (!_.isString(identifier)) {
       return callback(new errors.InvalidRequestError(
         'Missing parameter: identifier'));
+    }
+
+    if (!_.isUndefined(requestOptions.ledger)) {
+      if (isNaN(requestOptions.ledger)) {
+        return callback(new errors.InvalidRequestError(
+          'Invalid parameter: ledger. Must be a number'));
+      } else if (api.remote.getServer()
+                 && !api.remote.getServer().hasLedger(requestOptions.ledger)) {
+        return callback(new errors.NotFoundError('Ledger not found'));
+      }
     }
 
     if (validator.isValid(identifier, 'Hash256')) {
@@ -363,14 +380,20 @@ function getTransaction(api, account, identifier, callback) {
  *
  * See getTransaction for parameter details
  */
-function getTransactionAndRespond(account, identifier, callback) {
-  getTransaction(this, account, identifier, function(error, transaction) {
-    if (error) {
-      callback(error);
-    } else {
-      callback(null, {transaction: transaction});
+function getTransactionAndRespond(account, identifier, options, callback) {
+  getTransaction(
+    this,
+    account,
+    identifier,
+    options,
+    function(error, transaction) {
+      if (error) {
+        callback(error);
+      } else {
+        callback(null, {transaction: transaction});
+      }
     }
-  });
+  );
 }
 
 /**
