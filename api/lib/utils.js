@@ -4,6 +4,13 @@ var bignum = require('bignumber.js');
 var validator = require('./schema-validator.js');
 var ripple = require('ripple-lib');
 
+function renameCounterpartyToIssuer(amount) {
+  if (amount && amount.counterparty) {
+    amount.issuer = amount.counterparty;
+    delete amount.counterparty;
+  }
+}
+
 function dropsToXrp(drops) {
   return bignum(drops).dividedBy(1000000.0).toString();
 }
@@ -127,6 +134,7 @@ module.exports = {
   parseCurrencyAmount: parseCurrencyAmount,
   parseCurrencyQuery: parseCurrencyQuery,
   txFromRestAmount: txFromRestAmount,
-  compareTransactions: compareTransactions
+  compareTransactions: compareTransactions,
+  renameCounterpartyToIssuer: renameCounterpartyToIssuer
 };
 

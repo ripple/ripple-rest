@@ -19,6 +19,13 @@ module.exports.RESTMissingSecret = JSON.stringify({
   message: 'Parameter missing: secret'
 });
 
+module.exports.RESTRequestInvalidSecret = JSON.stringify({
+  success: false,
+  error_type: 'invalid_request',
+  error: 'restINVALID_PARAMETER',
+  message: 'Invalid secret'
+});
+
 module.exports.RESTInvalidSecret = JSON.stringify({
   success: false,
   error_type: 'transaction',

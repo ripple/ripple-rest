@@ -2,12 +2,12 @@
 'use strict';
 var _ = require('lodash');
 var async = require('async');
-var ripple = require('ripple-lib');
 var transactions = require('./transactions');
 var serverLib = require('./lib/server-lib');
 var NotificationParser = require('./lib/notification_parser.js');
 var errors = require('./lib/errors.js');
 var utils = require('./lib/utils.js');
+var validate = require('./lib/validate.js');
 
 /**
  *  Find the previous and next transaction hashes or
@@ -169,13 +169,7 @@ function attachPreviousAndNextTransactionIdentifiers(api,
  *  @param {Notification} notification
  */
 function getNotificationHelper(api, account, identifier, topCallback) {
-  if (!account) {
-    return topCallback(new errors.InvalidRequestError(
-      'Missing parameter: account. Must be a valid Ripple Address'));
-  } else if (!ripple.UInt160.is_valid(account)) {
-    return topCallback(new errors.InvalidRequestError(
-      'Parameter is not a valid Ripple address: account'));
-  }
+  validate.address(account);
 
   function getTransaction(callback) {
     transactions.getTransaction(api, account, identifier, {}, callback);

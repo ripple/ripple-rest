@@ -170,54 +170,13 @@ function placeOrder(account, order, secret, options, callback) {
     validated: options.validated
   };
 
-  function validateParams(_callback) {
-    if (!order) {
-      return _callback(new InvalidRequestError(
-        'Missing parameter: order. '
-        + 'Submission must have order object in JSON form'));
-    }
-
-    if (order.taker_gets && order.taker_gets.currency !== 'XRP') {
-      order.taker_gets.issuer = order.taker_gets.counterparty;
-      delete order.taker_gets.counterparty;
-    }
-
-    if (order.taker_pays && order.taker_pays.currency !== 'XRP') {
-      order.taker_pays.issuer = order.taker_pays.counterparty;
-      delete order.taker_pays.counterparty;
-    }
-
-    if (!ripple.UInt160.is_valid(account)) {
-      return _callback(new errors.InvalidRequestError(
-        'Parameter is not a valid Ripple address: account'));
-    } else if (!/^buy|sell$/.test(order.type)) {
-      return _callback(new InvalidRequestError(
-        'Parameter must be "buy" or "sell": type'));
-    } else if (!_.isUndefined(order.passive) && !_.isBoolean(order.passive)) {
-      return _callback(new InvalidRequestError(
-        'Parameter must be a boolean: passive'));
-    } else if (!_.isUndefined(order.immediate_or_cancel)
-        && !_.isBoolean(order.immediate_or_cancel)) {
-      return _callback(new InvalidRequestError(
-        'Parameter must be a boolean: immediate_or_cancel'));
-    } else if (!_.isUndefined(order.fill_or_kill)
-        && !_.isBoolean(order.fill_or_kill)) {
-      return _callback(new InvalidRequestError(
-        'Parameter must be a boolean: fill_or_kill'));
-    } else if (!order.taker_gets
-        || (!validator.isValid(order.taker_gets, 'Amount'))
-        || (!order.taker_gets.issuer && order.taker_gets.currency !== 'XRP')) {
-      _callback(new InvalidRequestError(
-        'Parameter must be a valid Amount object: taker_gets'));
-    } else if (!order.taker_pays
-        || (!validator.isValid(order.taker_pays, 'Amount'))
-        || (!order.taker_pays.issuer && order.taker_pays.currency !== 'XRP')) {
-      _callback(new InvalidRequestError(
-        'Parameter must be a valid Amount object: taker_pays'));
-    } else {
-      _callback();
-    }
+  if (order) {
+    utils.renameCounterpartyToIssuer(order.taker_gets);
+    utils.renameCounterpartyToIssuer(order.taker_pays);
   }
+  validate.addressAndSecret({address: account, secret: secret});
+  validate.order(order);
+  validate.validated(options.validated, true);
 
   function setTransactionParameters(transaction) {
     var takerPays = order.taker_pays.currency !== 'XRP'
@@ -239,7 +198,6 @@ function placeOrder(account, order, secret, options, callback) {
   }
 
   var hooks = {
-    validateParams: validateParams,
     formatTransactionResponse: TxToRestConverter.parseSubmitOrderFromTx,
     setTransactionParameters: setTransactionParameters
   };

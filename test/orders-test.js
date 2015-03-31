@@ -589,9 +589,9 @@ suite('post orders', function() {
     .send(fixtures.order({
       secret: 'foo'
     }))
-    .expect(testutils.checkStatus(500))
+    .expect(testutils.checkStatus(400))
     .expect(testutils.checkHeaders)
-    .expect(testutils.checkBody(errors.RESTInvalidSecret))
+    .expect(testutils.checkBody(errors.RESTRequestInvalidSecret))
     .end(done);
   });
 
@@ -1066,9 +1066,9 @@ suite('post orders', function() {
     .send(fixtures.order({
         secret: 'foo'
     }))
-    .expect(testutils.checkStatus(500))
+    .expect(testutils.checkStatus(400))
     .expect(testutils.checkHeaders)
-    .expect(testutils.checkBody(errors.RESTInvalidSecret))
+    .expect(testutils.checkBody(errors.RESTRequestInvalidSecret))
     .end(done);
   });
 
@@ -1091,7 +1091,7 @@ suite('post orders', function() {
     .expect(testutils.checkBody(errors.RESTErrorResponse({
       type: 'invalid_request',
       error: 'restINVALID_PARAMETER',
-      message: 'Missing parameter: order. Submission must have order object in JSON form'
+      message: 'Parameter missing: order'
     })))
     .end(done);
   });

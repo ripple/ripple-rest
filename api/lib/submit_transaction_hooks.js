@@ -43,7 +43,11 @@ SubmitTransactionHooks.prototype.initializeTransaction =
  *  @param {Error} error
  */
 SubmitTransactionHooks.prototype.validateParams = function(async_callback) {
-  this.hooks.validateParams(async_callback);
+  if (this.hooks.validateParams) {
+    this.hooks.validateParams(async_callback);
+  } else {
+    async_callback();
+  }
 };
 
 /**

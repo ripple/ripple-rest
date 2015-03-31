@@ -2,7 +2,7 @@
 var supertest = require('supertest');
 var _app = require('../server/express_app');
 var app = supertest(_app);
-var assert = require('assert');
+var assert = require('assert-diff');
 var ws = require('ws');
 var route = new (require('events').EventEmitter);
 var fixtures = require('./fixtures')._payments;
