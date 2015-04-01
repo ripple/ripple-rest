@@ -5,8 +5,8 @@ var validator = require('./schema-validator');
 var ripple = require('ripple-lib');
 var utils = require('./utils');
 
-function isValidBoolString(boolString) {
-  return (boolString === 'true' || boolString === false);
+function isBoolean(value) {
+  return (value === true || value === false);
 }
 
 function error(text) {
@@ -14,15 +14,19 @@ function error(text) {
 }
 
 function invalid(type, value) {
-  return error('Not a valid ' + type + ': ' + value.toString());
+  return error('Not a valid ' + type + ': ' + JSON.stringify(value));
 }
 
 function missing(name) {
-  return error('Missing parameter: ' + name);
+  return error('Parameter missing: ' + name);
+}
+
+function isValidAddress(address) {
+  return address ? ripple.UInt160.is_valid(address) : false;
 }
 
 function validateAddress(address) {
-  if (!ripple.UInt160.is_valid(address)) {
+  if (!isValidAddress(address)) {
     throw error('Parameter is not a valid Ripple address: account');
     // TODO: thow invalid('Ripple address', address);
   }
@@ -31,17 +35,16 @@ function validateAddress(address) {
 function validateAddressAndSecret(obj) {
   var address = obj.address;
   var secret = obj.secret;
-  if (!address) {
-    throw missing('address');
-  }
+  validateAddress(address);
   if (!secret) {
     throw missing('secret');
   }
-  if (secret[0] !== 's' || !ripple.UInt160.is_valid('r' + secret.slice(1))) {
-    throw invalid('Ripple secret', secret);
-  }
-  if (!ripple.Seed.from_json(secret).get_key(address)) {
-    throw error('Secret does not match specified address', secret);
+  try {
+    if (!ripple.Seed.from_json(secret).get_key(address)) {
+      throw error('Invalid secret', secret);
+    }
+  } catch (exception) {
+    throw error('Invalid secret', secret);
   }
 }
 
@@ -53,7 +56,7 @@ function validateCurrency(currency) {
 }
 
 function validateCounterparty(counterparty) {
-  if (!ripple.UInt160.is_valid(counterparty)) {
+  if (!isValidAddress(counterparty)) {
     throw error('Parameter is not a valid Ripple address: counterparty');
     // TODO: throw invalid('counterparty', counterparty);
   }
@@ -94,16 +97,82 @@ function validateLimit(limit) {
   }
 }
 
-function validateTrustline(trustline) {
-  var errs = validator.validate(trustline, 'Trustline').err;
-  if (errs.length > 0) {
-    throw invalid('trustline', errs[0]);
+function validateIdentifier(hash) {
+  if (!validator.isValid(hash, 'Hash256')) {
+    throw error('Parameter is not a valid transaction hash: identifier');
   }
 }
 
+function validateSequence(sequence) {
+  if (!(Number(sequence) >= 0)) {
+    throw error(
+      'Invalid parameter: sequence. Sequence must be a positive number');
+  }
+}
+
+function validateSchema(object, schemaName) {
+  var schemaErrors = validator.validate(object, schemaName).errors;
+  if (!_.isEmpty(schemaErrors.fields)) {
+    throw invalid(schemaName, schemaErrors.fields);
+  }
+}
+
+function validateOrder(order) {
+  if (!order) {
+    throw error('Missing parameter: order. '
+      + 'Submission must have order object in JSON form');
+  } else if (!/^buy|sell$/.test(order.type)) {
+    throw error('Parameter must be "buy" or "sell": type');
+  } else if (!_.isUndefined(order.passive) && !_.isBoolean(order.passive)) {
+    throw error('Parameter must be a boolean: passive');
+  } else if (!_.isUndefined(order.immediate_or_cancel)
+      && !_.isBoolean(order.immediate_or_cancel)) {
+    throw error('Parameter must be a boolean: immediate_or_cancel');
+  } else if (!_.isUndefined(order.fill_or_kill)
+      && !_.isBoolean(order.fill_or_kill)) {
+    throw error('Parameter must be a boolean: fill_or_kill');
+  } else if (!order.taker_gets
+      || (!validator.isValid(order.taker_gets, 'Amount'))
+      || (!order.taker_gets.issuer && order.taker_gets.currency !== 'XRP')) {
+    throw error('Parameter must be a valid Amount object: taker_gets');
+  } else if (!order.taker_pays
+      || (!validator.isValid(order.taker_pays, 'Amount'))
+      || (!order.taker_pays.issuer && order.taker_pays.currency !== 'XRP')) {
+    throw error('Parameter must be a valid Amount object: taker_pays');
+  }
+  // TODO: validateSchema(order, 'Order');
+}
+
+function isValidAmount(amount) {
+  return (amount.currency && validator.isValid(amount.currency, 'Currency')
+      && (amount.currency === 'XRP' || isValidAddress(amount.counterparty)));
+}
+
+function validateOrderbook(orderbook) {
+  if (!isValidAmount(orderbook.base)) {
+    throw error('Invalid parameter: base. '
+      + 'Must be a currency string in the form currency+counterparty');
+  }
+  if (!isValidAmount(orderbook.counter)) {
+    throw error('Invalid parameter: counter. '
+      + 'Must be a currency string in the form currency+counterparty');
+  }
+  if (orderbook.counter.currency === 'XRP'
+      && orderbook.counter.counterparty) {
+    throw error('Invalid parameter: counter. XRP cannot have counterparty');
+  }
+  if (orderbook.base.currency === 'XRP' && orderbook.base.counterparty) {
+    throw error('Invalid parameter: base. XRP cannot have counterparty');
+  }
+}
+
+function validateTrustline(trustline) {
+  validateSchema(trustline, 'Trustline');
+}
+
 function validateValidated(validated) {
-  if (!isValidBoolString(validated)) {
-    throw error('validated must be "true" or "false", not', validated);
+  if (!isBoolean(validated)) {
+    throw error('validated must be boolean, not: ' + validated);
   }
 }
 
@@ -132,6 +201,10 @@ module.exports = createValidators({
   ledger: validateLedger,
   limit: validateLimit,
   paging: validatePaging,
+  identifier: validateIdentifier,
+  sequence: validateSequence,
+  order: validateOrder,
+  orderbook: validateOrderbook,
   trustline: validateTrustline,
   validated: validateValidated
 });
