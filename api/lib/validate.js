@@ -21,8 +21,12 @@ function missing(name) {
   return error('Parameter missing: ' + name);
 }
 
+function isValidAddress(address) {
+  return address ? ripple.UInt160.is_valid(address) : false;
+}
+
 function validateAddress(address) {
-  if (!ripple.UInt160.is_valid(address)) {
+  if (!isValidAddress(address)) {
     throw error('Parameter is not a valid Ripple address: account');
     // TODO: thow invalid('Ripple address', address);
   }
@@ -52,7 +56,7 @@ function validateCurrency(currency) {
 }
 
 function validateCounterparty(counterparty) {
-  if (!ripple.UInt160.is_valid(counterparty)) {
+  if (!isValidAddress(counterparty)) {
     throw error('Parameter is not a valid Ripple address: counterparty');
     // TODO: throw invalid('counterparty', counterparty);
   }
@@ -93,6 +97,19 @@ function validateLimit(limit) {
   }
 }
 
+function validateIdentifier(hash) {
+  if (!validator.isValid(hash, 'Hash256')) {
+    throw error('Parameter is not a valid transaction hash: identifier');
+  }
+}
+
+function validateSequence(sequence) {
+  if (!(Number(sequence) >= 0)) {
+    throw error(
+      'Invalid parameter: sequence. Sequence must be a positive number');
+  }
+}
+
 function validateSchema(object, schemaName) {
   var schemaErrors = validator.validate(object, schemaName).errors;
   if (!_.isEmpty(schemaErrors.fields)) {
@@ -124,6 +141,29 @@ function validateOrder(order) {
     throw error('Parameter must be a valid Amount object: taker_pays');
   }
   // TODO: validateSchema(order, 'Order');
+}
+
+function isValidAmount(amount) {
+  return (amount.currency && validator.isValid(amount.currency, 'Currency')
+      && (amount.currency === 'XRP' || isValidAddress(amount.counterparty)));
+}
+
+function validateOrderbook(orderbook) {
+  if (!isValidAmount(orderbook.base)) {
+    throw error('Invalid parameter: base. '
+      + 'Must be a currency string in the form currency+counterparty');
+  }
+  if (!isValidAmount(orderbook.counter)) {
+    throw error('Invalid parameter: counter. '
+      + 'Must be a currency string in the form currency+counterparty');
+  }
+  if (orderbook.counter.currency === 'XRP'
+      && orderbook.counter.counterparty) {
+    throw error('Invalid parameter: counter. XRP cannot have counterparty');
+  }
+  if (orderbook.base.currency === 'XRP' && orderbook.base.counterparty) {
+    throw error('Invalid parameter: base. XRP cannot have counterparty');
+  }
 }
 
 function validateTrustline(trustline) {
@@ -161,7 +201,10 @@ module.exports = createValidators({
   ledger: validateLedger,
   limit: validateLimit,
   paging: validatePaging,
+  identifier: validateIdentifier,
+  sequence: validateSequence,
   order: validateOrder,
+  orderbook: validateOrderbook,
   trustline: validateTrustline,
   validated: validateValidated
 });

@@ -230,25 +230,14 @@ function cancelOrder(account, sequence, secret, options, callback) {
     validated: options.validated
   };
 
-
-  function validateParams(_callback) {
-    if (!(Number(sequence) >= 0)) {
-      _callback(new InvalidRequestError(
-        'Invalid parameter: sequence. Sequence must be a positive number'));
-    } else if (!ripple.UInt160.is_valid(account)) {
-      _callback(new InvalidRequestError(
-        'Parameter is not a valid Ripple address: account'));
-    } else {
-      _callback();
-    }
-  }
+  validate.sequence(sequence);
+  validate.address(account);
 
   function setTransactionParameters(transaction) {
     transaction.offerCancel(account, sequence);
   }
 
   var hooks = {
-    validateParams: validateParams,
     formatTransactionResponse: TxToRestConverter.parseCancelOrderFromTx,
     setTransactionParameters: setTransactionParameters
   };
@@ -284,72 +273,15 @@ function cancelOrder(account, sequence, secret, options, callback) {
 function getOrderBook(account, base, counter, options, callback) {
   var self = this;
 
-  function parseParameters() {
-    var parameters = _.merge(options, {
-      validated: true,
-      order_book: base + '/' + counter,
-      base: utils.parseCurrencyQuery(base),
-      counter: utils.parseCurrencyQuery(counter)
-    });
-
-    return Promise.resolve(parameters);
-  }
-
-  function validateParameters(parameters) {
-    return new Promise(function(resolve, reject) {
-      if (!ripple.UInt160.is_valid(account)) {
-        reject(new InvalidRequestError(
-          'Parameter is not a valid Ripple address: account'));
-      }
-
-      if (!parameters.base.currency) {
-        reject(new InvalidRequestError('Invalid parameter: base. '
-          + 'Must be a currency string in the form currency+counterparty'));
-      }
-
-      if (!validator.isValid(parameters.base.currency, 'Currency')) {
-        reject(new InvalidRequestError('Invalid parameter: base. '
-          + 'Must be a currency string in the form currency+counterparty'));
-      }
-
-      if (parameters.base.currency !== 'XRP'
-          && (!parameters.base.counterparty
-              || !ripple.UInt160.is_valid(parameters.base.counterparty))) {
-        reject(new InvalidRequestError('Invalid parameter: base. '
-          + 'Must be a currency string in the form currency+counterparty'));
-      }
-
-      if (!parameters.counter.currency) {
-        reject(new InvalidRequestError('Invalid parameter: counter. '
-          + 'Must be a currency string in the form currency+counterparty'));
-      }
-
-      if (!validator.isValid(parameters.counter.currency, 'Currency')) {
-        reject(new InvalidRequestError('Invalid parameter: counter. '
-          + 'Must be a currency string in the form currency+counterparty'));
-      }
-
-      if (parameters.counter.currency !== 'XRP'
-          && (!parameters.counter.counterparty
-              || !ripple.UInt160.is_valid(parameters.counter.counterparty))) {
-        reject(new InvalidRequestError('Invalid parameter: counter. '
-          + 'Must be a currency string in the form currency+counterparty'));
-      }
-
-      if (parameters.counter.currency === 'XRP'
-          && parameters.counter.counterparty) {
-        reject(new InvalidRequestError(
-          'Invalid parameter: counter. XRP cannot have counterparty'));
-      }
-
-      if (parameters.base.currency === 'XRP' && parameters.base.counterparty) {
-        reject(new InvalidRequestError(
-          'Invalid parameter: base. XRP cannot have counterparty'));
-      }
-
-      resolve(parameters);
-    });
-  }
+  var params = _.merge(options, {
+    validated: true,
+    order_book: base + '/' + counter,
+    base: utils.parseCurrencyQuery(base),
+    counter: utils.parseCurrencyQuery(counter)
+  });
+  validate.address(account);
+  validate.orderbook(params);
+  validate.validated(options.validated, true);
 
   function getLastValidatedLedger(parameters) {
     var promise = new Promise(function(resolve, reject) {
@@ -479,9 +411,7 @@ function getOrderBook(account, base, counter, options, callback) {
     return promise;
   }
 
-  parseParameters()
-  .then(validateParameters)
-  .then(getLastValidatedLedger)
+  getLastValidatedLedger(params)
   .then(getBidsAndAsks)
   .spread(respondWithOrderBook)
   .catch(callback);
@@ -499,20 +429,8 @@ function getOrderBook(account, base, counter, options, callback) {
 function getOrder(account, identifier, callback) {
   var self = this;
 
-  function validateOptions() {
-    return new Promise(function(resolve, reject) {
-      if (!ripple.UInt160.is_valid(account)) {
-        reject(new InvalidRequestError(
-          'Parameter is not a valid Ripple address: account'));
-      }
-      if (!validator.isValid(identifier, 'Hash256')) {
-        reject(new InvalidRequestError(
-          'Parameter is not a valid transaction hash: identifier'));
-      }
-
-      resolve();
-    });
-  }
+  validate.address(account);
+  validate.identifier(identifier);
 
   function getOrderTx() {
     return new Promise(function(resolve, reject) {
@@ -545,8 +463,7 @@ function getOrder(account, identifier, callback) {
     });
   }
 
-  validateOptions()
-  .then(getOrderTx)
+  getOrderTx()
   .then(respondWithOrder)
   .catch(callback);
 }
