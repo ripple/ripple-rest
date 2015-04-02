@@ -345,6 +345,63 @@ function validatePathFind(pathfind) {
   }
 }
 
+function validateSettings(settings) {
+  if (typeof settings !== 'object') {
+    throw error('Invalid parameter: settings');
+  }
+  if (!/(undefined|string)/.test(typeof settings.domain)) {
+    throw error('Parameter must be a string: domain');
+  }
+  if (!/(undefined|string)/.test(typeof settings.wallet_locator)) {
+    throw error('Parameter must be a string: wallet_locator');
+  }
+  if (!/(undefined|string)/.test(typeof settings.email_hash)) {
+    throw error('Parameter must be a string: email_hash');
+  }
+  if (!/(undefined|string)/.test(typeof settings.message_key)) {
+    throw error('Parameter must be a string: message_key');
+  }
+  if (!/(undefined|number)/.test(typeof settings.transfer_rate)) {
+    if (settings.transfer_rate !== '') {
+      throw error('Parameter must be a number: transfer_rate');
+    }
+  }
+  if (!/(undefined|number)/.test(typeof settings.wallet_size)) {
+    if (settings.wallet_size !== '') {
+      throw error('Parameter must be a number: wallet_size');
+    }
+  }
+  if (!/(undefined|boolean)/.test(typeof settings.no_freeze)) {
+    throw error('Parameter must be a boolean: no_freeze');
+  }
+  if (!/(undefined|boolean)/.test(typeof settings.global_freeze)) {
+    throw error('Parameter must be a boolean: global_freeze');
+  }
+  if (!/(undefined|boolean)/.test(typeof settings.password_spent)) {
+    throw error('Parameter must be a boolean: password_spent');
+  }
+  if (!/(undefined|boolean)/.test(typeof settings.disable_master)) {
+    throw error('Parameter must be a boolean: disable_master');
+  }
+  if (!/(undefined|boolean)/.test(typeof settings.require_destination_tag)) {
+    throw error('Parameter must be a boolean: require_destination_tag');
+  }
+  if (!/(undefined|boolean)/.test(typeof settings.require_authorization)) {
+    throw error('Parameter must be a boolean: require_authorization');
+  }
+  if (!/(undefined|boolean)/.test(typeof settings.disallow_xrp)) {
+    throw error('Parameter must be a boolean: disallow_xrp');
+  }
+
+  var setCollision = (typeof settings.no_freeze === 'boolean')
+    && (typeof settings.global_freeze === 'boolean')
+    && settings.no_freeze === settings.global_freeze;
+
+  if (setCollision) {
+    throw error('Unable to set/clear no_freeze and global_freeze');
+  }
+}
+
 function validateTrustline(trustline) {
   validateSchema(trustline, 'Trustline');
 }
@@ -389,6 +446,7 @@ module.exports = createValidators({
   last_ledger_sequence: validateLastLedgerSequence,
   payment: validatePayment,
   pathfind: validatePathFind,
+  settings: validateSettings,
   trustline: validateTrustline,
   validated: validateValidated
 });
