@@ -960,9 +960,7 @@ suite('payments', function() {
           success: false,
           error_type: 'invalid_request',
           error: 'restINVALID_PARAMETER',
-          message: 'Missing parameter: client_resource_id. All payments must '
-            + 'be submitted with a client_resource_id to prevent duplicate '
-            + 'payments'
+          message: 'Parameter missing: client_resource_id'
         });
         done();
       });
@@ -981,9 +979,10 @@ suite('payments', function() {
           success: false,
           error_type: 'invalid_request',
           error: 'restINVALID_PARAMETER',
-          message: 'Missing parameter: client_resource_id. All payments must '
-            + 'be submitted with a client_resource_id to prevent duplicate '
-            + 'payments'
+          message: 'Invalid parameter: client_resource_id. Must be a string '
+            + 'of ASCII-printable characters. Note that 256-bit hex strings '
+            + 'are disallowed because of the potential confusion with '
+            + 'transaction hashes.'
         });
         done();
       });

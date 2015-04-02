@@ -12,6 +12,7 @@ var utils = require('./lib/utils');
 var RestToTxConverter = require('./lib/rest-to-tx-converter.js');
 var TxToRestConverter = require('./lib/tx-to-rest-converter.js');
 var SubmitTransactionHooks = require('./lib/submit_transaction_hooks.js');
+var validate = require('./lib/validate');
 
 var errors = require('./lib/errors');
 var InvalidRequestError = errors.InvalidRequestError;
@@ -128,155 +129,12 @@ function submitPayment(account, payment, clientResourceID, secret,
     saveTransaction: true
   };
 
-
-  function validateParams(_callback) {
-    if (!payment) {
-      return _callback(new InvalidRequestError('Missing parameter: payment. '
-        + 'Submission must have payment object in JSON form'));
-    }
-    if (!clientResourceID) {
-      return _callback(new InvalidRequestError('Missing parameter: '
-        + 'client_resource_id. All payments must be submitted with a '
-        + 'client_resource_id to prevent duplicate payments'));
-    }
-    if (!validator.isValid(clientResourceID, 'ResourceId')) {
-      return _callback(new InvalidRequestError('Invalid parameter: '
-        + 'client_resource_id. Must be a string of ASCII-printable characters. '
-        + 'Note that 256-bit hex strings are disallowed because of the '
-        + 'potential confusion with transaction hashes.'));
-    }
-
-    if (!ripple.UInt160.is_valid(payment.source_account)) {
-      return _callback(new InvalidRequestError('Invalid parameter: '
-        + 'source_account. Must be a valid Ripple address'));
-    }
-
-    if (!ripple.UInt160.is_valid(payment.destination_account)) {
-      return _callback(new InvalidRequestError('Invalid parameter: '
-        + 'destination_account. Must be a valid Ripple address'));
-    }
-    // Tags
-    if (payment.source_tag &&
-        (!validator.isValid(payment.source_tag, 'UINT32'))) {
-      return _callback(new InvalidRequestError('Invalid parameter: source_tag. '
-        + 'Must be a string representation of an unsiged 32-bit integer'));
-    }
-    if (payment.destination_tag
-        && (!validator.isValid(payment.destination_tag, 'UINT32'))) {
-      return _callback(new InvalidRequestError('Invalid parameter: '
-        + 'destination_tag. Must be a string representation of an unsiged '
-        + '32-bit integer'));
-    }
-
-    // Amounts
-    // destination_amount is required, source_amount is optional
-    if (!payment.destination_amount
-        || (!validator.isValid(payment.destination_amount, 'Amount'))) {
-      return _callback(new InvalidRequestError('Invalid parameter: '
-        + 'destination_amount. Must be a valid Amount object'));
-    }
-    if (payment.source_amount
-        && (!validator.isValid(payment.source_amount, 'Amount'))) {
-      return _callback(new InvalidRequestError(
-          'Invalid parameter: source_amount. Must be a valid Amount object'));
-    }
-
-    // No issuer for XRP
-    if (payment.destination_amount
-        && payment.destination_amount.currency.toUpperCase() === 'XRP'
-        && payment.destination_amount.issuer) {
-      return _callback(new InvalidRequestError(
-        'Invalid parameter: destination_amount. XRP cannot have issuer'));
-    }
-    if (payment.source_amount
-        && payment.source_amount.currency.toUpperCase() === 'XRP'
-        && payment.source_amount.issuer) {
-      return _callback(new InvalidRequestError(
-        'Invalid parameter: source_amount. XRP cannot have issuer'));
-    }
-
-    // Slippage
-    if (payment.source_slippage
-        && !validator.isValid(payment.source_slippage, 'FloatString')) {
-      return _callback(new InvalidRequestError(
-        'Invalid parameter: source_slippage. Must be a valid FloatString'));
-    }
-
-    // Advanced options
-
-    // Invoice id
-    if (payment.invoice_id
-        && !validator.isValid(payment.invoice_id, 'Hash256')) {
-      return _callback(new InvalidRequestError(
-        'Invalid parameter: invoice_id. Must be a valid Hash256'));
-    }
-
-    // paths
-    if (payment.paths) {
-      if (typeof payment.paths === 'string') {
-        try {
-          JSON.parse(payment.paths);
-        } catch (exception) {
-          return _callback(new InvalidRequestError(
-            'Invalid parameter: paths. Must be a valid JSON string or object'));
-        }
-      } else if (typeof payment.paths === 'object') {
-        try {
-          JSON.parse(JSON.stringify(payment.paths));
-        } catch (exception) {
-          return _callback(new InvalidRequestError(
-            'Invalid parameter: paths. Must be a valid JSON string or object'));
-        }
-      }
-    }
-
-    // partial payment
-    if (payment.hasOwnProperty('partial_payment')
-        && typeof payment.partial_payment !== 'boolean') {
-      return _callback(new InvalidRequestError(
-        'Invalid parameter: partial_payment. Must be a boolean'));
-    }
-
-    // direct ripple
-    if (payment.hasOwnProperty('no_direct_ripple')
-        && typeof payment.no_direct_ripple !== 'boolean') {
-      return _callback(new InvalidRequestError(
-        'Invalid parameter: no_direct_ripple. Must be a boolean'));
-    }
-
-    // memos
-    if (payment.hasOwnProperty('memos')) {
-      if (!Array.isArray(payment.memos)) {
-        return _callback(new InvalidRequestError(
-          'Invalid parameter: memos. Must be an array with memo objects'));
-      }
-
-      if (payment.memos.length === 0) {
-        return _callback(new InvalidRequestError('Invalid parameter: memos. '
-          + 'Must contain at least one Memo object, '
-          + 'otherwise omit the memos property'));
-      }
-
-      for (var m = 0; m < payment.memos.length; m++) {
-        var memo = payment.memos[m];
-        if (memo.MemoType && !/(undefined|string)/.test(typeof memo.MemoType)) {
-          return _callback(new InvalidRequestError(
-            'Invalid parameter: MemoType. MemoType must be a string'));
-        }
-        if (!/(undefined|string)/.test(typeof memo.MemoData)) {
-          return _callback(new InvalidRequestError(
-            'Invalid parameter: MemoData. MemoData must be a string'));
-        }
-        if (!memo.MemoData && !memo.MemoType) {
-          return _callback(new InvalidRequestError('Missing parameter: '
-            + 'MemoData or MemoType. For a memo object MemoType or MemoData '
-            + 'are both optional, as long as one of them is present'));
-        }
-      }
-    }
-
-    _callback(null);
-  }
+  validate.client_resource_id(clientResourceID);
+  // TODO: validate.addressAndSecret({address: account, secret: secret});
+  validate.address(account);
+  validate.payment(payment);
+  validate.last_ledger_sequence(lastLedgerSequence, true);
+  validate.validated(options.validated, true);
 
   function initializeTransaction(_callback) {
     RestToTxConverter.convert(payment, function(error, transaction) {
@@ -331,7 +189,6 @@ function submitPayment(account, payment, clientResourceID, secret,
   }
 
   var hooks = {
-    validateParams: validateParams,
     initializeTransaction: initializeTransaction,
     formatTransactionResponse: formatTransactionResponse,
     setTransactionParameters: setTransactionParameters
