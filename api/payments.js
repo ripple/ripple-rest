@@ -383,58 +383,16 @@ function getAccountPayments(account, source_account, destination_account,
 function getPathFind(source_account, destination_account,
     destination_amount_string, source_currency_strings, callback) {
   var self = this;
-  if (!source_account) {
-    callback(new InvalidRequestError(
-      'Missing parameter: source_account. Must be a valid Ripple address'));
-    return;
-  }
 
-  if (!destination_account) {
-    callback(new InvalidRequestError('Missing parameter: destination_account. '
-      + 'Must be a valid Ripple address'));
-    return;
-  }
+  var destination_amount = utils.renameCounterpartyToIssuer(
+    utils.parseCurrencyQuery(destination_amount_string || ''));
 
-  if (!ripple.UInt160.is_valid(source_account)) {
-    callback(new errors.InvalidRequestError(
-      'Parameter is not a valid Ripple address: account'));
-    return;
-  }
-
-  if (!ripple.UInt160.is_valid(destination_account)) {
-    callback(new errors.InvalidRequestError(
-      'Parameter is not a valid Ripple address: destination_account'));
-    return;
-  }
-
-  // Parse destination amount
-  if (!destination_amount_string) {
-    callback(new InvalidRequestError('Missing parameter: destination_amount. '
-      + 'Must be an amount string in the form value+currency+issuer'));
-    return;
-  }
-
-  var _destination_amount = utils.parseCurrencyQuery(destination_amount_string);
-  var destination_amount = _.omit(_destination_amount, 'counterparty');
-  destination_amount.issuer = _destination_amount.counterparty;
-
-  if (!ripple.UInt160.is_valid(source_account)) {
-    callback(new InvalidRequestError(
-      'Invalid parameter: source_account. Must be a valid Ripple address'));
-    return;
-  }
-
-  if (!ripple.UInt160.is_valid(destination_account)) {
-    callback(new InvalidRequestError('Invalid parameter: destination_account. '
-      + 'Must be a valid Ripple address'));
-    return;
-  }
-
-  if (!validator.isValid(destination_amount, 'Amount')) {
-    callback(new InvalidRequestError('Invalid parameter: destination_amount. '
-      + 'Must be an amount string in the form value+currency+issuer'));
-    return;
-  }
+  validate.pathfind({
+    source_account: source_account,
+    destination_account: destination_account,
+    destination_amount: destination_amount,
+    source_currency_strings: source_currency_strings
+  });
 
   var source_currencies = [];
   // Parse source currencies

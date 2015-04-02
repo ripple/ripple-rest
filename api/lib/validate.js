@@ -315,6 +315,36 @@ function validatePayment(payment) {
   }
 }
 
+function validatePathFind(pathfind) {
+  if (!pathfind.source_account) {
+    throw error(
+      'Missing parameter: source_account. Must be a valid Ripple address');
+  }
+
+  if (!pathfind.destination_account) {
+    throw error('Missing parameter: destination_account. '
+      + 'Must be a valid Ripple address');
+  }
+
+  if (!isValidAddress(pathfind.source_account)) {
+    throw error('Parameter is not a valid Ripple address: account');
+  }
+
+  if (!isValidAddress(pathfind.destination_account)) {
+    throw error('Parameter is not a valid Ripple address: destination_account');
+  }
+
+  if (!pathfind.destination_amount) {
+    throw error('Missing parameter: destination_amount. '
+      + 'Must be an amount string in the form value+currency+issuer');
+  }
+
+  if (!validator.isValid(pathfind.destination_amount, 'Amount')) {
+    throw error('Invalid parameter: destination_amount. '
+      + 'Must be an amount string in the form value+currency+issuer');
+  }
+}
+
 function validateTrustline(trustline) {
   validateSchema(trustline, 'Trustline');
 }
@@ -358,6 +388,7 @@ module.exports = createValidators({
   client_resource_id: validateClientResourceID,
   last_ledger_sequence: validateLastLedgerSequence,
   payment: validatePayment,
+  pathfind: validatePathFind,
   trustline: validateTrustline,
   validated: validateValidated
 });
