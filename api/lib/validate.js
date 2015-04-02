@@ -97,9 +97,17 @@ function validateLimit(limit) {
   }
 }
 
-function validateIdentifier(hash) {
-  if (!validator.isValid(hash, 'Hash256')) {
+function validateIdentifier(identifier) {
+  if (!validator.isValid(identifier, 'Hash256')) {
     throw error('Parameter is not a valid transaction hash: identifier');
+  }
+}
+
+function validatePaymentIdentifier(identifier) {
+  if (!validator.isValid(identifier, 'Hash256') &&
+      !validator.isValid(identifier, 'ResourceId')) {
+    throw error('Parameter is not a valid transaction hash '
+      + 'or client_resource_id: identifier');
   }
 }
 
@@ -343,6 +351,7 @@ module.exports = createValidators({
   limit: validateLimit,
   paging: validatePaging,
   identifier: validateIdentifier,
+  paymentIdentifier: validatePaymentIdentifier,
   sequence: validateSequence,
   order: validateOrder,
   orderbook: validateOrderbook,

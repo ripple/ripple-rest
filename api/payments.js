@@ -217,31 +217,8 @@ function submitPayment(account, payment, clientResourceID, secret,
 function getPayment(account, identifier, callback) {
   var self = this;
 
-  function validateOptions(_callback) {
-    var invalid;
-    if (!account) {
-      invalid = 'Missing parameter: account. Must provide account to get '
-        + 'payment details';
-    }
-    if (!ripple.UInt160.is_valid(account)) {
-      invalid = 'Parameter is not a valid Ripple address: account';
-    }
-    if (!identifier) {
-      invalid = 'Missing parameter: hash or client_resource_id. Must provide ' +
-        'transaction hash or client_resource_id to get payment details';
-    }
-    if (!validator.isValid(identifier, 'Hash256') &&
-        !validator.isValid(identifier, 'ResourceId')) {
-      invalid = 'Invalid Parameter: hash or client_resource_id. Must '
-      + 'provide a transaction hash or client_resource_id to get payment '
-      + 'details';
-    }
-    if (invalid) {
-      _callback(new InvalidRequestError(invalid));
-    } else {
-      _callback();
-    }
-  }
+  validate.address(account);
+  validate.paymentIdentifier(identifier);
 
   // If the transaction was not in the outgoing_transactions db,
   // get it from rippled
@@ -253,7 +230,6 @@ function getPayment(account, identifier, callback) {
   }
 
   var steps = [
-    validateOptions,
     getTransaction,
     function(transaction, _callback) {
       return formatPaymentHelper(account, transaction, _callback);
