@@ -4,8 +4,8 @@
 var _ = require('lodash');
 var assert = require('assert');
 var async = require('async');
-var ripple = require('ripple-lib');
 var validator = require('./lib/schema-validator');
+var validate = require('./lib/validate');
 var errors = require('./lib/errors.js');
 
 var DEFAULT_RESULTS_PER_PAGE = 10;
@@ -239,37 +239,20 @@ function getTransaction(api, account, identifier, requestOptions, callback) {
   assert.strictEqual(typeof requestOptions, 'object');
 
   var options = { };
+  validate.address(account, true);
+  validate.paymentIdentifier(identifier);
+  validate.ledger(requestOptions.ledger, true);
 
-  function validateOptions(async_callback) {
-    if (account && !ripple.UInt160.is_valid(account)) {
-      return callback(new errors.InvalidRequestError(
-        'Invalid parameter: account. Must be a valid Ripple Address'));
-    }
+  if (validator.isValid(identifier, 'Hash256')) {
+    options.hash = identifier;
+  } else {
+    options.client_resource_id = identifier;
+  }
 
-    if (!_.isString(identifier)) {
-      return callback(new errors.InvalidRequestError(
-        'Missing parameter: identifier'));
-    }
-
-    if (!_.isUndefined(requestOptions.ledger)) {
-      if (isNaN(requestOptions.ledger)) {
-        return callback(new errors.InvalidRequestError(
-          'Invalid parameter: ledger. Must be a number'));
-      } else if (api.remote.getServer()
-                 && !api.remote.getServer().hasLedger(requestOptions.ledger)) {
-        return callback(new errors.NotFoundError('Ledger not found'));
-      }
-    }
-
-    if (validator.isValid(identifier, 'Hash256')) {
-      options.hash = identifier;
-      async_callback();
-    } else if (validator.isValid(identifier, 'ResourceId')) {
-      options.client_resource_id = identifier;
-      async_callback();
-    } else {
-      return callback(new errors.InvalidRequestError('Parameter not a valid '
-        + 'transaction hash or client_resource_id: identifier'));
+  if (!_.isUndefined(requestOptions.ledger)) {
+    var server = api.remote.getServer();
+    if (server && !server.hasLedger(requestOptions.ledger)) {
+      throw new errors.NotFoundError('Ledger not found');
     }
   }
 
@@ -362,7 +345,6 @@ function getTransaction(api, account, identifier, requestOptions, callback) {
   }
 
   var steps = [
-    validateOptions,
     queryTransaction,
     checkIfRelatedToAccount,
     attachResourceID,
@@ -624,6 +606,8 @@ function compareTransactions(first, second, earliestFirst) {
  * @param {Array of transactions in JSON format} transactions
  */
 function getAccountTransactions(api, options, callback) {
+  validate.address(options.account);
+
   if (!options.min) {
     options.min = module.exports.DEFAULT_RESULTS_PER_PAGE;
   }
@@ -633,24 +617,6 @@ function getAccountTransactions(api, options, callback) {
   }
   if (!options.limit) {
     options.limit = module.exports.DEFAULT_LIMIT;
-  }
-
-  function validateOptions(async_callback) {
-    if (!options.account) {
-      return async_callback(new errors.InvalidRequestError(
-        'Missing parameter: account. ' +
-        'Must supply a valid Ripple Address to query account transactions')
-      );
-    }
-
-    if (!ripple.UInt160.is_valid(options.account)) {
-      return async_callback(new errors.InvalidRequestError(
-        'Invalid parameter: account. ' +
-        'Must supply a valid Ripple Address to query account transactions')
-      );
-    }
-
-    async_callback();
   }
 
   function queryTransactions(async_callback) {
@@ -699,7 +665,6 @@ function getAccountTransactions(api, options, callback) {
   }
 
   var steps = [
-    validateOptions,
     queryTransactions,
     filterTransactions,
     sortTransactions,

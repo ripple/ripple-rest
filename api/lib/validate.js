@@ -13,9 +13,11 @@ function error(text) {
   return new InvalidRequestError(text);
 }
 
+/* TODO:
 function invalid(type, value) {
   return error('Not a valid ' + type + ': ' + JSON.stringify(value));
 }
+*/
 
 function missing(name) {
   return error('Parameter missing: ' + name);
@@ -118,12 +120,14 @@ function validateSequence(sequence) {
   }
 }
 
+/* TODO:
 function validateSchema(object, schemaName) {
   var schemaErrors = validator.validate(object, schemaName).errors;
   if (!_.isEmpty(schemaErrors.fields)) {
     throw invalid(schemaName, schemaErrors.fields);
   }
 }
+*/
 
 function validateOrder(order) {
   if (!order) {
