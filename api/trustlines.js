@@ -1,13 +1,10 @@
 /* globals Promise: true */
 /* eslint-disable valid-jsdoc */
 'use strict';
-var _ = require('lodash');
 var Promise = require('bluebird');
-var ripple = require('ripple-lib');
 var transactions = require('./transactions.js');
 var SubmitTransactionHooks = require('./lib/submit_transaction_hooks.js');
 var utils = require('./lib/utils');
-var errors = require('./lib/errors.js');
 var validator = require('./lib/schema-validator');
 var TxToRestConverter = require('./lib/tx-to-rest-converter.js');
 var validate = require('./lib/validate');
@@ -164,57 +161,13 @@ function addTrustLine(account, trustline, secret, options, callback) {
     validated: options.validated
   };
 
-
-  function validateParams(_callback) {
-    if (!ripple.UInt160.is_valid(account)) {
-      return _callback(new errors.InvalidRequestError(
-        'Parameter is not a valid Ripple address: account'));
-    }
-    if (typeof trustline !== 'object') {
-      return _callback(new errors.InvalidRequestError(
-        'Parameter missing: trustline'));
-    }
-    if (_.isUndefined(trustline.limit)) {
-      return _callback(new errors.InvalidRequestError(
-        'Parameter missing: trustline.limit'));
-    }
-    trustline.limit = String(trustline.limit);  // TODO: does not belong here
-    if (isNaN(trustline.limit)) {
-      return _callback(new errors.InvalidRequestError(
-        'Parameter is not a number: trustline.limit'));
-    }
-    if (!trustline.currency) {
-      return _callback(new errors.InvalidRequestError(
-        'Parameter missing: trustline.currency'));
-    }
-    if (!validator.isValid(trustline.currency, 'Currency')) {
-      return _callback(new errors.InvalidRequestError(
-        'Parameter is not a valid currency: trustline.currency'));
-    }
-    if (!trustline.counterparty) {
-      return _callback(new errors.InvalidRequestError(
-        'Parameter missing: trustline.counterparty'));
-    }
-    if (!ripple.UInt160.is_valid(trustline.counterparty)) {
-      return _callback(new errors.InvalidRequestError(
-        'Parameter is not a Ripple address: trustline.counterparty'));
-    }
-    if (!/^(undefined|number)$/.test(typeof trustline.quality_in)) {
-      return _callback(new errors.InvalidRequestError(
-        'Parameter must be a number: trustline.quality_in'));
-    }
-    if (!/^(undefined|number)$/.test(typeof trustline.quality_out)) {
-      return _callback(new errors.InvalidRequestError(
-        'Parameter must be a number: trustline.quality_out'));
-    }
-    if (!/^(undefined|boolean)$/.test(
-        typeof trustline.account_allows_rippling)) {
-      return _callback(new errors.InvalidRequestError(
-        'Parameter must be a boolean: trustline.allow_rippling'));
-    }
-
-    _callback();
+  if (trustline && trustline.limit) {
+    trustline.limit = String(trustline.limit);
   }
+
+  validate.address(account);
+  validate.trustline(trustline);
+  validate.validated(options.validated, true);
 
   function setTransactionParameters(transaction) {
     var limit = [
@@ -241,7 +194,6 @@ function addTrustLine(account, trustline, secret, options, callback) {
   }
 
   var hooks = {
-    validateParams: validateParams,
     formatTransactionResponse: TxToRestConverter.parseTrustResponseFromTx,
     setTransactionParameters: setTransactionParameters
   };

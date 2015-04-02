@@ -403,7 +403,37 @@ function validateSettings(settings) {
 }
 
 function validateTrustline(trustline) {
-  validateSchema(trustline, 'Trustline');
+  if (typeof trustline !== 'object') {
+    throw error('Invalid parameter: trustline');
+  }
+  if (_.isUndefined(trustline.limit)) {
+    throw error('Parameter missing: trustline.limit');
+  }
+  if (isNaN(trustline.limit)) {
+    throw error('Parameter is not a number: trustline.limit');
+  }
+  if (!trustline.currency) {
+    throw error('Parameter missing: trustline.currency');
+  }
+  if (!validator.isValid(trustline.currency, 'Currency')) {
+    throw error('Parameter is not a valid currency: trustline.currency');
+  }
+  if (!trustline.counterparty) {
+    throw error('Parameter missing: trustline.counterparty');
+  }
+  if (!isValidAddress(trustline.counterparty)) {
+    throw error('Parameter is not a Ripple address: trustline.counterparty');
+  }
+  if (!/^(undefined|number)$/.test(typeof trustline.quality_in)) {
+    throw error('Parameter must be a number: trustline.quality_in');
+  }
+  if (!/^(undefined|number)$/.test(typeof trustline.quality_out)) {
+    throw error('Parameter must be a number: trustline.quality_out');
+  }
+  if (!/^(undefined|boolean)$/.test(typeof trustline.account_allows_rippling)) {
+    throw error('Parameter must be a boolean: trustline.allow_rippling');
+  }
+  // TODO: validateSchema(trustline, 'Trustline');
 }
 
 function validateValidated(validated) {
