@@ -97,9 +97,17 @@ function validateLimit(limit) {
   }
 }
 
-function validateIdentifier(hash) {
-  if (!validator.isValid(hash, 'Hash256')) {
+function validateIdentifier(identifier) {
+  if (!validator.isValid(identifier, 'Hash256')) {
     throw error('Parameter is not a valid transaction hash: identifier');
+  }
+}
+
+function validatePaymentIdentifier(identifier) {
+  if (!validator.isValid(identifier, 'Hash256') &&
+      !validator.isValid(identifier, 'ResourceId')) {
+    throw error('Parameter is not a valid transaction hash '
+      + 'or client_resource_id: identifier');
   }
 }
 
@@ -166,6 +174,177 @@ function validateOrderbook(orderbook) {
   }
 }
 
+function validateClientResourceID(clientResourceID) {
+  if (!validator.isValid(clientResourceID, 'ResourceId')) {
+    throw error('Invalid parameter: '
+      + 'client_resource_id. Must be a string of ASCII-printable characters. '
+      + 'Note that 256-bit hex strings are disallowed because of the '
+      + 'potential confusion with transaction hashes.');
+  }
+}
+
+function validateLastLedgerSequence(lastLedgerSequence) {
+  if (!utils.isValidLedgerSequence(lastLedgerSequence)) {
+    throw error('Invalid parameter: last_ledger_sequence');
+  }
+}
+
+function validatePaymentMemos(memos) {
+  if (!Array.isArray(memos)) {
+    throw error(
+      'Invalid parameter: memos. Must be an array with memo objects');
+  }
+
+  if (memos.length === 0) {
+    throw error('Invalid parameter: memos. '
+      + 'Must contain at least one Memo object, '
+      + 'otherwise omit the memos property');
+  }
+
+  for (var m = 0; m < memos.length; m++) {
+    var memo = memos[m];
+    if (memo.MemoType && !/(undefined|string)/.test(typeof memo.MemoType)) {
+      throw error(
+        'Invalid parameter: MemoType. MemoType must be a string');
+    }
+    if (!/(undefined|string)/.test(typeof memo.MemoData)) {
+      throw error(
+        'Invalid parameter: MemoData. MemoData must be a string');
+    }
+    if (!memo.MemoData && !memo.MemoType) {
+      throw error('Missing parameter: '
+        + 'MemoData or MemoType. For a memo object MemoType or MemoData '
+        + 'are both optional, as long as one of them is present');
+    }
+  }
+}
+
+function validatePayment(payment) {
+  if (!isValidAddress(payment.source_account)) {
+    throw error('Invalid parameter: source_account. '
+      + 'Must be a valid Ripple address');
+  }
+
+  if (!isValidAddress(payment.destination_account)) {
+    throw error('Invalid parameter: '
+      + 'destination_account. Must be a valid Ripple address');
+  }
+
+  if (payment.source_tag &&
+      (!validator.isValid(payment.source_tag, 'UINT32'))) {
+    throw error('Invalid parameter: source_tag. '
+      + 'Must be a string representation of an unsiged 32-bit integer');
+  }
+
+  if (payment.destination_tag
+      && (!validator.isValid(payment.destination_tag, 'UINT32'))) {
+    throw error('Invalid parameter: '
+      + 'destination_tag. Must be a string representation of an unsiged '
+      + '32-bit integer');
+  }
+
+  if (!payment.destination_amount
+      || (!validator.isValid(payment.destination_amount, 'Amount'))) {
+    throw error('Invalid parameter: '
+      + 'destination_amount. Must be a valid Amount object');
+  }
+
+  if (payment.source_amount   // source_amount is optional
+      && (!validator.isValid(payment.source_amount, 'Amount'))) {
+    throw error(
+      'Invalid parameter: source_amount. Must be a valid Amount object');
+  }
+
+  if (payment.destination_amount
+      && payment.destination_amount.currency.toUpperCase() === 'XRP'
+      && payment.destination_amount.issuer) {
+    throw error(
+      'Invalid parameter: destination_amount. XRP cannot have issuer');
+  }
+  if (payment.source_amount
+      && payment.source_amount.currency.toUpperCase() === 'XRP'
+      && payment.source_amount.issuer) {
+    throw error(
+      'Invalid parameter: source_amount. XRP cannot have issuer');
+  }
+
+  if (payment.source_slippage
+      && !validator.isValid(payment.source_slippage, 'FloatString')) {
+    throw error(
+      'Invalid parameter: source_slippage. Must be a valid FloatString');
+  }
+
+  if (payment.invoice_id
+      && !validator.isValid(payment.invoice_id, 'Hash256')) {
+    throw error(
+      'Invalid parameter: invoice_id. Must be a valid Hash256');
+  }
+
+  if (payment.paths) {
+    if (typeof payment.paths === 'string') {
+      try {
+        JSON.parse(payment.paths);
+      } catch (exception) {
+        throw error(
+          'Invalid parameter: paths. Must be a valid JSON string or object');
+      }
+    } else if (typeof payment.paths === 'object') {
+      try {
+        JSON.parse(JSON.stringify(payment.paths));
+      } catch (exception) {
+        throw error(
+          'Invalid parameter: paths. Must be a valid JSON string or object');
+      }
+    }
+  }
+
+  if (payment.hasOwnProperty('partial_payment')
+      && typeof payment.partial_payment !== 'boolean') {
+    throw error(
+      'Invalid parameter: partial_payment. Must be a boolean');
+  }
+
+  if (payment.hasOwnProperty('no_direct_ripple')
+      && typeof payment.no_direct_ripple !== 'boolean') {
+    throw error(
+      'Invalid parameter: no_direct_ripple. Must be a boolean');
+  }
+
+  if (payment.hasOwnProperty('memos')) {
+    validatePaymentMemos(payment.memos);
+  }
+}
+
+function validatePathFind(pathfind) {
+  if (!pathfind.source_account) {
+    throw error(
+      'Missing parameter: source_account. Must be a valid Ripple address');
+  }
+
+  if (!pathfind.destination_account) {
+    throw error('Missing parameter: destination_account. '
+      + 'Must be a valid Ripple address');
+  }
+
+  if (!isValidAddress(pathfind.source_account)) {
+    throw error('Parameter is not a valid Ripple address: account');
+  }
+
+  if (!isValidAddress(pathfind.destination_account)) {
+    throw error('Parameter is not a valid Ripple address: destination_account');
+  }
+
+  if (!pathfind.destination_amount) {
+    throw error('Missing parameter: destination_amount. '
+      + 'Must be an amount string in the form value+currency+issuer');
+  }
+
+  if (!validator.isValid(pathfind.destination_amount, 'Amount')) {
+    throw error('Invalid parameter: destination_amount. '
+      + 'Must be an amount string in the form value+currency+issuer');
+  }
+}
+
 function validateTrustline(trustline) {
   validateSchema(trustline, 'Trustline');
 }
@@ -202,9 +381,14 @@ module.exports = createValidators({
   limit: validateLimit,
   paging: validatePaging,
   identifier: validateIdentifier,
+  paymentIdentifier: validatePaymentIdentifier,
   sequence: validateSequence,
   order: validateOrder,
   orderbook: validateOrderbook,
+  client_resource_id: validateClientResourceID,
+  last_ledger_sequence: validateLastLedgerSequence,
+  payment: validatePayment,
+  pathfind: validatePathFind,
   trustline: validateTrustline,
   validated: validateValidated
 });

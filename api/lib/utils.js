@@ -9,6 +9,7 @@ function renameCounterpartyToIssuer(amount) {
     amount.issuer = amount.counterparty;
     delete amount.counterparty;
   }
+  return amount;
 }
 
 function dropsToXrp(drops) {
