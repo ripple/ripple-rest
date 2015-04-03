@@ -13,9 +13,11 @@ function error(text) {
   return new InvalidRequestError(text);
 }
 
+/* TODO:
 function invalid(type, value) {
   return error('Not a valid ' + type + ': ' + JSON.stringify(value));
 }
+*/
 
 function missing(name) {
   return error('Parameter missing: ' + name);
@@ -118,12 +120,14 @@ function validateSequence(sequence) {
   }
 }
 
+/* TODO:
 function validateSchema(object, schemaName) {
   var schemaErrors = validator.validate(object, schemaName).errors;
   if (!_.isEmpty(schemaErrors.fields)) {
     throw invalid(schemaName, schemaErrors.fields);
   }
 }
+*/
 
 function validateOrder(order) {
   if (!order) {
@@ -345,8 +349,95 @@ function validatePathFind(pathfind) {
   }
 }
 
+function validateSettings(settings) {
+  if (typeof settings !== 'object') {
+    throw error('Invalid parameter: settings');
+  }
+  if (!/(undefined|string)/.test(typeof settings.domain)) {
+    throw error('Parameter must be a string: domain');
+  }
+  if (!/(undefined|string)/.test(typeof settings.wallet_locator)) {
+    throw error('Parameter must be a string: wallet_locator');
+  }
+  if (!/(undefined|string)/.test(typeof settings.email_hash)) {
+    throw error('Parameter must be a string: email_hash');
+  }
+  if (!/(undefined|string)/.test(typeof settings.message_key)) {
+    throw error('Parameter must be a string: message_key');
+  }
+  if (!/(undefined|number)/.test(typeof settings.transfer_rate)) {
+    if (settings.transfer_rate !== '') {
+      throw error('Parameter must be a number: transfer_rate');
+    }
+  }
+  if (!/(undefined|number)/.test(typeof settings.wallet_size)) {
+    if (settings.wallet_size !== '') {
+      throw error('Parameter must be a number: wallet_size');
+    }
+  }
+  if (!/(undefined|boolean)/.test(typeof settings.no_freeze)) {
+    throw error('Parameter must be a boolean: no_freeze');
+  }
+  if (!/(undefined|boolean)/.test(typeof settings.global_freeze)) {
+    throw error('Parameter must be a boolean: global_freeze');
+  }
+  if (!/(undefined|boolean)/.test(typeof settings.password_spent)) {
+    throw error('Parameter must be a boolean: password_spent');
+  }
+  if (!/(undefined|boolean)/.test(typeof settings.disable_master)) {
+    throw error('Parameter must be a boolean: disable_master');
+  }
+  if (!/(undefined|boolean)/.test(typeof settings.require_destination_tag)) {
+    throw error('Parameter must be a boolean: require_destination_tag');
+  }
+  if (!/(undefined|boolean)/.test(typeof settings.require_authorization)) {
+    throw error('Parameter must be a boolean: require_authorization');
+  }
+  if (!/(undefined|boolean)/.test(typeof settings.disallow_xrp)) {
+    throw error('Parameter must be a boolean: disallow_xrp');
+  }
+
+  var setCollision = (typeof settings.no_freeze === 'boolean')
+    && (typeof settings.global_freeze === 'boolean')
+    && settings.no_freeze === settings.global_freeze;
+
+  if (setCollision) {
+    throw error('Unable to set/clear no_freeze and global_freeze');
+  }
+}
+
 function validateTrustline(trustline) {
-  validateSchema(trustline, 'Trustline');
+  if (typeof trustline !== 'object') {
+    throw error('Invalid parameter: trustline');
+  }
+  if (_.isUndefined(trustline.limit)) {
+    throw error('Parameter missing: trustline.limit');
+  }
+  if (isNaN(trustline.limit)) {
+    throw error('Parameter is not a number: trustline.limit');
+  }
+  if (!trustline.currency) {
+    throw error('Parameter missing: trustline.currency');
+  }
+  if (!validator.isValid(trustline.currency, 'Currency')) {
+    throw error('Parameter is not a valid currency: trustline.currency');
+  }
+  if (!trustline.counterparty) {
+    throw error('Parameter missing: trustline.counterparty');
+  }
+  if (!isValidAddress(trustline.counterparty)) {
+    throw error('Parameter is not a Ripple address: trustline.counterparty');
+  }
+  if (!/^(undefined|number)$/.test(typeof trustline.quality_in)) {
+    throw error('Parameter must be a number: trustline.quality_in');
+  }
+  if (!/^(undefined|number)$/.test(typeof trustline.quality_out)) {
+    throw error('Parameter must be a number: trustline.quality_out');
+  }
+  if (!/^(undefined|boolean)$/.test(typeof trustline.account_allows_rippling)) {
+    throw error('Parameter must be a boolean: trustline.allow_rippling');
+  }
+  // TODO: validateSchema(trustline, 'Trustline');
 }
 
 function validateValidated(validated) {
@@ -389,6 +480,7 @@ module.exports = createValidators({
   last_ledger_sequence: validateLastLedgerSequence,
   payment: validatePayment,
   pathfind: validatePathFind,
+  settings: validateSettings,
   trustline: validateTrustline,
   validated: validateValidated
 });
