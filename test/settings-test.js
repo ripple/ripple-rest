@@ -5,6 +5,28 @@ var fixtures = require('./fixtures').settings;
 var errors = require('./fixtures').errors;
 var addresses = require('./fixtures').addresses;
 
+suite('prepareSettings', function() {
+  var self = this;
+  setup(testutils.setup.bind(self));
+  teardown(testutils.teardown.bind(self));
+
+  test('/transaction/prepare/settings', function(done) {
+    self.wss.on('request_account_info', function(message, conn) {
+      assert.strictEqual(message.command, 'account_info');
+      assert.strictEqual(message.account, addresses.VALID);
+      conn.send(fixtures.accountInfoResponse(message));
+    });
+
+    self.app
+      .post(testutils.getPrepareURL('settings'))
+      .send(fixtures.prepareSettingsRequest)
+      .expect(testutils.checkStatus(200))
+      .expect(testutils.checkHeaders)
+      .expect(testutils.checkBody(fixtures.prepareSettingsResponse))
+      .end(done);
+  });
+});
+
 suite('get settings', function() {
   var self = this;
 

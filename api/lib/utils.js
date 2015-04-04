@@ -125,6 +125,52 @@ function isValidLedgerWord(ledger) {
   return (/^current$|^closed$|^validated$/.test(ledger));
 }
 
+function getFeeDrops(remote) {
+  var feeUnits = 10; // all transactions currently have a fee of 10 fee units
+  return remote.feeTx(feeUnits).to_text();
+}
+
+function addTxInstructions(tx_json, account, remote, options, callback) {
+  if (options.lastLedgerSequence !== undefined) {
+    tx_json.LastLedgerSequence = options.lastLedgerSequence;
+  } else {
+    var offset = options.lastLedgerOffset !== undefined ?
+      options.lastLedgerOffset : 3;
+    tx_json.LastLedgerSequence = remote.getLedgerSequence() + offset;
+  }
+
+  if (options.fixedFee !== undefined) {
+    tx_json.Fee = xrpToDrops(options.fixedFee);
+  } else {
+    var serverFeeDrops = getFeeDrops(remote);
+    if (options.maxFee !== undefined) {
+      var maxFeeDrops = xrpToDrops(options.maxFee);
+      tx_json.Fee = bignum.min(serverFeeDrops, maxFeeDrops).toString();
+    } else {
+      tx_json.Fee = serverFeeDrops;
+    }
+  }
+
+  if (options.sequence !== undefined) {
+    tx_json.Sequence = options.sequence;
+    callback(null, {tx_json: tx_json});
+  } else {
+    remote.findAccount(account).getNextSequence(function(error, sequence) {
+      tx_json.Sequence = sequence;
+      callback(null, {tx_json: tx_json});
+    });
+  }
+}
+
+function createTxJSON(setTxParameters, remote, instructions, callback) {
+  var transaction = new ripple.Transaction();
+  setTxParameters(transaction);
+  transaction.complete();
+  var account = transaction.getAccount();
+  var tx_json = transaction.tx_json;
+  addTxInstructions(tx_json, account, remote, instructions, callback);
+}
+
 module.exports = {
   isValidLedgerSequence: isValidLedgerSequence,
   isValidLedgerWord: isValidLedgerWord,
@@ -136,6 +182,7 @@ module.exports = {
   parseCurrencyQuery: parseCurrencyQuery,
   txFromRestAmount: txFromRestAmount,
   compareTransactions: compareTransactions,
-  renameCounterpartyToIssuer: renameCounterpartyToIssuer
+  renameCounterpartyToIssuer: renameCounterpartyToIssuer,
+  createTxJSON: createTxJSON
 };
 

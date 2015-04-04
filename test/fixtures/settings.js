@@ -1,4 +1,5 @@
 var _ = require('lodash');
+var addresses = require('./addresses');
 
 const DEFAULTS = {
   require_destination_tag: true,
@@ -229,3 +230,26 @@ module.exports.RESTAccountSettingsSubmitResponse = function(options) {
     state: options.state
   });
 };
+
+module.exports.prepareSettingsRequest = {
+  "address": addresses.VALID,
+  "settings": {
+    "domain": "ripple.com"
+  },
+  "instructions": {
+    "lastLedgerOffset": 100
+  }
+};
+
+module.exports.prepareSettingsResponse = JSON.stringify({
+  "success": true,
+  "tx_json": {
+    "Flags": 0,
+    "TransactionType": "AccountSet",
+    "Account": addresses.VALID,
+    "Domain": "726970706C652E636F6D",
+    "LastLedgerSequence": 8820241,
+    "Fee": "12",
+    "Sequence": 2938
+  }
+});
