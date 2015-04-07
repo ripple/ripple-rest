@@ -47,7 +47,7 @@ var morganFormat = ':remote-addr :datetime :method :url :http-version :status '
 
 // Both morgan and winston append a newline
 var stream = {
-  write: function (data) {
+  write: function(data) {
     logger.info(data.slice(0, -1));
   }
 };
@@ -57,7 +57,10 @@ morgan.token('datetime', elfDate);
 
 // Define the user-agent token in ELF format
 morgan.token('user-agent', function(req) {
-  return req.get('User-Agent').split(' ').join('+');
+  if (req.get('User-Agent')) {
+    return req.get('User-Agent').split(' ').join('+');
+  }
+  return '';
 });
 
 exports.morgan = function(app) {
