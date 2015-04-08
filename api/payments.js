@@ -46,14 +46,19 @@ function formatPaymentHelper(account, transaction, callback) {
   }
 
   function getPaymentMetadata(_transaction) {
+    var clientResourceID = _transaction.client_resource_id || '';
+    var hash = _transaction.hash || '';
+
+    var ledger = !_.isUndefined(transaction.inLedger) ?
+      String(_transaction.inLedger) : String(_transaction.ledger_index);
+
+    var state = _transaction.validated === true ? 'validated' : 'pending';
+
     return {
-      client_resource_id: _transaction.client_resource_id || '',
-      hash: _transaction.hash || '',
-      ledger: !_.isUndefined(transaction.inLedger)
-        ? String(_transaction.inLedger) : String(_transaction.ledger_index),
-      state: _transaction.state || _transaction.meta
-        ? (_transaction.meta.TransactionResult === 'tesSUCCESS'
-            ? 'validated' : 'failed') : ''
+      client_resource_id: clientResourceID,
+      hash: hash,
+      ledger: ledger,
+      state: state
     };
   }
 
@@ -150,6 +155,7 @@ function submitPayment(account, payment, clientResourceID, secret,
     if (meta.state === 'validated') {
       var transaction = message.tx_json;
       transaction.meta = message.metadata;
+      transaction.validated = message.validated;
       transaction.ledger_index = transaction.inLedger = message.ledger_index;
 
       return formatPaymentHelper(payment.source_account, transaction,
