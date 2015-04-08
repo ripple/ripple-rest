@@ -488,7 +488,7 @@ suite('payments', function() {
       assert.equal(resp.body.hash,
         '8EA3CF4D854669007058EB45E9860611CC24FEB655895E418A5C8BC5EA901D01');
       assert.equal(resp.body.ledger, 'undefined');
-      assert.equal(resp.body.state, 'failed');
+      assert.equal(resp.body.state, 'pending');
       assert.equal(orderlist.test(), true);
       orderlist.reset();
     })
@@ -536,7 +536,7 @@ suite('payments', function() {
         assert.equal(resp.body.hash,
           '8EA3CF4D854669007058EB45E9860611CC24FEB655895E418A5C8BC5EA901D01');
         assert.equal(resp.body.ledger, 'undefined');
-        assert.equal(resp.body.state, 'failed');
+        assert.equal(resp.body.state, 'pending');
         assert.equal(orderlist.test(), true);
         orderlist.reset();
       })

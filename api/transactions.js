@@ -418,6 +418,7 @@ function getAccountTx(api, options, callback) {
       }
       var tx = tx_entry.tx;
       tx.meta = tx_entry.meta;
+      tx.validated = tx_entry.validated;
       transactions.push(tx);
     });
     callback(null, {

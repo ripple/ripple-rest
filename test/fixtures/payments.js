@@ -166,7 +166,7 @@ module.exports.binaryTransactionSynth = function(options) {
     hash: options.hash,
     inLedger: 348860,
     ledger_index: 348860,
-    validated: true
+    validated: options.validated
   };
 };
 
@@ -220,7 +220,8 @@ module.exports.accountTransactionsResponse = function(request, options) {
   options = options || {};
   _.defaults(options, {
     memos: [],
-    hash: module.exports.VALID_TRANSACTION_HASH
+    hash: module.exports.VALID_TRANSACTION_HASH,
+    validated: true
   });
 
   var tx = {
@@ -412,7 +413,7 @@ module.exports.accountTransactionsResponse = function(request, options) {
           ledger_index: 348860,
           tx_blob: SerializedObject.from_json(tx).to_hex(),
           meta: SerializedObject.from_json(meta).to_hex(),
-          validated: true
+          validated: options.validated
         }
       ]
     }
@@ -423,7 +424,8 @@ module.exports.transactionResponse = function(request, options) {
   options = options || {};
   _.defaults(options, {
     memos: [],
-    hash: module.exports.VALID_TRANSACTION_HASH
+    hash: module.exports.VALID_TRANSACTION_HASH,
+    validated: true
   });
 
   return JSON.stringify({
@@ -475,7 +477,8 @@ module.exports.RESTTransactionResponse = function(options) {
     toAccount: issuerAccount,
     fee: '0.00001',
     ledger: '348860',
-    client_resource_id: ''
+    client_resource_id: '',
+    state: 'validated'
   });
 
   return JSON.stringify({
@@ -540,7 +543,7 @@ module.exports.RESTTransactionResponse = function(options) {
     client_resource_id: options.client_resource_id,
     hash: options.hash,
     ledger: options.ledger,
-    state: 'validated'
+    state: options.state
   });
 };
 

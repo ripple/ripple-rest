@@ -55,6 +55,21 @@ suite('get payments', function() {
     .end(done);
   });
 
+  test('/accounts/:account/payments/:identifier -- pending with identifier as txn hash', function(done) {
+    self.wss.once('request_tx', function(message, conn) {
+      assert.strictEqual(message.command, 'tx');
+      assert.strictEqual(message.transaction, fixtures.VALID_TRANSACTION_HASH);
+      conn.send(fixtures.transactionResponse(message, {validated: false}));
+    });
+
+    self.app
+    .get(requestPath(addresses.VALID) + '/' + fixtures.VALID_TRANSACTION_HASH)
+    .expect(testutils.checkStatus(200))
+    .expect(testutils.checkHeaders)
+    .expect(testutils.checkBody(fixtures.RESTTransactionResponse({state: 'pending'})))
+    .end(done);
+  });
+
   test('/accounts/:account/payments/:identifier -- with memos', function(done) {
     self.wss.once('request_tx', function(message, conn) {
       assert.strictEqual(message.command, 'tx');
