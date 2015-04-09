@@ -4,7 +4,6 @@
 var _ = require('lodash');
 var assert = require('assert');
 var async = require('async');
-var ripple = require('ripple-lib');
 var utils = require('./lib/utils');
 var validator = require('./lib/schema-validator');
 var validate = require('./lib/validate');
@@ -251,8 +250,9 @@ function getTransaction(api, account, identifier, requestOptions, callback) {
   } else {
     options.client_resource_id = identifier;
   }
-    var isLedgerRangeRequest = !_.isUndefined(requestOptions.min_ledger)
-                            && !_.isUndefined(requestOptions.max_ledger);
+
+  var isLedgerRangeRequest = !_.isUndefined(requestOptions.min_ledger)
+  && !_.isUndefined(requestOptions.max_ledger);
 
   if (isLedgerRangeRequest) {
     var minLedger = Number(requestOptions.min_ledger);
