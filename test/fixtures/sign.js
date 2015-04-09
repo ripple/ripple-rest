@@ -1,3 +1,5 @@
+/* eslint-disable max-len */
+'use strict';
 var settingsFixtures = require('./settings');
 var addresses = require('./addresses');
 

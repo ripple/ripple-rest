@@ -1,7 +1,9 @@
+/* eslint-disable max-len */
+'use strict';
 var _ = require('lodash');
 var addresses = require('./addresses');
 
-const DEFAULTS = {
+var DEFAULTS = {
   require_destination_tag: true,
   require_authorization: true,
   disallow_xrp: true,
@@ -18,7 +20,7 @@ const DEFAULTS = {
 };
 
 module.exports.requestPath = function(address, params) {
-  return '/v1/accounts/' + address + '/settings' + ( params || '' );
+  return '/v1/accounts/' + address + '/settings' + (params || '');
 };
 
 module.exports.settings = function(options) {
@@ -163,7 +165,7 @@ module.exports.ledgerSequenceTooHighResponse = function(request) {
     result: {
       engine_result: 'tefMAX_LEDGER',
       engine_result_code: -186,
-      engine_result_message: "Ledger sequence too high.",
+      engine_result_message: 'Ledger sequence too high.',
       tx_blob: request.tx_blob,
       tx_json: {
         Account: 'r3GgMwvgvP8h4yVWvjH1dPZNvC37TjzBBE',
@@ -232,24 +234,24 @@ module.exports.RESTAccountSettingsSubmitResponse = function(options) {
 };
 
 module.exports.prepareSettingsRequest = {
-  "address": addresses.VALID,
-  "settings": {
-    "domain": "ripple.com"
+  address: addresses.VALID,
+  settings: {
+    domain: 'ripple.com'
   },
-  "instructions": {
-    "lastLedgerOffset": 100
+  instructions: {
+    lastLedgerOffset: 100
   }
 };
 
 module.exports.prepareSettingsResponse = JSON.stringify({
-  "success": true,
-  "tx_json": {
-    "Flags": 0,
-    "TransactionType": "AccountSet",
-    "Account": addresses.VALID,
-    "Domain": "726970706C652E636F6D",
-    "LastLedgerSequence": 8820241,
-    "Fee": "12",
-    "Sequence": 2938
+  success: true,
+  tx_json: {
+    Flags: 0,
+    TransactionType: 'AccountSet',
+    Account: addresses.VALID,
+    Domain: '726970706C652E636F6D',
+    LastLedgerSequence: 8820241,
+    Fee: '12',
+    Sequence: 2938
   }
 });

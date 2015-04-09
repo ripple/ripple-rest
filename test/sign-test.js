@@ -1,3 +1,4 @@
+'use strict';
 var testutils = require('./testutils');
 var fixtures = require('./fixtures/sign');
 
