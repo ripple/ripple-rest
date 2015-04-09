@@ -4,6 +4,8 @@
 var _ = require('lodash');
 var assert = require('assert');
 var async = require('async');
+var ripple = require('ripple-lib');
+var utils = require('./lib/utils');
 var validator = require('./lib/schema-validator');
 var validate = require('./lib/validate');
 var errors = require('./lib/errors.js');
@@ -236,6 +238,7 @@ function setTransactionBitFlags(transaction, options) {
  * @param {Transaction} transaction
  */
 function getTransaction(api, account, identifier, requestOptions, callback) {
+  assert(requestOptions);
   assert.strictEqual(typeof requestOptions, 'object');
 
   var options = { };
@@ -248,11 +251,30 @@ function getTransaction(api, account, identifier, requestOptions, callback) {
   } else {
     options.client_resource_id = identifier;
   }
+    var isLedgerRangeRequest = !_.isUndefined(requestOptions.min_ledger)
+                            && !_.isUndefined(requestOptions.max_ledger);
 
-  if (!_.isUndefined(requestOptions.ledger)) {
-    var server = api.remote.getServer();
-    if (server && !server.hasLedger(requestOptions.ledger)) {
-      throw new errors.NotFoundError('Ledger not found');
+  if (isLedgerRangeRequest) {
+    var minLedger = Number(requestOptions.min_ledger);
+    var maxLedger = Number(requestOptions.max_ledger);
+
+    if (!utils.isValidLedgerSequence(minLedger)) {
+      return callback(new errors.InvalidRequestError(
+        'Invalid parameter: min_ledger must be a number'));
+    }
+    if (!utils.isValidLedgerSequence(maxLedger)) {
+      return callback(new errors.InvalidRequestError(
+        'Invalid parameter: max_ledger must be a number'));
+    }
+    if (minLedger > maxLedger) {
+      return callback(new errors.InvalidRequestError(
+        'Invalid parameter: max_ledger must be greater than min_ledger'));
+    }
+
+    for (; minLedger <= maxLedger; minLedger++) {
+      if (!api.remote.getServer().hasLedger(minLedger)) {
+        return callback(new errors.NotFoundError('Ledger not found'));
+      }
     }
   }
 
