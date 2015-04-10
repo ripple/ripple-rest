@@ -4,20 +4,19 @@ var bignum = require('bignumber.js');
 var validator = require('./schema-validator.js');
 var ripple = require('ripple-lib');
 
-function renameCounterpartyToIssuer(amount) {
-  if (amount && amount.counterparty) {
-    amount.issuer = amount.counterparty;
-    delete amount.counterparty;
-  }
-  return amount;
+function wrapCatch(asyncFunction) {
+  return function() {
+    var callback = arguments[arguments.length - 1];
+    try {
+      asyncFunction.apply(this, arguments);
+    } catch (error) {
+      callback(error);
+    }
+  };
 }
 
 function dropsToXrp(drops) {
   return bignum(drops).dividedBy(1000000.0).toString();
-}
-
-function xrpToDrops(xrp) {
-  return bignum(xrp).times(1000000.0).floor().toString();
 }
 
 function isValidHash256(hash) {
@@ -64,17 +63,6 @@ function parseCurrencyAmount(rippledAmount, useIssuer) {
   return amount;
 }
 
-function txFromRestAmount(restAmount) {
-  if (restAmount.currency === 'XRP') {
-    return xrpToDrops(restAmount.value);
-  }
-  return {
-    currency: restAmount.currency,
-    issuer: restAmount.counterparty ?
-      restAmount.counterparty : restAmount.issuer,
-    value: restAmount.value
-  };
-}
 
 function parseCurrencyQuery(query) {
   var params = query.split('+');
@@ -125,64 +113,16 @@ function isValidLedgerWord(ledger) {
   return (/^current$|^closed$|^validated$/.test(ledger));
 }
 
-function getFeeDrops(remote) {
-  var feeUnits = 10; // all transactions currently have a fee of 10 fee units
-  return remote.feeTx(feeUnits).to_text();
-}
-
-function addTxInstructions(tx_json, account, remote, options, callback) {
-  if (options.lastLedgerSequence !== undefined) {
-    tx_json.LastLedgerSequence = options.lastLedgerSequence;
-  } else {
-    var offset = options.lastLedgerOffset !== undefined ?
-      options.lastLedgerOffset : 3;
-    tx_json.LastLedgerSequence = remote.getLedgerSequence() + offset;
-  }
-
-  if (options.fixedFee !== undefined) {
-    tx_json.Fee = xrpToDrops(options.fixedFee);
-  } else {
-    var serverFeeDrops = getFeeDrops(remote);
-    if (options.maxFee !== undefined) {
-      var maxFeeDrops = xrpToDrops(options.maxFee);
-      tx_json.Fee = bignum.min(serverFeeDrops, maxFeeDrops).toString();
-    } else {
-      tx_json.Fee = serverFeeDrops;
-    }
-  }
-
-  if (options.sequence !== undefined) {
-    tx_json.Sequence = options.sequence;
-    callback(null, {tx_json: tx_json});
-  } else {
-    remote.findAccount(account).getNextSequence(function(error, sequence) {
-      tx_json.Sequence = sequence;
-      callback(null, {tx_json: tx_json});
-    });
-  }
-}
-
-function createTxJSON(setTxParameters, remote, instructions, callback) {
-  var transaction = new ripple.Transaction();
-  setTxParameters(transaction);
-  transaction.complete();
-  var account = transaction.getAccount();
-  var tx_json = transaction.tx_json;
-  addTxInstructions(tx_json, account, remote, instructions, callback);
-}
 
 module.exports = {
   isValidLedgerSequence: isValidLedgerSequence,
   isValidLedgerWord: isValidLedgerWord,
   isValidLedgerHash: isValidLedgerHash,
   dropsToXrp: dropsToXrp,
-  xrpToDrops: xrpToDrops,
   parseLedger: parseLedger,
   parseCurrencyAmount: parseCurrencyAmount,
   parseCurrencyQuery: parseCurrencyQuery,
-  txFromRestAmount: txFromRestAmount,
   compareTransactions: compareTransactions,
-  renameCounterpartyToIssuer: renameCounterpartyToIssuer,
-  createTxJSON: createTxJSON
+  wrapCatch: wrapCatch
 };
 

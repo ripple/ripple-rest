@@ -4,6 +4,7 @@ var ripple = require('ripple-lib');
 var utils = require('./utils');
 var _ = require('lodash');
 var Promise = require('bluebird');
+var constants = require('./constants');
 var parseBalanceChanges = require('ripple-lib-transactionparser')
                           .parseBalanceChanges;
 var parseOrderBookChanges = require('ripple-lib-transactionparser')
@@ -414,36 +415,25 @@ TxToRestConverter.prototype.parseTrustResponseFromTx =
 
 // Settings
 
-var AccountSetResponseFlags = {
-  RequireDestTag: {name: 'require_destination_tag',
-    value: ripple.Transaction.flags.AccountSet.RequireDestTag},
-  RequireAuth: {name: 'require_authorization',
-    value: ripple.Transaction.flags.AccountSet.RequireAuth},
-  DisallowXRP: {name: 'disallow_xrp',
-    value: ripple.Transaction.flags.AccountSet.DisallowXRP}
-};
 
-TxToRestConverter.prototype.parseSettingResponseFromTx =
+TxToRestConverter.prototype.parseSettingsResponseFromTx =
     function(settings, message, meta, callback) {
   var result = {
     settings: {}
   };
 
-  // cannot require at the top due to circular dependency
-  var settingsModule = require('../settings');
-
-  for (var flagName in settingsModule.AccountSetIntFlags) {
-    var flag = settingsModule.AccountSetIntFlags[flagName];
+  for (var flagName in constants.AccountSetIntFlags) {
+    var flag = constants.AccountSetIntFlags[flagName];
     result.settings[flag.name] = settings[flag.name];
   }
 
-  for (var fieldName in settingsModule.AccountRootFields) {
-    var field = settingsModule.AccountRootFields[fieldName];
+  for (var fieldName in constants.AccountRootFields) {
+    var field = constants.AccountRootFields[fieldName];
     result.settings[field.name] = settings[field.name];
   }
 
   _.extend(result.settings, TxToRestConverter.prototype.parseFlagsFromResponse(
-    message.tx_json.Flags, AccountSetResponseFlags));
+    message.tx_json.Flags, constants.AccountSetResponseFlags));
   _.extend(result, meta);
 
   callback(null, result);

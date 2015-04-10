@@ -28,7 +28,7 @@ app.use(function(req, res, next) {
 morgan(app);
 
 if (config.get('debug')) {
-  app.use(function (req, res, next) {
+  app.use(function(req, res, next) {
     logger.info(req.method, req.url, req.body);
     next();
   });

@@ -12,8 +12,7 @@ var errors = require('./lib/errors');
 var serverLib = require('./lib/server-lib');
 var createRemote = require('./lib/remote');
 var DatabaseInterface = require('./lib/db-interface');
-var sign = require('./sign');
-var submit = require('./submit');
+var transaction = require('./transaction');
 
 function RippleAPI(options) {
   this.remote = createRemote(options);
@@ -52,9 +51,13 @@ RippleAPI.prototype = {
 
   wallet: Wallet,
 
-  prepareSettings: Settings.prepareSettings,
-  sign: sign,
-  submit: submit,
+  preparePayment: transaction.preparePayment,
+  prepareTrustLine: transaction.prepareTrustLine,
+  prepareOrder: transaction.prepareOrder,
+  prepareOrderCancellation: transaction.prepareOrderCancellation,
+  prepareSettings: transaction.prepareSettings,
+  sign: transaction.sign,
+  submit: transaction.submit,
 
   errors: errors,
 

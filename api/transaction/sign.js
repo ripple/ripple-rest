@@ -2,7 +2,7 @@
 var sjcl = require('ripple-lib').sjcl;
 var Seed = require('ripple-lib').Seed;
 var SerializedObject = require('ripple-lib').SerializedObject;
-var validate = require('./lib/validate');
+var validate = require('../lib/validate');
 
 /**
  * These prefixes are inserted before the source material used to

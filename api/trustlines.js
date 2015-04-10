@@ -1,21 +1,16 @@
 /* globals Promise: true */
 /* eslint-disable valid-jsdoc */
 'use strict';
+var _ = require('lodash');
+var async = require('async');
 var Promise = require('bluebird');
 var transactions = require('./transactions.js');
-var SubmitTransactionHooks = require('./lib/submit_transaction_hooks.js');
 var utils = require('./lib/utils');
 var validator = require('./lib/schema-validator');
 var TxToRestConverter = require('./lib/tx-to-rest-converter.js');
 var validate = require('./lib/validate');
-
-var TrustSetFlags = {
-  SetAuth: {name: 'authorized', set: 'SetAuth'},
-  ClearNoRipple: {name: 'account_allows_rippling', set: 'ClearNoRipple',
-    unset: 'NoRipple'},
-  SetFreeze: {name: 'account_trustline_frozen', set: 'SetFreeze',
-    unset: 'ClearFreeze'}
-};
+var createTrustLineTransaction =
+  require('./transaction').createTrustLineTransaction;
 
 var DefaultPageLimit = 200;
 
@@ -156,51 +151,18 @@ function getTrustLines(account, options, callback) {
  */
 
 function addTrustLine(account, trustline, secret, options, callback) {
-  var params = {
-    secret: secret,
-    validated: options.validated
-  };
-
-  if (trustline && trustline.limit) {
-    trustline.limit = String(trustline.limit);
-  }
-
   validate.address(account);
   validate.trustline(trustline);
   validate.validated(options.validated, true);
 
-  function setTransactionParameters(transaction) {
-    var limit = [
-      trustline.limit,
-      trustline.currency,
-      trustline.counterparty
-    ].join('/');
-
-    transaction.trustSet(account, limit);
-    transaction.secret(secret);
-
-    if (typeof trustline.quality_in === 'number') {
-      transaction.tx_json.QualityIn = trustline.quality_in;
-    }
-    if (typeof trustline.quality_out === 'number') {
-      transaction.tx_json.QualityOut = trustline.quality_out;
-    }
-
-    transactions.setTransactionBitFlags(transaction, {
-      input: trustline,
-      flags: TrustSetFlags,
-      clear_setting: ''
-    });
-  }
-
-  var hooks = {
-    formatTransactionResponse: TxToRestConverter.parseTrustResponseFromTx,
-    setTransactionParameters: setTransactionParameters
-  };
-
-  transactions.submit(this, params, new SubmitTransactionHooks(hooks),
-                      callback);
+  var transaction = createTrustLineTransaction(account, trustline);
+  async.waterfall([
+    _.partial(transactions.submit, this, transaction, secret, options),
+    TxToRestConverter.parseTrustResponseFromTx
+  ], callback);
 }
 
-module.exports.get = getTrustLines;
-module.exports.add = addTrustLine;
+module.exports = {
+  get: getTrustLines,
+  add: utils.wrapCatch(addTrustLine)
+};

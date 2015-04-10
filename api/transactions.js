@@ -35,7 +35,7 @@ var DEFAULT_RESULTS_PER_PAGE = 10;
  * @param {Object} transaction - Transaction data received from ripple
  */
 
-function submitTransaction(api, options, hooks, callback) {
+function submitTransaction(api, tx, secret, options, callback) {
   function blockDuplicates(transaction, _options, _callback) {
     var transactionOptions = {
       source_account: transaction.tx_json.Account,
@@ -60,8 +60,7 @@ function submitTransaction(api, options, hooks, callback) {
     });
   }
 
-  function formatTransactionResponseWrapper(transaction, message,
-      waitForValidated, _callback) {
+  function formatTransactionResponseWrapper(transaction, message, _callback) {
     var summary = transaction.summary();
 
     transaction.removeListener('error', _callback);
@@ -75,23 +74,16 @@ function submitTransaction(api, options, hooks, callback) {
 
     meta.state = message.validated === true ? 'validated' : 'pending';
 
-    hooks.formatTransactionResponse(message, meta, _callback, waitForValidated);
+    _callback(null, message, meta);
   }
 
   var steps = [
-    // General options validation is performed here before passing the
-    // options to the caller to validate
     function(_callback) {
-      if (!options.secret) {
+      if (!secret) {
         return _callback(new errors.InvalidRequestError(
           'Parameter missing: secret'));
       }
-
-      hooks.validateParams(_callback);
-    },
-    // Transaction object is constructed here
-    function(_callback) {
-      return hooks.initializeTransaction(_callback);
+      _callback(null, tx);
     },
     // Duplicate blocking is performed here
     function(transaction, _callback) {
@@ -107,9 +99,7 @@ function submitTransaction(api, options, hooks, callback) {
     // and is submitted here
     function(transaction, _callback) {
       try {
-        transaction.secret(options.secret);
-
-        hooks.setTransactionParameters(transaction);
+        transaction.secret(secret);
       } catch (exception) {
         return _callback(exception);
       }
@@ -120,7 +110,7 @@ function submitTransaction(api, options, hooks, callback) {
         if (message.result.slice(0, 3) === 'tec'
             && options.validated !== true) {
           return formatTransactionResponseWrapper(transaction, message,
-            options.validated, _callback);
+            _callback);
         }
 
         // Handle erred transactions that should not make it into ledger (all
@@ -144,15 +134,13 @@ function submitTransaction(api, options, hooks, callback) {
 
       transaction.once('proposed', function(message) {
         if (options.validated !== true) {
-          formatTransactionResponseWrapper(transaction, message,
-            options.validated, _callback);
+          formatTransactionResponseWrapper(transaction, message, _callback);
         }
       });
 
       transaction.once('success', function(message) {
         if (options.validated === true) {
-          formatTransactionResponseWrapper(transaction, message,
-            options.validated, _callback);
+          formatTransactionResponseWrapper(transaction, message, _callback);
         }
       });
 
@@ -176,44 +164,6 @@ function submitTransaction(api, options, hooks, callback) {
   async.waterfall(steps, callback);
 }
 
-/**
- * Helper that sets bit flags on transactions
- *
- * @param {Transaction} transaction - Transaction object that is used to submit
- *                                    requests to ripple
- * @param {Object} options
- * @param {Object} options.flags - Holds flag names to set on transaction when
- *                                 parameter values are true or false on input
- * @param {Object} options.input - Holds parameter values
- * @param {String} options.clear_setting - Used to check if parameter values
- *                                         besides false mean false
- *
- *
- * @returns undefined
- */
-
-function setTransactionBitFlags(transaction, options) {
-  for (var flagName in options.flags) {
-    var flag = options.flags[flagName];
-
-    // Set transaction flags
-    if (!(flag.name in options.input)) {
-      continue;
-    }
-
-    var value = options.input[flag.name];
-
-    if (value === options.clear_setting) {
-      value = false;
-    }
-
-    if (flag.unset) {
-      transaction.setFlags(value ? flag.set : flag.unset);
-    } else if (flag.set && value) {
-      transaction.setFlags(flag.set);
-    }
-  }
-}
 
 /**
  * Retrieve a transaction from the Remote and local database
@@ -710,6 +660,5 @@ module.exports = {
   submit: submitTransaction,
   get: getTransactionAndRespond,
   getTransaction: getTransaction,
-  getAccountTransactions: getAccountTransactions,
-  setTransactionBitFlags: setTransactionBitFlags
+  getAccountTransactions: getAccountTransactions
 };
