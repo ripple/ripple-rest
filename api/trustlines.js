@@ -199,12 +199,7 @@ function addTrustLine(account, trustline, secret, options, callback) {
   };
 
   transactions.submit(this, params, new SubmitTransactionHooks(hooks),
-      function(err, trustlineResult) {
-    if (err) {
-      return callback(err);
-    }
-    callback(null, trustlineResult);
-  });
+                      callback);
 }
 
 module.exports.get = getTrustLines;
