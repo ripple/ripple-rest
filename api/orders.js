@@ -203,13 +203,7 @@ function placeOrder(account, order, secret, options, callback) {
   };
 
   transactions.submit(this, params, new SubmitTransactionHooks(hooks),
-      function(err, placedOrder) {
-    if (err) {
-      return callback(err);
-    }
-
-    callback(null, placedOrder);
-  });
+                      callback);
 }
 
 /**
@@ -243,13 +237,7 @@ function cancelOrder(account, sequence, secret, options, callback) {
   };
 
   transactions.submit(this, params, new SubmitTransactionHooks(hooks),
-      function(err, canceledOrder) {
-    if (err) {
-      return callback(err);
-    }
-
-    callback(null, canceledOrder);
-  });
+                      callback);
 }
 
 /**

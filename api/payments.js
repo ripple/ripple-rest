@@ -142,13 +142,7 @@ function submitPayment(account, payment, clientResourceID, secret,
   validate.validated(options.validated, true);
 
   function initializeTransaction(_callback) {
-    RestToTxConverter.convert(payment, function(error, transaction) {
-      if (error) {
-        return _callback(error);
-      }
-
-      _callback(null, transaction);
-    });
+    RestToTxConverter.convert(payment, _callback);
   }
 
   function formatTransactionResponse(message, meta, _callback) {
@@ -201,13 +195,7 @@ function submitPayment(account, payment, clientResourceID, secret,
   };
 
   transactions.submit(this, params, new SubmitTransactionHooks(hooks),
-      function(err, paymentResult) {
-    if (err) {
-      return callback(err);
-    }
-
-    callback(null, paymentResult);
-  });
+                      callback);
 }
 
 /**
@@ -229,26 +217,15 @@ function getPayment(account, identifier, callback) {
   // If the transaction was not in the outgoing_transactions db,
   // get it from rippled
   function getTransaction(_callback) {
-    transactions.getTransaction(self, account, identifier, {},
-        function(error, transaction) {
-      _callback(error, transaction);
-    });
+    transactions.getTransaction(self, account, identifier, {}, _callback);
   }
 
   var steps = [
     getTransaction,
-    function(transaction, _callback) {
-      return formatPaymentHelper(account, transaction, _callback);
-    }
+    _.partial(formatPaymentHelper, account)
   ];
 
-  async.waterfall(steps, function(error, result) {
-    if (error) {
-      callback(error);
-    } else {
-      callback(null, result);
-    }
-  });
+  async.waterfall(steps, callback);
 }
 
 /**
@@ -327,12 +304,9 @@ function getAccountPayments(account, source_account, destination_account,
       return _callback(null);
     }
     async.map(_transactions,
-      function(transaction, async_map_callback) {
-        return formatPaymentHelper(account, transaction, async_map_callback);
-      },
+      _.partial(formatPaymentHelper, account),
       _callback
     );
-
   }
 
   function attachResourceId(_transactions, _callback) {
@@ -355,20 +329,19 @@ function getAccountPayments(account, source_account, destination_account,
     }, _callback);
   }
 
+  function formatResponse(_transactions, _callback) {
+    _callback(null, {payments: _transactions});
+  }
+
   var steps = [
     getTransactions,
     attachDate,
     formatTransactions,
-    attachResourceId
+    attachResourceId,
+    formatResponse
   ];
 
-  async.waterfall(steps, function(error, payments) {
-    if (error) {
-      callback(error);
-    } else {
-      callback(null, {payments: payments});
-    }
-  });
+  async.waterfall(steps, callback);
 }
 
 /**
@@ -542,20 +515,19 @@ function getPathFind(source_account, destination_account,
     }
   }
 
+  function formatResponse(payments, _callback) {
+    _callback(null, {payments: payments});
+  }
+
   var steps = [
     prepareOptions,
     findPath,
     addDirectXrpPath,
-    formatPath
+    formatPath,
+    formatResponse
   ];
 
-  async.waterfall(steps, function(error, payments) {
-    if (error) {
-      callback(error);
-    } else {
-      callback(null, {payments: payments});
-    }
-  });
+  async.waterfall(steps, callback);
 }
 
 module.exports = {
