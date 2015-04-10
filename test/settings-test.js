@@ -1,3 +1,5 @@
+/* eslint-disable new-cap */
+'use strict';
 var assert = require('assert');
 var ripple = require('ripple-lib');
 var testutils = require('./testutils');
@@ -5,11 +7,33 @@ var fixtures = require('./fixtures').settings;
 var errors = require('./fixtures').errors;
 var addresses = require('./fixtures').addresses;
 
+suite('prepareSettings', function() {
+  var self = this;
+  setup(testutils.setup.bind(self));
+  teardown(testutils.teardown.bind(self));
+
+  test('/transaction/prepare/settings', function(done) {
+    self.wss.on('request_account_info', function(message, conn) {
+      assert.strictEqual(message.command, 'account_info');
+      assert.strictEqual(message.account, addresses.VALID);
+      conn.send(fixtures.accountInfoResponse(message));
+    });
+
+    self.app
+      .post(testutils.getPrepareURL('settings'))
+      .send(fixtures.prepareSettingsRequest)
+      .expect(testutils.checkStatus(200))
+      .expect(testutils.checkHeaders)
+      .expect(testutils.checkBody(fixtures.prepareSettingsResponse))
+      .end(done);
+  });
+});
+
 suite('get settings', function() {
   var self = this;
 
-  //self.wss: rippled mock
-  //self.app: supertest-enabled REST handler
+  // self.wss: rippled mock
+  // self.app: supertest-enabled REST handler
 
   setup(testutils.setup.bind(self));
   teardown(testutils.teardown.bind(self));
@@ -30,7 +54,7 @@ suite('get settings', function() {
   });
 
   test('/accounts/:account/settings -- invalid account', function(done) {
-    self.wss.once('request_account_info', function(message, conn) {
+    self.wss.once('request_account_info', function() {
       assert(false, 'Should not request account info');
     });
 
@@ -60,8 +84,8 @@ suite('get settings', function() {
 suite('post settings', function() {
   var self = this;
 
-  //self.wss: rippled mock
-  //self.app: supertest-enabled REST handler
+  // self.wss: rippled mock
+  // self.app: supertest-enabled REST handler
 
   setup(testutils.setup.bind(self));
   teardown(testutils.teardown.bind(self));
@@ -99,7 +123,7 @@ suite('post settings', function() {
     self.app
     .post(fixtures.requestPath(addresses.VALID, '?validated=true'))
     .send({
-      //XXX Should set client_resource_id
+      // XXX Should set client_resource_id
       secret: addresses.SECRET,
       settings: fixtures.settings()
     })
@@ -113,11 +137,11 @@ suite('post settings', function() {
   });
 
   test('/accounts/:account/settings -- invalid account', function(done) {
-    self.wss.once('request_account_info', function(message, conn) {
+    self.wss.once('request_account_info', function() {
       assert(false, 'Should not request account info');
     });
 
-    self.wss.once('request_submit', function(message, conn) {
+    self.wss.once('request_submit', function() {
       assert(false, 'Should not request submit');
     });
 
@@ -134,11 +158,11 @@ suite('post settings', function() {
   });
 
   test('/accounts/:account/settings -- settings missing', function(done) {
-    self.wss.once('request_account_info', function(message, conn) {
+    self.wss.once('request_account_info', function() {
       assert(false, 'Should not request account info');
     });
 
-    self.wss.once('request_submit', function(message, conn) {
+    self.wss.once('request_submit', function() {
       assert(false, 'Should not request submit');
     });
 
@@ -158,18 +182,18 @@ suite('post settings', function() {
   });
 
   test('/accounts/:account/settings -- secret missing', function(done) {
-    self.wss.once('request_account_info', function(message, conn) {
+    self.wss.once('request_account_info', function() {
       assert(false, 'Should not request account info');
     });
 
-    self.wss.once('request_submit', function(message, conn) {
+    self.wss.once('request_submit', function() {
       assert(false, 'Should not request submit');
     });
 
     self.app
     .post(fixtures.requestPath(addresses.VALID))
     .send({
-      //secret: addresses.SECRET,
+      // secret: addresses.SECRET,
       settings: {
         require_destination_tag: true,
         require_authorization: true,
@@ -193,7 +217,7 @@ suite('post settings', function() {
       conn.send(fixtures.accountInfoResponse(message));
     });
 
-    self.wss.once('request_submit', function(message, conn) {
+    self.wss.once('request_submit', function() {
       assert(false, 'Should not request submit');
     });
 
@@ -217,12 +241,13 @@ suite('post settings', function() {
       .end(done);
   });
 
-  test('/accounts/:account/settings -- require_destination_tag invalid', function(done) {
-    self.wss.once('request_account_info', function(message, conn) {
+  test('/accounts/:account/settings -- require_destination_tag invalid',
+      function(done) {
+    self.wss.once('request_account_info', function() {
       assert(false, 'Should not request account info');
     });
 
-    self.wss.once('request_submit', function(message, conn) {
+    self.wss.once('request_submit', function() {
       assert(false, 'Should not request submit');
     });
 
@@ -244,12 +269,13 @@ suite('post settings', function() {
     .end(done);
   });
 
-  test('/accounts/:account/settings -- require_authorization invalid', function(done) {
-    self.wss.once('request_account_info', function(message, conn) {
+  test('/accounts/:account/settings -- require_authorization invalid',
+      function(done) {
+    self.wss.once('request_account_info', function() {
       assert(false, 'Should not request account info');
     });
 
-    self.wss.once('request_submit', function(message, conn) {
+    self.wss.once('request_submit', function() {
       assert(false, 'Should not request submit');
     });
 
@@ -272,11 +298,11 @@ suite('post settings', function() {
   });
 
   test('/accounts/:account/settings -- disallow_xrp invalid', function(done) {
-    self.wss.once('request_account_info', function(message, conn) {
+    self.wss.once('request_account_info', function() {
       assert(false, 'Should not request account info');
     });
 
-    self.wss.once('request_submit', function(message, conn) {
+    self.wss.once('request_submit', function() {
       assert(false, 'Should not request submit');
     });
 
@@ -299,11 +325,11 @@ suite('post settings', function() {
   });
 
   test('/accounts/:account/settings -- domain invalid', function(done) {
-    self.wss.once('request_account_info', function(message, conn) {
+    self.wss.once('request_account_info', function() {
       assert(false, 'Should not request account info');
     });
 
-    self.wss.once('request_submit', function(message, conn) {
+    self.wss.once('request_submit', function() {
       assert(false, 'Should not request submit');
     });
 
@@ -312,7 +338,7 @@ suite('post settings', function() {
     .send({
       secret: addresses.SECRET,
       settings: fixtures.settings({
-        domain: 1,
+        domain: 1
       })
     })
     .expect(testutils.checkStatus(400))
@@ -326,11 +352,11 @@ suite('post settings', function() {
   });
 
   test('/accounts/:account/settings -- transfer_rate invalid', function(done) {
-    self.wss.once('request_account_info', function(message, conn) {
+    self.wss.once('request_account_info', function() {
       assert(false, 'Should not request account info');
     });
 
-    self.wss.once('request_submit', function(message, conn) {
+    self.wss.once('request_submit', function() {
       assert(false, 'Should not request submit');
     });
 
@@ -352,12 +378,13 @@ suite('post settings', function() {
     .end(done);
   });
 
-  test('/accounts/:account/settings -- no_freeze and global_freeze', function(done) {
-    self.wss.once('request_account_info', function(message, conn) {
+  test('/accounts/:account/settings -- no_freeze and global_freeze',
+      function(done) {
+    self.wss.once('request_account_info', function() {
       assert(false, 'Should not request account info');
     });
 
-    self.wss.once('request_submit', function(message, conn) {
+    self.wss.once('request_submit', function() {
       assert(false, 'Should not request submit');
     });
 
@@ -379,12 +406,13 @@ suite('post settings', function() {
       .end(done);
   });
 
-  test('/accounts/:account/settings -- clear no_freeze and global_freeze', function(done) {
-    self.wss.once('request_account_info', function(message, conn) {
+  test('/accounts/:account/settings -- clear no_freeze and global_freeze',
+      function(done) {
+    self.wss.once('request_account_info', function() {
       assert(false, 'Should not request account info');
     });
 
-    self.wss.once('request_submit', function(message, conn) {
+    self.wss.once('request_submit', function() {
       assert(false, 'Should not request submit');
     });
 
@@ -407,11 +435,11 @@ suite('post settings', function() {
   });
 
   test('/accounts/:account/settings -- password_spent invalid', function(done) {
-    self.wss.once('request_account_info', function(message, conn) {
+    self.wss.once('request_account_info', function() {
       assert(false, 'Should not request account info');
     });
 
-    self.wss.once('request_submit', function(message, conn) {
+    self.wss.once('request_submit', function() {
       assert(false, 'Should not request submit');
     });
 
@@ -434,11 +462,11 @@ suite('post settings', function() {
   });
 
   test('/accounts/:account/settings -- disable_master invalid', function(done) {
-    self.wss.once('request_account_info', function(message, conn) {
+    self.wss.once('request_account_info', function() {
       assert(false, 'Should not request account info');
     });
 
-    self.wss.once('request_submit', function(message, conn) {
+    self.wss.once('request_submit', function() {
       assert(false, 'Should not request submit');
     });
 
@@ -461,11 +489,11 @@ suite('post settings', function() {
   });
 
   test('/accounts/:account/settings -- email_hash too long', function(done) {
-    self.wss.once('request_account_info', function(message, conn) {
+    self.wss.once('request_account_info', function() {
       assert(false, 'Should not request account info');
     });
 
-    self.wss.once('request_submit', function(message, conn) {
+    self.wss.once('request_submit', function() {
       assert(false, 'Should not request submit');
     });
 
@@ -474,7 +502,7 @@ suite('post settings', function() {
       .send({
         secret: addresses.SECRET,
         settings: fixtures.settings({
-          email_hash: '23463B99B62A72F26ED677CC556C44E8F',
+          email_hash: '23463B99B62A72F26ED677CC556C44E8F'
         })
       })
       .expect(testutils.checkStatus(400))
@@ -487,7 +515,8 @@ suite('post settings', function() {
       .end(done);
   });
 
-  test('/accounts/:account/settings -- require_destination_tag -- no op setting', function(done) {
+  test('/accounts/:account/settings -- require_destination_tag'
+        + ' -- no op setting', function(done) {
     var hash = testutils.generateHash();
 
     self.wss.once('request_account_info', function(message, conn) {
@@ -503,7 +532,8 @@ suite('post settings', function() {
       var so = new ripple.SerializedObject(message.tx_blob).to_json();
 
       assert.strictEqual(so.TransactionType, 'AccountSet');
-      assert.strictEqual(so.Flags & ripple.Transaction.flags.AccountSet.RequireDestTag, 0);
+      assert.strictEqual(so.Flags &
+        ripple.Transaction.flags.AccountSet.RequireDestTag, 0);
 
       conn.send(fixtures.submitSettingsResponse(message, {
         hash: hash
@@ -515,7 +545,7 @@ suite('post settings', function() {
     .send({
       secret: addresses.SECRET,
       settings: {
-        require_destination_tag: undefined,
+        require_destination_tag: undefined
       }
     })
     .expect(testutils.checkStatus(200))
@@ -523,7 +553,8 @@ suite('post settings', function() {
     .end(done);
   });
 
-  test('/accounts/:account/settings -- require_destination_tag -- clear setting', function(done) {
+  test('/accounts/:account/settings -- require_destination_tag'
+        + ' -- clear setting', function(done) {
     var hash = testutils.generateHash();
 
     self.wss.once('request_account_info', function(message, conn) {
@@ -539,7 +570,8 @@ suite('post settings', function() {
       var so = new ripple.SerializedObject(message.tx_blob).to_json();
 
       assert.strictEqual(so.TransactionType, 'AccountSet');
-      assert((so.Flags & ripple.Transaction.flags.AccountSet.OptionalDestTag) > 0);
+      assert((so.Flags
+              & ripple.Transaction.flags.AccountSet.OptionalDestTag) > 0);
 
       conn.send(fixtures.submitSettingsResponse(message, {
         hash: hash
@@ -551,7 +583,7 @@ suite('post settings', function() {
     .send({
       secret: addresses.SECRET,
       settings: {
-        require_destination_tag: false,
+        require_destination_tag: false
       }
     })
     .expect(testutils.checkStatus(200))
@@ -559,7 +591,8 @@ suite('post settings', function() {
     .end(done);
   });
 
-  test('/accounts/:account/settings -- domain -- clear setting', function(done) {
+  test('/accounts/:account/settings -- domain -- clear setting',
+      function(done) {
     var hash = testutils.generateHash();
 
     self.wss.once('request_account_info', function(message, conn) {
@@ -595,7 +628,8 @@ suite('post settings', function() {
     .end(done);
   });
 
-  test('/accounts/:account/settings -- email_hash -- clear setting', function(done) {
+  test('/accounts/:account/settings -- email_hash -- clear setting',
+      function(done) {
     var hash = testutils.generateHash();
 
     self.wss.once('request_account_info', function(message, conn) {
@@ -631,7 +665,8 @@ suite('post settings', function() {
     .end(done);
   });
 
-  test('/accounts/:account/settings -- wallet_locator -- clear setting', function(done) {
+  test('/accounts/:account/settings -- wallet_locator -- clear setting',
+      function(done) {
     var hash = testutils.generateHash();
 
     self.wss.once('request_account_info', function(message, conn) {
@@ -667,7 +702,8 @@ suite('post settings', function() {
     .end(done);
   });
 
-  test('/accounts/:account/settings -- transfer_rate -- clear setting', function(done) {
+  test('/accounts/:account/settings -- transfer_rate -- clear setting',
+      function(done) {
     var hash = testutils.generateHash();
 
     self.wss.once('request_account_info', function(message, conn) {
@@ -703,7 +739,8 @@ suite('post settings', function() {
     .end(done);
   });
 
-  test('/accounts/:account/settings -- no_freeze -- clear setting', function(done) {
+  test('/accounts/:account/settings -- no_freeze -- clear setting',
+      function(done) {
     var hash = testutils.generateHash();
 
     self.wss.once('request_account_info', function(message, conn) {
@@ -739,7 +776,8 @@ suite('post settings', function() {
     .end(done);
   });
 
-  test('/accounts/:account/settings -- default_ripple -- clear setting', function(done) {
+  test('/accounts/:account/settings -- default_ripple -- clear setting',
+      function(done) {
     var hash = testutils.generateHash();
 
     self.wss.once('request_account_info', function(message, conn) {
@@ -775,12 +813,13 @@ suite('post settings', function() {
     .end(done);
   });
 
-  test('/accounts/:account/settings -- no_freeze and global_freeze -- clear settings', function(done) {
-    self.wss.once('request_account_info', function(message, conn) {
+  test('/accounts/:account/settings -- no_freeze and global_freeze'
+        + ' -- clear settings', function(done) {
+    self.wss.once('request_account_info', function() {
       assert(false, 'Should not request account info');
     });
 
-    self.wss.once('request_submit', function(message, conn) {
+    self.wss.once('request_submit', function() {
       assert(false, 'Should not request submit');
     });
 
@@ -844,9 +883,8 @@ suite('post settings', function() {
       .end(done);
   });
 
-  test('/accounts/:account/settings?validated=true -- ledger sequence too high', function(done) {
-    var lastLedger = self.remote._ledger_current_index;
-
+  test('/accounts/:account/settings?validated=true -- ledger sequence too high',
+      function(done) {
     self.wss.once('request_account_info', function(message, conn) {
       assert.strictEqual(message.command, 'account_info');
       assert.strictEqual(message.account, addresses.VALID);
@@ -861,7 +899,7 @@ suite('post settings', function() {
     });
 
     self.app
-    .post(fixtures.requestPath(addresses.VALID, "?validated=true"))
+    .post(fixtures.requestPath(addresses.VALID, '?validated=true'))
     .send({
       secret: addresses.SECRET,
       settings: fixtures.settings()
@@ -873,15 +911,13 @@ suite('post settings', function() {
   });
 
   test('/accounts/:account/settings -- secret invalid', function(done) {
-    var lastLedger = self.remote._ledger_current_index;
-
     self.wss.once('request_account_info', function(message, conn) {
       assert.strictEqual(message.command, 'account_info');
       assert.strictEqual(message.account, addresses.VALID);
       conn.send(fixtures.accountInfoResponse(message));
     });
 
-    self.wss.once('request_submit', function(message, conn) {
+    self.wss.once('request_submit', function() {
       assert(false, 'Should not request submit');
     });
 

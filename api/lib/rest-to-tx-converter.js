@@ -70,24 +70,44 @@ RestToTxConverter.prototype.convert = function(payment, callback) {
     if (payment.destination_tag) {
       transaction.destinationTag(parseInt(payment.destination_tag, 10));
     }
-    // SendMax
-    if (payment.source_amount) {
-      // Only set send max if source and destination currencies are different
-      if (!(payment.source_amount.currency
-            === payment.destination_amount.currency
-            && payment.source_amount.issuer
-            === payment.destination_amount.issuer)) {
-        var max_value = bignum(payment.source_amount.value)
-                        .plus(payment.source_slippage || 0).toString();
-        if (payment.source_amount.currency === 'XRP') {
-          transaction.sendMax(utils.xrpToDrops(max_value));
-        } else {
-          transaction.sendMax({
-            value: max_value,
-            currency: payment.source_amount.currency,
-            issuer: payment.source_amount.issuer
-          });
+
+    function sendMaxRequired() {
+      var src = payment.source_account;
+      var dst = payment.destination_account;
+
+      var srcAmt = payment.source_amount;
+      var dstAmt = payment.destination_amount;
+
+      if (!srcAmt || srcAmt.currency === 'XRP' && dstAmt.currency === 'XRP') {
+        return false;
+      }
+
+      // Only set send max when:
+      // - Source and destination currencies are same and source issuer is not source account
+      // - Source amount and destination issuers are different
+      //
+      if (srcAmt.currency === dstAmt.currency) {
+        if (srcAmt.issuer !== src) {
+          return true;
         }
+      } else if (srcAmt.issuer !== dstAmt.issuer) {
+        return true;
+      } else {
+        return false;
+      }
+    }
+
+    // SendMax
+    if (sendMaxRequired()) {
+      var max_value = bignum(payment.source_amount.value).plus(payment.source_slippage).toString();
+      if (payment.source_amount.currency === 'XRP') {
+        transaction.sendMax(utils.xrpToDrops(max_value));
+      } else {
+        transaction.sendMax({
+          value: max_value,
+          currency: payment.source_amount.currency,
+          issuer: payment.source_amount.issuer
+        });
       }
     }
 

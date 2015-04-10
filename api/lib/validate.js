@@ -446,6 +446,28 @@ function validateValidated(validated) {
   }
 }
 
+function validateTxJSON(txJSON) {
+  if (typeof txJSON !== 'object') {
+    throw error('tx_json must be an object, not: ' + typeof txJSON);
+  }
+  if (!isValidAddress(txJSON.Account)) {
+    throw error('tx_json.Account must be a valid Ripple address, got: '
+                + txJSON.Account);
+  }
+}
+
+function validateBlob(blob) {
+  if (typeof blob !== 'string') {
+    throw error('tx_blob must be a string, not: ' + typeof blob);
+  }
+  if (blob.length === 0) {
+    throw error('tx_blob must not be empty');
+  }
+  if (!blob.match(/[0-9A-F]+/g)) {
+    throw error('tx_blob must be an uppercase hex string, got: ' + blob);
+  }
+}
+
 function createValidators(validatorMap) {
   var result = {};
   _.forEach(validatorMap, function(validateFunction, key) {
@@ -482,5 +504,7 @@ module.exports = createValidators({
   pathfind: validatePathFind,
   settings: validateSettings,
   trustline: validateTrustline,
-  validated: validateValidated
+  validated: validateValidated,
+  txJSON: validateTxJSON,
+  blob: validateBlob
 });

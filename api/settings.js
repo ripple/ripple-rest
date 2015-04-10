@@ -1,6 +1,7 @@
 /* eslint-disable valid-jsdoc */
 'use strict';
 var _ = require('lodash');
+var utils = require('./lib/utils');
 var assert = require('assert');
 var ripple = require('ripple-lib');
 var transactions = require('./transactions.js');
@@ -226,6 +227,30 @@ function getSettings(account, callback) {
   });
 }
 
+function setTransactionParameters(account, settings, transaction) {
+  transaction.accountSet(account);
+
+  transactions.setTransactionBitFlags(transaction, {
+    input: settings,
+    flags: AccountSetFlags,
+    clear_setting: CLEAR_SETTING
+  });
+  setTransactionIntFlags(transaction, settings, AccountSetIntFlags);
+  setTransactionFields(transaction, settings, AccountRootFields);
+
+  transaction.tx_json.TransferRate = RestToTxConverter.convertTransferRate(
+    transaction.tx_json.TransferRate);
+}
+
+function prepareSettings(account, settings, instructions, callback) {
+  instructions = instructions || {};
+  validate.address(account);
+  validate.settings(settings);
+
+  utils.createTxJSON(_.partial(setTransactionParameters, account, settings),
+    this.remote, instructions, callback);
+}
+
 /**
  * Change account settings
  *
@@ -239,48 +264,29 @@ function getSettings(account, callback) {
  *
  */
 function changeSettings(account, settings, secret, options, callback) {
+  validate.address(account);
+  validate.settings(settings);
+
   var params = {
     secret: secret,
     validated: options.validated
   };
 
-  validate.address(account);
-  validate.settings(settings);
-
-  function setTransactionParameters(transaction) {
-    transaction.accountSet(account);
-
-    transactions.setTransactionBitFlags(transaction, {
-      input: settings,
-      flags: AccountSetFlags,
-      clear_setting: CLEAR_SETTING
-    });
-    setTransactionIntFlags(transaction, settings, AccountSetIntFlags);
-    setTransactionFields(transaction, settings, AccountRootFields);
-
-    transaction.tx_json.TransferRate = RestToTxConverter.convertTransferRate(
-      transaction.tx_json.TransferRate);
-  }
-
   var hooks = {
-    formatTransactionResponse: TxToRestConverter.parseSettingResponseFromTx
-                               .bind(undefined, settings),
-    setTransactionParameters: setTransactionParameters
+    formatTransactionResponse: _.partial(
+      TxToRestConverter.parseSettingResponseFromTx, settings),
+    setTransactionParameters: _.partial(setTransactionParameters,
+      account, settings)
   };
 
   transactions.submit(this, params, new SubmitTransactionHooks(hooks),
-      function(err, settingsResult) {
-    if (err) {
-      return callback(err);
-    }
-
-    callback(null, settingsResult);
-  });
+                      callback);
 }
 
 module.exports = {
   get: getSettings,
   change: changeSettings,
+  prepareSettings: prepareSettings,
   AccountSetIntFlags: AccountSetIntFlags,
   AccountRootFields: AccountRootFields
 };
