@@ -11,8 +11,35 @@ var app = require('../server/express_app');
 var crypto = require('crypto');
 var UInt256 = ripple.UInt256;
 var api = require('../server/api');
+var version = require('../server/version');
+var PRNGMock = require('./prngmock');
 
 var LEDGER_OFFSET = 3;
+
+function withDeterministicPRNG(callback, done) {
+  var prng = ripple.sjcl.random;
+  ripple.sjcl.random = new PRNGMock();
+  callback(function(err, data) {
+    ripple.sjcl.random = prng;
+    done(err, data);
+  });
+}
+
+function getURLBase() {
+  return '/v' + version.getApiVersion();
+}
+
+function getSignURL() {
+  return getURLBase() + '/transaction/sign';
+}
+
+function getSubmitURL() {
+  return getURLBase() + '/transaction/submit';
+}
+
+function getPrepareURL(type) {
+  return getURLBase() + '/transaction/prepare/' + type;
+}
 
 function setup(done) {
   var self = this;
@@ -87,7 +114,13 @@ function checkBody(expected) {
   return function(res, err) {
     // console.log(require('util').inspect(res.body,false,null));
     assert.ifError(err);
-    assert.deepEqual(res.body, JSON.parse(expected));
+    var expectedObject;
+    try {
+      expectedObject = JSON.parse(expected);
+    } catch (e) {
+      throw new Error('expected body is not JSON');
+    }
+    assert.deepEqual(res.body, expectedObject);
   };
 }
 
@@ -128,7 +161,11 @@ module.exports = {
   checkHeaders: checkHeaders,
   checkBody: checkBody,
   generateHash: generateHash,
-  loadArguments: loadArguments
+  loadArguments: loadArguments,
+  getPrepareURL: getPrepareURL,
+  getSignURL: getSignURL,
+  getSubmitURL: getSubmitURL,
+  withDeterministicPRNG: withDeterministicPRNG
 };
 
 module.exports.closeLedgers = closeLedgers;

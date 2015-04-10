@@ -208,6 +208,25 @@ function cancelOrder(request, callback) {
   api.cancelOrder(account, sequence, secret, options, callback);
 }
 
+function sign(request, callback) {
+  var tx_json = request.body.tx_json;
+  var secret = request.body.secret;
+  var response = api.sign(tx_json, secret);
+  callback(null, response);
+}
+
+function submit(request, callback) {
+  var tx_blob = request.body.tx_blob;
+  api.submit(tx_blob, callback);
+}
+
+function prepareSettings(request, callback) {
+  var address = request.body.address;
+  var settings = request.body.settings;
+  var instructions = request.body.instructions;
+  api.prepareSettings(address, settings, instructions, callback);
+}
+
 /* eslint-disable max-len */
 module.exports = {
   GET: {
@@ -233,7 +252,10 @@ module.exports = {
     '/accounts/:account/payments': makeMiddleware(submitPayment),
     '/accounts/:account/orders': makeMiddleware(submitOrder),
     '/accounts/:account/settings': makeMiddleware(changeSettings),
-    '/accounts/:account/trustlines': makeMiddleware(addTrustLine, respond.created)
+    '/accounts/:account/trustlines': makeMiddleware(addTrustLine, respond.created),
+    '/transaction/sign': makeMiddleware(sign),
+    '/transaction/submit': makeMiddleware(submit),
+    '/transaction/prepare/settings': makeMiddleware(prepareSettings)
   },
   DELETE: {
     '/accounts/:account/orders/:sequence': makeMiddleware(cancelOrder)
