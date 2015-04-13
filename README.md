@@ -2237,6 +2237,13 @@ The following URL parameters are required by this API endpoint:
 |-------|-------|-------------|
 | hash | String | A unique identifier for the Ripple transaction to retrieve -- either a client resource ID or a Ripple transaction hash. |
 
+Optionally, you can include the following query parameters to check that the server receiving the request has the full range of ledgers specified. Both are required for range checking.
+
+| Field | Value | Description |
+|-------|-------|-------------|
+| min_ledger | Number | Lower ledger bound, inclusive |
+| max_ledger | Number | Upper ledger bound, inclusive |
+
 #### Response ####
 
 The result is a JSON object, whose `transaction` field has the requested transaction. See the [Transaction format documentation](https://ripple.com/build/transactions) for a complete explanation of the fields of a transaction.
