@@ -237,13 +237,18 @@ function setTransactionBitFlags(transaction, options) {
  * @param {Transaction} transaction
  */
 function getTransaction(api, account, identifier, requestOptions, callback) {
-  assert(requestOptions);
-  assert.strictEqual(typeof requestOptions, 'object');
+
+  try {
+    assert.strictEqual(typeof requestOptions, 'object');
+
+    validate.address(account, true);
+    validate.paymentIdentifier(identifier);
+    validate.ledger(requestOptions.ledger, true);
+  } catch(err) {
+    return callback(err);
+  }
 
   var options = { };
-  validate.address(account, true);
-  validate.paymentIdentifier(identifier);
-  validate.ledger(requestOptions.ledger, true);
 
   if (validator.isValid(identifier, 'Hash256')) {
     options.hash = identifier;

@@ -169,10 +169,13 @@ function attachPreviousAndNextTransactionIdentifiers(api,
  *  @param {Notification} notification
  */
 function getNotificationHelper(api, account, identifier, topCallback) {
-  validate.address(account);
 
   function getTransaction(callback) {
-    transactions.getTransaction(api, account, identifier, {}, callback);
+    try {
+      transactions.getTransaction(api, account, identifier, {}, callback);
+    } catch(err) {
+      callback(err);
+    }
   }
 
   function checkLedger(baseTransaction, callback) {
@@ -237,6 +240,9 @@ function getNotificationHelper(api, account, identifier, topCallback) {
  *  @param {Hex-encoded String|ResourceId} req.params.identifier
  */
 function getNotification(account, identifier, urlBase, callback) {
+  validate.address(account);
+  validate.paymentIdentifier(identifier);
+
   getNotificationHelper(this, account, identifier,
       function(error, notification) {
     if (error) {
