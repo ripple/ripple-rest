@@ -1,6 +1,6 @@
 {
   "name": "ripple-rest",
-  "version": "1.6.0-rc3",
+  "version": "1.6.0-rc4",
   "dependencies": {
     "async": {
       "version": "0.2.10",

@@ -2,7 +2,7 @@
 'use strict';
 var _ = require('lodash');
 var ripple = require('ripple-lib');
-var bignum = require('bignumber.js');
+var BigNumber = require('bignumber.js');
 var utils = require('./utils');
 
 function RestToTxConverter() {}
@@ -19,12 +19,38 @@ function RestToTxConverter() {}
  *  @param {ripple-lib Transaction} transaction
  */
 RestToTxConverter.prototype.convert = function(payment, callback) {
+  function isSendMaxRequired() {
+    var src = payment.source_account;
+
+    var srcAmt = payment.source_amount;
+    var dstAmt = payment.destination_amount;
+
+    // Don't set SendMax for XRP->XRP payment
+    if (!srcAmt || srcAmt.currency === 'XRP' && dstAmt.currency === 'XRP') {
+      return false;
+    }
+
+      // only set send max when:
+      // - source and destination currencies are same
+      //   and source issuer is not source account
+      // - source amount and destination issuers are different
+      //
+    if (srcAmt.currency === dstAmt.currency) {
+      if (srcAmt.issuer !== src) {
+        return true;
+      }
+    } else if (srcAmt.issuer !== dstAmt.issuer) {
+      return true;
+    }
+    return false;
+  }
+
   try {
-    // Convert blank issuer to sender's address
-    //   (Ripple convention for 'any issuer')
-    // https://ripple.com/build/transactions/
-    //    #special-issuer-values-for-sendmax-and-amount
-    // https://ripple.com/build/ripple-rest/#counterparties-in-payments
+  // Convert blank issuer to sender's address
+  //   (Ripple convention for 'any issuer')
+  // https://ripple.com/build/transactions/
+  //    #special-issuer-values-for-sendmax-and-amount
+  // https://ripple.com/build/ripple-rest/#counterparties-in-payments
     if (payment.source_amount && payment.source_amount.currency !== 'XRP'
         && payment.source_amount.issuer === '') {
       payment.source_amount.issuer = payment.source_account;
@@ -43,11 +69,11 @@ RestToTxConverter.prototype.convert = function(payment, callback) {
     // Uppercase currency codes
     if (payment.source_amount) {
       payment.source_amount.currency =
-        payment.source_amount.currency.toUpperCase();
+      payment.source_amount.currency.toUpperCase();
     }
     if (payment.destination_amount) {
       payment.destination_amount.currency =
-        payment.destination_amount.currency.toUpperCase();
+      payment.destination_amount.currency.toUpperCase();
     }
     /* Construct payment */
     var transaction = new ripple.Transaction();
@@ -70,24 +96,20 @@ RestToTxConverter.prototype.convert = function(payment, callback) {
     if (payment.destination_tag) {
       transaction.destinationTag(parseInt(payment.destination_tag, 10));
     }
+
     // SendMax
-    if (payment.source_amount) {
-      // Only set send max if source and destination currencies are different
-      if (!(payment.source_amount.currency
-            === payment.destination_amount.currency
-            && payment.source_amount.issuer
-            === payment.destination_amount.issuer)) {
-        var max_value = bignum(payment.source_amount.value)
-                        .plus(payment.source_slippage || 0).toString();
-        if (payment.source_amount.currency === 'XRP') {
-          transaction.sendMax(utils.xrpToDrops(max_value));
-        } else {
-          transaction.sendMax({
-            value: max_value,
-            currency: payment.source_amount.currency,
-            issuer: payment.source_amount.issuer
-          });
-        }
+    if (isSendMaxRequired()) {
+      var max_value = new BigNumber(payment.source_amount.value)
+        .plus(payment.source_slippage || 0).toString();
+
+      if (payment.source_amount.currency === 'XRP') {
+        transaction.sendMax(utils.xrpToDrops(max_value));
+      } else {
+        transaction.sendMax({
+          value: max_value,
+          currency: payment.source_amount.currency,
+          issuer: payment.source_amount.issuer
+        });
       }
     }
 
