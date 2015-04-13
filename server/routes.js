@@ -141,8 +141,10 @@ function getSettings(request, callback) {
 function getTransaction(request, callback) {
   var account = request.params.account;
   var identifier = request.params.identifier;
+
   var options = {
-    ledger: request.query.ledger
+    min_ledger: request.query.min_ledger,
+    max_ledger: request.query.max_ledger
   };
 
   api.getTransaction(account, identifier, options, callback);
