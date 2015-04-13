@@ -243,7 +243,6 @@ module.exports = {
     '/accounts/:account/orders': makeMiddleware(getOrders),
     '/accounts/:account/order_book/:base/:counter': makeMiddleware(getOrderBook),
     '/accounts/:account/orders/:identifier': makeMiddleware(getOrder),
-    '/accounts/:account/notifications': makeMiddleware(getNotification),
     '/accounts/:account/notifications/:identifier': makeMiddleware(getNotification),
     '/accounts/:account/balances': makeMiddleware(getBalances),
     '/accounts/:account/settings': makeMiddleware(getSettings),
