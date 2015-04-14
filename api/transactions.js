@@ -7,6 +7,7 @@ var async = require('async');
 var validator = require('./lib/schema-validator');
 var validate = require('./lib/validate');
 var errors = require('./lib/errors.js');
+var utils = require('./lib/utils');
 
 var DEFAULT_RESULTS_PER_PAGE = 10;
 
@@ -542,43 +543,6 @@ function transactionFilter(transactions, options) {
 }
 
 /**
- * Order two transactions based on their ledger_index.
- * If two transactions took place in the same ledger, sort
- * them based on a lexicographical comparison of their hashes
- * to ensure the ordering is deterministic.
- *
- * @param {transaction in JSON format} first
- * @param {transaction in JSON format} second
- * @param {Boolean} [false] earliestFirst
- * @returns {Number} comparison Returns -1 or 1
- */
-function compareTransactions(first, second, earliestFirst) {
-  var firstIndex = first.ledger || first.ledger_index;
-  var secondIndex = second.ledger || second.ledger_index;
-  var firstLessThanSecond = true;
-  if (firstIndex === secondIndex) {
-    if (first.hash <= second.hash) {
-      firstLessThanSecond = true;
-    } else {
-      firstLessThanSecond = false;
-    }
-  } else if (firstIndex < secondIndex) {
-    firstLessThanSecond = true;
-  } else {
-    firstLessThanSecond = false;
-  }
-  if (earliestFirst) {
-    if (firstLessThanSecond) {
-      return -1;
-    }
-    return 1;
-  } else if (firstLessThanSecond) {
-    return 1;
-  }
-  return -1;
-}
-
-/**
  * Recursively get transactions for the specified account from
  * the Remote and local database. If options.min is set, this will
  * recurse until it has retrieved that number of transactions or
@@ -629,9 +593,9 @@ function getAccountTransactions(api, options, callback) {
   }
 
   function sortTransactions(transactions, async_callback) {
-    transactions.sort(function(first, second) {
-      return compareTransactions(first, second, options.earliestFirst);
-    });
+    var compare = options.earliestFirst ? utils.compareTransactions :
+      _.rearg(utils.compareTransactions, 1, 0);
+    transactions.sort(compare);
     async_callback(null, transactions);
   }
 
