@@ -117,7 +117,7 @@ suite('unit - converter - Tx to Rest', function() {
     });
   });
 
-  test('parseSettingResponseFromTx()', function(done) {
+  test('parseSettingsResponseFromTx()', function(done) {
     var params = {
       account: addresses.VALID,
       secret: addresses.SECRET,
@@ -143,7 +143,7 @@ suite('unit - converter - Tx to Rest', function() {
       state: 'validated'
     };
 
-    txToRestConverter.parseSettingResponseFromTx(params.settings, txMessage, meta, function(err, settingObj) {
+    txToRestConverter.parseSettingsResponseFromTx(params.settings, txMessage, meta, function(err, settingObj) {
       assert.strictEqual(err, null);
       assert.deepEqual(settingObj, fixtures.settingResponseRest);
       done();

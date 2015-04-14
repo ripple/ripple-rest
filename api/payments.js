@@ -9,10 +9,14 @@ var transactions = require('./transactions');
 var validator = require('./lib/schema-validator');
 var serverLib = require('./lib/server-lib');
 var utils = require('./lib/utils');
-var RestToTxConverter = require('./lib/rest-to-tx-converter.js');
 var TxToRestConverter = require('./lib/tx-to-rest-converter.js');
-var SubmitTransactionHooks = require('./lib/submit_transaction_hooks.js');
 var validate = require('./lib/validate');
+var convertAmount = require('./transaction/utils').convertAmount;
+var createPaymentTransaction =
+  require('./transaction').createPaymentTransaction;
+var renameCounterpartyToIssuer =
+  require('./transaction/utils').renameCounterpartyToIssuer;
+var xrpToDrops = require('./transaction/utils').xrpToDrops;
 
 var errors = require('./lib/errors');
 var InvalidRequestError = errors.InvalidRequestError;
@@ -95,7 +99,6 @@ function formatPaymentHelper(account, transaction, callback) {
   async.waterfall(steps, callback);
 }
 
-
 /**
  * Submit a payment in the ripple-rest format.
  *
@@ -122,17 +125,9 @@ function submitPayment(account, payment, clientResourceID, secret,
     lastLedgerSequence, urlBase, options, callback) {
   var self = this;
   var max_fee = Number(options.max_fee) > 0 ?
-    utils.xrpToDrops(options.max_fee) : undefined;
+    xrpToDrops(options.max_fee) : undefined;
   var fixed_fee = Number(options.fixed_fee) > 0 ?
-    utils.xrpToDrops(options.fixed_fee) : undefined;
-
-  var params = {
-    secret: secret,
-    validated: options.validated,
-    clientResourceId: clientResourceID,
-    blockDuplicates: true,
-    saveTransaction: true
-  };
+    xrpToDrops(options.fixed_fee) : undefined;
 
   validate.client_resource_id(clientResourceID);
   // TODO: validate.addressAndSecret({address: account, secret: secret});
@@ -140,10 +135,6 @@ function submitPayment(account, payment, clientResourceID, secret,
   validate.payment(payment);
   validate.last_ledger_sequence(lastLedgerSequence, true);
   validate.validated(options.validated, true);
-
-  function initializeTransaction(_callback) {
-    RestToTxConverter.convert(payment, _callback);
-  }
 
   function formatTransactionResponse(message, meta, _callback) {
     if (meta.state === 'validated') {
@@ -163,7 +154,9 @@ function submitPayment(account, payment, clientResourceID, secret,
     });
   }
 
-  function setTransactionParameters(transaction) {
+  function _createPaymentTransaction(remote, _callback) {
+    var transaction = createPaymentTransaction(payment);
+
     var ledgerIndex;
     var maxFee = Number(max_fee);
     var fixedFee = Number(fixed_fee);
@@ -171,7 +164,7 @@ function submitPayment(account, payment, clientResourceID, secret,
     if (Number(lastLedgerSequence) > 0) {
       ledgerIndex = Number(lastLedgerSequence);
     } else {
-      ledgerIndex = Number(self.remote._ledger_current_index)
+      ledgerIndex = Number(remote._ledger_current_index)
         + transactions.DEFAULT_LEDGER_BUFFER;
     }
 
@@ -186,16 +179,23 @@ function submitPayment(account, payment, clientResourceID, secret,
     }
 
     transaction.clientID(clientResourceID);
+    _callback(null, transaction);
   }
 
-  var hooks = {
-    initializeTransaction: initializeTransaction,
-    formatTransactionResponse: formatTransactionResponse,
-    setTransactionParameters: setTransactionParameters
+  var _options = {
+    validated: options.validated,
+    clientResourceId: clientResourceID,
+    blockDuplicates: true,
+    saveTransaction: true
   };
 
-  transactions.submit(this, params, new SubmitTransactionHooks(hooks),
-                      callback);
+  async.waterfall([
+    _.partial(_createPaymentTransaction, self.remote),
+    function(transaction, _callback) {
+      transactions.submit(self, transaction, secret, _options, _callback);
+    },
+    formatTransactionResponse
+  ], callback);
 }
 
 /**
@@ -363,7 +363,7 @@ function getPathFind(source_account, destination_account,
     destination_amount_string, source_currency_strings, callback) {
   var self = this;
 
-  var destination_amount = utils.renameCounterpartyToIssuer(
+  var destination_amount = renameCounterpartyToIssuer(
     utils.parseCurrencyQuery(destination_amount_string || ''));
 
   validate.pathfind({
@@ -413,7 +413,7 @@ function getPathFind(source_account, destination_account,
     var pathfindParams = {
       src_account: source_account,
       dst_account: destination_account,
-      dst_amount: utils.txFromRestAmount(destination_amount)
+      dst_amount: convertAmount(destination_amount)
     };
     if (typeof pathfindParams.dst_amount === 'object'
           && !pathfindParams.dst_amount.issuer) {
@@ -531,7 +531,7 @@ function getPathFind(source_account, destination_account,
 }
 
 module.exports = {
-  submit: submitPayment,
+  submit: utils.wrapCatch(submitPayment),
   get: getPayment,
   getAccountPayments: getAccountPayments,
   getPathFind: getPathFind

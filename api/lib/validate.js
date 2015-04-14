@@ -129,6 +129,25 @@ function validateSchema(object, schemaName) {
 }
 */
 
+function isValidValue(value) {
+  return typeof value === 'string' && value.length > 0 && isFinite(value);
+}
+
+function isValidCurrency(currency) {
+  return currency && validator.isValid(currency, 'Currency');
+}
+
+function isValidIssue(issue) {
+  return issue && isValidCurrency(issue.currency)
+      && ((issue.currency === 'XRP' && !issue.counterparty && !issue.issuer)
+          || (issue.currency !== 'XRP' && isValidAddress(
+              issue.counterparty || issue.issuer)));
+}
+
+function isValidAmount(amount) {
+  return isValidIssue(amount) && isValidValue(amount.value);
+}
+
 function validateOrder(order) {
   if (!order) {
     throw error('Missing parameter: order. '
@@ -143,38 +162,30 @@ function validateOrder(order) {
   } else if (!_.isUndefined(order.fill_or_kill)
       && !_.isBoolean(order.fill_or_kill)) {
     throw error('Parameter must be a boolean: fill_or_kill');
-  } else if (!order.taker_gets
-      || (!validator.isValid(order.taker_gets, 'Amount'))
-      || (!order.taker_gets.issuer && order.taker_gets.currency !== 'XRP')) {
+  } else if (!isValidAmount(order.taker_gets)) {
     throw error('Parameter must be a valid Amount object: taker_gets');
-  } else if (!order.taker_pays
-      || (!validator.isValid(order.taker_pays, 'Amount'))
-      || (!order.taker_pays.issuer && order.taker_pays.currency !== 'XRP')) {
+  } else if (!isValidAmount(order.taker_pays)) {
     throw error('Parameter must be a valid Amount object: taker_pays');
   }
   // TODO: validateSchema(order, 'Order');
 }
 
-function isValidAmount(amount) {
-  return (amount.currency && validator.isValid(amount.currency, 'Currency')
-      && (amount.currency === 'XRP' || isValidAddress(amount.counterparty)));
-}
-
 function validateOrderbook(orderbook) {
-  if (!isValidAmount(orderbook.base)) {
-    throw error('Invalid parameter: base. '
-      + 'Must be a currency string in the form currency+counterparty');
-  }
-  if (!isValidAmount(orderbook.counter)) {
-    throw error('Invalid parameter: counter. '
-      + 'Must be a currency string in the form currency+counterparty');
-  }
-  if (orderbook.counter.currency === 'XRP'
+  if (orderbook.counter && orderbook.counter.currency === 'XRP'
       && orderbook.counter.counterparty) {
     throw error('Invalid parameter: counter. XRP cannot have counterparty');
   }
-  if (orderbook.base.currency === 'XRP' && orderbook.base.counterparty) {
+  if (orderbook.base && orderbook.base.currency === 'XRP'
+      && orderbook.base.counterparty) {
     throw error('Invalid parameter: base. XRP cannot have counterparty');
+  }
+  if (!isValidIssue(orderbook.base)) {
+    throw error('Invalid parameter: base. '
+      + 'Must be a currency string in the form currency+counterparty');
+  }
+  if (!isValidIssue(orderbook.counter)) {
+    throw error('Invalid parameter: counter. '
+      + 'Must be a currency string in the form currency+counterparty');
   }
 }
 

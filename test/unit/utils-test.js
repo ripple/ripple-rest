@@ -2,6 +2,7 @@
 
 var assert = require('assert');
 var utils = require('../../api/lib/utils.js');
+var convertAmount = require('../../api/transaction/utils').convertAmount;
 var addresses = require('./../fixtures/addresses.js');
 
 suite('unit - utils.parseLedger()', function() {
@@ -181,50 +182,50 @@ suite('unit - utils.parseCurrencyQuery()', function() {
   });
 });
 
-suite('unit - utils.txFromRestAmount()', function() {
+suite('unit - convertAmount()', function() {
 
-  test('txFromRestAmount() -- XRP', function() {
+  test('convertAmount() -- XRP', function() {
     var amount = {
       value: '1',
       currency: 'XRP',
       counterparty: ''
     };
 
-    assert.strictEqual(utils.txFromRestAmount(amount), '1000000');
+    assert.strictEqual(convertAmount(amount), '1000000');
   });
 
-  test('txFromRestAmount() -- USD', function() {
+  test('convertAmount() -- USD', function() {
     var amount = {
       value: '1',
       currency: 'USD',
       counterparty: addresses.COUNTERPARTY
     };
 
-    assert.deepEqual(utils.txFromRestAmount(amount), {
+    assert.deepEqual(convertAmount(amount), {
       value: '1',
       currency: 'USD',
       issuer: addresses.COUNTERPARTY
     });
   });
 
-  test('txFromRestAmount() -- XRP, using issuer in amount', function() {
+  test('convertAmount() -- XRP, using issuer in amount', function() {
     var amount = {
       value: '1',
       currency: 'XRP',
       issuer: ''
     };
 
-    assert.strictEqual(utils.txFromRestAmount(amount), '1000000');
+    assert.strictEqual(convertAmount(amount), '1000000');
   });
 
-  test('txFromRestAmount() -- USD, using issuer in amount', function() {
+  test('convertAmount() -- USD, using issuer in amount', function() {
     var amount = {
       value: '1',
       currency: 'USD',
       issuer: addresses.COUNTERPARTY
     };
 
-    assert.deepEqual(utils.txFromRestAmount(amount), {
+    assert.deepEqual(convertAmount(amount), {
       value: '1',
       currency: 'USD',
       issuer: addresses.COUNTERPARTY

@@ -222,11 +222,39 @@ function submit(request, callback) {
   api.submit(tx_blob, callback);
 }
 
+function preparePayment(request, callback) {
+  var address = request.body.address;
+  var payment = request.body.payment;
+  var instructions = request.body.instructions;
+  api.preparePayment(address, payment, instructions, callback);
+}
+
 function prepareSettings(request, callback) {
   var address = request.body.address;
   var settings = request.body.settings;
   var instructions = request.body.instructions;
   api.prepareSettings(address, settings, instructions, callback);
+}
+
+function prepareOrder(request, callback) {
+  var address = request.body.address;
+  var order = request.body.order;
+  var instructions = request.body.instructions;
+  api.prepareOrder(address, order, instructions, callback);
+}
+
+function prepareOrderCancellation(request, callback) {
+  var address = request.body.address;
+  var sequence = request.body.sequence;
+  var instructions = request.body.instructions;
+  api.prepareOrderCancellation(address, sequence, instructions, callback);
+}
+
+function prepareTrustLine(request, callback) {
+  var address = request.body.address;
+  var trustline = request.body.trustline;
+  var instructions = request.body.instructions;
+  api.prepareTrustLine(address, trustline, instructions, callback);
 }
 
 /* eslint-disable max-len */
@@ -256,7 +284,11 @@ module.exports = {
     '/accounts/:account/trustlines': makeMiddleware(addTrustLine, respond.created),
     '/transaction/sign': makeMiddleware(sign),
     '/transaction/submit': makeMiddleware(submit),
-    '/transaction/prepare/settings': makeMiddleware(prepareSettings)
+    '/transaction/prepare/payment': makeMiddleware(preparePayment),
+    '/transaction/prepare/settings': makeMiddleware(prepareSettings),
+    '/transaction/prepare/order': makeMiddleware(prepareOrder),
+    '/transaction/prepare/ordercancellation': makeMiddleware(prepareOrderCancellation),
+    '/transaction/prepare/trustline': makeMiddleware(prepareTrustLine)
   },
   DELETE: {
     '/accounts/:account/orders/:sequence': makeMiddleware(cancelOrder)

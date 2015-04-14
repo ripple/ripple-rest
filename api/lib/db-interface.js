@@ -315,7 +315,7 @@ DI.getTransaction = function(options, callback) {
     assert(validator.isValid(options.client_resource_id, 'ResourceId'),
            'Invalid or missing parameter: client_resource_id');
     txQuery.client_resource_id = options.client_resource_id;
-    } else if (options.hasOwnProperty('identifier')) {
+  } else if (options.hasOwnProperty('identifier')) {
     if (validator.isValid(options.identifier, 'Hash256')) {
       txQuery.hash = options.identifier;
     } else if (validator.isValid(options.identifier, 'ResourceId')) {

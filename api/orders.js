@@ -2,24 +2,21 @@
 /* eslint-disable valid-jsdoc */
 'use strict';
 var _ = require('lodash');
+var async = require('async');
 var Promise = require('bluebird');
 var ripple = require('ripple-lib');
 var transactions = require('./transactions');
-var SubmitTransactionHooks = require('./lib/submit_transaction_hooks.js');
 var utils = require('./lib/utils');
 var errors = require('./lib/errors.js');
 var TxToRestConverter = require('./lib/tx-to-rest-converter.js');
 var validator = require('./lib/schema-validator.js');
 var bignum = require('bignumber.js');
 var validate = require('./lib/validate');
+var createOrderTransaction = require('./transaction').createOrderTransaction;
+var createOrderCancellationTransaction =
+  require('./transaction').createOrderCancellationTransaction;
 
 var InvalidRequestError = errors.InvalidRequestError;
-
-var OfferCreateFlags = {
-  Passive: {name: 'passive', set: 'Passive'},
-  ImmediateOrCancel: {name: 'immediate_or_cancel', set: 'ImmediateOrCancel'},
-  FillOrKill: {name: 'fill_or_kill', set: 'FillOrKill'}
-};
 
 var DefaultPageLimit = 200;
 
@@ -165,45 +162,15 @@ function getOrders(account, options, callback) {
  *         - validating the submitted transaction
  */
 function placeOrder(account, order, secret, options, callback) {
-  var params = {
-    secret: secret,
-    validated: options.validated
-  };
-
-  if (order) {
-    utils.renameCounterpartyToIssuer(order.taker_gets);
-    utils.renameCounterpartyToIssuer(order.taker_pays);
-  }
   validate.addressAndSecret({address: account, secret: secret});
   validate.order(order);
   validate.validated(options.validated, true);
 
-  function setTransactionParameters(transaction) {
-    var takerPays = order.taker_pays.currency !== 'XRP'
-      ? order.taker_pays : utils.xrpToDrops(order.taker_pays.value);
-    var takerGets = order.taker_gets.currency !== 'XRP'
-      ? order.taker_gets : utils.xrpToDrops(order.taker_gets.value);
-
-    transaction.offerCreate(account, ripple.Amount.from_json(takerPays),
-      ripple.Amount.from_json(takerGets));
-
-    transactions.setTransactionBitFlags(transaction, {
-      input: order,
-      flags: OfferCreateFlags
-    });
-
-    if (order.type === 'sell') {
-      transaction.setFlags('Sell');
-    }
-  }
-
-  var hooks = {
-    formatTransactionResponse: TxToRestConverter.parseSubmitOrderFromTx,
-    setTransactionParameters: setTransactionParameters
-  };
-
-  transactions.submit(this, params, new SubmitTransactionHooks(hooks),
-                      callback);
+  var transaction = createOrderTransaction(account, order);
+  async.waterfall([
+    _.partial(transactions.submit, this, transaction, secret, options),
+    TxToRestConverter.parseSubmitOrderFromTx
+  ], callback);
 }
 
 /**
@@ -219,25 +186,14 @@ function placeOrder(account, order, secret, options, callback) {
  *        validating the submitted transaction
  */
 function cancelOrder(account, sequence, secret, options, callback) {
-  var params = {
-    secret: secret,
-    validated: options.validated
-  };
-
   validate.sequence(sequence);
   validate.address(account);
 
-  function setTransactionParameters(transaction) {
-    transaction.offerCancel(account, sequence);
-  }
-
-  var hooks = {
-    formatTransactionResponse: TxToRestConverter.parseCancelOrderFromTx,
-    setTransactionParameters: setTransactionParameters
-  };
-
-  transactions.submit(this, params, new SubmitTransactionHooks(hooks),
-                      callback);
+  var transaction = createOrderCancellationTransaction(account, sequence);
+  async.waterfall([
+    _.partial(transactions.submit, this, transaction, secret, options),
+    TxToRestConverter.parseCancelOrderFromTx
+  ], callback);
 }
 
 /**
@@ -458,8 +414,8 @@ function getOrder(account, identifier, callback) {
 
 module.exports = {
   getOrders: getOrders,
-  placeOrder: placeOrder,
-  cancelOrder: cancelOrder,
+  placeOrder: utils.wrapCatch(placeOrder),
+  cancelOrder: utils.wrapCatch(cancelOrder),
   getOrderBook: getOrderBook,
   getOrder: getOrder
 };

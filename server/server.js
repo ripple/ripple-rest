@@ -54,7 +54,8 @@ if (config.get('ssl_enabled')) {
   require('https').createServer(loadSSLConfig(), app).listen(port, host,
     function() {
       logger.info('server listening over HTTPS at port ' + port);
-  });
+    }
+  );
 } else {
   app.listen(port, host, function() {
     logger.info('server listening over UNSECURED HTTP at port ' + port);
