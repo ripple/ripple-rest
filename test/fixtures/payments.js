@@ -1473,3 +1473,57 @@ module.exports.RESTSuccessResponse = function(options) {
     }
   );
 };
+
+module.exports.preparePaymentRequest = {
+  address: addresses.VALID,
+  payment: {
+    'source_account': addresses.VALID,
+    'source_tag': '',
+    'source_amount': {
+      'value': '5.01',
+      'currency': 'USD',
+      'issuer': ''
+    },
+    'source_slippage': '0',
+    'destination_account': addresses.COUNTERPARTY,
+    'destination_tag': '',
+    'destination_amount': {
+      'value': '5',
+      'currency': 'USD',
+      'issuer': ''
+    },
+    'invoice_id': '',
+    'paths': '[[{"account":"' + addresses.ISSUER + '","type":1,"type_hex":"0000000000000001"}]]',
+    'partial_payment': false,
+    'no_direct_ripple': false
+  },
+  instructions: {
+    lastLedgerOffset: 100
+  }
+};
+
+module.exports.preparePaymentResponse = JSON.stringify({
+  success: true,
+  tx_json: {
+    Flags: 0,
+    TransactionType: 'Payment',
+    Account: addresses.VALID,
+    Amount: {
+      value: '5',
+      currency: 'USD',
+      issuer: addresses.COUNTERPARTY
+    },
+    Destination: addresses.COUNTERPARTY,
+    Paths: [
+      [
+        {
+          account: addresses.ISSUER,
+          type_hex: '0000000000000001'
+        }
+      ]
+    ],
+    LastLedgerSequence: 8820183,
+    Fee: '12',
+    Sequence: 23
+  }
+});

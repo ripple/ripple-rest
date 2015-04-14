@@ -1,7 +1,9 @@
-var _         = require('lodash');
+/* eslint-disable max-len */
+'use strict';
+var _ = require('lodash');
 var addresses = require('./../fixtures').addresses;
 
-const DEFAULTS = {
+var DEFAULTS = {
   account: 'r3GgMwvgvP8h4yVWvjH1dPZNvC37TjzBBE',
   flags: 2147483648,
   hash: '0F480D344CFC610DFA5CAC62CC1621C92953A05FE8C319281CA49C5C162AF40E',
@@ -10,7 +12,7 @@ const DEFAULTS = {
 };
 
 module.exports.requestPath = function(address, params) {
-  return '/v1/accounts/' + address + '/trustlines' + ( params || '' );
+  return '/v1/accounts/' + address + '/trustlines' + (params || '');
 };
 
 module.exports.accountLinesResponse = function(request, options) {
@@ -285,7 +287,8 @@ module.exports.RESTAccountTrustlinesResponse = function(options) {
     ledger: options.ledger,
     validated: options.validated,
     trustlines: [
-      { account: 'r3GgMwvgvP8h4yVWvjH1dPZNvC37TjzBBE',
+      {
+        account: 'r3GgMwvgvP8h4yVWvjH1dPZNvC37TjzBBE',
         counterparty: 'r3vi7mWxru9rJCxETCyA1CHvzL96eZWx5z',
         currency: 'ASP',
         limit: '0',
@@ -295,7 +298,8 @@ module.exports.RESTAccountTrustlinesResponse = function(options) {
         account_trustline_frozen: false,
         counterparty_trustline_frozen: false
     },
-    { account: 'r3GgMwvgvP8h4yVWvjH1dPZNvC37TjzBBE',
+    {
+      account: 'r3GgMwvgvP8h4yVWvjH1dPZNvC37TjzBBE',
       counterparty: 'r3vi7mWxru9rJCxETCyA1CHvzL96eZWx5z',
       currency: 'XAU',
       limit: '0',
@@ -305,7 +309,8 @@ module.exports.RESTAccountTrustlinesResponse = function(options) {
       account_trustline_frozen: false,
       counterparty_trustline_frozen: false
     },
-    { account: 'r3GgMwvgvP8h4yVWvjH1dPZNvC37TjzBBE',
+    {
+      account: 'r3GgMwvgvP8h4yVWvjH1dPZNvC37TjzBBE',
       counterparty: addresses.COUNTERPARTY,
       currency: 'USD',
       limit: '5',
@@ -315,17 +320,19 @@ module.exports.RESTAccountTrustlinesResponse = function(options) {
       account_trustline_frozen: false,
       counterparty_trustline_frozen: false
     },
-    { account: 'r3GgMwvgvP8h4yVWvjH1dPZNvC37TjzBBE',
+    {
+      account: 'r3GgMwvgvP8h4yVWvjH1dPZNvC37TjzBBE',
       counterparty: 'rHpXfibHgSb64n8kK9QWDpdbfqSpYbM9a4',
       currency: 'MXN',
       limit: '1000',
       reciprocated_limit: '0',
       account_allows_rippling: true,
-      counterparty_allows_rippling: true ,
+      counterparty_allows_rippling: true,
       account_trustline_frozen: false,
       counterparty_trustline_frozen: false
     },
-    { account: 'r3GgMwvgvP8h4yVWvjH1dPZNvC37TjzBBE',
+    {
+      account: 'r3GgMwvgvP8h4yVWvjH1dPZNvC37TjzBBE',
       counterparty: 'rLEsXccBGNR3UPuPu2hUXPjziKC3qKSBun',
       currency: 'EUR',
       limit: '1',
@@ -335,7 +342,8 @@ module.exports.RESTAccountTrustlinesResponse = function(options) {
       account_trustline_frozen: false,
       counterparty_trustline_frozen: false
     },
-    { account: 'r3GgMwvgvP8h4yVWvjH1dPZNvC37TjzBBE',
+    {
+      account: 'r3GgMwvgvP8h4yVWvjH1dPZNvC37TjzBBE',
       counterparty: 'rnuF96W4SZoCJmbHYBFoJZpR8eCaxNvekK',
       currency: 'CNY',
       limit: '3',
@@ -345,7 +353,8 @@ module.exports.RESTAccountTrustlinesResponse = function(options) {
       account_trustline_frozen: false,
       counterparty_trustline_frozen: false
     },
-    { account: 'r3GgMwvgvP8h4yVWvjH1dPZNvC37TjzBBE',
+    {
+      account: 'r3GgMwvgvP8h4yVWvjH1dPZNvC37TjzBBE',
       counterparty: 'rGwUWgN5BEg3QGNY3RX2HfYowjUTZdid3E',
       currency: 'DYM',
       limit: '3',
@@ -355,7 +364,8 @@ module.exports.RESTAccountTrustlinesResponse = function(options) {
       account_trustline_frozen: false,
       counterparty_trustline_frozen: false
     },
-    { account: 'r3GgMwvgvP8h4yVWvjH1dPZNvC37TjzBBE',
+    {
+      account: 'r3GgMwvgvP8h4yVWvjH1dPZNvC37TjzBBE',
       counterparty: 'rvYAfWj5gh67oV6fW32ZzP3Aw4Eubs59B',
       currency: 'CHF',
       limit: '0',
@@ -365,7 +375,8 @@ module.exports.RESTAccountTrustlinesResponse = function(options) {
       account_trustline_frozen: false,
       counterparty_trustline_frozen: false
     },
-    { account: 'r3GgMwvgvP8h4yVWvjH1dPZNvC37TjzBBE',
+    {
+      account: 'r3GgMwvgvP8h4yVWvjH1dPZNvC37TjzBBE',
       counterparty: 'rvYAfWj5gh67oV6fW32ZzP3Aw4Eubs59B',
       currency: 'BTC',
       limit: '3',
@@ -375,7 +386,8 @@ module.exports.RESTAccountTrustlinesResponse = function(options) {
       account_trustline_frozen: false,
       counterparty_trustline_frozen: false
     },
-    { account: 'r3GgMwvgvP8h4yVWvjH1dPZNvC37TjzBBE',
+    {
+      account: 'r3GgMwvgvP8h4yVWvjH1dPZNvC37TjzBBE',
       counterparty: 'rvYAfWj5gh67oV6fW32ZzP3Aw4Eubs59B',
       currency: 'USD',
       limit: '5000',
@@ -385,7 +397,8 @@ module.exports.RESTAccountTrustlinesResponse = function(options) {
       account_trustline_frozen: false,
       counterparty_trustline_frozen: false
     },
-    { account: 'r3GgMwvgvP8h4yVWvjH1dPZNvC37TjzBBE',
+    {
+      account: 'r3GgMwvgvP8h4yVWvjH1dPZNvC37TjzBBE',
       counterparty: 'rpgKWEmNqSDAGFhy5WDnsyPqfQxbWxKeVd',
       currency: 'BTC',
       limit: '0',
@@ -395,7 +408,8 @@ module.exports.RESTAccountTrustlinesResponse = function(options) {
       account_trustline_frozen: false,
       counterparty_trustline_frozen: false
     },
-    { account: 'r3GgMwvgvP8h4yVWvjH1dPZNvC37TjzBBE',
+    {
+      account: 'r3GgMwvgvP8h4yVWvjH1dPZNvC37TjzBBE',
       counterparty: 'rBJ3YjwXi2MGbg7GVLuTXUWQ8DjL7tDXh4',
       currency: 'BTC',
       limit: '0',
@@ -405,7 +419,8 @@ module.exports.RESTAccountTrustlinesResponse = function(options) {
       account_trustline_frozen: false,
       counterparty_trustline_frozen: true
     },
-    { account: 'r3GgMwvgvP8h4yVWvjH1dPZNvC37TjzBBE',
+    {
+      account: 'r3GgMwvgvP8h4yVWvjH1dPZNvC37TjzBBE',
       counterparty: 'rLEsXccBGNR3UPuPu2hUXPjziKC3qKSBun',
       currency: 'USD',
       limit: '1',
@@ -415,7 +430,8 @@ module.exports.RESTAccountTrustlinesResponse = function(options) {
       account_trustline_frozen: false,
       counterparty_trustline_frozen: false
     },
-    { account: 'r3GgMwvgvP8h4yVWvjH1dPZNvC37TjzBBE',
+    {
+      account: 'r3GgMwvgvP8h4yVWvjH1dPZNvC37TjzBBE',
       counterparty: 'razqQKzJRdB4UxFPWf5NEpEG3WMkmwgcXA',
       currency: 'CNY',
       limit: '100',
@@ -425,7 +441,8 @@ module.exports.RESTAccountTrustlinesResponse = function(options) {
       account_trustline_frozen: false,
       counterparty_trustline_frozen: false
     },
-    { account: 'r3GgMwvgvP8h4yVWvjH1dPZNvC37TjzBBE',
+    {
+      account: 'r3GgMwvgvP8h4yVWvjH1dPZNvC37TjzBBE',
       counterparty: 'rvYAfWj5gh67oV6fW32ZzP3Aw4Eubs59B',
       currency: 'JPY',
       limit: '0',
@@ -435,7 +452,8 @@ module.exports.RESTAccountTrustlinesResponse = function(options) {
       account_trustline_frozen: true,
       counterparty_trustline_frozen: false
     },
-    { account: 'r3GgMwvgvP8h4yVWvjH1dPZNvC37TjzBBE',
+    {
+      account: 'r3GgMwvgvP8h4yVWvjH1dPZNvC37TjzBBE',
       counterparty: 'r3vi7mWxru9rJCxETCyA1CHvzL96eZWx5z',
       currency: 'AUX',
       limit: '0',
@@ -445,7 +463,8 @@ module.exports.RESTAccountTrustlinesResponse = function(options) {
       account_trustline_frozen: false,
       counterparty_trustline_frozen: false
     },
-    { account: 'r3GgMwvgvP8h4yVWvjH1dPZNvC37TjzBBE',
+    {
+      account: 'r3GgMwvgvP8h4yVWvjH1dPZNvC37TjzBBE',
       counterparty: 'r9vbV3EHvXWjSkeQ6CAcYVPGeq7TuiXY2X',
       currency: 'USD',
       limit: '1',
@@ -455,7 +474,8 @@ module.exports.RESTAccountTrustlinesResponse = function(options) {
       account_trustline_frozen: false,
       counterparty_trustline_frozen: false
     },
-    { account: 'r3GgMwvgvP8h4yVWvjH1dPZNvC37TjzBBE',
+    {
+      account: 'r3GgMwvgvP8h4yVWvjH1dPZNvC37TjzBBE',
       counterparty: 'rvYAfWj5gh67oV6fW32ZzP3Aw4Eubs59B',
       currency: 'EUR',
       limit: '100',
@@ -465,7 +485,8 @@ module.exports.RESTAccountTrustlinesResponse = function(options) {
       account_trustline_frozen: false,
       counterparty_trustline_frozen: false
     },
-    { account: 'r3GgMwvgvP8h4yVWvjH1dPZNvC37TjzBBE',
+    {
+      account: 'r3GgMwvgvP8h4yVWvjH1dPZNvC37TjzBBE',
       counterparty: 'rfF3PNkwkq1DygW2wum2HK3RGfgkJjdPVD',
       currency: 'USD',
       limit: '500',
@@ -475,7 +496,8 @@ module.exports.RESTAccountTrustlinesResponse = function(options) {
       account_trustline_frozen: false,
       counterparty_trustline_frozen: false
     },
-    { account: 'r3GgMwvgvP8h4yVWvjH1dPZNvC37TjzBBE',
+    {
+      account: 'r3GgMwvgvP8h4yVWvjH1dPZNvC37TjzBBE',
       counterparty: 'rwUVoVMSURqNyvocPCcvLu3ygJzZyw8qwp',
       currency: 'JOE',
       limit: '0',
@@ -485,7 +507,8 @@ module.exports.RESTAccountTrustlinesResponse = function(options) {
       account_trustline_frozen: false,
       counterparty_trustline_frozen: false
     },
-    { account: 'r3GgMwvgvP8h4yVWvjH1dPZNvC37TjzBBE',
+    {
+      account: 'r3GgMwvgvP8h4yVWvjH1dPZNvC37TjzBBE',
       counterparty: 'rE6R3DWF9fBD7CyiQciePF9SqK58Ubp8o2',
       currency: 'USD',
       limit: '0',
@@ -495,7 +518,8 @@ module.exports.RESTAccountTrustlinesResponse = function(options) {
       account_trustline_frozen: false,
       counterparty_trustline_frozen: false
     },
-    { account: 'r3GgMwvgvP8h4yVWvjH1dPZNvC37TjzBBE',
+    {
+      account: 'r3GgMwvgvP8h4yVWvjH1dPZNvC37TjzBBE',
       counterparty: 'rE6R3DWF9fBD7CyiQciePF9SqK58Ubp8o2',
       currency: 'JOE',
       limit: '0',
@@ -505,7 +529,8 @@ module.exports.RESTAccountTrustlinesResponse = function(options) {
       account_trustline_frozen: false,
       counterparty_trustline_frozen: false
     },
-    { account: 'r3GgMwvgvP8h4yVWvjH1dPZNvC37TjzBBE',
+    {
+      account: 'r3GgMwvgvP8h4yVWvjH1dPZNvC37TjzBBE',
       counterparty: 'rs9M85karFkCRjvc6KMWn8Coigm9cbcgcx',
       currency: '015841551A748AD2C1F76FF6ECB0CCCD00000000',
       limit: '10.01037626125837',
@@ -515,7 +540,8 @@ module.exports.RESTAccountTrustlinesResponse = function(options) {
       account_trustline_frozen: false,
       counterparty_trustline_frozen: false
     },
-    { account: 'r3GgMwvgvP8h4yVWvjH1dPZNvC37TjzBBE',
+    {
+      account: 'r3GgMwvgvP8h4yVWvjH1dPZNvC37TjzBBE',
       counterparty: 'rEhDDUUNxpXgEHVJtC2cjXAgyx5VCFxdMF',
       currency: 'USD',
       limit: '0',
@@ -618,7 +644,7 @@ module.exports.ledgerSequenceTooHighResponse = function(request, options) {
     result: {
       engine_result: 'tefMAX_LEDGER',
       engine_result_code: -186,
-      engine_result_message: "Ledger sequence too high.",
+      engine_result_message: 'Ledger sequence too high.',
       tx_blob: request.tx_blob,
       tx_json: {
         Account: 'r3GgMwvgvP8h4yVWvjH1dPZNvC37TjzBBE',
@@ -730,3 +756,32 @@ module.exports.setTrustValidatedResponse = function(options) {
     validated: true
   });
 };
+
+module.exports.prepareTrustLineRequest = {
+  address: addresses.VALID,
+  trustline: {
+    limit: '1',
+    currency: 'USD',
+    counterparty: addresses.COUNTERPARTY
+  },
+  instructions: {
+    lastLedgerOffset: 100
+  }
+};
+
+module.exports.prepareTrustLineResponse = JSON.stringify({
+  success: true,
+  tx_json: {
+    Flags: 0,
+    TransactionType: 'TrustSet',
+    Account: addresses.VALID,
+    LimitAmount: {
+      value: '1',
+      currency: 'USD',
+      issuer: addresses.COUNTERPARTY
+    },
+    LastLedgerSequence: 8820289,
+    Fee: '12',
+    Sequence: 2938
+  }
+});

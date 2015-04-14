@@ -4717,3 +4717,51 @@ module.exports.RESTOrderResponse = function(options) {
         status: 'closed' } ]
     });
 };
+
+module.exports.prepareOrderRequest = {
+  address: addresses.VALID,
+  order: module.exports.order().order,
+  instructions: {
+    lastLedgerOffset: 100
+  }
+};
+
+module.exports.prepareOrderCancellationRequest = {
+  address: addresses.VALID,
+  sequence: 23
+};
+
+module.exports.prepareOrderResponse = JSON.stringify({
+  success: true,
+  tx_json: {
+    Flags: 0,
+    TransactionType: 'OfferCreate',
+    Account: 'r3GgMwvgvP8h4yVWvjH1dPZNvC37TjzBBE',
+    TakerPays: {
+      value: '100',
+      currency: 'USD',
+      issuer: 'r3PDtZSa5LiYp1Ysn1vMuMzB59RzV3W9QH',
+    },
+    TakerGets: {
+      value: '100',
+      currency: 'USD',
+      issuer: 'r3PDtZSa5LiYp1Ysn1vMuMzB59RzV3W9QH',
+    },
+    LastLedgerSequence: 8820085,
+    Fee: '12',
+    Sequence: 23
+  }
+});
+
+module.exports.prepareOrderCancellationResponse = JSON.stringify({
+  success: true,
+  tx_json: {
+    Flags: 0,
+    TransactionType: 'OfferCancel',
+    Account: 'r3GgMwvgvP8h4yVWvjH1dPZNvC37TjzBBE',
+    OfferSequence: 23,
+    LastLedgerSequence: 8819989,
+    Fee: '12',
+    Sequence: 23
+  }
+});
