@@ -36,11 +36,9 @@ RestToTxConverter.prototype.convert = function(payment, callback) {
       // - source amount and destination issuers are different
       //
     if (srcAmt.currency === dstAmt.currency) {
-      if (srcAmt.issuer !== src) {
+      if (srcAmt.issuer !== src && srcAmt.issuer !== dstAmt.issuer) {
         return true;
       }
-    } else if (srcAmt.issuer !== dstAmt.issuer) {
-      return true;
     }
     return false;
   }
