@@ -10,6 +10,28 @@ var addresses = require('./fixtures').addresses;
 var utils = require('../api/lib/utils');
 var requestPath = fixtures.requestPath;
 
+suite('preparePayment', function() {
+  var self = this;
+  setup(testutils.setup.bind(self));
+  teardown(testutils.teardown.bind(self));
+
+  test('/transaction/prepare/payment', function(done) {
+    self.wss.on('request_account_info', function(message, conn) {
+      assert.strictEqual(message.command, 'account_info');
+      assert.strictEqual(message.account, addresses.VALID);
+      conn.send(fixtures.accountInfoResponse(message));
+    });
+
+    self.app
+      .post(testutils.getPrepareURL('payment'))
+      .send(fixtures.preparePaymentRequest)
+      .expect(testutils.checkStatus(200))
+      .expect(testutils.checkHeaders)
+      .expect(testutils.checkBody(fixtures.preparePaymentResponse))
+      .end(done);
+  });
+});
+
 suite('get payments', function() {
   var self = this;
 

@@ -18,6 +18,28 @@ var NEXT_MARKER = '0C812C919D343EAE789B29E8027C62C5792C22172D37EA2B2C0121D2381F8
 var LEDGER = 9592219;
 var LEDGER_HASH = 'FD22E2A8D665A01711C0147173ECC0A32466BA976DE697E95197933311267BE8';
 
+suite('prepareTrustLine', function() {
+  var self = this;
+  setup(testutils.setup.bind(self));
+  teardown(testutils.teardown.bind(self));
+
+  test('/transaction/prepare/trustline', function(done) {
+    self.wss.on('request_account_info', function(message, conn) {
+      assert.strictEqual(message.command, 'account_info');
+      assert.strictEqual(message.account, addresses.VALID);
+      conn.send(fixtures.accountInfoResponse(message));
+    });
+
+    self.app
+      .post(testutils.getPrepareURL('trustline'))
+      .send(fixtures.prepareTrustLineRequest)
+      .expect(testutils.checkStatus(200))
+      .expect(testutils.checkHeaders)
+      .expect(testutils.checkBody(fixtures.prepareTrustLineResponse))
+      .end(done);
+  });
+});
+
 suite('get trustlines', function() {
   var self = this;
 

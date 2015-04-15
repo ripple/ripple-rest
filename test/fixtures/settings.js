@@ -250,7 +250,7 @@ module.exports.prepareSettingsResponse = JSON.stringify({
     TransactionType: 'AccountSet',
     Account: addresses.VALID,
     Domain: '726970706C652E636F6D',
-    LastLedgerSequence: 8820241,
+    LastLedgerSequence: 8820244,
     Fee: '12',
     Sequence: 2938
   }
