@@ -17,17 +17,15 @@ function isSendMaxRequired(payment) {
     return false;
   }
 
-  // only set send max when:
-  // - source and destination currencies are same
-  //   and source issuer is not source account
-  // - source amount and destination issuers are different
-  //
+    // only set send max when:
+    // - source and destination currencies are same
+    //   and source issuer is not source account
+    // - source amount and destination issuers are different
+    //
   if (srcAmt.currency === dstAmt.currency) {
-    if (srcAmt.issuer !== src) {
+    if (srcAmt.issuer !== src && srcAmt.issuer !== dstAmt.issuer) {
       return true;
     }
-  } else if (srcAmt.issuer !== dstAmt.issuer) {
-    return true;
   }
   return false;
 }

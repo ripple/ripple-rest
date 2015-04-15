@@ -8,6 +8,7 @@ var utils = require('./lib/utils');
 var validator = require('./lib/schema-validator');
 var validate = require('./lib/validate');
 var errors = require('./lib/errors.js');
+var utils = require('./lib/utils');
 
 var DEFAULT_RESULTS_PER_PAGE = 10;
 

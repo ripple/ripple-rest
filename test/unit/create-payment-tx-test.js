@@ -33,8 +33,10 @@ suite('unit - createPaymentTransaction', function() {
 
   test('payment with currency that has same issuer for source and destination amount', function() {
     var payment = fixtures.exportsPaymentRestIssuers({
-      sourceIssuer: addresses.VALID,
-      destinationIssuer: addresses.VALID
+      sourceAccount: addresses.VALID,
+      destinationAccount: addresses.COUNTERPARTY,
+      sourceIssuer: addresses.ISSUER,
+      destinationIssuer: addresses.ISSUER
     });
     var transaction = createPaymentTransaction(payment);
     assert.strictEqual(transaction.tx_json.SendMax, undefined);
@@ -74,9 +76,9 @@ suite('unit - createPaymentTransaction', function() {
 
   test('payment with same currency for source and destination, no issuer for source amount', function() {
     var payment = fixtures.exportsPaymentRestIssuers({
-      sourceIssuer: '',
+      sourceAccount: addresses.VALID,
       destinationAccount: addresses.COUNTERPARTY,
-      destinationIssuer: addresses.COUNTERPARTY
+      sourceIssuer: ''
     });
     var transaction = createPaymentTransaction(payment);
     assert.strictEqual(transaction.tx_json.SendMax, undefined);
@@ -84,6 +86,7 @@ suite('unit - createPaymentTransaction', function() {
 
   test('payment with same currency for source and destination, no issuer for source and destination amount', function() {
     var payment = fixtures.exportsPaymentRestIssuers({
+      sourceAccount: addresses.VALID,
       sourceIssuer: '',
       destinationAccount: addresses.COUNTERPARTY,
       destinationIssuer: ''
@@ -94,7 +97,8 @@ suite('unit - createPaymentTransaction', function() {
 
   test('payment with same currency for source and destination, no issuer for destination amount', function() {
     var payment = fixtures.exportsPaymentRestIssuers({
-      sourceIssuer: addresses.VALID,
+      sourceAccount: addresses.VALID,
+      sourceIssuer: addresses.VALID, // source account is source issuer
       destinationAccount: addresses.COUNTERPARTY,
       destinationIssuer: ''
     });
@@ -102,4 +106,14 @@ suite('unit - createPaymentTransaction', function() {
     assert.strictEqual(transaction.tx_json.SendMax, undefined);
   });
 
+  test('payment with same currency for source and destination, issuers are source and destination', function() {
+    var payment = fixtures.exportsPaymentRestIssuers({
+      sourceAccount: addresses.VALID,
+      sourceIssuer: addresses.VALID, // source account is source issuer
+      destinationAccount: addresses.COUNTERPARTY,
+      destinationIssuer: addresses.COUNTERPARTY // destination account is destination issuer
+    });
+    var transaction = createPaymentTransaction(payment);
+    assert.strictEqual(transaction.tx_json.SendMax, undefined);
+  });
 });
