@@ -780,7 +780,7 @@ module.exports.prepareTrustLineResponse = JSON.stringify({
       currency: 'USD',
       issuer: addresses.COUNTERPARTY
     },
-    LastLedgerSequence: 8820289,
+    LastLedgerSequence: 8820192,
     Fee: '12',
     Sequence: 2938
   }

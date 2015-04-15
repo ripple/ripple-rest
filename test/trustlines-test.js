@@ -662,7 +662,7 @@ suite('post trustlines', function() {
     testPostRequest({
       account: addresses.VALID,
       data: data,
-      expectedStatus: 500,
+      expectedStatus: 400,
       expectedBody: errors.RESTInvalidSecret
     }, done);
   });

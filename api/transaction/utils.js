@@ -1,6 +1,7 @@
 /* eslint-disable valid-jsdoc */
 'use strict';
 var BigNumber = require('bignumber.js');
+var validate = require('../lib/validate');
 
 function renameCounterpartyToIssuer(amount) {
   if (amount && amount.counterparty) {
@@ -69,24 +70,28 @@ function getFeeDrops(remote) {
 }
 
 function createTxJSON(transaction, remote, instructions, callback) {
+  instructions = instructions || {};
+  validate.options(instructions);
+
   transaction.complete();
   var account = transaction.getAccount();
   var tx_json = transaction.tx_json;
 
-  if (instructions.lastLedgerSequence !== undefined) {
-    tx_json.LastLedgerSequence = instructions.lastLedgerSequence;
+  if (instructions.last_ledger_sequence !== undefined) {
+    tx_json.LastLedgerSequence =
+      parseInt(instructions.last_ledger_sequence, 10);
   } else {
-    var offset = instructions.lastLedgerOffset !== undefined ?
-      instructions.lastLedgerOffset : 3;
+    var offset = instructions.last_ledger_offset !== undefined ?
+      parseInt(instructions.last_ledger_offset, 10) : 3;
     tx_json.LastLedgerSequence = remote.getLedgerSequence() + offset;
   }
 
-  if (instructions.fixedFee !== undefined) {
-    tx_json.Fee = xrpToDrops(instructions.fixedFee);
+  if (instructions.fixed_fee !== undefined) {
+    tx_json.Fee = xrpToDrops(instructions.fixed_fee);
   } else {
     var serverFeeDrops = getFeeDrops(remote);
-    if (instructions.maxFee !== undefined) {
-      var maxFeeDrops = xrpToDrops(instructions.maxFee);
+    if (instructions.max_fee !== undefined) {
+      var maxFeeDrops = xrpToDrops(instructions.max_fee);
       tx_json.Fee = BigNumber.min(serverFeeDrops, maxFeeDrops).toString();
     } else {
       tx_json.Fee = serverFeeDrops;
@@ -94,7 +99,7 @@ function createTxJSON(transaction, remote, instructions, callback) {
   }
 
   if (instructions.sequence !== undefined) {
-    tx_json.Sequence = instructions.sequence;
+    tx_json.Sequence = parseInt(instructions.sequence, 10);
     callback(null, {tx_json: tx_json});
   } else {
     remote.findAccount(account).getNextSequence(function(error, sequence) {

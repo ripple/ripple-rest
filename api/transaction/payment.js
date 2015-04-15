@@ -30,7 +30,10 @@ function isSendMaxRequired(payment) {
   return false;
 }
 
-function createPaymentTransaction(payment) {
+function createPaymentTransaction(account, payment) {
+  validate.address(account);
+  validate.payment(payment);
+
   // Convert blank issuer to sender's address
   //   (Ripple convention for 'any issuer')
   // https://ripple.com/build/transactions/
@@ -128,11 +131,7 @@ function createPaymentTransaction(payment) {
 }
 
 function preparePayment(account, payment, instructions, callback) {
-  instructions = instructions || {};
-  validate.address(account);
-  validate.payment(payment);
-
-  var transaction = createPaymentTransaction(payment);
+  var transaction = createPaymentTransaction(account, payment);
   utils.createTxJSON(transaction, this.remote, instructions, callback);
 }
 

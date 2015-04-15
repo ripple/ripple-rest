@@ -134,6 +134,9 @@ function convertTransferRate(transferRate) {
 }
 
 function createSettingsTransaction(account, settings) {
+  validate.address(account);
+  validate.settings(settings);
+
   var transaction = new ripple.Transaction();
   transaction.accountSet(account);
 
@@ -151,10 +154,6 @@ function createSettingsTransaction(account, settings) {
 }
 
 function prepareSettings(account, settings, instructions, callback) {
-  instructions = instructions || {};
-  validate.address(account);
-  validate.settings(settings);
-
   var transaction = createSettingsTransaction(account, settings);
   utils.createTxJSON(transaction, this.remote, instructions, callback);
 }

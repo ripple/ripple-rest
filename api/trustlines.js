@@ -1,16 +1,14 @@
 /* globals Promise: true */
 /* eslint-disable valid-jsdoc */
 'use strict';
-var _ = require('lodash');
-var async = require('async');
 var Promise = require('bluebird');
-var transactions = require('./transactions.js');
 var utils = require('./lib/utils');
 var validator = require('./lib/schema-validator');
 var TxToRestConverter = require('./lib/tx-to-rest-converter.js');
 var validate = require('./lib/validate');
 var createTrustLineTransaction =
   require('./transaction').createTrustLineTransaction;
+var transact = require('./transact');
 
 var DefaultPageLimit = 200;
 
@@ -38,9 +36,7 @@ function getTrustLines(account, options, callback) {
   validate.address(account);
   validate.currency(options.currency, true);
   validate.counterparty(options.counterparty, true);
-  validate.ledger(options.ledger, true);
-  validate.limit(options.limit, true);
-  validate.paging(options, true);
+  validate.options(options);
 
   var self = this;
 
@@ -151,15 +147,9 @@ function getTrustLines(account, options, callback) {
  */
 
 function addTrustLine(account, trustline, secret, options, callback) {
-  validate.address(account);
-  validate.trustline(trustline);
-  validate.validated(options.validated, true);
-
   var transaction = createTrustLineTransaction(account, trustline);
-  async.waterfall([
-    _.partial(transactions.submit, this, transaction, secret, options),
-    TxToRestConverter.parseTrustResponseFromTx
-  ], callback);
+  var converter = TxToRestConverter.parseTrustResponseFromTx;
+  transact(transaction, this, secret, options, converter, callback);
 }
 
 module.exports = {

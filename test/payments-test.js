@@ -733,7 +733,7 @@ suite('post payments', function() {
     .send(fixtures.payment({
       secret: 'foo'
     }))
-    .expect(testutils.checkStatus(500))
+    .expect(testutils.checkStatus(400))
     .expect(testutils.checkHeaders)
     .expect(testutils.checkBody(errors.RESTInvalidSecret))
     .end(done);
@@ -759,7 +759,7 @@ suite('post payments', function() {
       value: '0.001',
       currency: 'USD',
       issuer: addresses.issuer,
-      lastLedgerSequence: 9036185
+      lastLedgerSequence: '9036185'
     }))
     .expect(testutils.checkStatus(200))
     .expect(testutils.checkHeaders)

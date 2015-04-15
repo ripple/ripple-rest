@@ -4748,7 +4748,7 @@ module.exports.prepareOrderResponse = JSON.stringify({
       currency: 'USD',
       issuer: 'r3PDtZSa5LiYp1Ysn1vMuMzB59RzV3W9QH'
    },
-    LastLedgerSequence: 8820085,
+    LastLedgerSequence: 8819988,
     Fee: '12',
     Sequence: 23
  }

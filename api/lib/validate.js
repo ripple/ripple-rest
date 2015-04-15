@@ -50,6 +50,14 @@ function validateAddressAndSecret(obj) {
   }
 }
 
+function validateAddressAndMaybeSecret(obj) {
+  if (obj.secret === undefined) {
+    validateAddress(obj.address);
+  } else {
+    validateAddressAndSecret(obj);
+  }
+}
+
 function validateCurrency(currency) {
   if (!validator.isValid(currency, 'Currency')) {
     throw error('Parameter is not a valid currency: currency');
@@ -451,12 +459,6 @@ function validateTrustline(trustline) {
   // TODO: validateSchema(trustline, 'Trustline');
 }
 
-function validateValidated(validated) {
-  if (!isBoolean(validated)) {
-    throw error('validated must be boolean, not: ' + validated);
-  }
-}
-
 function validateTxJSON(txJSON) {
   if (typeof txJSON !== 'object') {
     throw error('tx_json must be an object, not: ' + typeof txJSON);
@@ -479,6 +481,62 @@ function validateBlob(blob) {
   }
 }
 
+function isNumeric(value) {
+  return !isNaN(parseFloat(value)) && isFinite(value);
+}
+
+function validateNonNegativeStringFloat(value, name) {
+  if (typeof value !== 'string') {
+    throw error(name + ' must be a string, not: ' + typeof value);
+  }
+  if (!isNumeric(value)) {
+    throw error(name + ' must be a numeric string, not: ' + value);
+  }
+  if (parseFloat(value) < 0) {
+    throw error(name + ' must be non-negative, got: ' + parseFloat(value));
+  }
+}
+
+function validateNonNegativeStringInteger(value, name) {
+  validateNonNegativeStringFloat(value, name);
+  if (value.indexOf('.') !== -1) {
+    throw error(name + ' must be an integer, got: ' + value);
+  }
+}
+
+function validateOptions(options) {
+  if (options.max_fee !== undefined) {
+    validateNonNegativeStringFloat(options.max_fee, 'max_fee');
+  }
+  if (options.fixed_fee !== undefined) {
+    validateNonNegativeStringFloat(options.fixed_fee, 'fixed_fee');
+  }
+  if (options.last_ledger_sequence !== undefined) {
+    validateNonNegativeStringInteger(options.last_ledger_sequence,
+      'last_ledger_sequence');
+  }
+  if (options.last_ledger_offset !== undefined) {
+    validateNonNegativeStringInteger(options.last_ledger_offset,
+      'last_ledger_offset');
+  }
+  if (options.sequence !== undefined) {
+    validateNonNegativeStringInteger(options.sequence, 'sequence');
+  }
+  if (options.limit !== undefined) {
+    validateLimit(options.limit);
+  }
+  if (options.ledger !== undefined) {
+    validateLedger(options.ledger);
+  }
+  if (options.validated !== undefined && !isBoolean(options.validated)) {
+    throw error('validated must be boolean, not: ' + options.validated);
+  }
+  if (options.submit !== undefined && !isBoolean(options.submit)) {
+    throw error('submit must be boolean, not: ' + options.submit);
+  }
+  validatePaging(options);
+}
+
 function createValidators(validatorMap) {
   var result = {};
   _.forEach(validatorMap, function(validateFunction, key) {
@@ -498,12 +556,10 @@ function createValidators(validatorMap) {
 module.exports = createValidators({
   address: validateAddress,
   addressAndSecret: validateAddressAndSecret,
+  addressAndMaybeSecret: validateAddressAndMaybeSecret,
   currency: validateCurrency,
   counterparty: validateCounterparty,
   issue: validateIssue,
-  ledger: validateLedger,
-  limit: validateLimit,
-  paging: validatePaging,
   identifier: validateIdentifier,
   paymentIdentifier: validatePaymentIdentifier,
   sequence: validateSequence,
@@ -515,7 +571,7 @@ module.exports = createValidators({
   pathfind: validatePathFind,
   settings: validateSettings,
   trustline: validateTrustline,
-  validated: validateValidated,
   txJSON: validateTxJSON,
-  blob: validateBlob
+  blob: validateBlob,
+  options: validateOptions
 });

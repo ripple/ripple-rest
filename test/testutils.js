@@ -110,6 +110,10 @@ function checkHeaders(res) {
     'X-Requested-With, Content-Type');
 }
 
+function dumpBody(res) {
+  console.log(JSON.stringify(res.body));
+}
+
 function checkBody(expected) {
   return function(res, err) {
     // console.log(require('util').inspect(res.body,false,null));
@@ -165,7 +169,8 @@ module.exports = {
   getPrepareURL: getPrepareURL,
   getSignURL: getSignURL,
   getSubmitURL: getSubmitURL,
-  withDeterministicPRNG: withDeterministicPRNG
+  withDeterministicPRNG: withDeterministicPRNG,
+  dumpBody: dumpBody
 };
 
 module.exports.closeLedgers = closeLedgers;

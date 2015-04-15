@@ -7,25 +7,27 @@ var fixtures = require('./fixtures').settings;
 var errors = require('./fixtures').errors;
 var addresses = require('./fixtures').addresses;
 
-suite('prepareSettings', function() {
+suite('prepare settings', function() {
   var self = this;
   setup(testutils.setup.bind(self));
   teardown(testutils.teardown.bind(self));
 
-  test('/transaction/prepare/settings', function(done) {
+  test('/accounts/:account/settings?submit=false', function(done) {
     self.wss.on('request_account_info', function(message, conn) {
       assert.strictEqual(message.command, 'account_info');
       assert.strictEqual(message.account, addresses.VALID);
       conn.send(fixtures.accountInfoResponse(message));
     });
 
-    self.app
-      .post(testutils.getPrepareURL('settings'))
-      .send(fixtures.prepareSettingsRequest)
-      .expect(testutils.checkStatus(200))
-      .expect(testutils.checkHeaders)
-      .expect(testutils.checkBody(fixtures.prepareSettingsResponse))
-      .end(done);
+    testutils.withDeterministicPRNG(function(_done) {
+      self.app
+        .post(fixtures.requestPath(addresses.VALID, '?submit=false'))
+        .send(fixtures.prepareSettingsRequest)
+        .expect(testutils.checkStatus(200))
+        .expect(testutils.checkHeaders)
+        .expect(testutils.checkBody(fixtures.prepareSettingsResponse))
+        .end(_done);
+    }, done);
   });
 });
 
@@ -235,7 +237,7 @@ suite('post settings', function() {
         wallet_size: 1,
         transfer_rate: 2
       }})
-      .expect(testutils.checkStatus(500))
+      .expect(testutils.checkStatus(400))
       .expect(testutils.checkHeaders)
       .expect(testutils.checkBody(errors.RESTInvalidSecret))
       .end(done);
@@ -928,7 +930,7 @@ suite('post settings', function() {
       settings: fixtures.settings()
     })
     .expect(testutils.checkBody(errors.RESTInvalidSecret))
-    .expect(testutils.checkStatus(500))
+    .expect(testutils.checkStatus(400))
     .expect(testutils.checkHeaders)
     .end(done);
   });

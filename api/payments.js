@@ -17,6 +17,7 @@ var createPaymentTransaction =
 var renameCounterpartyToIssuer =
   require('./transaction/utils').renameCounterpartyToIssuer;
 var xrpToDrops = require('./transaction/utils').xrpToDrops;
+var transact = require('./transact');
 
 var errors = require('./lib/errors');
 var InvalidRequestError = errors.InvalidRequestError;
@@ -122,19 +123,19 @@ function formatPaymentHelper(account, transaction, callback) {
  *          submitted transaction
  */
 function submitPayment(account, payment, clientResourceID, secret,
-    lastLedgerSequence, urlBase, options, callback) {
+    urlBase, options, callback) {
   var self = this;
   var max_fee = Number(options.max_fee) > 0 ?
     xrpToDrops(options.max_fee) : undefined;
   var fixed_fee = Number(options.fixed_fee) > 0 ?
     xrpToDrops(options.fixed_fee) : undefined;
 
-  validate.client_resource_id(clientResourceID);
-  // TODO: validate.addressAndSecret({address: account, secret: secret});
-  validate.address(account);
+  // these checks are done at the top of the function because we cannot
+  // raise exceptions inside callbacks
+  validate.addressAndMaybeSecret({address: account, secret: secret});
   validate.payment(payment);
-  validate.last_ledger_sequence(lastLedgerSequence, true);
-  validate.validated(options.validated, true);
+  validate.client_resource_id(clientResourceID);
+  validate.options(options);
 
   function formatTransactionResponse(message, meta, _callback) {
     if (meta.state === 'validated') {
@@ -155,14 +156,20 @@ function submitPayment(account, payment, clientResourceID, secret,
   }
 
   function _createPaymentTransaction(remote, _callback) {
-    var transaction = createPaymentTransaction(payment);
+    var transaction;
+    try {
+      transaction = createPaymentTransaction(account, payment);
+    } catch (err) {
+      _callback(err);
+      return;
+    }
 
     var ledgerIndex;
     var maxFee = Number(max_fee);
     var fixedFee = Number(fixed_fee);
 
-    if (Number(lastLedgerSequence) > 0) {
-      ledgerIndex = Number(lastLedgerSequence);
+    if (Number(options.last_ledger_sequence) > 0) {
+      ledgerIndex = Number(options.last_ledger_sequence);
     } else {
       ledgerIndex = Number(remote._ledger_current_index)
         + transactions.DEFAULT_LEDGER_BUFFER;
@@ -189,12 +196,16 @@ function submitPayment(account, payment, clientResourceID, secret,
     saveTransaction: true
   };
 
+  var converter = formatTransactionResponse;
   async.waterfall([
     _.partial(_createPaymentTransaction, self.remote),
     function(transaction, _callback) {
-      transactions.submit(self, transaction, secret, _options, _callback);
-    },
-    formatTransactionResponse
+      try {   // for case of missing secret and submit=false not set
+        transact(transaction, self, secret, _options, converter, _callback);
+      } catch (err) {
+        _callback(err);
+      }
+    }
   ], callback);
 }
 

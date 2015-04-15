@@ -33,9 +33,7 @@ function getBalances(account, options, callback) {
   validate.address(account);
   validate.currency(options.currency, true);
   validate.counterparty(options.counterparty, true);
-  validate.ledger(options.ledger, true);
-  validate.limit(options.limit, true);
-  validate.paging(options, true);
+  validate.options(options);
 
   var self = this;
 

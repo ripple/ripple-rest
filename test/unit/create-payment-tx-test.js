@@ -7,27 +7,31 @@ var fixtures = require('./fixtures').restConverter;
 var addresses = require('./../fixtures').addresses;
 var createPaymentTransaction =
   require('./../../api/transaction/payment').createPaymentTransaction;
+var ACCOUNT = addresses.VALID;
 
 suite('unit - createPaymentTransaction', function() {
 
   test('payment with IOU and issuer', function() {
-    var transaction = createPaymentTransaction(fixtures.paymentRest);
+    var transaction = createPaymentTransaction(ACCOUNT, fixtures.paymentRest);
     assert.deepEqual(transaction.summary(), fixtures.paymentTx);
   });
 
   test('payment with XRP and no source amount', function() {
-    var transaction = createPaymentTransaction(fixtures.paymentRestXRP);
+    var transaction = createPaymentTransaction(ACCOUNT,
+      fixtures.paymentRestXRP);
     assert.deepEqual(transaction.summary(), fixtures.paymentTxXRP);
     assert.strictEqual(transaction.tx_json.SendMax, undefined);
   });
 
   test(' payment XRP to XRP', function() {
-    var transaction = createPaymentTransaction(fixtures.paymentRestXRPtoXRP);
+    var transaction = createPaymentTransaction(ACCOUNT,
+      fixtures.paymentRestXRPtoXRP);
     assert.strictEqual(transaction.tx_json.SendMax, undefined);
   });
 
   test('payment with additional flags', function() {
-    var transaction = createPaymentTransaction(fixtures.paymentRestComplex);
+    var transaction = createPaymentTransaction(ACCOUNT,
+      fixtures.paymentRestComplex);
     assert.deepEqual(transaction.summary(), fixtures.paymentTxComplex);
   });
 
@@ -38,7 +42,7 @@ suite('unit - createPaymentTransaction', function() {
       sourceIssuer: addresses.ISSUER,
       destinationIssuer: addresses.ISSUER
     });
-    var transaction = createPaymentTransaction(payment);
+    var transaction = createPaymentTransaction(ACCOUNT, payment);
     assert.strictEqual(transaction.tx_json.SendMax, undefined);
   });
 
@@ -49,7 +53,7 @@ suite('unit - createPaymentTransaction', function() {
       sourceIssuer: addresses.VALID2,
       destinationIssuer: addresses.ISSUER2
     });
-    var transaction = createPaymentTransaction(payment);
+    var transaction = createPaymentTransaction(ACCOUNT, payment);
     assert.deepEqual(transaction.tx_json.SendMax, {
       value: '10',
       currency: 'USD',
@@ -66,7 +70,7 @@ suite('unit - createPaymentTransaction', function() {
       sourceSlippage: '0.1',
       sourceAmount: '10'
     });
-    var transaction = createPaymentTransaction(payment);
+    var transaction = createPaymentTransaction(ACCOUNT, payment);
     assert.deepEqual(transaction.tx_json.SendMax, {
       value: '10.1',
       currency: 'USD',
@@ -80,7 +84,7 @@ suite('unit - createPaymentTransaction', function() {
       destinationAccount: addresses.COUNTERPARTY,
       sourceIssuer: ''
     });
-    var transaction = createPaymentTransaction(payment);
+    var transaction = createPaymentTransaction(ACCOUNT, payment);
     assert.strictEqual(transaction.tx_json.SendMax, undefined);
   });
 
@@ -91,7 +95,7 @@ suite('unit - createPaymentTransaction', function() {
       destinationAccount: addresses.COUNTERPARTY,
       destinationIssuer: ''
     });
-    var transaction = createPaymentTransaction(payment);
+    var transaction = createPaymentTransaction(ACCOUNT, payment);
     assert.strictEqual(transaction.tx_json.SendMax, undefined);
   });
 
@@ -102,7 +106,7 @@ suite('unit - createPaymentTransaction', function() {
       destinationAccount: addresses.COUNTERPARTY,
       destinationIssuer: ''
     });
-    var transaction = createPaymentTransaction(payment);
+    var transaction = createPaymentTransaction(ACCOUNT, payment);
     assert.strictEqual(transaction.tx_json.SendMax, undefined);
   });
 
@@ -113,7 +117,7 @@ suite('unit - createPaymentTransaction', function() {
       destinationAccount: addresses.COUNTERPARTY,
       destinationIssuer: addresses.COUNTERPARTY // destination account is destination issuer
     });
-    var transaction = createPaymentTransaction(payment);
+    var transaction = createPaymentTransaction(ACCOUNT, payment);
     assert.strictEqual(transaction.tx_json.SendMax, undefined);
   });
 });
