@@ -26,10 +26,9 @@ var validate = require('./lib/validate.js');
  *
  *  @callback
  *  @param {Error} error
- *  @param {Object with fields "account", "transaction",
- *    "next_transaction_identifier", "next_hash",
- *    "previous_transaction_identifier", "previous_hash"} notificationDetails
- */
+ *  @param {Object} notificationDetails
+ **/
+
 function attachPreviousAndNextTransactionIdentifiers(api,
     notificationDetails, topCallback) {
 
@@ -168,7 +167,7 @@ function attachPreviousAndNextTransactionIdentifiers(api,
  *  @param {Error} error
  *  @param {Notification} notification
  */
-function getNotificationHelper(api, account, identifier, topCallback) {
+function getNotificationHelper(api, account, identifier, urlBase, topCallback) {
 
   function getTransaction(callback) {
     try {
@@ -214,7 +213,7 @@ function getNotificationHelper(api, account, identifier, topCallback) {
 
   // Parse the Notification object from the notificationDetails
   function parseNotificationDetails(notificationDetails, callback) {
-    callback(null, NotificationParser.parse(notificationDetails));
+    callback(null, NotificationParser.parse(notificationDetails, urlBase));
   }
 
   var steps = [
@@ -226,7 +225,6 @@ function getNotificationHelper(api, account, identifier, topCallback) {
 
   async.waterfall(steps, topCallback);
 }
-
 
 /**
  *  Get a notification corresponding to the specified
@@ -243,7 +241,7 @@ function getNotification(account, identifier, urlBase, callback) {
   validate.address(account);
   validate.paymentIdentifier(identifier);
 
-  getNotificationHelper(this, account, identifier,
+  getNotificationHelper(this, account, identifier, urlBase,
       function(error, notification) {
     if (error) {
       return callback(error);
@@ -252,14 +250,6 @@ function getNotification(account, identifier, urlBase, callback) {
     var responseBody = {
       notification: notification
     };
-
-    // Add urlBase to each url in notification
-    Object.keys(responseBody.notification).forEach(function(key) {
-      if (/url/.test(key) && responseBody.notification[key]) {
-        responseBody.notification[key] = urlBase +
-          responseBody.notification[key];
-      }
-    });
 
     // Move client_resource_id to response body instead of inside
     // the Notification

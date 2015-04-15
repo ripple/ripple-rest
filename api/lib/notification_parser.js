@@ -18,7 +18,7 @@ var ripple = require('ripple-lib');
  */
 function NotificationParser() {}
 
-NotificationParser.prototype.parse = function(notification_details) {
+NotificationParser.prototype.parse = function(notification_details, urlBase) {
   var transaction = notification_details.transaction;
   var account = notification_details.account;
   var previous_transaction_identifier =
@@ -86,6 +86,14 @@ NotificationParser.prototype.parse = function(notification_details) {
       '/notifications/' +
       previous_transaction_identifier;
   }
+
+  // Add urlBase to each url in notification
+  Object.keys(notification).forEach(function(key) {
+    if (/url/.test(key) && notification[key]) {
+      notification[key] = urlBase +
+        notification[key];
+    }
+  });
 
   return notification;
 };
