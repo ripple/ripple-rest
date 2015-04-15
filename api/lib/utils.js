@@ -96,9 +96,11 @@ function signum(num) {
  */
 function compareTransactions(first, second) {
   if (first.ledger_index === second.ledger_index) {
-    return signum(first.meta.TransactionIndex - second.meta.TransactionIndex);
+    return signum(
+      Number(first.meta.TransactionIndex) -
+      Number(second.meta.TransactionIndex));
   }
-  return first.ledger_index < second.ledger_index ? -1 : 1;
+  return Number(first.ledger_index) < Number(second.ledger_index) ? -1 : 1;
 }
 
 function isValidLedgerSequence(ledger) {

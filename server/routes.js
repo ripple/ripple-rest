@@ -63,12 +63,13 @@ function getAccountPayments(request, callback) {
     ledger_index_max: request.query.end_ledger,
     earliest_first: request.query.earliest_first === 'true',
     exclude_failed: request.query.exclude_failed === 'true',
-    results_per_page: request.query.results_per_page,
+    results_per_page: Number(request.query.results_per_page),
     page: request.query.page
   };
   api.getAccountPayments(account, source_account, destination_account,
     direction, options, callback);
 }
+
 
 function getPayment(request, callback) {
   var account = request.params.account;
