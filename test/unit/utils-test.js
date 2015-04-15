@@ -3,6 +3,7 @@
 var assert = require('assert');
 var utils = require('../../api/lib/utils.js');
 var addresses = require('./../fixtures/addresses.js');
+var _ = require('lodash');
 
 suite('unit - utils.parseLedger()', function() {
   var DEFAULT_LEDGER = 'validated';
@@ -233,6 +234,18 @@ suite('unit - utils.txFromRestAmount()', function() {
 });
 
 suite('unit - utils.compareTransactions()', function() {
+
+  function toStringValues(tx) {
+    return _.mapValues(tx, function(val) {
+      if (typeof val === 'number') {
+        return val.toString();
+      } else if (typeof val === 'object') {
+        return toStringValues(val);
+      }
+      return val;
+    });
+  }
+
   test('compareTransactions() -- different ledgers', function() {
     var tx1 = {
       ledger_index: 1
@@ -243,6 +256,9 @@ suite('unit - utils.compareTransactions()', function() {
     };
 
     assert.strictEqual(utils.compareTransactions(tx1, tx2), -1);
+    assert.strictEqual(
+      utils.compareTransactions(
+        toStringValues(tx1), toStringValues(tx2)), -1);
   });
 
   test('compareTransactions() -- same ledger', function() {
@@ -261,6 +277,9 @@ suite('unit - utils.compareTransactions()', function() {
     };
 
     assert.strictEqual(utils.compareTransactions(tx1, tx2), 1);
+    assert.strictEqual(
+      utils.compareTransactions(
+        toStringValues(tx1), toStringValues(tx2)), 1);
   });
 
   test('compareTransactions() -- same transaction', function() {
@@ -272,6 +291,9 @@ suite('unit - utils.compareTransactions()', function() {
     };
 
     assert.strictEqual(utils.compareTransactions(tx1, tx1), 0);
+    assert.strictEqual(
+      utils.compareTransactions(
+        toStringValues(tx1), toStringValues(tx1)), 0);
   });
 
 });
