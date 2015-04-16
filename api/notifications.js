@@ -213,11 +213,29 @@ function getNotificationHelper(api, account, identifier, urlBase, topCallback) {
     callback(null, NotificationParser.parse(notificationDetails, urlBase));
   }
 
+  function formatNotificationResponse(notificationDetails, callback) {
+    var responseBody = {
+      notification: notificationDetails
+    };
+
+    // Move client_resource_id to response body instead of inside
+    // the Notification
+    var client_resource_id = responseBody.notification.client_resource_id;
+    delete responseBody.notification.client_resource_id;
+    if (client_resource_id) {
+      responseBody.client_resource_id = client_resource_id;
+    }
+
+    callback(null, responseBody);
+  }
+
+
   var steps = [
     getTransaction,
     checkLedger,
     prepareNotificationDetails,
-    parseNotificationDetails
+    parseNotificationDetails,
+    formatNotificationResponse
   ];
 
   async.waterfall(steps, topCallback);
@@ -235,28 +253,118 @@ function getNotificationHelper(api, account, identifier, urlBase, topCallback) {
  *  @param {Hex-encoded String|ResourceId} req.params.identifier
  */
 function getNotification(account, identifier, urlBase, callback) {
-  getNotificationHelper(this, account, identifier, urlBase,
-      function(error, notification) {
-    if (error) {
-      return callback(error);
-    }
+  validate.address(account);
+  validate.paymentIdentifier(identifier);
 
-    var responseBody = {
-      notification: notification
+  return getNotificationHelper(this, account, identifier, urlBase, callback);
+}
+
+/**
+ *  Get a notifications corresponding to the specified
+ *  account.
+ *
+ *  This function calls transactions.getAccountTransactions
+ *  recursively to retrieve results_per_page number of transactions
+ *  and filters the results using client-specified parameters.
+ *
+ *  @param {RippleAddress} account
+ *  @param {string} urlBase - The url to use for the transaction status URL
+ *
+ *  @param {string} options.source_account
+ *  @param {Number} options.ledger_min
+ *  @param {Number} options.ledger_max
+ *  @param {string} [false] options.earliest_first
+ *  @param {string[]} options.types - @see transactions.getAccountTransactions
+ *
+ */
+// TODO: If given ledger range, check for ledger gaps
+function getNotifications(account, urlBase, options, callback) {
+  validate.address(account);
+
+  var self = this;
+
+  function getTransactions(_callback) {
+
+    var resultsPerPage = options.results_per_page ||
+      transactions.DEFAULT_RESULTS_PER_PAGE;
+    var offset = resultsPerPage * ((options.page || 1) - 1);
+
+    var args = {
+      account: account,
+      direction: options.direction,
+      min: resultsPerPage,
+      max: resultsPerPage,
+      ledger_index_min: options.ledger_min,
+      ledger_index_max: options.ledger_max,
+      offset: offset,
+      earliestFirst: options.earliest_first
     };
 
-    // Move client_resource_id to response body instead of inside
-    // the Notification
-    var client_resource_id = responseBody.notification.client_resource_id;
-    delete responseBody.notification.client_resource_id;
-    if (client_resource_id) {
-      responseBody.client_resource_id = client_resource_id;
+    transactions.getAccountTransactions(self, args, _callback);
+  }
+
+  // TODO: Attach date
+
+  function parseNotifications(baseTransactions, _callback) {
+    var numTransactions = baseTransactions.length;
+
+    function parseNotification(transaction, __callback) {
+      var args = {
+        account: account,
+        identifier: transaction.hash,
+        transaction: transaction
+      };
+
+      // Attaching previous and next identifiers
+      var idx = baseTransactions.indexOf(transaction);
+      var previous = baseTransactions[idx + 1];
+      var next = baseTransactions[idx - 1];
+
+      if (!options.earliest_first) {
+        args.previous_hash = previous ? previous.hash : undefined;
+        args.next_hash = next ? next.hash : undefined;
+      } else {
+        args.previous_hash = next ? next.hash : undefined;
+        args.next_hash = previous ? previous.hash : undefined;
+      }
+
+      args.previous_transaction_identifier = args.previous_hash;
+      args.next_transaction_identifier = args.next_hash;
+
+      var firstAndPaging = options.page &&
+        (options.earliest_first ?
+         args.previous_hash === undefined : args.next_hash === undefined);
+
+      var last = idx === numTransactions - 1;
+
+      if (firstAndPaging || last) {
+        attachPreviousAndNextTransactionIdentifiers(self, args,
+          function(err, _args) {
+            return __callback(err, NotificationParser.parse(_args, urlBase));
+          }
+        );
+      } else {
+        return __callback(null, NotificationParser.parse(args, urlBase));
+      }
     }
 
-    callback(null, responseBody);
-  });
+    return async.map(baseTransactions, parseNotification, _callback);
+  }
+
+  function formatResponse(notifications, _callback) {
+    _callback(null, {notifications: notifications});
+  }
+
+  var steps = [
+    getTransactions,
+    parseNotifications,
+    formatResponse
+  ];
+
+  return async.waterfall(steps, callback);
 }
 
 module.exports = {
-  getNotification: getNotification
+  getNotification: getNotification,
+  getNotifications: getNotifications
 };
