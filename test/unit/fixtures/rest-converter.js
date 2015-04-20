@@ -114,6 +114,11 @@ module.exports.paymentTxComplex = {
       currency: 'USD',
       issuer: addresses.VALID
     },
+    SendMax: {
+      value: '10',
+      currency: 'USD',
+      issuer: addresses.VALID
+    },
     Destination: addresses.COUNTERPARTY
   },
   clientID: undefined,
