@@ -7,7 +7,7 @@ var ws = require('ws');
 var route = new (require('events').EventEmitter);
 var fixtures = require('./fixtures')._payments;
 var RL = require('ripple-lib');
-var remote = require('../server/api').remote;
+var api = require('../server/api');
 
 var testutils = { };
 
@@ -75,7 +75,7 @@ suite('payments', function() {
 
   suiteSetup(function(done) {
     var self = this;
-    self.remote = remote;
+    self.remote = api.remote;
     rippled = new ws.Server({port: 5150});
 
     route.on('ping', fixtures.ping);

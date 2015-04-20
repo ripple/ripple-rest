@@ -1527,7 +1527,7 @@ module.exports.preparePaymentResponse = JSON.stringify({
         }
       ]
     ],
-    LastLedgerSequence: 8820086,
+    LastLedgerSequence: 8819955,
     Fee: '12',
     Sequence: 23
   }
