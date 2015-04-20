@@ -34,6 +34,22 @@ suite('unit - converter - Rest to Tx', function() {
     });
   });
 
+  test('convert() -- payment XRP to non-XRP', function(done) {
+    restToTxConverter.convert(fixtures.exportsPaymentRestIssuers({
+      sourceAccount: addresses.VALID,
+      sourceAmount: '10',
+      sourceCurrency: 'XRP',
+      destinationAccount: addresses.COUNTERPARTY,
+      sourceIssuer: '',
+      destinationIssuer: addresses.ISSUER
+    }), function(err, transaction) {
+      if (err) {
+        return done(err);
+      }
+      assert.strictEqual(transaction.tx_json.SendMax, '10000000');
+      done();
+    });
+  });
 
   test('convert() -- payment with additional flags', function(done) {
     restToTxConverter.convert(fixtures.paymentRestComplex, function(err, transaction) {
@@ -50,8 +66,14 @@ suite('unit - converter - Rest to Tx', function() {
       sourceIssuer: addresses.ISSUER,
       destinationIssuer: addresses.ISSUER
     }), function(err, transaction) {
-      assert.strictEqual(err, null);
-      assert.strictEqual(transaction.tx_json.SendMax, undefined);
+      if (err) {
+        return done(err);
+      }
+      assert.deepEqual(transaction.tx_json.SendMax, {
+        value: '10',
+        currency: 'USD',
+        issuer: addresses.ISSUER
+      });
       done();
     });
   });
@@ -99,8 +121,14 @@ suite('unit - converter - Rest to Tx', function() {
       sourceIssuer: '',
       destinationIssuer: addresses.ISSUER2
     }), function(err, transaction) {
-      assert.strictEqual(err, null);
-      assert.strictEqual(transaction.tx_json.SendMax, undefined);
+      if (err) {
+        return done(err);
+      }
+      assert.deepEqual(transaction.tx_json.SendMax, {
+        value: '10',
+        currency: 'USD',
+        issuer: addresses.VALID
+      });
       done();
     });
   });
@@ -112,8 +140,14 @@ suite('unit - converter - Rest to Tx', function() {
       destinationAccount: addresses.COUNTERPARTY,
       destinationIssuer: ''
     }), function(err, transaction) {
-      assert.strictEqual(err, null);
-      assert.strictEqual(transaction.tx_json.SendMax, undefined);
+      if (err) {
+        return done(err);
+      }
+      assert.deepEqual(transaction.tx_json.SendMax, {
+        value: '10',
+        currency: 'USD',
+        issuer: addresses.VALID
+      });
       done();
     });
   });
@@ -128,7 +162,11 @@ suite('unit - converter - Rest to Tx', function() {
       if (err) {
         return done(err);
       }
-      assert.strictEqual(transaction.tx_json.SendMax, undefined);
+      assert.deepEqual(transaction.tx_json.SendMax, {
+        value: '10',
+        currency: 'USD',
+        issuer: addresses.VALID
+      });
       done();
     });
   });
@@ -143,7 +181,11 @@ suite('unit - converter - Rest to Tx', function() {
       if (err) {
         return done(err);
       }
-      assert.strictEqual(transaction.tx_json.SendMax, undefined);
+      assert.deepEqual(transaction.tx_json.SendMax, {
+        value: '10',
+        currency: 'USD',
+        issuer: addresses.VALID
+      });
       done();
     });
   });
