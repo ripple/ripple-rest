@@ -1513,6 +1513,11 @@ module.exports.preparePaymentResponse = JSON.stringify({
       currency: 'USD',
       issuer: addresses.COUNTERPARTY
     },
+    SendMax: {
+      value: '5.01',
+      currency: 'USD',
+      issuer: addresses.VALID
+    },
     Destination: addresses.COUNTERPARTY,
     Paths: [
       [

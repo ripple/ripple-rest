@@ -6,28 +6,15 @@ var utils = require('./utils');
 var validate = require('../lib/validate');
 var wrapCatch = require('../lib/utils').wrapCatch;
 
-function isSendMaxRequired(payment) {
-  var src = payment.source_account;
-
+function isSendMaxAllowed(payment) {
   var srcAmt = payment.source_amount;
   var dstAmt = payment.destination_amount;
 
   // Don't set SendMax for XRP->XRP payment
-  if (!srcAmt || srcAmt.currency === 'XRP' && dstAmt.currency === 'XRP') {
-    return false;
-  }
-
-    // only set send max when:
-    // - source and destination currencies are same
-    //   and source issuer is not source account
-    // - source amount and destination issuers are different
-    //
-  if (srcAmt.currency === dstAmt.currency) {
-    if (srcAmt.issuer !== src && srcAmt.issuer !== dstAmt.issuer) {
-      return true;
-    }
-  }
-  return false;
+  // temREDUNDANT_SEND_MAX removed in:
+  // https://github.com/ripple/rippled/commit/
+  //  c522ffa6db2648f1d8a987843e7feabf1a0b7de8/
+  return srcAmt && !(srcAmt.currency === 'XRP' && dstAmt.currency === 'XRP');
 }
 
 function createPaymentTransaction(account, payment) {
@@ -86,7 +73,7 @@ function createPaymentTransaction(account, payment) {
   }
 
   // SendMax
-  if (isSendMaxRequired(payment)) {
+  if (isSendMaxAllowed(payment)) {
     var max_value = new BigNumber(payment.source_amount.value)
       .plus(payment.source_slippage || 0).toString();
 

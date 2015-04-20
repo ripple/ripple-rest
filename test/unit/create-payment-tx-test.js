@@ -29,6 +29,19 @@ suite('unit - createPaymentTransaction', function() {
     assert.strictEqual(transaction.tx_json.SendMax, undefined);
   });
 
+  test(' payment XRP to non-XRP', function() {
+    var transaction =
+      createPaymentTransaction(ACCOUNT, fixtures.exportsPaymentRestIssuers({
+        sourceAccount: addresses.VALID,
+        sourceAmount: '10',
+        sourceCurrency: 'XRP',
+        destinationAccount: addresses.COUNTERPARTY,
+        sourceIssuer: '',
+        destinationIssuer: addresses.ISSUER
+    }));
+    assert.strictEqual(transaction.tx_json.SendMax, '10000000');
+  });
+
   test('payment with additional flags', function() {
     var transaction = createPaymentTransaction(ACCOUNT,
       fixtures.paymentRestComplex);
@@ -43,7 +56,11 @@ suite('unit - createPaymentTransaction', function() {
       destinationIssuer: addresses.ISSUER
     });
     var transaction = createPaymentTransaction(ACCOUNT, payment);
-    assert.strictEqual(transaction.tx_json.SendMax, undefined);
+    assert.deepEqual(transaction.tx_json.SendMax, {
+      value: '10',
+      currency: 'USD',
+      issuer: addresses.ISSUER
+    });
   });
 
   test('payment with currency that has different issuers for source and destination amount', function() {
@@ -85,7 +102,11 @@ suite('unit - createPaymentTransaction', function() {
       sourceIssuer: ''
     });
     var transaction = createPaymentTransaction(ACCOUNT, payment);
-    assert.strictEqual(transaction.tx_json.SendMax, undefined);
+    assert.deepEqual(transaction.tx_json.SendMax, {
+      value: '10',
+      currency: 'USD',
+      issuer: addresses.VALID
+    });
   });
 
   test('payment with same currency for source and destination, no issuer for source and destination amount', function() {
@@ -96,7 +117,11 @@ suite('unit - createPaymentTransaction', function() {
       destinationIssuer: ''
     });
     var transaction = createPaymentTransaction(ACCOUNT, payment);
-    assert.strictEqual(transaction.tx_json.SendMax, undefined);
+    assert.deepEqual(transaction.tx_json.SendMax, {
+      value: '10',
+      currency: 'USD',
+      issuer: addresses.VALID
+    });
   });
 
   test('payment with same currency for source and destination, no issuer for destination amount', function() {
@@ -107,7 +132,11 @@ suite('unit - createPaymentTransaction', function() {
       destinationIssuer: ''
     });
     var transaction = createPaymentTransaction(ACCOUNT, payment);
-    assert.strictEqual(transaction.tx_json.SendMax, undefined);
+    assert.deepEqual(transaction.tx_json.SendMax, {
+      value: '10',
+      currency: 'USD',
+      issuer: addresses.VALID
+    });
   });
 
   test('payment with same currency for source and destination, issuers are source and destination', function() {
@@ -118,6 +147,10 @@ suite('unit - createPaymentTransaction', function() {
       destinationIssuer: addresses.COUNTERPARTY // destination account is destination issuer
     });
     var transaction = createPaymentTransaction(ACCOUNT, payment);
-    assert.strictEqual(transaction.tx_json.SendMax, undefined);
+    assert.deepEqual(transaction.tx_json.SendMax, {
+      value: '10',
+      currency: 'USD',
+      issuer: addresses.VALID
+    });
   });
 });
