@@ -42,7 +42,8 @@ We recommend Ripple-REST for users just getting started with Ripple, since it pr
 
 #### Notifications ####
 
-* [Check Notifications - `GET /v1/accounts/{:address}/notifications/{:id}`](#check-notifications)
+* [Check Notification - `GET /v1/accounts/{:address}/notifications/{:id}`](#check-notification)
+* [Check Notifications - `GET /v1/accounts/{:address}/notifications/`](#check-notifications)
 
 #### Status ####
 
@@ -2029,7 +2030,7 @@ Notifications provide a mechanism to monitor for any kind of transactions that m
 Notifications are sorted in order of when they occurred, so you can save the most recently-known transaction and easily iterate forward to find any notifications that are newer than that.
 
 
-## Check Notifications ##
+## Check Notification ##
 [[Source]<br>](https://github.com/ripple/ripple-rest/blob/develop/api/notifications.js "Source")
 
 Get a notification for the specific transaction hash, along with links to previous and next notifications, if available.
@@ -2044,7 +2045,7 @@ GET /v1/accounts/{:address}/notifications/{:id}
 
 <!-- </div> -->
 
-[Try it! >](https://ripple.com/build/rest-tool#check-notifications)
+[Try it! >](https://ripple.com/build/rest-tool#check-notification)
 
 The following URL parameters are required by this API endpoint:
 
@@ -2090,6 +2091,67 @@ The `next_hash` and `next_notification_url` fields work the same way, but they p
 
 *Caution:* If you are accessing the REST API through a proxy, you may not be able to access the URLs as provided. (See [RA-129](https://ripplelabs.atlassian.net/browse/RA-129) for status and details.)
 
+## Check Notifications ##
+[[Source]<br>](https://github.com/ripple/ripple-rest/blob/develop/api/notifications.js "Source")
+
+Get the most recent notifications for the specified Ripple account address, along with links to previous and next notifications, if available.
+
+<!-- <div class='multicode'> -->
+
+<!-- *REST* -->
+
+```
+GET /v1/accounts/{:address}/notifications/
+```
+
+<!-- </div> -->
+
+[Try it! >](https://ripple.com/build/rest-tool#check-notifications)
+
+The following URL parameters are required by this API endpoint:
+
+| Field | Value | Description |
+|-------|-------|-------------|
+| address | String | The Ripple account address of an account involved in the transaction. |
+
+Optionally, you can also include the following query parameters:
+
+| Field | Type | Description |
+|-------|------|-------------|
+| exclude_failed | Boolean | If true, only include successful transactions. Defaults to false. |
+| earliest_first | Boolean | If true, sort results with the oldest payments first. Defaults to false (sort with the most recent payments first). |
+| start\_ledger | Integer (Ledger sequence number) | If provided, exclude payments from ledger versions older than the given ledger. |
+| end\_ledger | Integer (Ledger sequence number) | If provided, exclude payments from ledger versions newer than the given ledger. |
+| results\_per\_page | Integer | The maximum number of payments to be returned at once.  Defaults to 10. |
+| page | Integer | The page number for the results to return, if more than `results_per_page` are available. The first page of results is page `1`, the second page is number `2`, and so on.  Defaults to `1`. |
+
+#### Response ####
+
+A successful response contains a notification object, for example:
+
+```js
+[
+  {
+    "success": true,
+    "notification": {
+    "account": "rf1BiGeXwwQoi8Z2ueFYTEXSwuJYfV2Jpn",
+    "type": "payment",
+    "direction": "outgoing",
+    "state": "validated",
+    "result": "tesSUCCESS",
+    "ledger": "8924146",
+    "hash": "9D591B18EDDD34F0B6CF4223A2940AEA2C3CC778925BABF289E0011CD8FA056E",
+    "timestamp": "2014-09-17T21:47:00.000Z",
+    "transaction_url": "http://api.ripple.com:5990/v1/accounts/rf1BiGeXwwQoi8Z2ueFYTEXSwuJYfV2Jpn/payments/9D591B18EDDD34F0B6CF4223A2940AEA2C3CC778925BABF289E0011CD8FA056E",
+    "previous_hash": "8496C20AEB453803CB80474B59AB1E8FAA26725561EFF5AF41BD588B325AFBA8",
+    "previous_notification_url": "http://api.ripple.com:5990/v1/accounts/rf1BiGeXwwQoi8Z2ueFYTEXSwuJYfV2Jpn/notifications/8496C20AEB453803CB80474B59AB1E8FAA26725561EFF5AF41BD588B325AFBA8",
+    "next_hash": "AE79DE34230403EA2769B4DA21A0D4D2FD7A18518DBA0A4C5B6352AFD844D22A",
+    "next_notification_url": "http://api.ripple.com:5990/v1/accounts/rf1BiGeXwwQoi8Z2ueFYTEXSwuJYfV2Jpn/notifications/AE79DE34230403EA2769B4DA21A0D4D2FD7A18518DBA0A4C5B6352AFD844D22A"
+  }
+]
+```
+
+*Caution:* If you are accessing the REST API through a proxy, you may not be able to access the URLs as provided. (See [RA-129](https://ripplelabs.atlassian.net/browse/RA-129) for status and details.)
 
 
 
