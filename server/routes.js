@@ -123,7 +123,6 @@ function getNotification(request, callback) {
 function getNotifications(request, callback) {
   var account = request.params.account;
   var urlBase = getUrlBase(request);
-  // var direction = request.query.direction;
   var options = {
     ledger_index_min: request.query.start_ledger,
     ledger_index_max: request.query.end_ledger,
