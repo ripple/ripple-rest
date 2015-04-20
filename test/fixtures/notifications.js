@@ -431,7 +431,7 @@ module.exports.RESTAccountNotificationsResponse = JSON.stringify({
       result: 'tesSUCCESS',
       ledger: String(LEDGER),
       hash: '5809ECE7B7AFD5312AC6744AC8C9E2D1381A067AD83038C45A5EBDEF8599F917',
-      timestamp: '',
+      timestamp: '2014-09-24T21:21:50.000Z',
       transaction_url: 'http://127.0.0.1:5990/v1/accounts/' + addresses.VALID + '/payments/5809ECE7B7AFD5312AC6744AC8C9E2D1381A067AD83038C45A5EBDEF8599F917',
       previous_hash: 'BACD1473E1D778CE38AD6D7C671D519506D0BC33AE3C54FA5A59D9C9161C381B',
       previous_notification_url: 'http://127.0.0.1:5990/v1/accounts/' + addresses.VALID + '/notifications/BACD1473E1D778CE38AD6D7C671D519506D0BC33AE3C54FA5A59D9C9161C381B',

@@ -254,6 +254,12 @@ suite('get notifications', function() {
 
   test('/accounts/:account/notifications/', function(done) {
 
+    // request_ledger for timestamp
+    self.wss.once('request_ledger', function(message, conn) {
+      assert.strictEqual(message.command, 'ledger');
+      conn.send(fixtures.ledgerResponse(message));
+    });
+
     // Getting next and previous transaction hashes
     function handleDirectionalTxQuery(message, conn) {
       assert.strictEqual(message.command, 'account_tx');
