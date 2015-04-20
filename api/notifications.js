@@ -306,8 +306,6 @@ function getNotifications(account, urlBase, options, callback) {
     transactions.getAccountTransactions(self, args, _callback);
   }
 
-  // TODO: Attach date
-
   function parseNotifications(baseTransactions, _callback) {
     var numTransactions = baseTransactions.length;
 
@@ -360,6 +358,7 @@ function getNotifications(account, urlBase, options, callback) {
 
   var steps = [
     getTransactions,
+    _.partial(utils.attachDate, self),
     parseNotifications,
     formatResponse
   ];
