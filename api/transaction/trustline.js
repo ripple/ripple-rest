@@ -13,6 +13,9 @@ var TrustSetFlags = {
 };
 
 function createTrustLineTransaction(account, trustline) {
+  validate.address(account);
+  validate.trustline(trustline);
+
   if (trustline && trustline.limit) {
     trustline.limit = String(trustline.limit);
   }
@@ -42,10 +45,6 @@ function createTrustLineTransaction(account, trustline) {
 }
 
 function prepareTrustLine(account, trustline, instructions, callback) {
-  instructions = instructions || {};
-  validate.address(account);
-  validate.trustline(trustline);
-
   var transaction = createTrustLineTransaction(account, trustline);
   utils.createTxJSON(transaction, this.remote, instructions, callback);
 }

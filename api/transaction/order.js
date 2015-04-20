@@ -11,10 +11,11 @@ var OfferCreateFlags = {
 };
 
 function createOrderTransaction(account, order) {
-  if (order) {
-    utils.renameCounterpartyToIssuer(order.taker_gets);
-    utils.renameCounterpartyToIssuer(order.taker_pays);
-  }
+  validate.address(account);
+  validate.order(order);
+
+  utils.renameCounterpartyToIssuer(order.taker_gets);
+  utils.renameCounterpartyToIssuer(order.taker_pays);
   var transaction = new ripple.Transaction();
   var takerPays = order.taker_pays.currency !== 'XRP'
     ? order.taker_pays : utils.xrpToDrops(order.taker_pays.value);
@@ -36,10 +37,6 @@ function createOrderTransaction(account, order) {
 }
 
 function prepareOrder(account, order, instructions, callback) {
-  instructions = instructions || {};
-  validate.address(account);
-  validate.order(order);
-
   var transaction = createOrderTransaction(account, order);
   utils.createTxJSON(transaction, this.remote, instructions, callback);
 }

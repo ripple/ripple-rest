@@ -8,7 +8,6 @@ var utils = require('./lib/utils');
 var validator = require('./lib/schema-validator');
 var validate = require('./lib/validate');
 var errors = require('./lib/errors.js');
-var utils = require('./lib/utils');
 
 var DEFAULT_RESULTS_PER_PAGE = 10;
 
@@ -194,7 +193,7 @@ function getTransaction(api, account, identifier, requestOptions, callback) {
 
     validate.address(account, true);
     validate.paymentIdentifier(identifier);
-    validate.ledger(requestOptions.ledger, true);
+    validate.options(requestOptions);
   } catch(err) {
     return callback(err);
   }

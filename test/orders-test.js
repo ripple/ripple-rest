@@ -2,6 +2,7 @@
 /* eslint-disable max-len */
 'use strict';
 
+var _ = require('lodash');
 var assert = require('assert');
 var ripple = require('ripple-lib');
 var testutils = require('./testutils');
@@ -635,7 +636,7 @@ suite('post orders', function() {
     }))
     .expect(testutils.checkStatus(400))
     .expect(testutils.checkHeaders)
-    .expect(testutils.checkBody(errors.RESTRequestInvalidSecret))
+    .expect(testutils.checkBody(errors.RESTInvalidSecret))
     .end(done);
   });
 
@@ -1087,7 +1088,7 @@ suite('post orders', function() {
 
     self.app
     .post('/v1/accounts/' + addresses.VALID + '/orders')
-    .send({})
+    .send(_.omit(fixtures.order(), 'secret'))
     .expect(testutils.checkStatus(400))
     .expect(testutils.checkHeaders)
     .expect(testutils.checkBody(errors.RESTMissingSecret))
@@ -1112,7 +1113,7 @@ suite('post orders', function() {
     }))
     .expect(testutils.checkStatus(400))
     .expect(testutils.checkHeaders)
-    .expect(testutils.checkBody(errors.RESTRequestInvalidSecret))
+    .expect(testutils.checkBody(errors.RESTInvalidSecret))
     .end(done);
   });
 
@@ -1372,7 +1373,7 @@ suite('delete orders', function() {
     .send(fixtures.order({
       secret: 'foo'
     }))
-    .expect(testutils.checkStatus(500))
+    .expect(testutils.checkStatus(400))
     .expect(testutils.checkHeaders)
     .expect(testutils.checkBody(errors.RESTInvalidSecret))
     .end(done);
@@ -1507,7 +1508,7 @@ suite('delete orders', function() {
     .send({
       secret: 'foo'
     })
-    .expect(testutils.checkStatus(500))
+    .expect(testutils.checkStatus(400))
     .expect(testutils.checkHeaders)
     .expect(testutils.checkBody(errors.RESTInvalidSecret))
     .end(done);

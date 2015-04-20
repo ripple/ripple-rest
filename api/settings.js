@@ -1,14 +1,13 @@
 /* eslint-disable valid-jsdoc */
 'use strict';
 var _ = require('lodash');
-var async = require('async');
 var utils = require('./lib/utils');
-var transactions = require('./transactions.js');
 var TxToRestConverter = require('./lib/tx-to-rest-converter.js');
 var validate = require('./lib/validate');
 var createSettingsTransaction =
   require('./transaction').createSettingsTransaction;
 var constants = require('./lib/constants');
+var transact = require('./transact');
 
 function parseFieldsFromResponse(responseBody, fields) {
   var parsedBody = {};
@@ -73,14 +72,10 @@ function getSettings(account, callback) {
  *
  */
 function changeSettings(account, settings, secret, options, callback) {
-  validate.address(account);
-  validate.settings(settings);
-
   var transaction = createSettingsTransaction(account, settings);
-  async.waterfall([
-    _.partial(transactions.submit, this, transaction, secret, options),
-    _.partial(TxToRestConverter.parseSettingsResponseFromTx, settings)
-  ], callback);
+  var converter = _.partial(TxToRestConverter.parseSettingsResponseFromTx,
+                            settings);
+  transact(transaction, this, secret, options, converter, callback);
 }
 
 module.exports = {

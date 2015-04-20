@@ -234,24 +234,32 @@ module.exports.RESTAccountSettingsSubmitResponse = function(options) {
 };
 
 module.exports.prepareSettingsRequest = {
-  address: addresses.VALID,
+  secret: addresses.SECRET,
   settings: {
     domain: 'ripple.com'
   },
-  instructions: {
-    lastLedgerOffset: 100
-  }
+  last_ledger_offset: '100'
 };
 
 module.exports.prepareSettingsResponse = JSON.stringify({
   success: true,
+  settings: {
+      domain: 'ripple.com',
+     require_destination_tag: false,
+     require_authorization: false,
+     disallow_xrp: false
+  },
   tx_json: {
-    Flags: 0,
-    TransactionType: 'AccountSet',
-    Account: addresses.VALID,
-    Domain: '726970706C652E636F6D',
-    LastLedgerSequence: 8820244,
-    Fee: '12',
-    Sequence: 2938
-  }
+     Flags: 0,
+     TransactionType: 'AccountSet',
+     Account: 'r3GgMwvgvP8h4yVWvjH1dPZNvC37TjzBBE',
+     Domain: '726970706C652E636F6D',
+     LastLedgerSequence: 8820244,
+     Fee: '12',
+     Sequence: 2938,
+     SigningPubKey: '02F89EAEC7667B30F33D0687BBA86C3FE2A08CCA40A9186C5BDE2DAA6FA97A37D8',
+     TxnSignature: '304402207660BDEF67105CE1EBA9AD35DC7156BAB43FF1D47633199EE257D70B6B9AAFBF02206934A3A39EB713051BB0278F3190FEFD2029A090FEF96F24A00D3A81C3D9F288'
+  },
+  tx_blob: '12000322000000002400000B7A201B0086961468400000000000000C732102F89EAEC7667B30F33D0687BBA86C3FE2A08CCA40A9186C5BDE2DAA6FA97A37D87446304402207660BDEF67105CE1EBA9AD35DC7156BAB43FF1D47633199EE257D70B6B9AAFBF02206934A3A39EB713051BB0278F3190FEFD2029A090FEF96F24A00D3A81C3D9F288770A726970706C652E636F6D81144FBFF73DA4ECF9B701940F27341FA8020C313443',
+  hash: '7817010688A9D4151E63D8AD84893DDA48C3EA73D452A1B4E417A32A8BEDFEA5'
 });

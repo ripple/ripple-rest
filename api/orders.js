@@ -2,10 +2,8 @@
 /* eslint-disable valid-jsdoc */
 'use strict';
 var _ = require('lodash');
-var async = require('async');
 var Promise = require('bluebird');
 var ripple = require('ripple-lib');
-var transactions = require('./transactions');
 var utils = require('./lib/utils');
 var errors = require('./lib/errors.js');
 var TxToRestConverter = require('./lib/tx-to-rest-converter.js');
@@ -15,6 +13,7 @@ var validate = require('./lib/validate');
 var createOrderTransaction = require('./transaction').createOrderTransaction;
 var createOrderCancellationTransaction =
   require('./transaction').createOrderCancellationTransaction;
+var transact = require('./transact');
 
 var InvalidRequestError = errors.InvalidRequestError;
 
@@ -41,9 +40,7 @@ function getOrders(account, options, callback) {
   var self = this;
 
   validate.address(account);
-  validate.ledger(options.ledger, true);
-  validate.limit(options.limit, true);
-  validate.paging(options, true);
+  validate.options(options);
 
   function getAccountOrders(prevResult) {
     var isAggregate = options.limit === 'all';
@@ -162,15 +159,9 @@ function getOrders(account, options, callback) {
  *         - validating the submitted transaction
  */
 function placeOrder(account, order, secret, options, callback) {
-  validate.addressAndSecret({address: account, secret: secret});
-  validate.order(order);
-  validate.validated(options.validated, true);
-
   var transaction = createOrderTransaction(account, order);
-  async.waterfall([
-    _.partial(transactions.submit, this, transaction, secret, options),
-    TxToRestConverter.parseSubmitOrderFromTx
-  ], callback);
+  var converter = TxToRestConverter.parseSubmitOrderFromTx;
+  transact(transaction, this, secret, options, converter, callback);
 }
 
 /**
@@ -186,14 +177,9 @@ function placeOrder(account, order, secret, options, callback) {
  *        validating the submitted transaction
  */
 function cancelOrder(account, sequence, secret, options, callback) {
-  validate.sequence(sequence);
-  validate.address(account);
-
   var transaction = createOrderCancellationTransaction(account, sequence);
-  async.waterfall([
-    _.partial(transactions.submit, this, transaction, secret, options),
-    TxToRestConverter.parseCancelOrderFromTx
-  ], callback);
+  var converter = TxToRestConverter.parseCancelOrderFromTx;
+  transact(transaction, this, secret, options, converter, callback);
 }
 
 /**
@@ -225,7 +211,7 @@ function getOrderBook(account, base, counter, options, callback) {
   });
   validate.address(account);
   validate.orderbook(params);
-  validate.validated(options.validated, true);
+  validate.options(options);
 
   function getLastValidatedLedger(parameters) {
     var promise = new Promise(function(resolve, reject) {
