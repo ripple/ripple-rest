@@ -4748,7 +4748,7 @@ module.exports.prepareOrderResponse = JSON.stringify({
       currency: 'USD',
       issuer: 'r3PDtZSa5LiYp1Ysn1vMuMzB59RzV3W9QH'
    },
-    LastLedgerSequence: 8819988,
+    LastLedgerSequence: 8819955,
     Fee: '12',
     Sequence: 23
  }
@@ -4761,7 +4761,7 @@ module.exports.prepareOrderCancellationResponse = JSON.stringify({
     TransactionType: 'OfferCancel',
     Account: 'r3GgMwvgvP8h4yVWvjH1dPZNvC37TjzBBE',
     OfferSequence: 23,
-    LastLedgerSequence: 8819989,
+    LastLedgerSequence: 8819955,
     Fee: '12',
     Sequence: 23
  }

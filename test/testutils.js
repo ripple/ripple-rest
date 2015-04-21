@@ -11,6 +11,7 @@ var app = require('../server/express_app');
 var crypto = require('crypto');
 var UInt256 = ripple.UInt256;
 var api = require('../server/api');
+var apiFactory = require('../server/apifactory');
 var version = require('../server/version');
 var PRNGMock = require('./prngmock');
 
@@ -41,10 +42,18 @@ function getPrepareURL(type) {
   return getURLBase() + '/transaction/prepare/' + type;
 }
 
+function resetAPI() {
+  var newAPI = apiFactory();
+  api.remote = newAPI.remote;
+  api.db = newAPI.db;
+}
+
 function setup(done) {
   var self = this;
 
   self.app = supertest(app);
+
+  resetAPI();
   self.remote = api.remote;
   self.db = api.db;
 
@@ -69,7 +78,7 @@ function setup(done) {
         self.db.init(done);
       });
     });
-    self.remote.getServer().emit('message', fixtures.ledgerClose());
+    self.remote.getServer().emit('message', fixtures.ledgerClose(0));
   });
 
   // self.remote.trace = true;
@@ -154,7 +163,7 @@ function loadArguments(args, defaults) {
 
 function closeLedgers(conn) {
   for (var i = 0; i < LEDGER_OFFSET + 2; i++) {
-    conn.send(fixtures.ledgerClose());
+    conn.send(fixtures.ledgerClose(i + 1));
   }
 }
 
