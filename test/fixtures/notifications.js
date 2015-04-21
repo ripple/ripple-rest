@@ -1,16 +1,23 @@
-var _                = require('lodash');
-var addresses        = require('./../fixtures').addresses;
+/* eslint-disable new-cap */
+/* eslint-disable valid-jsdoc */
+/* eslint-disable max-len */
+/* eslint-disable space-in-brackets */
+'use strict';
+
+var _ = require('lodash');
+var addresses = require('./../fixtures').addresses;
 var SerializedObject = require('ripple-lib').SerializedObject;
 
 module.exports.VALID_TRANSACTION_HASH = 'F4AB442A6D4CBB935D66E1DA7309A5FC71C7143ED4049053EC14E3875B0CF9BF';
 module.exports.INVALID_TRANSACTION_HASH = 'XF4AB442A6D4CBB935D66E1DA7309A5FC71C7143ED4049053EC14E3875B0CF9BF';
 
 module.exports.requestPath = function(address, params) {
-  return '/v1/accounts/' + address + '/notifications' + ( params || '' );
+  return '/v1/accounts/' + address + '/notifications' + (params || '');
 };
 
 var LEDGER = module.exports.LEDGER = 348860;
 
+// hash === 5809ECE7B7AFD5312AC6744AC8C9E2D1381A067AD83038C45A5EBDEF8599F917
 var BINARY_TRANSACTION = module.exports.BINARY_TRANSACTION = {
   Account: addresses.VALID,
   Amount: {
@@ -413,6 +420,27 @@ module.exports.RESTNotificationResponse = JSON.stringify({
   }
 });
 
+module.exports.RESTAccountNotificationsResponse = JSON.stringify({
+  success: true,
+  notifications: [
+    {
+      account: addresses.VALID,
+      type: 'payment',
+      direction: 'outgoing',
+      state: 'validated',
+      result: 'tesSUCCESS',
+      ledger: String(LEDGER),
+      hash: '5809ECE7B7AFD5312AC6744AC8C9E2D1381A067AD83038C45A5EBDEF8599F917',
+      timestamp: '2014-09-24T21:21:50.000Z',
+      transaction_url: 'http://127.0.0.1:5990/v1/accounts/' + addresses.VALID + '/payments/5809ECE7B7AFD5312AC6744AC8C9E2D1381A067AD83038C45A5EBDEF8599F917',
+      previous_hash: 'BACD1473E1D778CE38AD6D7C671D519506D0BC33AE3C54FA5A59D9C9161C381B',
+      previous_notification_url: 'http://127.0.0.1:5990/v1/accounts/' + addresses.VALID + '/notifications/BACD1473E1D778CE38AD6D7C671D519506D0BC33AE3C54FA5A59D9C9161C381B',
+      next_hash: '59FE90C3FF75B0AF31A4333819FF676954D0246F7502BB31B91AB37D55747788',
+      next_notification_url: 'http://127.0.0.1:5990/v1/accounts/' + addresses.VALID + '/notifications/59FE90C3FF75B0AF31A4333819FF676954D0246F7502BB31B91AB37D55747788'
+    }
+  ]
+});
+
 module.exports.RESTNotificationNoNextResponse = JSON.stringify({
   success: true,
   notification: {
@@ -427,7 +455,8 @@ module.exports.RESTNotificationNoNextResponse = JSON.stringify({
     transaction_url: 'http://127.0.0.1:5990/v1/accounts/' + addresses.VALID + '/payments/F4AB442A6D4CBB935D66E1DA7309A5FC71C7143ED4049053EC14E3875B0CF9BF',
     previous_hash: 'BACD1473E1D778CE38AD6D7C671D519506D0BC33AE3C54FA5A59D9C9161C381B',
     previous_notification_url: 'http://127.0.0.1:5990/v1/accounts/' + addresses.VALID + '/notifications/BACD1473E1D778CE38AD6D7C671D519506D0BC33AE3C54FA5A59D9C9161C381B',
-    next_notification_url: ''
+    next_notification_url: '',
+    next_hash: ''
   }
 });
 

@@ -3,6 +3,8 @@
 var bignum = require('bignumber.js');
 var validator = require('./schema-validator.js');
 var ripple = require('ripple-lib');
+var _ = require('lodash');
+var async = require('async');
 
 function wrapCatch(asyncFunction) {
   return function() {
@@ -115,6 +117,38 @@ function isValidLedgerWord(ledger) {
   return (/^current$|^closed$|^validated$/.test(ledger));
 }
 
+function attachDate(api, baseTransactions, callback) {
+  var groupedTx = _.groupBy(baseTransactions, function(tx) {
+    return tx.ledger_index;
+  });
+
+  function attachDateToTransactions(_groupedTx, ledger, _callback) {
+    api.remote.requestLedger({ledger_index: Number(ledger)},
+      function(err, data) {
+        if (err) {
+          return _callback(err);
+        }
+
+        _.each(_groupedTx[ledger], function(tx) {
+          tx.date = data.ledger.close_time;
+        });
+
+        _callback(null, _groupedTx[ledger]);
+      }
+    );
+  }
+
+  // TODO: Decorate _.flatten and make it an async function
+  async.map(_.keys(groupedTx),
+    _.partial(attachDateToTransactions, groupedTx),
+    function(err, results) {
+      if (err) {
+        return callback(err);
+      }
+      callback(null, _.flatten(results));
+    });
+}
+
 
 module.exports = {
   isValidLedgerSequence: isValidLedgerSequence,
@@ -125,6 +159,7 @@ module.exports = {
   parseCurrencyAmount: parseCurrencyAmount,
   parseCurrencyQuery: parseCurrencyQuery,
   compareTransactions: compareTransactions,
-  wrapCatch: wrapCatch
+  wrapCatch: wrapCatch,
+  attachDate: attachDate
 };
 

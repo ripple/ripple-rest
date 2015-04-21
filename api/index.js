@@ -48,6 +48,7 @@ RippleAPI.prototype = {
   getOrder: Orders.getOrder,
 
   getNotification: Notifications.getNotification,
+  getNotifications: Notifications.getNotifications,
 
   wallet: Wallet,
 

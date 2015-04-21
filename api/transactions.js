@@ -547,7 +547,11 @@ function transactionFilter(transactions, options) {
  * @param {Array of transactions in JSON format} transactions
  */
 function getAccountTransactions(api, options, callback) {
-  validate.address(options.account);
+  try {
+    validate.address(options.account);
+  } catch(err) {
+    return callback(err);
+  }
 
   if (!options.min) {
     options.min = module.exports.DEFAULT_RESULTS_PER_PAGE;
