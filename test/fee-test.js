@@ -3,7 +3,7 @@ var ripple = require('ripple-lib');
 var testutils = require('./testutils');
 var fixtures = require('./fixtures');
 var errors = require('./fixtures').errors;
-var utils = require('./../lib/utils');
+var utils = require('../api/lib/utils');
 
 suite('get fee', function() {
   var self = this;
@@ -28,7 +28,7 @@ suite('get fee', function() {
   });
 
   test('/transaction-fee -- increased fee', function(done) {
-    self.app.remote._servers[0].emit('message', {
+    self.remote._servers[0].emit('message', {
       type: 'serverStatus',
       load_base: 256,
       load_factor: 256 * 2,

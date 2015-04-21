@@ -1,5 +1,11 @@
+'use strict';
+var fs = require('fs');
 var path = require('path');
 var nconf = require('nconf');
+var JaySchema = require('jayschema');
+var formatJaySchemaErrors = require('jayschema-error-messages');
+var configSchema = require('./config-schema.json');
+var exampleConfig = require('../config-example.json');
 
 /**
  * Resolve absolute path of configuration property
@@ -7,7 +13,7 @@ var nconf = require('nconf');
 
 function resolvePath(p) {
   return path.resolve(__dirname, '..', p);
-};
+}
 
 /**
  * Load Configuration according to the following hierarchy
@@ -22,27 +28,46 @@ function resolvePath(p) {
 nconf.argv();
 
 // These variables should be reconsidered
-nconf.env([ 'NODE_ENV', 'DATABASE_URL' ]);
+nconf.env(['NODE_ENV', 'DATABASE_URL']);
 
 var configPath = nconf.get('config')
-|| process.env['TEST_CONFIG']
-|| path.join(process.cwd(), 'config.json');
+  || process.env.TEST_CONFIG
+  || path.join(process.cwd(), 'config.json');
 
-// Load config.json
+if (nconf.get('NODE_ENV') !== 'test' && !fs.existsSync(configPath)) {
+  console.error('ERROR: configuration file not found or not accessible at: '
+                + configPath);
+  process.exit(1);
+}
+
+// Load config.json, nconf.file does not fail if file does not exist
 try {
   nconf.file(configPath);
 } catch (e) {
-  if (nconf.get('checkconfig')) {
-    console.error(e);
-    process.exit(1);
-  }
+  console.error(e);
+  process.exit(1);
+}
+
+if (nconf.get('NODE_ENV') === 'test') {
+  nconf.set('port', exampleConfig.port);
+  nconf.set('host', exampleConfig.host);
+  nconf.set('rippled_servers', exampleConfig.rippled_servers);
 }
 
 // Override `rippled_servers` with `rippled` if it exists
 if (/^(wss|ws):\/\/.+:[0-9]+$/.test(nconf.get('rippled'))) {
   nconf.overrides({
-    rippled_servers: [ nconf.get('rippled') ]
+    rippled_servers: [nconf.get('rippled')]
   });
+}
+
+// check that config matches the required schema
+var schemaValidator = new JaySchema();
+var schemaErrors = schemaValidator.validate(nconf.get(), configSchema);
+if (schemaErrors.length > 0) {
+  console.error('ERROR: Invalid configuration');
+  console.error(JSON.stringify(formatJaySchemaErrors(schemaErrors), null, 2));
+  process.exit(1);
 }
 
 if (nconf.get('db_path')) {
@@ -69,11 +94,6 @@ if (nconf.get('ssl')) {
   }
 
   nconf.set('ssl', sslConfig);
-}
-
-if (nconf.get('NODE_ENV') === 'test') {
-  nconf.set('port', require('../config-example').port);
-  nconf.set('host', require('../config-example').host);
 }
 
 // Print configuration and exit

@@ -1,19 +1,24 @@
-var fs  = require('fs');
+'use strict';
+var fs = require('fs');
 var path = require('path');
-var jayschema = require('jayschema');
+var JaySchema = require('jayschema');
+var formatJaySchemaErrors = require('jayschema-error-messages');
 
-var baseDir = path.join(__dirname, '/../schemas');
+var baseDir = path.join(__dirname, './schemas');
 
 module.exports = (function() {
-  var validator = new jayschema();
-  var validate  = validator.validate;
+  var validator = new JaySchema();
+  var validate = validator.validate;
 
   // If schema is valid, return true. Otherwise
   // return array of validation errors
   validator.validate = function() {
-    var result = { err: validate.apply(validator, arguments) };
-    result.isValid = !Boolean(result.err.length);
-    return result;
+    var errors = validate.apply(validator, arguments);
+    return {
+      err: errors,
+      errors: formatJaySchemaErrors(errors),
+      isValid: errors.length === 0
+    };
   };
 
   validator.isValid = function() {
@@ -21,8 +26,7 @@ module.exports = (function() {
   };
 
   // Load Schemas
-  var schemas = fs.readdirSync(baseDir)
-  .filter(function(fileName) {
+  fs.readdirSync(baseDir).filter(function(fileName) {
     return /^[\w\s]+\.json$/.test(fileName);
   })
   .map(function(fileName) {

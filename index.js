@@ -1,5 +1,6 @@
-const router = require(__dirname+'/lib/router.js');
-const remote = require(__dirname+'/lib/remote.js');
+'use strict';
+var router = require('./server/router.js');
+var remote = require('./server/api').remote;
 
 function RippleRestPlugin() {
   this.router = router;
@@ -7,4 +8,3 @@ function RippleRestPlugin() {
 }
 
 module.exports = RippleRestPlugin;
-

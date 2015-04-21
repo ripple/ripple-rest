@@ -1,3 +1,7 @@
+/* eslint-disable max-len */
+/* eslint-disable new-cap */
+'use strict';
+
 var _ = require('lodash');
 var assert = require('assert');
 var ripple = require('ripple-lib');
@@ -6,19 +10,19 @@ var fixtures = require('./fixtures').trustlines;
 var errors = require('./fixtures').errors;
 var addresses = require('./fixtures').addresses;
 
-const DEFAULT_LIMIT = 200;
-const LIMIT = 5;
+var DEFAULT_LIMIT = 200;
+var LIMIT = 5;
 
-const MARKER = '29F992CC252056BF690107D1E8F2D9FBAFF29FF107B62B1D1F4E4E11ADF2CC73';
-const NEXT_MARKER = '0C812C919D343EAE789B29E8027C62C5792C22172D37EA2B2C0121D2381F80E1';
-const LEDGER = 9592219;
-const LEDGER_HASH = 'FD22E2A8D665A01711C0147173ECC0A32466BA976DE697E95197933311267BE8';
+var MARKER = '29F992CC252056BF690107D1E8F2D9FBAFF29FF107B62B1D1F4E4E11ADF2CC73';
+var NEXT_MARKER = '0C812C919D343EAE789B29E8027C62C5792C22172D37EA2B2C0121D2381F80E1';
+var LEDGER = 9592219;
+var LEDGER_HASH = 'FD22E2A8D665A01711C0147173ECC0A32466BA976DE697E95197933311267BE8';
 
 suite('get trustlines', function() {
   var self = this;
 
-  //self.wss: rippled mock
-  //self.app: supertest-enabled REST handler
+  // self.wss: rippled mock
+  // self.app: supertest-enabled REST handler
 
   // does a GET request to /v1/accounts/:account/trustlines
   // with the specified query string and checks that the status code and
@@ -31,7 +35,7 @@ suite('get trustlines', function() {
       + ' queryString and expectedStatus');
     assert(!(options.expectedBody && options.expectFn),
       'Error in test code: cannot specify both expectedBody and expectFn');
-    if(options.expectedBody) {
+    if (options.expectedBody) {
       options.expectFn = testutils.checkBody(options.expectedBody);
     }
     testutils.loadArguments(options, {
@@ -39,7 +43,7 @@ suite('get trustlines', function() {
       queryString: '',
       expectedBody: null,
       expectedStatus: null,
-      expectFn: function(res) {}
+      expectFn: function() {}
     });
     return self.app
     .get(fixtures.requestPath(options.account, options.queryString || ''))
@@ -58,7 +62,7 @@ suite('get trustlines', function() {
       assert.strictEqual(message.account, addresses.VALID);
       assert.strictEqual(message.ledger_index, 'validated');
       assert.strictEqual(message.limit, DEFAULT_LIMIT);
-      conn.send(fixtures.accountLinesResponse(message,{
+      conn.send(fixtures.accountLinesResponse(message, {
         ledger: LEDGER,
         marker: NEXT_MARKER
       }));
@@ -82,9 +86,9 @@ suite('get trustlines', function() {
         assert.strictEqual(message.command, 'account_lines');
         assert.strictEqual(message.account, addresses.VALID);
         assert.strictEqual(message.ledger_index, 'validated');
-        assert.strictEqual(message.marker, void(0));
+        assert.strictEqual(message.marker, undefined);
         assert.notEqual(message.limit, 'all');
-        conn.send(fixtures.accountLinesResponse(message,{
+        conn.send(fixtures.accountLinesResponse(message, {
           ledger: LEDGER,
           marker: NEXT_MARKER
         }));
@@ -94,9 +98,9 @@ suite('get trustlines', function() {
         assert.strictEqual(message.ledger_index, LEDGER);
         assert.strictEqual(message.marker, NEXT_MARKER);
         assert.notEqual(message.limit, 'all');
-        conn.send(fixtures.accountLinesResponse(message,{
+        conn.send(fixtures.accountLinesResponse(message, {
           ledger: LEDGER,
-          marker: void(0)
+          marker: undefined
         }));
       }
     });
@@ -106,10 +110,12 @@ suite('get trustlines', function() {
     .expect(testutils.checkStatus(200))
     .expect(testutils.checkHeaders)
     .end(function(err, res) {
-      if (err) return done(err);
+      if (err) {
+        return done(err);
+      }
 
       assert.strictEqual(res.body.trustlines.length, 48);
-      assert.strictEqual(res.body.marker, void(0));
+      assert.strictEqual(res.body.marker, undefined);
       assert.strictEqual(res.body.ledger, LEDGER);
       assert.strictEqual(res.body.validated, true);
 
@@ -128,8 +134,8 @@ suite('get trustlines', function() {
     testGetRequest({
       account: addresses.VALID,
       queryString: '?ledger=foo',
-      expectedBody: fixtures.RESTAccountTrustlinesResponse(),
-      expectedStatus: 200
+      expectedBody: errors.restInvalidParameter('ledger'),
+      expectedStatus: 400
     }, done);
   });
 
@@ -190,41 +196,41 @@ suite('get trustlines', function() {
   });
 
   test('/accounts/:account/trustlines -- with invalid marker', function(done) {
-    self.wss.once('request_account_lines', function(message, conn) {
+    self.wss.once('request_account_lines', function() {
       assert(false);
     });
 
     testGetRequest({
       account: addresses.VALID,
-      queryString: '?marker=abcd', 
-      expectedStatus: 500,
-      expectedBody: errors.RESTLedgerMissingWithMarker
+      queryString: '?marker=abcd',
+      expectedStatus: 400,
+      expectedBody: errors.restInvalidParameter('ledger')
     }, done);
   });
 
   test('/accounts/:account/trustlines -- with valid marker and invalid limit', function(done) {
-    self.wss.once('request_account_lines', function(message, conn) {
+    self.wss.once('request_account_lines', function() {
       assert(false);
     });
 
     testGetRequest({
       account: addresses.VALID,
       queryString: '?marker=' + MARKER + '&limit=foo',
-      expectedStatus: 500,
-      expectedBody: errors.RESTLedgerMissingWithMarker
+      expectedStatus: 400,
+      expectedBody: errors.restInvalidParameter('limit')
     }, done);
   });
 
   test('/accounts/:account/trustlines -- with valid marker and valid limit', function(done) {
-    self.wss.once('request_account_lines', function(message, conn) {
+    self.wss.once('request_account_lines', function() {
       assert(false);
     });
 
     testGetRequest({
       account: addresses.VALID,
       queryString: '?marker=' + MARKER + '&limit=' + LIMIT,
-      expectedStatus: 500,
-      expectedBody: errors.RESTLedgerMissingWithMarker
+      expectedStatus: 400,
+      expectedBody: errors.restInvalidParameter('ledger')
     }, done);
   });
 
@@ -257,7 +263,7 @@ suite('get trustlines', function() {
       assert.strictEqual(message.account, addresses.VALID);
       assert.strictEqual(message.ledger_index, LEDGER);
       assert.strictEqual(message.limit, LIMIT);
-      conn.send(fixtures.accountLinesResponse(message,{
+      conn.send(fixtures.accountLinesResponse(message, {
         marker: NEXT_MARKER,
         ledger: LEDGER
       }));
@@ -276,54 +282,54 @@ suite('get trustlines', function() {
   });
 
   test('/accounts/:account/trustlines -- with valid marker, valid limit, and invalid ledger', function(done) {
-    self.wss.once('request_account_lines', function(message, conn) {
+    self.wss.once('request_account_lines', function() {
       assert(false);
     });
 
     testGetRequest({
       account: addresses.VALID,
       queryString: '?marker=' + MARKER + '&limit=' + LIMIT + '&ledger=foo',
-      expectedStatus: 500,
-      expectedBody: errors.RESTLedgerMissingWithMarker
+      expectedStatus: 400,
+      expectedBody: errors.restInvalidParameter('ledger')
     }, done);
   });
 
   test('/accounts/:account/trustlines -- with valid marker, valid limit, and ledger=validated', function(done) {
-    self.wss.once('request_account_lines', function(message, conn) {
+    self.wss.once('request_account_lines', function() {
       assert(false);
     });
 
     testGetRequest({
       account: addresses.VALID,
       queryString: '?marker=' + MARKER + '&limit=' + LIMIT + '&ledger=validated',
-      expectedStatus: 500,
-      expectedBody: errors.RESTLedgerMissingWithMarker
+      expectedStatus: 400,
+      expectedBody: errors.restInvalidParameter('ledger')
     }, done);
   });
 
   test('/accounts/:account/trustlines -- with valid marker, valid limit, and ledger=current', function(done) {
-    self.wss.once('request_account_lines', function(message, conn) {
+    self.wss.once('request_account_lines', function() {
       assert(false);
     });
 
     testGetRequest({
       account: addresses.VALID,
       queryString: '?marker=' + MARKER + '&limit=' + LIMIT + '&ledger=current',
-      expectedStatus: 500,
-      expectedBody: errors.RESTLedgerMissingWithMarker
+      expectedStatus: 400,
+      expectedBody: errors.restInvalidParameter('ledger')
     }, done);
   });
 
   test('/accounts/:account/trustlines -- with valid marker, valid limit, and ledger=closed', function(done) {
-    self.wss.once('request_account_lines', function(message, conn) {
+    self.wss.once('request_account_lines', function() {
       assert(false);
     });
 
     testGetRequest({
       account: addresses.VALID,
       queryString: '?marker=' + MARKER + '&limit=' + LIMIT + '&ledger=closed',
-      expectedStatus: 500,
-      expectedBody: errors.RESTLedgerMissingWithMarker
+      expectedStatus: 400,
+      expectedBody: errors.restInvalidParameter('ledger')
     }, done);
   });
 
@@ -334,7 +340,7 @@ suite('get trustlines', function() {
       assert.strictEqual(message.ledger_index, LEDGER);
       assert.strictEqual(message.limit, LIMIT);
       assert.strictEqual(message.marker, MARKER);
-      conn.send(fixtures.accountLinesResponse(message,{
+      conn.send(fixtures.accountLinesResponse(message, {
         marker: NEXT_MARKER,
         ledger: LEDGER
       }));
@@ -353,7 +359,7 @@ suite('get trustlines', function() {
   });
 
   test('/accounts/:account/trustlines -- invalid account', function(done) {
-    self.wss.once('request_account_lines', function(message, conn) {
+    self.wss.once('request_account_lines', function() {
       assert(false, 'Should not request account lines');
     });
 
@@ -366,7 +372,7 @@ suite('get trustlines', function() {
   });
 
   test('/accounts/:account/trustlines -- invalid counterparty', function(done) {
-    self.wss.once('request_account_lines', function(message, conn) {
+    self.wss.once('request_account_lines', function() {
       assert(false, 'Should not request account lines');
     });
 
@@ -379,7 +385,7 @@ suite('get trustlines', function() {
   });
 
   test('/accounts/:account/trustlines -- invalid currency', function(done) {
-    self.wss.once('request_account_lines', function(message, conn) {
+    self.wss.once('request_account_lines', function() {
       assert(false, 'Should not request account lines');
     });
 
@@ -410,7 +416,7 @@ suite('get trustlines', function() {
 suite('post trustlines', function() {
   var self = this;
 
-  const defaultData = {
+  var defaultData = {
     secret: addresses.SECRET,
     trustline: {
       limit: '1',
@@ -419,8 +425,8 @@ suite('post trustlines', function() {
     }
   };
 
-  //self.wss: rippled mock
-  //self.app: supertest-enabled REST handler
+  // self.wss: rippled mock
+  // self.app: supertest-enabled REST handler
 
   // does a POST request to /v1/accounts/:account/trustlines
   // with the specified query string & post data and checks that the status
@@ -433,7 +439,7 @@ suite('post trustlines', function() {
       + ' queryString, data, and expectedStatus');
     assert(!(options.expectedBody && options.expectFn),
       'Error in test code: cannot specify both expectedBody and expectFn');
-    if(options.expectedBody) {
+    if (options.expectedBody) {
       options.expectFn = testutils.checkBody(options.expectedBody);
     }
     testutils.loadArguments(options, {
@@ -442,7 +448,7 @@ suite('post trustlines', function() {
       data: null,
       expectedStatus: null,
       expectedBody: null,
-      expectFn: function(res) {}
+      expectFn: function() {}
     });
     self.app
     .post(fixtures.requestPath(options.account, options.queryString || ''))
@@ -465,7 +471,8 @@ suite('post trustlines', function() {
 
     self.wss.once('request_submit', function(message, conn) {
       assert.strictEqual(message.command, 'submit');
-      assert(message.hasOwnProperty('tx_blob'), 'Missing signed transaction blob');
+      assert(message.hasOwnProperty('tx_blob'),
+        'Missing signed transaction blob');
       conn.send(fixtures.submitTrustlineResponse(message));
 
       process.nextTick(function() {
@@ -473,12 +480,13 @@ suite('post trustlines', function() {
       });
     });
 
-    var expectFn = function(res) {
+    function expectFn(res) {
       var body = res.body;
       assert.strictEqual(body.success, true);
       assert(body.hasOwnProperty('trustline'));
       assert.strictEqual(body.state, 'validated');
-    };
+    }
+
     testPostRequest({
       account: addresses.VALID,
       queryString: '?validated=true',
@@ -499,7 +507,8 @@ suite('post trustlines', function() {
 
     self.wss.once('request_submit', function(message, conn) {
       assert.strictEqual(message.command, 'submit');
-      assert(message.hasOwnProperty('tx_blob'), 'Missing signed transaction blob');
+      assert(message.hasOwnProperty('tx_blob'),
+        'Missing signed transaction blob');
       var options = {
         currency: '015841551A748AD2C1F76FF6ECB0CCCD00000000',
         hash: hash
@@ -513,12 +522,12 @@ suite('post trustlines', function() {
 
     var data = _.cloneDeep(defaultData);
     data.trustline.currency = '015841551A748AD2C1F76FF6ECB0CCCD00000000';
-    var expectFn = function(res) {
+    function expectFn(res) {
       var body = res.body;
       assert.strictEqual(body.success, true);
       assert(body.hasOwnProperty('trustline'));
       assert.strictEqual(body.state, 'pending');
-    };
+    }
     testPostRequest({
       account: addresses.VALID,
       data: defaultData,
@@ -550,12 +559,12 @@ suite('post trustlines', function() {
     var data = _.cloneDeep(defaultData);
     data.trustline.limit = '0';
     data.trustline.currency = '015841551A748AD2C1F76FF6ECB0CCCD00000000';
-    var expectFn = function(res) {
+    function expectFn(res) {
       var body = res.body;
       assert.strictEqual(body.success, true);
       assert(body.hasOwnProperty('trustline'));
       assert.strictEqual(body.state, 'pending');
-    };
+    }
     testPostRequest({
       account: addresses.VALID,
       data: data,
@@ -577,12 +586,12 @@ suite('post trustlines', function() {
       conn.send(fixtures.submitTrustlineResponse(message));
     });
 
-    var expectFn = function(res) {
+    function expectFn(res) {
       var body = res.body;
       assert.strictEqual(body.success, true);
       assert(body.hasOwnProperty('trustline'));
       assert.strictEqual(body.state, 'pending');
-    };
+    }
     testPostRequest({
       account: addresses.VALID,
       queryString: '?validated=false',
@@ -622,7 +631,7 @@ suite('post trustlines', function() {
       conn.send(fixtures.accountInfoResponse(message));
     });
 
-    self.wss.once('request_submit', function(message, conn) {
+    self.wss.once('request_submit', function() {
       assert(false);
     });
 
@@ -638,7 +647,7 @@ suite('post trustlines', function() {
 
   test('/accounts/:account/trustlines', function(done) {
     var hash = testutils.generateHash();
-    var currentLedger = self.app.remote._ledger_current_index;
+    var currentLedger = self.remote._ledger_current_index;
     var lastLedger = currentLedger + testutils.LEDGER_OFFSET;
 
     self.wss.once('request_account_info', function(message, conn) {
@@ -670,7 +679,7 @@ suite('post trustlines', function() {
       }));
     });
 
-    var expectFn = function(res) {
+    function expectFn(res) {
       var body = res.body;
       assert.strictEqual(body.success, true);
       assert(body.hasOwnProperty('trustline'));
@@ -682,7 +691,7 @@ suite('post trustlines', function() {
       assert.strictEqual(typeof body.ledger, 'string');
       assert.strictEqual(body.hash, hash);
       assert.strictEqual(body.state, 'pending');
-    };
+    }
     testPostRequest({
       account: addresses.VALID,
       data: defaultData,
@@ -693,8 +702,6 @@ suite('post trustlines', function() {
 
   test('/accounts/:account/trustlines -- limit 0', function(done) {
     var hash = testutils.generateHash();
-    var currentLedger = self.app.remote._ledger_current_index;
-    var lastLedger = currentLedger + testutils.LEDGER_OFFSET;
 
     self.wss.once('request_account_info', function(message, conn) {
       assert.strictEqual(message.command, 'account_info');
@@ -714,11 +721,11 @@ suite('post trustlines', function() {
       }));
     });
 
-    var expectFn = function(res) {
+    function expectFn(res) {
       var body = res.body;
       assert.strictEqual(body.success, true);
       assert(body.hasOwnProperty('trustline'));
-    };
+    }
 
     var data = _.cloneDeep(defaultData);
     data.trustline.limit = 0;
@@ -755,12 +762,12 @@ suite('post trustlines', function() {
       }));
     });
 
-    var expectFn = function(res) {
+    function expectFn(res) {
       var body = res.body;
       assert.strictEqual(body.success, true);
       assert(body.hasOwnProperty('trustline'));
       assert.strictEqual(body.trustline.account_allows_rippling, false);
-    };
+    }
     var data = _.cloneDeep(defaultData);
     data.trustline.account_allows_rippling = false;
     testPostRequest({
@@ -795,12 +802,12 @@ suite('post trustlines', function() {
       }));
     });
 
-    var expectFn = function(res) {
+    function expectFn(res) {
       var body = res.body;
       assert.strictEqual(body.success, true);
       assert(body.hasOwnProperty('trustline'));
       assert.strictEqual(body.trustline.account_trustline_frozen, true);
-    };
+    }
     var data = _.cloneDeep(defaultData);
     data.trustline.account_trustline_frozen = true;
     testPostRequest({
@@ -810,7 +817,7 @@ suite('post trustlines', function() {
       expectFn: expectFn
     }, done);
   });
-  
+
   test('/accounts/:account/trustlines -- unfreeze trustline', function(done) {
     var hash = testutils.generateHash();
 
@@ -837,12 +844,12 @@ suite('post trustlines', function() {
 
     var data = _.cloneDeep(defaultData);
     data.trustline.account_trustline_frozen = false;
-    var expectFn = function(res) {
+    function expectFn(res) {
       var body = res.body;
       assert.strictEqual(body.success, true);
       assert(body.hasOwnProperty('trustline'));
       assert.strictEqual(body.trustline.account_trustline_frozen, false);
-    };
+    }
     testPostRequest({
       account: addresses.VALID,
       data: data,
@@ -877,12 +884,12 @@ suite('post trustlines', function() {
 
     var data = _.cloneDeep(defaultData);
     data.trustline.authorized = true;
-    var expectFn = function(res) {
+    function expectFn(res) {
       var body = res.body;
       assert.strictEqual(body.success, true);
       assert(body.hasOwnProperty('trustline'));
       assert.strictEqual(body.trustline.authorized, true);
-    };
+    }
     testPostRequest({
       account: addresses.VALID,
       data: data,
@@ -892,11 +899,11 @@ suite('post trustlines', function() {
   });
 
   test('/accounts/:account/trustlines -- invalid account', function(done) {
-    self.wss.once('request_account_info', function(message, conn) {
+    self.wss.once('request_account_info', function() {
       assert(false, 'Should not request account info');
     });
 
-    self.wss.once('request_submit', function(message, conn) {
+    self.wss.once('request_submit', function() {
       assert(false, 'Should not request submit');
     });
 
@@ -909,14 +916,14 @@ suite('post trustlines', function() {
   });
 
   test('/accounts/:account/trustlines -- missing secret', function(done) {
-    self.wss.once('request_account_info', function(message, conn) {
+    self.wss.once('request_account_info', function() {
       assert(false, 'Should not request account info');
     });
 
-    self.wss.once('request_submit', function(message, conn) {
+    self.wss.once('request_submit', function() {
       assert(false, 'Should not request submit');
     });
-    
+
     testPostRequest({
       account: addresses.VALID,
       data: _.omit(defaultData, 'secret'),
@@ -925,11 +932,11 @@ suite('post trustlines', function() {
   });
 
   test('/accounts/:account/trustlines -- missing trustline', function(done) {
-    self.wss.once('request_account_info', function(message, conn) {
+    self.wss.once('request_account_info', function() {
       assert(false, 'Should not request account info');
     });
 
-    self.wss.once('request_submit', function(message, conn) {
+    self.wss.once('request_submit', function() {
       assert(false, 'Should not request submit');
     });
 
@@ -941,11 +948,11 @@ suite('post trustlines', function() {
   });
 
   test('/accounts/:account/trustlines -- missing limit amount', function(done) {
-    self.wss.once('request_account_info', function(message, conn) {
+    self.wss.once('request_account_info', function() {
       assert(false, 'Should not request account info');
     });
 
-    self.wss.once('request_submit', function(message, conn) {
+    self.wss.once('request_submit', function() {
       assert(false, 'Should not request submit');
     });
 
@@ -959,11 +966,11 @@ suite('post trustlines', function() {
   });
 
   test('/accounts/:account/trustlines -- missing limit currency', function(done) {
-    self.wss.once('request_account_info', function(message, conn) {
+    self.wss.once('request_account_info', function() {
       assert(false, 'Should not request account info');
     });
 
-    self.wss.once('request_submit', function(message, conn) {
+    self.wss.once('request_submit', function() {
       assert(false, 'Should not request submit');
     });
 
@@ -977,11 +984,11 @@ suite('post trustlines', function() {
   });
 
   test('/accounts/:account/trustlines -- missing limit currency', function(done) {
-    self.wss.once('request_account_info', function(message, conn) {
+    self.wss.once('request_account_info', function() {
       assert(false, 'Should not request account info');
     });
 
-    self.wss.once('request_submit', function(message, conn) {
+    self.wss.once('request_submit', function() {
       assert(false, 'Should not request submit');
     });
 
@@ -995,11 +1002,11 @@ suite('post trustlines', function() {
   });
 
   test('/accounts/:account/trustlines -- missing limit counterparty', function(done) {
-    self.wss.once('request_account_info', function(message, conn) {
+    self.wss.once('request_account_info', function() {
       assert(false, 'Should not request account info');
     });
 
-    self.wss.once('request_submit', function(message, conn) {
+    self.wss.once('request_submit', function() {
       assert(false, 'Should not request submit');
     });
 
@@ -1013,11 +1020,11 @@ suite('post trustlines', function() {
   });
 
   test('/accounts/:account/trustlines -- invalid limit amount', function(done) {
-    self.wss.once('request_account_info', function(message, conn) {
+    self.wss.once('request_account_info', function() {
       assert(false, 'Should not request account info');
     });
 
-    self.wss.once('request_submit', function(message, conn) {
+    self.wss.once('request_submit', function() {
       assert(false, 'Should not request submit');
     });
 
@@ -1031,11 +1038,11 @@ suite('post trustlines', function() {
   });
 
   test('/accounts/:account/trustlines -- invalid limit currency', function(done) {
-    self.wss.once('request_account_info', function(message, conn) {
+    self.wss.once('request_account_info', function() {
       assert(false, 'Should not request account info');
     });
 
-    self.wss.once('request_submit', function(message, conn) {
+    self.wss.once('request_submit', function() {
       assert(false, 'Should not request submit');
     });
 
@@ -1049,11 +1056,11 @@ suite('post trustlines', function() {
   });
 
   test('/accounts/:account/trustlines -- invalid limit counterparty', function(done) {
-    self.wss.once('request_account_info', function(message, conn) {
+    self.wss.once('request_account_info', function() {
       assert(false, 'Should not request account info');
     });
 
-    self.wss.once('request_submit', function(message, conn) {
+    self.wss.once('request_submit', function() {
       assert(false, 'Should not request submit');
     });
 

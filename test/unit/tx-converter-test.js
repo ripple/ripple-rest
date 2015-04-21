@@ -1,7 +1,11 @@
-var assert            = require('assert-diff');
-var fixtures          = require('./fixtures').txConverter;
-var addresses         = require('./../fixtures').addresses;
-var txToRestConverter = require('./../../lib/tx-to-rest-converter.js');
+/* eslint-disable new-cap */
+/* eslint-disable max-len */
+'use strict';
+
+var assert = require('assert-diff');
+var fixtures = require('./fixtures').txConverter;
+var addresses = require('./../fixtures').addresses;
+var txToRestConverter = require('./../../api/lib/tx-to-rest-converter.js');
 
 suite('unit - converter - Tx to Rest', function() {
   test('parsePaymentFromTx()', function(done) {
@@ -30,13 +34,28 @@ suite('unit - converter - Tx to Rest', function() {
       assert.strictEqual(err, null);
 
       assert.deepEqual(payment.source_balance_changes, [
-        { value: '-0.834999999999999', currency: 'EUR', issuer: 'r3PDtZSa5LiYp1Ysn1vMuMzB59RzV3W9QH' },
-        { value: '-0.015', currency: 'XRP', issuer: '' }
+        {
+          value: '-0.834999999999999',
+          currency: 'EUR',
+          issuer: 'r3PDtZSa5LiYp1Ysn1vMuMzB59RzV3W9QH'
+        },
+        {
+          value: '-0.015',
+          currency: 'XRP',
+          issuer: ''}
       ]);
 
       assert.deepEqual(payment.destination_balance_changes, [
-        { value: '-1', currency: 'USD', issuer: 'r3PDtZSa5LiYp1Ysn1vMuMzB59RzV3W9QH' },
-        { value: '0.833333333333', currency: 'EUR', issuer: 'r3PDtZSa5LiYp1Ysn1vMuMzB59RzV3W9QH' }
+        {
+          value: '-1',
+          currency: 'USD',
+          issuer: 'r3PDtZSa5LiYp1Ysn1vMuMzB59RzV3W9QH'
+        },
+        {
+         value: '0.833333333333',
+         currency: 'EUR',
+         issuer: 'r3PDtZSa5LiYp1Ysn1vMuMzB59RzV3W9QH'
+        }
       ]);
 
       done();
@@ -85,7 +104,7 @@ suite('unit - converter - Tx to Rest', function() {
 
   test('parseTrustResponseFromTx()', function(done) {
     var txMessage = fixtures.trustResponseTx;
-    var meta =  {
+    var meta = {
       hash: '0F480D344CFC610DFA5CAC62CC1621C92953A05FE8C319281CA49C5C162AF40E',
       ledger: '8820111',
       state: 'validated'
@@ -112,7 +131,8 @@ suite('unit - converter - Tx to Rest', function() {
         wallet_size: 1,
         transfer_rate: 2,
         no_freeze: false,
-        global_freeze: true
+        global_freeze: true,
+        default_ripple: true
       }
     };
 
@@ -123,7 +143,7 @@ suite('unit - converter - Tx to Rest', function() {
       state: 'validated'
     };
 
-    txToRestConverter.parseSettingResponseFromTx(params, txMessage, meta, function(err, settingObj) {
+    txToRestConverter.parseSettingResponseFromTx(params.settings, txMessage, meta, function(err, settingObj) {
       assert.strictEqual(err, null);
       assert.deepEqual(settingObj, fixtures.settingResponseRest);
       done();
@@ -199,7 +219,7 @@ suite('unit - converter - Tx to Rest', function() {
 
     test('parse OfferCreate -- missing options.account', function(done) {
       var options = {
-        account: void(0)
+        account: undefined
       };
 
       txToRestConverter.parseOrderFromTx(fixtures.offerCreateTx, options)
