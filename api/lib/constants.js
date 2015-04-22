@@ -74,10 +74,31 @@ var AccountSetResponseFlags = {
     value: ripple.Transaction.flags.AccountSet.DisallowXRP}
 };
 
+var OfferCreateFlags = {
+  Passive: {name: 'passive',
+    value: ripple.Transaction.flags.OfferCreate.Passive},
+  ImmediateOrCancel: {name: 'immediate_or_cancel',
+    value: ripple.Transaction.flags.OfferCreate.ImmediateOrCancel},
+  FillOrKill: {name: 'fill_or_kill',
+    value: ripple.Transaction.flags.OfferCreate.FillOrKill},
+  Sell: {name: 'sell', value: ripple.Transaction.flags.OfferCreate.Sell}
+};
+
+var TrustSetResponseFlags = {
+  NoRipple: {name: 'prevent_rippling',
+    value: ripple.Transaction.flags.TrustSet.NoRipple},
+  SetFreeze: {name: 'account_trustline_frozen',
+    value: ripple.Transaction.flags.TrustSet.SetFreeze},
+  SetAuth: {name: 'authorized',
+    value: ripple.Transaction.flags.TrustSet.SetAuth}
+};
+
 module.exports = {
   AccountRootFlags: AccountRootFlags,
   AccountRootFields: AccountRootFields,
   AccountSetIntFlags: AccountSetIntFlags,
   AccountSetFlags: AccountSetFlags,
-  AccountSetResponseFlags: AccountSetResponseFlags
+  AccountSetResponseFlags: AccountSetResponseFlags,
+  OfferCreateFlags: OfferCreateFlags,
+  TrustSetResponseFlags: TrustSetResponseFlags
 };

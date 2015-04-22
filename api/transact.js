@@ -1,14 +1,15 @@
 'use strict';
 var _ = require('lodash');
 var async = require('async');
+var asyncify = require('simple-asyncify');
 var sign = require('./transaction/sign');
 var createTxJSON = require('./transaction/utils').createTxJSON;
 var transactions = require('./transactions');
 var validate = require('./lib/validate');
 
-function signIfSecretExists(secret, prepared, callback) {
+function signIfSecretExists(secret, prepared) {
   var signResponse = secret ? sign(prepared.tx_json, secret) : {};
-  callback(null, _.assign(prepared, signResponse));
+  return _.assign({}, prepared, signResponse);
 }
 
 function formatResponse(converter, prepared, callback) {
@@ -27,7 +28,7 @@ function prepareAndOptionallySign(transaction, api, secret, options,
   validate.options(options);
   async.waterfall([
     _.partial(createTxJSON, transaction, api.remote, options),
-    _.partial(signIfSecretExists, secret),
+    _.partial(asyncify(signIfSecretExists), secret),
     _.partial(formatResponse, converter)
   ], callback);
 }

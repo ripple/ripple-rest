@@ -24,7 +24,7 @@
     "node": "~0.10.22"
   },
   "dependencies": {
-    "async": "^0.2.9",
+    "async": "^0.9.0",
     "bignumber.js": "^1.4.0",
     "bluebird": "^2.3.4",
     "body-parser": "^1.7.0",
@@ -39,6 +39,7 @@
     "node-uuid": "^1.4.1",
     "ripple-lib": "^0.12.4-rc1",
     "ripple-lib-transactionparser": "^0.3.2",
+    "simple-asyncify": "^0.1.0",
     "sqlite3": "^3.0.2",
     "supertest": "^0.13.0",
     "winston": "^1.0.0"

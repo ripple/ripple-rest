@@ -1,10 +1,28 @@
 /* eslint-disable valid-jsdoc */
 'use strict';
+var _ = require('lodash');
+var async = require('async');
+var asyncify = require('simple-asyncify');
 var bignum = require('bignumber.js');
 var validator = require('./schema-validator.js');
 var ripple = require('ripple-lib');
-var _ = require('lodash');
-var async = require('async');
+
+function renameCounterpartyToIssuer(amount) {
+  if (amount === undefined) {
+    return undefined;
+  }
+  var issuer = amount.counterparty === undefined ?
+    amount.issuer : amount.counterparty;
+  var withIssuer = _.assign({}, amount, {issuer: issuer});
+  return _.omit(withIssuer, 'counterparty');
+}
+
+function renameCounterpartyToIssuerInOrder(order) {
+  var taker_gets = renameCounterpartyToIssuer(order.taker_gets);
+  var taker_pays = renameCounterpartyToIssuer(order.taker_pays);
+  var changes = {taker_gets: taker_gets, taker_pays: taker_pays};
+  return _.assign({}, order, _.omit(changes, _.isUndefined));
+}
 
 function wrapCatch(asyncFunction) {
   return function() {
@@ -122,33 +140,29 @@ function attachDate(api, baseTransactions, callback) {
     return tx.ledger_index;
   });
 
-  function attachDateToTransactions(_groupedTx, ledger, _callback) {
-    api.remote.requestLedger({ledger_index: Number(ledger)},
-      function(err, data) {
-        if (err) {
-          return _callback(err);
-        }
-
-        _.each(_groupedTx[ledger], function(tx) {
-          tx.date = data.ledger.close_time;
-        });
-
-        _callback(null, _groupedTx[ledger]);
-      }
-    );
+  function attachDateToTransactions(transactions, data) {
+    return _.map(transactions, function(tx) {
+      return _.assign(tx, {date: data.ledger.close_time});
+    });
   }
 
-  // TODO: Decorate _.flatten and make it an async function
-  async.map(_.keys(groupedTx),
-    _.partial(attachDateToTransactions, groupedTx),
-    function(err, results) {
-      if (err) {
-        return callback(err);
-      }
-      callback(null, _.flatten(results));
-    });
-}
+  function getLedger(ledgerIndex, _callback) {
+    api.remote.requestLedger({ledger_index: ledgerIndex}, _callback);
+  }
 
+  function attachDateToLedgerTransactions(_groupedTx, ledger, _callback) {
+    var transactions = _groupedTx[ledger];
+    async.waterfall([
+      _.partial(getLedger, Number(ledger)),
+      asyncify(_.partial(attachDateToTransactions, transactions))
+    ], _callback);
+  }
+
+  var ledgers = _.keys(groupedTx);
+  var flatMap = async.seq(async.map, asyncify(_.flatten));
+  var iterator = _.partial(attachDateToLedgerTransactions, groupedTx);
+  flatMap(ledgers, iterator, callback);
+}
 
 module.exports = {
   isValidLedgerSequence: isValidLedgerSequence,
@@ -159,6 +173,8 @@ module.exports = {
   parseCurrencyAmount: parseCurrencyAmount,
   parseCurrencyQuery: parseCurrencyQuery,
   compareTransactions: compareTransactions,
+  renameCounterpartyToIssuer: renameCounterpartyToIssuer,
+  renameCounterpartyToIssuerInOrder: renameCounterpartyToIssuerInOrder,
   wrapCatch: wrapCatch,
   attachDate: attachDate
 };

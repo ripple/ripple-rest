@@ -3,6 +3,7 @@
 
 var _ = require('lodash');
 var async = require('async');
+var asyncify = require('simple-asyncify');
 var bignum = require('bignumber.js');
 var ripple = require('ripple-lib');
 var transactions = require('./transactions');
@@ -15,7 +16,7 @@ var convertAmount = require('./transaction/utils').convertAmount;
 var createPaymentTransaction =
   require('./transaction').createPaymentTransaction;
 var renameCounterpartyToIssuer =
-  require('./transaction/utils').renameCounterpartyToIssuer;
+  require('./lib/utils').renameCounterpartyToIssuer;
 var xrpToDrops = require('./transaction/utils').xrpToDrops;
 var transact = require('./transact');
 
@@ -67,34 +68,22 @@ function formatPaymentHelper(account, transaction, callback) {
     };
   }
 
-  function formatTransaction(_transaction, _callback) {
-    if (_transaction) {
-      TxToRestConverter.parsePaymentFromTx(_transaction, {account: account},
-          function(err, parsedPayment) {
-        if (err) {
-          return _callback(err);
-        }
-
-        var result = {
-          payment: parsedPayment
-        };
-
-        _.extend(result, getPaymentMetadata(_transaction));
-
-        return _callback(null, result);
-      });
-    } else {
-      _callback(new NotFoundError('Payment Not Found. This may indicate that '
+  function formatTransaction(_transaction) {
+    if (!_transaction) {
+      throw new NotFoundError('Payment Not Found. This may indicate that '
         + 'the payment was never validated and written into the Ripple ledger '
         + 'and it was not submitted through this ripple-rest instance. '
         + 'This error may also be seen if the databases of either ripple-rest '
-        + 'or rippled were recently created or deleted.'));
+        + 'or rippled were recently created or deleted.');
     }
+    var payment = TxToRestConverter.parsePaymentFromTx(
+      _transaction, {account: account});
+    return _.extend({payment: payment}, getPaymentMetadata(_transaction));
   }
 
   var steps = [
     checkIsPayment,
-    formatTransaction
+    asyncify(formatTransaction)
   ];
 
   async.waterfall(steps, callback);
@@ -393,7 +382,7 @@ function getPathFind(source_account, destination_account,
     }
   }
 
-  function prepareOptions(_callback) {
+  function prepareOptions() {
     var pathfindParams = {
       src_account: source_account,
       dst_account: destination_account,
@@ -412,7 +401,7 @@ function getPathFind(source_account, destination_account,
     if (source_currencies.length > 0) {
       pathfindParams.src_currencies = source_currencies;
     }
-    _callback(null, pathfindParams);
+    return pathfindParams;
   }
 
   function findPath(pathfindParams, _callback) {
@@ -469,46 +458,43 @@ function getPathFind(source_account, destination_account,
     });
   }
 
-  function formatPath(pathfindResults, _callback) {
-    if (pathfindResults.alternatives
-            && pathfindResults.alternatives.length > 0) {
-      return TxToRestConverter.parsePaymentsFromPathFind(pathfindResults,
-                                                         _callback);
+  function formatPath(pathfindResults) {
+    var alternatives = pathfindResults.alternatives;
+    if (alternatives && alternatives.length > 0) {
+      return TxToRestConverter.parsePaymentsFromPathFind(pathfindResults);
     }
     if (pathfindResults.destination_currencies.indexOf(
             destination_amount.currency) === -1) {
-      _callback(new NotFoundError('No paths found. ' +
+      throw new NotFoundError('No paths found. ' +
         'The destination_account does not accept ' +
         destination_amount.currency +
         ', they only accept: ' +
-        pathfindResults.destination_currencies.join(', ')));
-
+        pathfindResults.destination_currencies.join(', '));
     } else if (pathfindResults.source_currencies
                && pathfindResults.source_currencies.length > 0) {
-      _callback(new NotFoundError('No paths found. Please ensure' +
+      throw new NotFoundError('No paths found. Please ensure' +
         ' that the source_account has sufficient funds to execute' +
         ' the payment in one of the specified source_currencies. If it does' +
         ' there may be insufficient liquidity in the network to execute' +
-        ' this payment right now'));
-
+        ' this payment right now');
     } else {
-      _callback(new NotFoundError('No paths found.' +
+      throw new NotFoundError('No paths found.' +
         ' Please ensure that the source_account has sufficient funds to' +
         ' execute the payment. If it does there may be insufficient liquidity' +
-        ' in the network to execute this payment right now'));
+        ' in the network to execute this payment right now');
     }
   }
 
-  function formatResponse(payments, _callback) {
-    _callback(null, {payments: payments});
+  function formatResponse(payments) {
+    return {payments: payments};
   }
 
   var steps = [
-    prepareOptions,
+    asyncify(prepareOptions),
     findPath,
     addDirectXrpPath,
-    formatPath,
-    formatResponse
+    asyncify(formatPath),
+    asyncify(formatResponse)
   ];
 
   async.waterfall(steps, callback);

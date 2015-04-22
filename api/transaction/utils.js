@@ -3,14 +3,6 @@
 var BigNumber = require('bignumber.js');
 var validate = require('../lib/validate');
 
-function renameCounterpartyToIssuer(amount) {
-  if (amount && amount.counterparty) {
-    amount.issuer = amount.counterparty;
-    delete amount.counterparty;
-  }
-  return amount;
-}
-
 function xrpToDrops(xrp) {
   return (new BigNumber(xrp)).times(1000000.0).floor().toString();
 }
@@ -113,6 +105,5 @@ module.exports = {
   setTransactionBitFlags: setTransactionBitFlags,
   createTxJSON: createTxJSON,
   convertAmount: convertAmount,
-  renameCounterpartyToIssuer: renameCounterpartyToIssuer,
   xrpToDrops: xrpToDrops
 };

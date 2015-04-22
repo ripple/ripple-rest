@@ -3,6 +3,8 @@ var ripple = require('ripple-lib');
 var utils = require('./utils');
 var validate = require('../lib/validate');
 var wrapCatch = require('../lib/utils').wrapCatch;
+var renameCounterpartyToIssuerInOrder =
+  require('../lib/utils').renameCounterpartyToIssuerInOrder;
 
 var OfferCreateFlags = {
   Passive: {name: 'passive', set: 'Passive'},
@@ -14,8 +16,7 @@ function createOrderTransaction(account, order) {
   validate.address(account);
   validate.order(order);
 
-  utils.renameCounterpartyToIssuer(order.taker_gets);
-  utils.renameCounterpartyToIssuer(order.taker_pays);
+  order = renameCounterpartyToIssuerInOrder(order);
   var transaction = new ripple.Transaction();
   var takerPays = order.taker_pays.currency !== 'XRP'
     ? order.taker_pays : utils.xrpToDrops(order.taker_pays.value);

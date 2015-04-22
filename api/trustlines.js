@@ -1,6 +1,7 @@
 /* globals Promise: true */
 /* eslint-disable valid-jsdoc */
 'use strict';
+var asyncify = require('simple-asyncify');
 var Promise = require('bluebird');
 var utils = require('./lib/utils');
 var validator = require('./lib/schema-validator');
@@ -148,7 +149,7 @@ function getTrustLines(account, options, callback) {
 
 function addTrustLine(account, trustline, secret, options, callback) {
   var transaction = createTrustLineTransaction(account, trustline);
-  var converter = TxToRestConverter.parseTrustResponseFromTx;
+  var converter = asyncify(TxToRestConverter.parseTrustResponseFromTx);
   transact(transaction, this, secret, options, converter, callback);
 }
 
