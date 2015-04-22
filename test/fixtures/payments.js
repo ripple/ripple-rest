@@ -1474,61 +1474,48 @@ module.exports.RESTSuccessResponse = function(options) {
   );
 };
 
-module.exports.preparePaymentRequest = {
-  address: addresses.VALID,
-  payment: {
-    'source_account': addresses.VALID,
-    'source_tag': '',
-    'source_amount': {
-      'value': '5.01',
-      'currency': 'USD',
-      'issuer': ''
-    },
-    'source_slippage': '0',
-    'destination_account': addresses.COUNTERPARTY,
-    'destination_tag': '',
-    'destination_amount': {
-      'value': '5',
-      'currency': 'USD',
-      'issuer': ''
-    },
-    'invoice_id': '',
-    'paths': '[[{"account":"' + addresses.ISSUER + '","type":1,"type_hex":"0000000000000001"}]]',
-    'partial_payment': false,
-    'no_direct_ripple': false
-  },
-  instructions: {
-    lastLedgerOffset: 100
-  }
-};
-
 module.exports.preparePaymentResponse = JSON.stringify({
   success: true,
+  tx_blob: '12000022000000002400000017201B008694F361D3C38D7EA4C68000000000000000000000000000555344000000000050FCCA71E98DFA43305149F9F0C7897DE5A9D18C68400000000000000C732102F89EAEC7667B30F33D0687BBA86C3FE2A08CCA40A9186C5BDE2DAA6FA97A37D87446304402207660BDEF67105CE1EBA9AD35DC7156BAB43FF1D47633199EE257D70B6B9AAFBF02201C06A0C8C9466C35B62F7FDF0C1009BED05FDA34DB9626ED634AE74FBD04CBF781144FBFF73DA4ECF9B701940F27341FA8020C31344383140A20B3C85F482532A9578DBB3950B85CA06594D1',
+  hash: 'C32A85BA3EE9071D35E583D9062E5B8C327C28BB834B45B882651DD7E50CEA1C',
+  payment: {
+    source_account: addresses.VALID,
+    source_tag: '',
+    source_amount: {
+      currency: 'USD',
+      value: '0.001',
+      issuer: 'r3PDtZSa5LiYp1Ysn1vMuMzB59RzV3W9QH'
+    },
+    source_slippage: '0',
+    destination_account: addresses.COUNTERPARTY,
+    destination_tag: '',
+    destination_amount: {
+      currency: 'USD',
+      value: '0.001',
+      issuer: addresses.ISSUER
+    },
+    invoice_id: '',
+    paths: '[]',
+    no_direct_ripple: false,
+    partial_payment: false,
+    direction: 'outgoing',
+    timestamp: '',
+    fee: '0.000012'
+  },
   tx_json: {
     Flags: 0,
     TransactionType: 'Payment',
     Account: addresses.VALID,
     Amount: {
-      value: '5',
+      value: '0.001',
       currency: 'USD',
-      issuer: addresses.COUNTERPARTY
-    },
-    SendMax: {
-      value: '5.01',
-      currency: 'USD',
-      issuer: addresses.VALID
+      issuer: addresses.ISSUER
     },
     Destination: addresses.COUNTERPARTY,
-    Paths: [
-      [
-        {
-          account: addresses.ISSUER,
-          type_hex: '0000000000000001'
-        }
-      ]
-    ],
     LastLedgerSequence: 8819955,
     Fee: '12',
-    Sequence: 23
+    Sequence: 23,
+    SigningPubKey: '02F89EAEC7667B30F33D0687BBA86C3FE2A08CCA40A9186C5BDE2DAA6FA97A37D8',
+    TxnSignature: '304402207660BDEF67105CE1EBA9AD35DC7156BAB43FF1D47633199EE257D70B6B9AAFBF02201C06A0C8C9466C35B62F7FDF0C1009BED05FDA34DB9626ED634AE74FBD04CBF7'
   }
 });

@@ -60,113 +60,109 @@ function parseFlagsFromResponse(responseFlags, flags) {
  *  @param {Object} payment
  */
 
-function parsePaymentFromTx(tx, options) {
-  if (!options.account) {
+function isPartialPayment(tx) {
+  return (tx.Flags & ripple.Transaction.flags.Payment.PartialPayment) !== 0;
+}
+
+function isNoDirectRipple(tx) {
+  return (tx.Flags & ripple.Transaction.flags.Payment.NoRippleDirect) !== 0;
+}
+
+function convertAmount(amount) {
+  if (typeof amount === 'string') {
+    return {
+      value: utils.dropsToXrp(amount),
+      currency: 'XRP',
+      issuer: ''
+    };
+  }
+  return amount;
+}
+
+function parsePaymentMeta(account, tx, meta) {
+  if (_.isUndefined(meta) || _.isEmpty(meta)) {
+    return {};
+  }
+  if (meta.TransactionResult === 'tejSecretInvalid') {
+    throw new Error('Invalid secret provided.');
+  }
+
+  var balanceChanges = renameCounterpartyToIssuerInBalanceChanges(
+    parseBalanceChanges(meta));
+
+  var order_changes = renameCounterpartyToIssuerInOrderChanges(
+    parseOrderBookChanges(meta))[account];
+
+  var partialPayment = (isPartialPayment(tx) && meta.DeliveredAmount) ? {
+      destination_amount_submitted: convertAmount(tx.Amount),
+      source_amount_submitted: convertAmount(tx.SendMax || tx.Amount)
+    } : {};
+
+  return _.assign({
+    result: meta.TransactionResult,
+    balance_changes: balanceChanges[account] || [],
+    source_balance_changes: balanceChanges[tx.Account] || [],
+    destination_balance_changes: balanceChanges[tx.Destination] || [],
+    order_changes: order_changes || []
+  }, partialPayment);
+}
+
+function parsePaymentFromTx(account, message, meta) {
+  if (!account) {
     throw new Error('Internal Error. must supply options.account');
   }
 
+  var tx = message.tx_json;
   if (tx.TransactionType !== 'Payment') {
     throw new Error('Not a payment. The transaction corresponding to '
                     + 'the given identifier is not a payment.');
   }
 
-  if (tx.meta !== undefined && tx.meta.TransactionResult !== undefined) {
-    if (tx.meta.TransactionResult === 'tejSecretInvalid') {
-      throw new Error('Invalid secret provided.');
-    }
-  }
-
-  var Amount;
-  var isPartialPayment = tx.Flags & 0x00020000 ? true : false;
-
+  var amount;
   // if there is a DeliveredAmount we should use it over Amount there should
   // always be a DeliveredAmount if the partial payment flag is set. also
   // there shouldn't be a DeliveredAmount if there's no partial payment flag
-  if (isPartialPayment && tx.meta && tx.meta.DeliveredAmount) {
-    Amount = tx.meta.DeliveredAmount;
+  if (isPartialPayment(tx) && meta && meta.DeliveredAmount) {
+    amount = meta.DeliveredAmount;
   } else {
-    Amount = tx.Amount;
+    amount = tx.Amount;
   }
 
-  var balanceChanges = tx.meta ?
-    renameCounterpartyToIssuerInBalanceChanges(
-      parseBalanceChanges(tx.meta)) : [];
-
-  var order_changes = tx.meta ?
-    renameCounterpartyToIssuerInOrderChanges(
-      parseOrderBookChanges(tx.meta))[options.account] : [];
-
-  var source_amount = tx.SendMax ?
-    utils.parseCurrencyAmount(tx.SendMax, true) :
-    utils.parseCurrencyAmount(Amount, true);
-
-  var destination_amount = utils.parseCurrencyAmount(Amount, true);
+  var source_amount = utils.parseCurrencyAmount(tx.SendMax || amount, true);
+  var destination_amount = utils.parseCurrencyAmount(amount, true);
 
   var payment = {
     // User supplied
     source_account: tx.Account,
     source_tag: (tx.SourceTag ? '' + tx.SourceTag : ''),
     source_amount: source_amount,
-    source_slippage: '0',
+    source_slippage: '0',     // TODO: why is this hard-coded?
     destination_account: tx.Destination,
     destination_tag: (tx.DestinationTag ? '' + tx.DestinationTag : ''),
     destination_amount: destination_amount,
     // Advanced options
     invoice_id: tx.InvoiceID || '',
     paths: JSON.stringify(tx.Paths || []),
-    no_direct_ripple: (tx.Flags & 0x00010000 ? true : false),
-    partial_payment: isPartialPayment,
-    // Generated after validation
+    no_direct_ripple: isNoDirectRipple(tx),
+    partial_payment: isPartialPayment(tx),
     // TODO: Update to use `unaffected` when perspective account in URI
     // is not affected
-    direction: (options.account ?
-      (options.account === tx.Account ?
-        'outgoing' :
-        (options.account === tx.Destination ?
-          'incoming' :
-          'passthrough')) :
-      ''),
-    result: tx.meta ? tx.meta.TransactionResult : '',
+    direction: (account === tx.Account ? 'outgoing' :
+        (account === tx.Destination ? 'incoming' : 'passthrough')),
     timestamp: (tx.date
       ? new Date(ripple.utils.toTimestamp(tx.date)).toISOString() : ''),
-    fee: utils.dropsToXrp(tx.Fee) || '',
-    balance_changes: balanceChanges[options.account] || [],
-    source_balance_changes: balanceChanges[tx.Account] || [],
-    destination_balance_changes: balanceChanges[tx.Destination] || [],
-    order_changes: order_changes || []
+    fee: utils.dropsToXrp(tx.Fee) || ''
   };
+
   if (Array.isArray(tx.Memos) && tx.Memos.length > 0) {
     payment.memos = [];
     for (var m = 0; m < tx.Memos.length; m++) {
       payment.memos.push(tx.Memos[m].Memo);
     }
   }
-  if (isPartialPayment && tx.meta && tx.meta.DeliveredAmount) {
-    payment.destination_amount_submitted = (typeof tx.Amount === 'object' ?
-      tx.Amount :
-    {
-      value: utils.dropsToXrp(tx.Amount),
-      currency: 'XRP',
-      issuer: ''
-    });
-    payment.source_amount_submitted = (tx.SendMax ?
-      (typeof tx.SendMax === 'object' ?
-        tx.SendMax :
-      {
-        value: utils.dropsToXrp(tx.SendMax),
-        currency: 'XRP',
-        issuer: ''
-      }) :
-      (typeof tx.Amount === 'string' ?
-      {
-        value: utils.dropsToXrp(tx.Amount),
-        currency: 'XRP',
-        issuer: ''
-      } :
-        tx.Amount));
-  }
 
-  return payment;
+  var fullPayment = _.assign(payment, parsePaymentMeta(account, tx, meta));
+  return _.assign({payment: fullPayment}, meta);
 }
 
 /**

@@ -10,24 +10,22 @@ var txToRestConverter = require('./../../api/lib/tx-to-rest-converter.js');
 suite('unit - converter - Tx to Rest', function() {
   test('parsePaymentFromTx()', function() {
     var tx = fixtures.paymentTx();
-    var options = {
-      account: addresses.VALID
-    };
-
-    var payment = txToRestConverter.parsePaymentFromTx(tx, options);
-    assert.deepEqual(payment, fixtures.paymentRest);
+    var message = {tx_json: tx};
+    var meta = tx.meta;
+    var payment = txToRestConverter.parsePaymentFromTx(addresses.VALID,
+      message, meta);
+    assert.deepEqual(payment.payment, fixtures.paymentRest);
   });
 
   test('parsePaymentFromTx() -- complicated meta', function() {
     var tx = fixtures.paymentTx({
       meta: fixtures.COMPLICATED_META
     });
+    var message = {tx_json: tx};
+    var meta = tx.meta;
     tx.Destination = 'rGAWXLxpsy77vWxgYriPZE5ktUfqa6prbG';
-    var options = {
-      account: addresses.VALID
-    };
-
-    var payment = txToRestConverter.parsePaymentFromTx(tx, options);
+    var payment = txToRestConverter.parsePaymentFromTx(addresses.VALID,
+      message, meta).payment;
 
     assert.deepEqual(payment.source_balance_changes, [
       {

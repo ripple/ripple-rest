@@ -75,16 +75,7 @@ function send(response, body, statusCode) {
  *                success property
  */
 function success(response, body) {
-
-  var content =
-  {
-    success: true
-  };
-
-  if (body !== undefined) {
-    content = _.extend(content, body);
-  }
-
+  var content = _.assign(body || {}, {success: true});
   send(response, content, StatusCode.ok);
 }
 
@@ -96,17 +87,21 @@ function success(response, body) {
  *                success property
  */
 function created(response, body) {
-
-  var content =
-  {
-    success: true
-  };
-
-  if (body !== undefined) {
-    content = _.extend(content, body);
-  }
-
+  var content = _.assign(body || {}, {success: true});
   send(response, content, StatusCode.created);
+}
+
+function errorContent(type, message, body) {
+  var content = _.omit({
+    success: false,
+    error_type: type,
+    message: message
+  }, _.isUndefined);
+  return _.assign(body || {}, content);
+}
+
+function errorContentExt(type, error) {
+  return _.assign(errorContent(type, error.message), {error: error.error});
 }
 
 /**
@@ -118,23 +113,9 @@ function created(response, body) {
  * @param body     - (optional) additional body to the response
  */
 function transactionError(response, message, body) {
-
-  var content = {
-    success: false,
-    error_type: ErrorType.transaction
-  };
-
-  if (message) {
-    content.message = message;
-  }
-
-  if (body) {
-    content = _.extend(content, body);
-  }
-
+  var content = errorContent(ErrorType.transaction, message, body);
   send(response, content, StatusCode.internalServerError);
 }
-
 
 /**
  * Send a not found error response
@@ -144,20 +125,7 @@ function transactionError(response, message, body) {
  * @param body      - (optional) additional body to the response
  */
 function transactionNotFoundError(response, message, body) {
-
-  var content = {
-    success: false,
-    error_type: ErrorType.transaction
-  };
-
-  if (message) {
-    content.message = message;
-  }
-
-  if (body) {
-    content = _.extend(content, body);
-  }
-
+  var content = errorContent(ErrorType.transaction, message, body);
   send(response, content, StatusCode.notFound);
 }
 
@@ -170,16 +138,7 @@ function transactionNotFoundError(response, message, body) {
  * @param body      - (optional) additional body to the response
  */
 function apiError(response, error) {
-  var content = {
-    success: false,
-    error_type: ErrorType.server,
-    error: error.error
-  };
-
-  if (error.message) {
-    content.message = error.message;
-  }
-
+  var content = errorContentExt(ErrorType.server, error);
   send(response, content, StatusCode.internalServerError);
 }
 
@@ -190,16 +149,7 @@ function apiError(response, error) {
  * @param error     - error to send back to the client
  */
 function invalidRequestError(response, error) {
-  var content = {
-    success: false,
-    error_type: ErrorType.invalidRequest,
-    error: error.error
-  };
-
-  if (error.message) {
-    content.message = error.message;
-  }
-
+  var content = errorContentExt(ErrorType.invalidRequest, error);
   send(response, content, StatusCode.badRequest);
 }
 
@@ -212,20 +162,7 @@ function invalidRequestError(response, error) {
  * @param body      - (optional) additional body to the response
  */
 function internalError(response, message, body) {
-
-  var content = {
-    success: false,
-    error_type: ErrorType.server
-  };
-
-  if (message) {
-    content.message = message;
-  }
-
-  if (body) {
-    content = _.extend(content, body);
-  }
-
+  var content = errorContent(ErrorType.server, message, body);
   send(response, content, StatusCode.internalServerError);
 }
 
@@ -237,20 +174,7 @@ function internalError(response, message, body) {
  * @param body      - (optional) additional body to the response
  */
 function connectionError(response, message, body) {
-
-  var content = {
-    success: false,
-    error_type: ErrorType.connection
-  };
-
-  if (message) {
-    content.message = message;
-  }
-
-  if (body) {
-    content = _.extend(content, body);
-  }
-
+  var content = errorContent(ErrorType.connection, message, body);
   send(response, content, StatusCode.badGateway);
 }
 
@@ -261,17 +185,7 @@ function connectionError(response, message, body) {
  * @param error     - error to send back to the client
  */
 function notFoundError(response, error) {
-
-  var content = {
-    success: false,
-    error_type: ErrorType.invalidRequest,
-    error: error.error
-  };
-
-  if (error.message) {
-    content.message = error.message;
-  }
-
+  var content = errorContentExt(ErrorType.invalidRequest, error);
   send(response, content, StatusCode.notFound);
 }
 
@@ -283,20 +197,7 @@ function notFoundError(response, error) {
  * @param body      - (optional) additional body to the response
  */
 function timeOutError(response, message, body) {
-
-  var content = {
-    success: false,
-    error_type: ErrorType.connection
-  };
-
-  if (message) {
-    content.message = message;
-  }
-
-  if (body) {
-    content = _.extend(content, body);
-  }
-
+  var content = errorContent(ErrorType.connection, message, body);
   send(response, content, StatusCode.timeout);
 }
 

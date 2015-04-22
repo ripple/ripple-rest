@@ -38,55 +38,22 @@ var DEFAULT_RESULTS_PER_PAGE = 10;
  * @param {Error} error
  * @param {RippleRestTransaction} transaction
  */
-function formatPaymentHelper(account, transaction, callback) {
-  function checkIsPayment(_callback) {
-    var isPayment = transaction
-                  && /^payment$/i.test(transaction.TransactionType);
-
-    if (isPayment) {
-      _callback(null, transaction);
-    } else {
-      _callback(new InvalidRequestError('Not a payment. The transaction '
-        + 'corresponding to the given identifier is not a payment.'));
-    }
+function formatPaymentHelper(account, txJSON) {
+  if (!(txJSON && /^payment$/i.test(txJSON.TransactionType))) {
+    throw new InvalidRequestError('Not a payment. The transaction '
+      + 'corresponding to the given identifier is not a payment.');
   }
-
-  function getPaymentMetadata(_transaction) {
-    var clientResourceID = _transaction.client_resource_id || '';
-    var hash = _transaction.hash || '';
-
-    var ledger = !_.isUndefined(transaction.inLedger) ?
-      String(_transaction.inLedger) : String(_transaction.ledger_index);
-
-    var state = _transaction.validated === true ? 'validated' : 'pending';
-
-    return {
-      client_resource_id: clientResourceID,
-      hash: hash,
-      ledger: ledger,
-      state: state
-    };
-  }
-
-  function formatTransaction(_transaction) {
-    if (!_transaction) {
-      throw new NotFoundError('Payment Not Found. This may indicate that '
-        + 'the payment was never validated and written into the Ripple ledger '
-        + 'and it was not submitted through this ripple-rest instance. '
-        + 'This error may also be seen if the databases of either ripple-rest '
-        + 'or rippled were recently created or deleted.');
-    }
-    var payment = TxToRestConverter.parsePaymentFromTx(
-      _transaction, {account: account});
-    return _.extend({payment: payment}, getPaymentMetadata(_transaction));
-  }
-
-  var steps = [
-    checkIsPayment,
-    asyncify(formatTransaction)
-  ];
-
-  async.waterfall(steps, callback);
+  var metadata = {
+    client_resource_id: txJSON.client_resource_id || '',
+    hash: txJSON.hash || '',
+    ledger: String(!_.isUndefined(txJSON.inLedger) ?
+      txJSON.inLedger : txJSON.ledger_index),
+    state: txJSON.validated === true ? 'validated' : 'pending'
+  };
+  var message = {tx_json: txJSON};
+  var meta = txJSON.meta;
+  var parsed = TxToRestConverter.parsePaymentFromTx(account, message, meta);
+  return _.assign({payment: parsed.payment}, metadata);
 }
 
 /**
@@ -113,89 +80,54 @@ function formatPaymentHelper(account, transaction, callback) {
  */
 function submitPayment(account, payment, clientResourceID, secret,
     urlBase, options, callback) {
-  var self = this;
-  var max_fee = Number(options.max_fee) > 0 ?
-    xrpToDrops(options.max_fee) : undefined;
-  var fixed_fee = Number(options.fixed_fee) > 0 ?
-    xrpToDrops(options.fixed_fee) : undefined;
 
-  // these checks are done at the top of the function because we cannot
-  // raise exceptions inside callbacks
-  validate.addressAndMaybeSecret({address: account, secret: secret});
-  validate.payment(payment);
-  validate.client_resource_id(clientResourceID);
-  validate.options(options);
-
-  function formatTransactionResponse(message, meta, _callback) {
+  function formatTransactionResponse(message, meta) {
     if (meta.state === 'validated') {
-      var transaction = message.tx_json;
-      transaction.meta = message.metadata;
-      transaction.validated = message.validated;
-      transaction.ledger_index = transaction.inLedger = message.ledger_index;
-
-      return formatPaymentHelper(payment.source_account, transaction,
-                                 _callback);
+      var txJSON = message.tx_json;
+      txJSON.meta = message.metadata;
+      txJSON.validated = message.validated;
+      txJSON.ledger_index = txJSON.inLedger = message.ledger_index;
+      return formatPaymentHelper(payment.source_account, txJSON);
     }
 
-    _callback(null, {
+    return {
       client_resource_id: clientResourceID,
       status_url: urlBase + '/v1/accounts/' + payment.source_account
         + '/payments/' + clientResourceID
-    });
+    };
   }
 
-  function _createPaymentTransaction(remote, _callback) {
-    var transaction;
-    try {
-      transaction = createPaymentTransaction(account, payment);
-    } catch (err) {
-      _callback(err);
-      return;
+  function prepareTransaction(_transaction, remote) {
+    validate.client_resource_id(clientResourceID);
+
+    _transaction.lastLedger(Number(options.last_ledger_sequence ||
+      (remote.getLedgerSequence() + transactions.DEFAULT_LEDGER_BUFFER)));
+
+    if (Number(options.max_fee) >= 0) {
+      _transaction.maxFee(Number(xrpToDrops(options.max_fee)));
     }
 
-    var ledgerIndex;
-    var maxFee = Number(max_fee);
-    var fixedFee = Number(fixed_fee);
-
-    if (Number(options.last_ledger_sequence) > 0) {
-      ledgerIndex = Number(options.last_ledger_sequence);
-    } else {
-      ledgerIndex = Number(remote._ledger_current_index)
-        + transactions.DEFAULT_LEDGER_BUFFER;
+    if (Number(options.fixed_fee) >= 0) {
+      _transaction.setFixedFee(Number(xrpToDrops(options.fixed_fee)));
     }
 
-    transaction.lastLedger(ledgerIndex);
-
-    if (maxFee >= 0) {
-      transaction.maxFee(maxFee);
-    }
-
-    if (fixedFee >= 0) {
-      transaction.setFixedFee(fixedFee);
-    }
-
-    transaction.clientID(clientResourceID);
-    _callback(null, transaction);
+    _transaction.clientID(clientResourceID);
+    return _transaction;
   }
 
-  var _options = {
-    validated: options.validated,
+  var isSubmitMode = options.submit !== false;
+  var _options = _.assign({}, options, {
     clientResourceId: clientResourceID,
-    blockDuplicates: true,
-    saveTransaction: true
-  };
+    blockDuplicates: isSubmitMode,
+    saveTransaction: isSubmitMode
+  });
 
-  var converter = formatTransactionResponse;
-  async.waterfall([
-    _.partial(_createPaymentTransaction, self.remote),
-    function(transaction, _callback) {
-      try {   // for case of missing secret and submit=false not set
-        transact(transaction, self, secret, _options, converter, _callback);
-      } catch (err) {
-        _callback(err);
-      }
-    }
-  ], callback);
+  var initialTx = createPaymentTransaction(account, payment);
+  var transaction = isSubmitMode ? prepareTransaction(
+    initialTx, this.remote) : initialTx;
+  var converter = isSubmitMode ? formatTransactionResponse :
+    _.partial(TxToRestConverter.parsePaymentFromTx, account);
+  transact(transaction, this, secret, _options, converter, callback);
 }
 
 /**
@@ -222,7 +154,7 @@ function getPayment(account, identifier, callback) {
 
   var steps = [
     getTransaction,
-    _.partial(formatPaymentHelper, account)
+    asyncify(_.partial(formatPaymentHelper, account))
   ];
 
   async.waterfall(steps, callback);
@@ -272,14 +204,8 @@ function getAccountPayments(account, source_account, destination_account,
       _.merge(options, args), _callback);
   }
 
-  function formatTransactions(_transactions, _callback) {
-    if (!Array.isArray(_transactions)) {
-      return _callback(null);
-    }
-    async.map(_transactions,
-      _.partial(formatPaymentHelper, account),
-      _callback
-    );
+  function formatTransactions(_transactions) {
+    return _transactions.map(_.partial(formatPaymentHelper, account));
   }
 
   function attachResourceId(_transactions, _callback) {
@@ -302,16 +228,16 @@ function getAccountPayments(account, source_account, destination_account,
     }, _callback);
   }
 
-  function formatResponse(_transactions, _callback) {
-    _callback(null, {payments: _transactions});
+  function formatResponse(_transactions) {
+    return {payments: _transactions};
   }
 
   var steps = [
     getTransactions,
     _.partial(utils.attachDate, self),
-    formatTransactions,
+    asyncify(formatTransactions),
     attachResourceId,
-    formatResponse
+    asyncify(formatResponse)
   ];
 
   async.waterfall(steps, callback);

@@ -12,13 +12,8 @@ function signIfSecretExists(secret, prepared) {
   return _.assign({}, prepared, signResponse);
 }
 
-function formatResponse(converter, prepared, callback) {
-  async.waterfall([
-    _.partial(converter, prepared, {}),
-    function(formatted, _callback) {
-      _callback(null, _.assign(formatted, prepared));
-    }
-  ], callback);
+function formatResponse(converter, prepared) {
+  return _.assign({}, prepared, converter(prepared, {}));
 }
 
 function prepareAndOptionallySign(transaction, api, secret, options,
@@ -29,7 +24,7 @@ function prepareAndOptionallySign(transaction, api, secret, options,
   async.waterfall([
     _.partial(createTxJSON, transaction, api.remote, options),
     _.partial(asyncify(signIfSecretExists), secret),
-    _.partial(formatResponse, converter)
+    _.partial(asyncify(formatResponse), converter)
   ], callback);
 }
 
@@ -40,7 +35,7 @@ function prepareAndSignAndSubmit(transaction, api, secret, options, converter,
   validate.options(options);
   async.waterfall([
     _.partial(transactions.submit, api, transaction, secret, options),
-    converter
+    asyncify(converter)
   ], callback);
 }
 
