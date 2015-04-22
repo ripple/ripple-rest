@@ -18,7 +18,7 @@ var ripple = require('ripple-lib');
  */
 function NotificationParser() {}
 
-NotificationParser.prototype.parse = function(notification_details) {
+NotificationParser.prototype.parse = function(notification_details, urlBase) {
   var transaction = notification_details.transaction;
   var account = notification_details.account;
   var previous_transaction_identifier =
@@ -39,9 +39,9 @@ NotificationParser.prototype.parse = function(notification_details) {
     hash: transaction.hash,
     timestamp: '',// set below
     transaction_url: '', // set below
-    previous_hash: notification_details.previous_hash,
+    previous_hash: notification_details.previous_hash || '',
     previous_notification_url: '', // set below
-    next_hash: notification_details.next_hash,
+    next_hash: notification_details.next_hash || '',
     next_notification_url: '', // set below
     client_resource_id: notification_details.client_resource_id
   };
@@ -49,6 +49,7 @@ NotificationParser.prototype.parse = function(notification_details) {
   notification.timestamp = transaction.date ?
     new Date(ripple.utils.time.fromRipple(transaction.date)).toISOString() : '';
 
+  // Direction
   if (account === transaction.Account) {
     notification.direction = 'outgoing';
   } else if (transaction.TransactionType === 'Payment'
@@ -57,34 +58,43 @@ NotificationParser.prototype.parse = function(notification_details) {
   } else {
     notification.direction = 'incoming';
   }
+
+  // Notification URL
+
   if (notification.type === 'payment') {
-    notification.transaction_url = '/v1/accounts/' + notification.account
-      + '/payments/' + (transaction.from_local_db
+    notification.transaction_url = urlBase + '/v1/accounts/'
+      + notification.account
+      + '/payments/'
+      + (transaction.from_local_db
         ? notification.client_resource_id : notification.hash);
-  } else {
-    notification.transaction_url = '/v1/transactions/' + notification.hash;
-  }
-  if (notification.type === 'offercreate'
+  } else if (notification.type === 'offercreate'
       || notification.type === 'offercancel') {
     notification.type = 'order';
-    notification.transaction_url = '/v1/accounts/' + notification.account
-                                 + '/orders/' + notification.hash;
+    notification.transaction_url = urlBase + '/v1/accounts/'
+      + notification.account
+      + '/orders/' + notification.hash;
   } else if (notification.type === 'trustset') {
     notification.type = 'trustline';
+    notification.transaction_url = urlBase + '/v1/transactions/'
+      + notification.hash;
   } else if (notification.type === 'accountset') {
     notification.type = 'settings';
+    notification.transaction_url = urlBase + '/v1/transactions/'
+      + notification.hash;
   }
+
+  // Next notification URL
+
   if (next_transaction_identifier) {
-    notification.next_notification_url = '/v1/accounts/' +
-      notification.account +
-      '/notifications/' +
-      next_transaction_identifier;
+    notification.next_notification_url = urlBase + '/v1/accounts/'
+      + notification.account + '/notifications/' + next_transaction_identifier;
   }
+
+  // Previous notification URL
   if (previous_transaction_identifier) {
-    notification.previous_notification_url = '/v1/accounts/' +
-      notification.account +
-      '/notifications/' +
-      previous_transaction_identifier;
+    notification.previous_notification_url = urlBase + '/v1/accounts/'
+      + notification.account + '/notifications/'
+      + previous_transaction_identifier;
   }
 
   return notification;

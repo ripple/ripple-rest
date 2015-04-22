@@ -120,6 +120,20 @@ function getNotification(request, callback) {
   api.getNotification(account, identifier, urlBase, callback);
 }
 
+function getNotifications(request, callback) {
+  var account = request.params.account;
+  var urlBase = getUrlBase(request);
+  var options = {
+    ledger_index_min: request.query.start_ledger,
+    ledger_index_max: request.query.end_ledger,
+    earliest_first: request.query.earliest_first === 'true',
+    exclude_failed: request.query.exclude_failed === 'true',
+    results_per_page: request.query.results_per_page,
+    page: request.query.page
+  };
+  api.getNotifications(account, urlBase, options, callback);
+}
+
 function getBalances(request, callback) {
   var account = request.params.account;
   var options = {
@@ -222,7 +236,7 @@ module.exports = {
     '/accounts/:account/orders': makeMiddleware(getOrders),
     '/accounts/:account/order_book/:base/:counter': makeMiddleware(getOrderBook),
     '/accounts/:account/orders/:identifier': makeMiddleware(getOrder),
-    '/accounts/:account/notifications': makeMiddleware(getNotification),
+    '/accounts/:account/notifications': makeMiddleware(getNotifications),
     '/accounts/:account/notifications/:identifier': makeMiddleware(getNotification),
     '/accounts/:account/balances': makeMiddleware(getBalances),
     '/accounts/:account/settings': makeMiddleware(getSettings),

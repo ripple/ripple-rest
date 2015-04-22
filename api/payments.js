@@ -295,34 +295,6 @@ function getAccountPayments(account, source_account, destination_account,
       _.merge(options, args), _callback);
   }
 
-  function attachDate(_transactions, _callback) {
-    var groupedTx = _.groupBy(_transactions, function(tx) {
-      return tx.ledger_index;
-    });
-
-    async.each(_.keys(groupedTx), function(ledger, next) {
-      self.remote.requestLedger({
-        ledger_index: Number(ledger)
-      }, function(err, data) {
-        if (err) {
-          return next(err);
-        }
-
-        _.each(groupedTx[ledger], function(tx) {
-          tx.date = data.ledger.close_time;
-        });
-
-        return next(null);
-      });
-    }, function(err) {
-      if (err) {
-        return _callback(err);
-      }
-
-      return _callback(null, _transactions);
-    });
-  }
-
   function formatTransactions(_transactions, _callback) {
     if (!Array.isArray(_transactions)) {
       return _callback(null);
@@ -358,7 +330,7 @@ function getAccountPayments(account, source_account, destination_account,
 
   var steps = [
     getTransactions,
-    attachDate,
+    _.partial(utils.attachDate, self),
     formatTransactions,
     attachResourceId
   ];
