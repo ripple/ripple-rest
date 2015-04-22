@@ -2,10 +2,11 @@
   "name": "ripple-rest",
   "version": "1.6.0",
   "npm-shrinkwrap-version": "5.3.0",
+  "node-version": "v0.10.38",
   "dependencies": {
     "async": {
-      "version": "0.2.10",
-      "resolved": "https://registry.npmjs.org/async/-/async-0.2.10.tgz"
+      "version": "0.9.0",
+      "resolved": "https://registry.npmjs.org/async/-/async-0.9.0.tgz"
     },
     "bignumber.js": {
       "version": "1.5.0",
@@ -636,6 +637,10 @@
           "resolved": "https://registry.npmjs.org/bignumber.js/-/bignumber.js-1.4.1.tgz"
         }
       }
+    },
+    "simple-asyncify": {
+      "version": "0.1.0",
+      "resolved": "https://registry.npmjs.org/simple-asyncify/-/simple-asyncify-0.1.0.tgz"
     },
     "sqlite3": {
       "version": "3.0.5",

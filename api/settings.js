@@ -1,6 +1,7 @@
 /* eslint-disable valid-jsdoc */
 'use strict';
 var _ = require('lodash');
+var asyncify = require('simple-asyncify');
 var utils = require('./lib/utils');
 var TxToRestConverter = require('./lib/tx-to-rest-converter.js');
 var validate = require('./lib/validate');
@@ -73,8 +74,8 @@ function getSettings(account, callback) {
  */
 function changeSettings(account, settings, secret, options, callback) {
   var transaction = createSettingsTransaction(account, settings);
-  var converter = _.partial(TxToRestConverter.parseSettingsResponseFromTx,
-                            settings);
+  var converter = asyncify(_.partial(
+    TxToRestConverter.parseSettingsResponseFromTx, settings));
   transact(transaction, this, secret, options, converter, callback);
 }
 

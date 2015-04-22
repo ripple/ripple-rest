@@ -3,57 +3,49 @@
 var ripple = require('ripple-lib');
 var utils = require('./utils');
 var _ = require('lodash');
-var Promise = require('bluebird');
 var constants = require('./constants');
 var parseBalanceChanges = require('ripple-lib-transactionparser')
                           .parseBalanceChanges;
 var parseOrderBookChanges = require('ripple-lib-transactionparser')
                             .parseOrderBookChanges;
 
-function TxToRestConverter() {}
-
 // This is just to support the legacy naming of "counterparty", this
 // function should be removed when "issuer" is eliminated
-function renameCounterpartyToIssuer(orderChanges) {
+function renameCounterpartyToIssuerInOrderChanges(orderChanges) {
   return _.mapValues(orderChanges, function(changes) {
     return _.map(changes, function(change) {
-
-      var converted;
-      if (change.taker_pays) {
-        converted = _.omit(change, ['taker_pays', 'taker_gets']);
-        converted.taker_pays = {
-          issuer: change.taker_pays.counterparty,
-          value: change.taker_pays.value,
-          currency: change.taker_pays.currency
-        };
-        converted.taker_gets = {
-          issuer: change.taker_gets.counterparty,
-          value: change.taker_gets.value,
-          currency: change.taker_gets.currency
-        };
-      } else {
-        converted = _.omit(change, 'counterparty');
-        converted.issuer = change.counterparty;
-      }
-
-      return converted;
-
+      return utils.renameCounterpartyToIssuerInOrder(change);
     });
   });
 }
 
-// Orders
-var OfferCreateFlags = {
-  Passive: {name: 'passive',
-    value: ripple.Transaction.flags.OfferCreate.Passive},
-  ImmediateOrCancel: {name: 'immediate_or_cancel',
-    value: ripple.Transaction.flags.OfferCreate.ImmediateOrCancel},
-  FillOrKill: {name: 'fill_or_kill',
-    value: ripple.Transaction.flags.OfferCreate.FillOrKill},
-  Sell: {name: 'sell', value: ripple.Transaction.flags.OfferCreate.Sell}
-};
+function renameCounterpartyToIssuerInBalanceChanges(balanceChanges) {
+  return _.mapValues(balanceChanges, function(changes) {
+    return _.map(changes, function(change) {
+      return utils.renameCounterpartyToIssuer(change);
+    });
+  });
+}
 
-// Paths
+/**
+ *  Helper that parses bit flags from ripple response
+ *
+ *  @param {Number} responseFlags - Integer flag on the ripple response
+ *  @param {Object} flags - Object with parameter name and bit flag value pairs
+ *
+ *  @returns {Object} parsedFlags - Object with parameter name and boolean
+ *                                  flags depending on response flag
+ */
+function parseFlagsFromResponse(responseFlags, flags) {
+  var parsedFlags = {};
+
+  for (var flagName in flags) {
+    var flag = flags[flagName];
+    parsedFlags[flag.name] = Boolean(responseFlags & flag.value);
+  }
+
+  return parsedFlags;
+}
 
 /**
  *  Convert a transaction in rippled tx format
@@ -68,34 +60,19 @@ var OfferCreateFlags = {
  *  @param {Object} payment
  */
 
-TxToRestConverter.prototype.parsePaymentFromTx =
-    function(tx, options, callback) {
-  if (typeof options === 'function') {
-    callback = options;
-    options = {};
-  }
-
+function parsePaymentFromTx(tx, options) {
   if (!options.account) {
-    if (callback !== undefined) {
-      callback(new Error('Internal Error. must supply options.account'));
-    }
-    return;
+    throw new Error('Internal Error. must supply options.account');
   }
 
   if (tx.TransactionType !== 'Payment') {
-    if (callback !== undefined) {
-      callback(new Error('Not a payment. The transaction corresponding to '
-        + 'the given identifier is not a payment.'));
-    }
-    return;
+    throw new Error('Not a payment. The transaction corresponding to '
+                    + 'the given identifier is not a payment.');
   }
 
   if (tx.meta !== undefined && tx.meta.TransactionResult !== undefined) {
     if (tx.meta.TransactionResult === 'tejSecretInvalid') {
-      if (callback !== undefined) {
-        callback(new Error('Invalid secret provided.'));
-      }
-      return;
+      throw new Error('Invalid secret provided.');
     }
   }
 
@@ -112,10 +89,11 @@ TxToRestConverter.prototype.parsePaymentFromTx =
   }
 
   var balanceChanges = tx.meta ?
-    renameCounterpartyToIssuer(parseBalanceChanges(tx.meta)) : [];
+    renameCounterpartyToIssuerInBalanceChanges(
+      parseBalanceChanges(tx.meta)) : [];
 
   var order_changes = tx.meta ?
-    renameCounterpartyToIssuer(
+    renameCounterpartyToIssuerInOrderChanges(
       parseOrderBookChanges(tx.meta))[options.account] : [];
 
   var source_amount = tx.SendMax ?
@@ -188,8 +166,8 @@ TxToRestConverter.prototype.parsePaymentFromTx =
         tx.Amount));
   }
 
-  callback(null, payment);
-};
+  return payment;
+}
 
 /**
  *  Convert an OfferCreate or OfferCancel transaction in rippled tx format
@@ -204,79 +182,74 @@ TxToRestConverter.prototype.parsePaymentFromTx =
  *                                      transaction or an Error
  */
 
-TxToRestConverter.prototype.parseOrderFromTx = function(tx, options) {
-  return new Promise(function(resolve, reject) {
-    if (!options.account) {
-      reject(new Error('Internal Error. must supply options.account'));
+function parseOrderFromTx(tx, options) {
+  if (!options.account) {
+    throw new Error('Internal Error. must supply options.account');
+  }
+  if (tx.TransactionType !== 'OfferCreate'
+      && tx.TransactionType !== 'OfferCancel') {
+    throw new Error('Invalid parameter: identifier. The transaction '
+      + 'corresponding to the given identifier is not an order');
+  }
+  if (tx.meta !== undefined && tx.meta.TransactionResult !== undefined) {
+    if (tx.meta.TransactionResult === 'tejSecretInvalid') {
+      throw new Error('Invalid secret provided.');
     }
-    if (tx.TransactionType !== 'OfferCreate'
-        && tx.TransactionType !== 'OfferCancel') {
-      reject(new Error('Invalid parameter: identifier. The transaction '
-        + 'corresponding to the given identifier is not an order'));
-    }
-    if (tx.meta !== undefined && tx.meta.TransactionResult !== undefined) {
-      if (tx.meta.TransactionResult === 'tejSecretInvalid') {
-        reject(new Error('Invalid secret provided.'));
-      }
-    }
+  }
 
-    var order;
-    var flags = TxToRestConverter.prototype.parseFlagsFromResponse(tx.flags,
-      OfferCreateFlags);
-    var action = tx.TransactionType === 'OfferCreate'
-      ? 'order_create' : 'order_cancel';
-    var balance_changes = tx.meta
-      ? parseBalanceChanges(tx.meta)[options.account] || [] : [];
-    var timestamp = tx.date
-      ? new Date(ripple.utils.toTimestamp(tx.date)).toISOString() : '';
-    var order_changes = tx.meta ?
-      parseOrderBookChanges(tx.meta)[options.account] : [];
+  var order;
+  var flags = parseFlagsFromResponse(tx.flags, constants.OfferCreateFlags);
+  var action = tx.TransactionType === 'OfferCreate'
+    ? 'order_create' : 'order_cancel';
+  var balance_changes = tx.meta
+    ? parseBalanceChanges(tx.meta)[options.account] || [] : [];
+  var timestamp = tx.date
+    ? new Date(ripple.utils.toTimestamp(tx.date)).toISOString() : '';
+  var order_changes = tx.meta ?
+    parseOrderBookChanges(tx.meta)[options.account] : [];
 
-    var direction;
-    if (options.account === tx.Account) {
-      direction = 'outgoing';
-    } else if (balance_changes.length && order_changes.length) {
-      direction = 'incoming';
-    } else {
-      direction = 'passthrough';
-    }
+  var direction;
+  if (options.account === tx.Account) {
+    direction = 'outgoing';
+  } else if (balance_changes.length && order_changes.length) {
+    direction = 'incoming';
+  } else {
+    direction = 'passthrough';
+  }
 
-    if (action === 'order_create') {
-      order = {
-        account: tx.Account,
-        taker_pays: utils.parseCurrencyAmount(tx.TakerPays),
-        taker_gets: utils.parseCurrencyAmount(tx.TakerGets),
-        passive: flags.passive,
-        immediate_or_cancel: flags.immediate_or_cancel,
-        fill_or_kill: flags.fill_or_kill,
-        type: flags.sell ? 'sell' : 'buy',
-        sequence: tx.Sequence
-      };
-    } else {
-      order = {
-        account: tx.Account,
-        type: 'cancel',
-        sequence: tx.Sequence,
-        cancel_sequence: tx.OfferSequence
-      };
-    }
+  if (action === 'order_create') {
+    order = {
+      account: tx.Account,
+      taker_pays: utils.parseCurrencyAmount(tx.TakerPays),
+      taker_gets: utils.parseCurrencyAmount(tx.TakerGets),
+      passive: flags.passive,
+      immediate_or_cancel: flags.immediate_or_cancel,
+      fill_or_kill: flags.fill_or_kill,
+      type: flags.sell ? 'sell' : 'buy',
+      sequence: tx.Sequence
+    };
+  } else {
+    order = {
+      account: tx.Account,
+      type: 'cancel',
+      sequence: tx.Sequence,
+      cancel_sequence: tx.OfferSequence
+    };
+  }
 
-    resolve({
-      hash: tx.hash,
-      ledger: tx.ledger_index,
-      validated: tx.validated,
-      timestamp: timestamp,
-      fee: utils.dropsToXrp(tx.Fee),
-      action: action,
-      direction: direction,
-      order: order,
-      balance_changes: balance_changes,
-      order_changes: order_changes || []
-    });
-  });
-};
-
-// Paths
+  return {
+    hash: tx.hash,
+    ledger: tx.ledger_index,
+    validated: tx.validated,
+    timestamp: timestamp,
+    fee: utils.dropsToXrp(tx.Fee),
+    action: action,
+    direction: direction,
+    order: order,
+    balance_changes: balance_changes,
+    order_changes: order_changes || []
+  };
+}
 
 /**
  *  Convert the pathfind results returned from rippled into an
@@ -293,12 +266,9 @@ TxToRestConverter.prototype.parseOrderFromTx = function(tx, options) {
  *
  *  @returns {Array of Payments} payments
  */
-TxToRestConverter.prototype.parsePaymentsFromPathFind =
-    function(pathfindResults, callback) {
-  var payments = [];
-
-  pathfindResults.alternatives.forEach(function(alternative) {
-    var payment = {
+function parsePaymentsFromPathFind(pathfindResults) {
+  return pathfindResults.alternatives.map(function(alternative) {
+    return {
       source_account: pathfindResults.source_account,
       source_tag: '',
       source_amount: (typeof alternative.source_amount === 'string' ?
@@ -334,37 +304,21 @@ TxToRestConverter.prototype.parsePaymentsFromPathFind =
       partial_payment: false,
       no_direct_ripple: false
     };
-
-    payments.push(payment);
   });
+}
 
-  callback(null, payments);
-};
-
-TxToRestConverter.prototype.parseCancelOrderFromTx =
-    function(message, meta, callback) {
-  var result = {
-    order: {}
-  };
-
-  _.extend(result.order, {
+function parseOrderCancellationResponse(message, meta) {
+  var order = {
     account: message.tx_json.Account,
     fee: utils.dropsToXrp(message.tx_json.Fee),
     offer_sequence: message.tx_json.OfferSequence,
     sequence: message.tx_json.Sequence
-  });
-  _.extend(result, meta);
-
-  callback(null, result);
-};
-
-TxToRestConverter.prototype.parseSubmitOrderFromTx =
-    function(message, meta, callback) {
-  var result = {
-    order: {}
   };
+  return _.assign({order: order}, meta);
+}
 
-  _.extend(result.order, {
+function parseOrderResponse(message, meta) {
+  var order = {
     account: message.tx_json.Account,
     taker_gets: utils.parseCurrencyAmount(message.tx_json.TakerGets),
     taker_pays: utils.parseCurrencyAmount(message.tx_json.TakerPays),
@@ -372,94 +326,50 @@ TxToRestConverter.prototype.parseSubmitOrderFromTx =
     type: (message.tx_json.Flags & ripple.Transaction.flags.OfferCreate.Sell)
       > 0 ? 'sell' : 'buy',
     sequence: message.tx_json.Sequence
-  });
-
-  _.extend(result, meta);
-
-  callback(null, result);
-};
-
-// Trustlines
-
-var TrustSetResponseFlags = {
-  NoRipple: {name: 'prevent_rippling',
-    value: ripple.Transaction.flags.TrustSet.NoRipple},
-  SetFreeze: {name: 'account_trustline_frozen',
-    value: ripple.Transaction.flags.TrustSet.SetFreeze},
-  SetAuth: {name: 'authorized',
-    value: ripple.Transaction.flags.TrustSet.SetAuth}
-};
-
-TxToRestConverter.prototype.parseTrustResponseFromTx =
-    function(message, meta, callback) {
-  var result = {
-    trustline: {}
   };
-  var line = message.tx_json.LimitAmount;
-  var parsedFlags = TxToRestConverter.prototype.parseFlagsFromResponse(
-    message.tx_json.Flags, TrustSetResponseFlags);
+  return _.assign({order: order}, meta);
+}
 
-  _.extend(result.trustline, {
+function parseTrustLineResponse(message, meta) {
+  var limit = message.tx_json.LimitAmount;
+  var parsedFlags = parseFlagsFromResponse(message.tx_json.Flags,
+    constants.TrustSetResponseFlags);
+  var trustline = {
     account: message.tx_json.Account,
-    limit: line.value,
-    currency: line.currency,
-    counterparty: line.issuer,
+    limit: limit.value,
+    currency: limit.currency,
+    counterparty: limit.issuer,
     account_allows_rippling: !parsedFlags.prevent_rippling,
     account_trustline_frozen: parsedFlags.account_trustline_frozen,
     authorized: parsedFlags.authorized ? parsedFlags.authorized : undefined
-  });
-  _.extend(result, meta);
-
-  callback(null, result);
-};
-
-// Settings
-
-
-TxToRestConverter.prototype.parseSettingsResponseFromTx =
-    function(settings, message, meta, callback) {
-  var result = {
-    settings: {}
   };
+  return _.assign({trustline: trustline}, meta);
+}
 
+function parseSettingsResponse(settings, message, meta) {
+  var _settings = {};
   for (var flagName in constants.AccountSetIntFlags) {
     var flag = constants.AccountSetIntFlags[flagName];
-    result.settings[flag.name] = settings[flag.name];
+    _settings[flag.name] = settings[flag.name];
   }
 
   for (var fieldName in constants.AccountRootFields) {
     var field = constants.AccountRootFields[fieldName];
-    result.settings[field.name] = settings[field.name];
+    _settings[field.name] = settings[field.name];
   }
 
-  _.extend(result.settings, TxToRestConverter.prototype.parseFlagsFromResponse(
-    message.tx_json.Flags, constants.AccountSetResponseFlags));
-  _.extend(result, meta);
+  _.assign(_settings, parseFlagsFromResponse(message.tx_json.Flags,
+    constants.AccountSetResponseFlags));
+  return _.assign({settings: _settings}, meta);
+}
 
-  callback(null, result);
+module.exports = {
+  parsePaymentFromTx: parsePaymentFromTx,
+  parsePaymentsFromPathFind: parsePaymentsFromPathFind,
+  parseOrderFromTx: parseOrderFromTx,
+  parseCancelOrderFromTx: parseOrderCancellationResponse,
+  parseSubmitOrderFromTx: parseOrderResponse,
+  parseTrustResponseFromTx: parseTrustLineResponse,
+  parseSettingsResponseFromTx: parseSettingsResponse,
+  parseFlagsFromResponse: parseFlagsFromResponse
 };
-
-// Utilities
-
-/**
- *  Helper that parses bit flags from ripple response
- *
- *  @param {Number} responseFlags - Integer flag on the ripple response
- *  @param {Object} flags - Object with parameter name and bit flag value pairs
- *
- *  @returns {Object} parsedFlags - Object with parameter name and boolean
- *                                  flags depending on response flag
- */
-TxToRestConverter.prototype.parseFlagsFromResponse =
-    function(responseFlags, flags) {
-  var parsedFlags = {};
-
-  for (var flagName in flags) {
-    var flag = flags[flagName];
-    parsedFlags[flag.name] = Boolean(responseFlags & flag.value);
-  }
-
-  return parsedFlags;
-};
-
-module.exports = new TxToRestConverter();
