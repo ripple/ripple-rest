@@ -33,17 +33,29 @@ suite('prepare trustLine', function() {
     testutils.withDeterministicPRNG(function(_done) {
       self.app
         .post(fixtures.requestPath(addresses.VALID, '?submit=false'))
-        .send({
-          secret: addresses.SECRET,
-          trustline: {
-            limit: '1',
-            currency: 'USD',
-            counterparty: addresses.COUNTERPARTY
-          }
-        })
+        .send(fixtures.prepareTrustLineRequest)
         .expect(testutils.checkStatus(201))
         .expect(testutils.checkHeaders)
         .expect(testutils.checkBody(fixtures.prepareTrustLineResponse))
+        .end(_done);
+    }, done);
+  });
+
+  test('USD with COUNTERPARTY -- no secret', function(done) {
+    self.wss.on('request_account_info', function(message, conn) {
+      assert.strictEqual(message.command, 'account_info');
+      assert.strictEqual(message.account, addresses.VALID);
+      conn.send(fixtures.accountInfoResponse(message));
+    });
+
+    testutils.withDeterministicPRNG(function(_done) {
+      self.app
+        .post(fixtures.requestPath(addresses.VALID, '?submit=false'))
+        .send(_.omit(fixtures.prepareTrustLineRequest, 'secret'))
+        .expect(testutils.checkStatus(201))
+        .expect(testutils.checkHeaders)
+        .expect(testutils.checkBody(testutils.withoutSigning(
+          fixtures.prepareTrustLineResponse)))
         .end(_done);
     }, done);
   });

@@ -1,5 +1,6 @@
 /* eslint-disable new-cap */
 'use strict';
+var _ = require('lodash');
 var assert = require('assert');
 var ripple = require('ripple-lib');
 var testutils = require('./testutils');
@@ -12,7 +13,7 @@ suite('prepare settings', function() {
   setup(testutils.setup.bind(self));
   teardown(testutils.teardown.bind(self));
 
-  test('/accounts/:account/settings?submit=false', function(done) {
+  test('set domain', function(done) {
     self.wss.on('request_account_info', function(message, conn) {
       assert.strictEqual(message.command, 'account_info');
       assert.strictEqual(message.account, addresses.VALID);
@@ -22,16 +23,29 @@ suite('prepare settings', function() {
     testutils.withDeterministicPRNG(function(_done) {
       self.app
         .post(fixtures.requestPath(addresses.VALID, '?submit=false'))
-        .send({
-          secret: addresses.SECRET,
-          settings: {
-            domain: 'ripple.com'
-          },
-          last_ledger_offset: '100'
-        })
+        .send(fixtures.prepareSettingsRequest)
         .expect(testutils.checkStatus(200))
         .expect(testutils.checkHeaders)
         .expect(testutils.checkBody(fixtures.prepareSettingsResponse))
+        .end(_done);
+    }, done);
+  });
+
+  test('set domain -- no secret', function(done) {
+    self.wss.on('request_account_info', function(message, conn) {
+      assert.strictEqual(message.command, 'account_info');
+      assert.strictEqual(message.account, addresses.VALID);
+      conn.send(fixtures.accountInfoResponse(message));
+    });
+
+    testutils.withDeterministicPRNG(function(_done) {
+      self.app
+        .post(fixtures.requestPath(addresses.VALID, '?submit=false'))
+        .send(_.omit(fixtures.prepareSettingsRequest, 'secret'))
+        .expect(testutils.checkStatus(200))
+        .expect(testutils.checkHeaders)
+        .expect(testutils.checkBody(testutils.withoutSigning(
+          fixtures.prepareSettingsResponse)))
         .end(_done);
     }, done);
   });

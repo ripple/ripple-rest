@@ -167,6 +167,12 @@ function closeLedgers(conn) {
   }
 }
 
+function withoutSigning(response) {
+  var result = _.omit(JSON.parse(response), ['tx_blob', 'hash']);
+  result.tx_json = _.omit(result.tx_json, ['SigningPubKey', 'TxnSignature']);
+  return JSON.stringify(result);
+}
+
 module.exports = {
   setup: setup,
   teardown: teardown,
@@ -179,6 +185,7 @@ module.exports = {
   getSignURL: getSignURL,
   getSubmitURL: getSubmitURL,
   withDeterministicPRNG: withDeterministicPRNG,
+  withoutSigning: withoutSigning,
   dumpBody: dumpBody
 };
 
