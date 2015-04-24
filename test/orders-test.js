@@ -25,7 +25,7 @@ var LEDGER = 9592219;
 var LEDGER_HASH =
   'FD22E2A8D665A01711C0147173ECC0A32466BA976DE697E95197933311267BE8';
 
-suite('prepareOrder', function() {
+suite('prepare order', function() {
   var self = this;
   setup(testutils.setup.bind(self));
   teardown(testutils.teardown.bind(self));
@@ -37,35 +37,41 @@ suite('prepareOrder', function() {
       conn.send(fixtures.accountInfoResponse(message));
     });
 
-    self.app
-      .post(testutils.getPrepareURL('order'))
-      .send(fixtures.prepareOrderRequest)
-      .expect(testutils.checkStatus(200))
-      .expect(testutils.checkHeaders)
-      .expect(testutils.checkBody(fixtures.prepareOrderResponse))
-      .end(done);
+    testutils.withDeterministicPRNG(function(_done) {
+      self.app
+        .post('/v1/accounts/' + addresses.VALID + '/orders?submit=false')
+        .send(fixtures.order())
+        .expect(testutils.checkStatus(200))
+        .expect(testutils.checkHeaders)
+        .expect(testutils.checkBody(fixtures.prepareOrderResponse))
+        .end(_done);
+    }, done);
   });
 });
 
-suite('prepareOrderCancellation', function() {
+suite('prepare order cancellation', function() {
   var self = this;
   setup(testutils.setup.bind(self));
   teardown(testutils.teardown.bind(self));
 
-  test('/transaction/prepare/ordercancellation', function(done) {
+  test('order sequence 99', function(done) {
     self.wss.on('request_account_info', function(message, conn) {
       assert.strictEqual(message.command, 'account_info');
       assert.strictEqual(message.account, addresses.VALID);
       conn.send(fixtures.accountInfoResponse(message));
     });
 
-    self.app
-      .post(testutils.getPrepareURL('ordercancellation'))
-      .send(fixtures.prepareOrderCancellationRequest)
-      .expect(testutils.checkStatus(200))
-      .expect(testutils.checkHeaders)
-      .expect(testutils.checkBody(fixtures.prepareOrderCancellationResponse))
-      .end(done);
+    testutils.withDeterministicPRNG(function(_done) {
+      self.app
+        .del('/v1/accounts/' + addresses.VALID + '/orders/99?submit=false')
+        .send({
+          secret: addresses.SECRET
+        })
+        .expect(testutils.checkStatus(200))
+        .expect(testutils.checkHeaders)
+        .expect(testutils.checkBody(fixtures.prepareOrderCancellationResponse))
+        .end(_done);
+    }, done);
   });
 });
 

@@ -161,7 +161,7 @@ function getOrders(account, options, callback) {
  */
 function placeOrder(account, order, secret, options, callback) {
   var transaction = createOrderTransaction(account, order);
-  var converter = asyncify(TxToRestConverter.parseSubmitOrderFromTx);
+  var converter = TxToRestConverter.parseSubmitOrderFromTx;
   transact(transaction, this, secret, options, converter, callback);
 }
 
@@ -179,7 +179,7 @@ function placeOrder(account, order, secret, options, callback) {
  */
 function cancelOrder(account, sequence, secret, options, callback) {
   var transaction = createOrderCancellationTransaction(account, sequence);
-  var converter = asyncify(TxToRestConverter.parseCancelOrderFromTx);
+  var converter = TxToRestConverter.parseCancelOrderFromTx;
   transact(transaction, this, secret, options, converter, callback);
 }
 

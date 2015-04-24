@@ -5,10 +5,6 @@ var validator = require('./schema-validator');
 var ripple = require('ripple-lib');
 var utils = require('./utils');
 
-function isBoolean(value) {
-  return (value === true || value === false);
-}
-
 function error(text) {
   return new InvalidRequestError(text);
 }
@@ -511,6 +507,9 @@ function validateOptions(options) {
   if (options.fixed_fee !== undefined) {
     validateNonNegativeStringFloat(options.fixed_fee, 'fixed_fee');
   }
+  if (options.max_fee !== undefined && options.fixed_fee !== undefined) {
+    throw error('"max_fee" and "fixed_fee" are mutually exclusive options');
+  }
   if (options.last_ledger_sequence !== undefined) {
     validateNonNegativeStringInteger(options.last_ledger_sequence,
       'last_ledger_sequence');
@@ -518,6 +517,11 @@ function validateOptions(options) {
   if (options.last_ledger_offset !== undefined) {
     validateNonNegativeStringInteger(options.last_ledger_offset,
       'last_ledger_offset');
+  }
+  if (options.last_ledger_sequence !== undefined
+      && options.last_ledger_offset !== undefined) {
+    throw error('"last_ledger_sequence" and "last_ledger_offset" are'
+                + ' mutually exclusive options');
   }
   if (options.sequence !== undefined) {
     validateNonNegativeStringInteger(options.sequence, 'sequence');
@@ -528,11 +532,11 @@ function validateOptions(options) {
   if (options.ledger !== undefined) {
     validateLedger(options.ledger);
   }
-  if (options.validated !== undefined && !isBoolean(options.validated)) {
-    throw error('validated must be boolean, not: ' + options.validated);
+  if (options.validated !== undefined && !_.isBoolean(options.validated)) {
+    throw error('"validated" must be boolean, not: ' + options.validated);
   }
-  if (options.submit !== undefined && !isBoolean(options.submit)) {
-    throw error('submit must be boolean, not: ' + options.submit);
+  if (options.submit !== undefined && !_.isBoolean(options.submit)) {
+    throw error('"submit" must be boolean, not: ' + options.submit);
   }
   validatePaging(options);
 }

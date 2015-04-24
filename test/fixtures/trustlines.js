@@ -757,20 +757,18 @@ module.exports.setTrustValidatedResponse = function(options) {
   });
 };
 
-module.exports.prepareTrustLineRequest = {
-  address: addresses.VALID,
-  trustline: {
-    limit: '1',
-    currency: 'USD',
-    counterparty: addresses.COUNTERPARTY
-  },
-  instructions: {
-    lastLedgerOffset: 100
-  }
-};
-
 module.exports.prepareTrustLineResponse = JSON.stringify({
   success: true,
+  tx_blob: '12001422000000002400000B7A201B008694F363D4838D7EA4C6800000000000000000000000000055534400000000000A20B3C85F482532A9578DBB3950B85CA06594D168400000000000000C732102F89EAEC7667B30F33D0687BBA86C3FE2A08CCA40A9186C5BDE2DAA6FA97A37D87446304402207660BDEF67105CE1EBA9AD35DC7156BAB43FF1D47633199EE257D70B6B9AAFBF022024CE57C7C2EB48CD7D98B14B5BBDAC00A8255D17B76EA74C8B1D263C23CF07FB81144FBFF73DA4ECF9B701940F27341FA8020C313443',
+  hash: '3F3B6473840166D5D6EFC9D7F316B635DACB5F0EF723B25E02657CF9D3DDC8FF',
+  trustline: {
+    account: 'r3GgMwvgvP8h4yVWvjH1dPZNvC37TjzBBE',
+    limit: '1',
+    currency: 'USD',
+    counterparty: 'rvYAfWj5gh67oV6fW32ZzP3Aw4Eubs59B',
+    account_allows_rippling: true,
+    account_trustline_frozen: false
+  },
   tx_json: {
     Flags: 0,
     TransactionType: 'TrustSet',
@@ -782,6 +780,8 @@ module.exports.prepareTrustLineResponse = JSON.stringify({
     },
     LastLedgerSequence: 8819955,
     Fee: '12',
-    Sequence: 2938
+    Sequence: 2938,
+    SigningPubKey: '02F89EAEC7667B30F33D0687BBA86C3FE2A08CCA40A9186C5BDE2DAA6FA97A37D8',
+    TxnSignature: '304402207660BDEF67105CE1EBA9AD35DC7156BAB43FF1D47633199EE257D70B6B9AAFBF022024CE57C7C2EB48CD7D98B14B5BBDAC00A8255D17B76EA74C8B1D263C23CF07FB'
   }
 });

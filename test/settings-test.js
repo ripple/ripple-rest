@@ -22,7 +22,13 @@ suite('prepare settings', function() {
     testutils.withDeterministicPRNG(function(_done) {
       self.app
         .post(fixtures.requestPath(addresses.VALID, '?submit=false'))
-        .send(fixtures.prepareSettingsRequest)
+        .send({
+          secret: addresses.SECRET,
+          settings: {
+            domain: 'ripple.com'
+          },
+          last_ledger_offset: '100'
+        })
         .expect(testutils.checkStatus(200))
         .expect(testutils.checkHeaders)
         .expect(testutils.checkBody(fixtures.prepareSettingsResponse))
