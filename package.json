@@ -3,9 +3,9 @@
   "version": "1.6.0",
   "description": "A RESTful API for submitting payments and monitoring accounts on the Ripple network.",
   "scripts": {
-    "test": "NODE_ENV=test ./node_modules/.bin/istanbul test ./node_modules/.bin/_mocha -- --ui tdd --reporter spec --timeout 10000 --slow 500 test/*-test.js test/unit/*-test.js",
+    "test": "NODE_ENV=test istanbul test _mocha",
     "start": "node server/server.js",
-    "coveralls": "cat ./coverage/lcov.info | ./node_modules/.bin/coveralls"
+    "coveralls": "cat coverage/lcov.info | coveralls"
   },
   "repository": {
     "type": "git",
@@ -41,19 +41,15 @@
     "ripple-lib-transactionparser": "^0.3.2",
     "simple-asyncify": "^0.1.0",
     "sqlite3": "^3.0.2",
-    "supertest": "^0.13.0",
     "winston": "^1.0.0"
   },
   "devDependencies": {
     "assert-diff": "^0.0.4",
-    "chai": "^1.10.0",
     "coveralls": "^2.10.0",
     "istanbul": "^0.2.10",
     "mocha": "^2.1.0",
     "npm-shrinkwrap": "^5.3",
-    "require-directory": "^1.2.0",
-    "sinon": "~1.10.0",
-    "sinon-chai": "^2.5.0",
+    "supertest": "^0.13.0",
     "ws": "^0.4.32"
   }
 }
