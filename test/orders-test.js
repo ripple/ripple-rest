@@ -1,7 +1,6 @@
 /* eslint-disable new-cap */
 /* eslint-disable max-len */
 'use strict';
-
 var _ = require('lodash');
 var assert = require('assert');
 var ripple = require('ripple-lib');
@@ -30,7 +29,7 @@ suite('prepare order', function() {
   setup(testutils.setup.bind(self));
   teardown(testutils.teardown.bind(self));
 
-  test('/transaction/prepare/order', function(done) {
+  test('100 USD for 100 USD', function(done) {
     self.wss.on('request_account_info', function(message, conn) {
       assert.strictEqual(message.command, 'account_info');
       assert.strictEqual(message.account, addresses.VALID);
@@ -44,6 +43,25 @@ suite('prepare order', function() {
         .expect(testutils.checkStatus(200))
         .expect(testutils.checkHeaders)
         .expect(testutils.checkBody(fixtures.prepareOrderResponse))
+        .end(_done);
+    }, done);
+  });
+
+  test('100 USD for 100 USD -- no secret', function(done) {
+    self.wss.on('request_account_info', function(message, conn) {
+      assert.strictEqual(message.command, 'account_info');
+      assert.strictEqual(message.account, addresses.VALID);
+      conn.send(fixtures.accountInfoResponse(message));
+    });
+
+    testutils.withDeterministicPRNG(function(_done) {
+      self.app
+        .post('/v1/accounts/' + addresses.VALID + '/orders?submit=false')
+        .send(_.omit(fixtures.order(), 'secret'))
+        .expect(testutils.checkStatus(200))
+        .expect(testutils.checkHeaders)
+        .expect(testutils.checkBody(testutils.withoutSigning(
+          fixtures.prepareOrderResponse)))
         .end(_done);
     }, done);
   });
@@ -70,6 +88,25 @@ suite('prepare order cancellation', function() {
         .expect(testutils.checkStatus(200))
         .expect(testutils.checkHeaders)
         .expect(testutils.checkBody(fixtures.prepareOrderCancellationResponse))
+        .end(_done);
+    }, done);
+  });
+
+  test('order sequence 99 -- no secret', function(done) {
+    self.wss.on('request_account_info', function(message, conn) {
+      assert.strictEqual(message.command, 'account_info');
+      assert.strictEqual(message.account, addresses.VALID);
+      conn.send(fixtures.accountInfoResponse(message));
+    });
+
+    testutils.withDeterministicPRNG(function(_done) {
+      self.app
+        .del('/v1/accounts/' + addresses.VALID + '/orders/99?submit=false')
+        .send({})
+        .expect(testutils.checkStatus(200))
+        .expect(testutils.checkHeaders)
+        .expect(testutils.checkBody(testutils.withoutSigning(
+          fixtures.prepareOrderCancellationResponse)))
         .end(_done);
     }, done);
   });

@@ -26,14 +26,29 @@ suite('prepare payment', function() {
     testutils.withDeterministicPRNG(function(_done) {
       self.app
         .post('/v1/accounts/' + addresses.VALID + '/payments?submit=false')
-        .send(_.omit(fixtures.payment({
-          value: '0.001',
-          currency: 'USD',
-          issuer: addresses.ISSUER
-        }), 'client_resource_id'))
+        .send(fixtures.preparePaymentRequest)
         .expect(testutils.checkStatus(200))
         .expect(testutils.checkHeaders)
         .expect(testutils.checkBody(fixtures.preparePaymentResponse))
+        .end(_done);
+    }, done);
+  });
+
+  test('0.001 USD -- no secret', function(done) {
+    self.wss.on('request_account_info', function(message, conn) {
+      assert.strictEqual(message.command, 'account_info');
+      assert.strictEqual(message.account, addresses.VALID);
+      conn.send(fixtures.accountInfoResponse(message));
+    });
+
+    testutils.withDeterministicPRNG(function(_done) {
+      self.app
+        .post('/v1/accounts/' + addresses.VALID + '/payments?submit=false')
+        .send(_.omit(fixtures.preparePaymentRequest, 'secret'))
+        .expect(testutils.checkStatus(200))
+        .expect(testutils.checkHeaders)
+        .expect(testutils.checkBody(testutils.withoutSigning(
+          fixtures.preparePaymentResponse)))
         .end(_done);
     }, done);
   });

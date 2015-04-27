@@ -1,6 +1,7 @@
 /* eslint-disable max-len */
 'use strict';
 var _ = require('lodash');
+var addresses = require('./addresses');
 
 var DEFAULTS = {
   require_destination_tag: true,
@@ -230,6 +231,14 @@ module.exports.RESTAccountSettingsSubmitResponse = function(options) {
     ledger: options.current_ledger.toString(),
     state: options.state
   });
+};
+
+module.exports.prepareSettingsRequest = {
+  secret: addresses.SECRET,
+  settings: {
+    domain: 'ripple.com'
+  },
+  last_ledger_offset: '100'
 };
 
 module.exports.prepareSettingsResponse = JSON.stringify({
