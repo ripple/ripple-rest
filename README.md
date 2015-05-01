@@ -52,6 +52,8 @@ We recommend Ripple-REST for users just getting started with Ripple, since it pr
 
 #### Utilities ####
 
+* [Sign Transaction - `POST /v1/transaction/sign`](#sign-transaction)
+* [Submit Transaction - `POST /v1/transaction/submit`](#submit-transaction)
 * [Retrieve Ripple Transaction - `GET /v1/transactions/{:id}`](#retrieve-ripple-transaction)
 * [Retrieve Transaction Fee - `GET /v1/transaction-fee`](#retrieve-transaction-fee)
 * [Generate UUID - `GET /v1/uuid`](#create-client-resource-id)
@@ -73,6 +75,36 @@ Payments are made between two accounts, by specifying the ___source___ and ___de
 When you make a payment in a currency other than XRP, you also need to include the Ripple address of the ___counterparty___.  The counterparty is the gateway or other entity who holds the funds on your behalf.  For non-XRP payments, the amount looks something like this: `100+USD+rNsJKf3kaxvFvR8RrDi9P3LBk2Zp6VL8mp`.
 
 Although the Ripple-REST API provides a high-level interface to Ripple, there are also API methods for checking the status of the `rippled` server and retrieving a Ripple transaction in its native format.
+
+### Transaction Flow ###
+
+First you submit a transaction by choosing the three-step, two-step, or one-step submission methods, then you verify the transaction. The steps are described below.
+
+#### Transaction Endpoints ####
+
+* [Submit Payment - `POST /v1/accounts/{:source_address}/payments`](#submit-payment)
+* [Place Order - `POST /v1/accounts/{:address}/orders`](#place-order)
+* [Cancel Order - `DELETE /v1/accounts/{:address}/orders/{:sequence}`](#cancel-order)
+* [Grant Trustline - `POST /v1/accounts/{:address}/trustlines`](#grant-trustline)
+* [Update Account Settings - `POST /v1/accounts/{:address}/settings`](#update-account-settings)
+
+#### Three-step Submission ####
+1. Create a transaction with one of the transaction endpoints using the `submit=false` query parameter and omit the `secret` in the request.
+2. Sign the transaction by sending the `tx_json` from the response of step 1 and the `secret` to the [`sign`](#sign-transaction) endpoint.
+  * Persist the transaction `hash` before step 3.
+3. Submit the transaction by sending the `tx_blob` from the response of step 2 to the [`submit`](#submit-transaction) endpoint.
+
+#### Two-step Submission ####
+1. Create a transaction with one of the transaction endpoints using the `submit=false` query parameter and include the `secret` in the request.
+  * Persist the transaction `hash` before step 2.
+2. Submit the transaction by sending the `tx_blob` from the response of step 1 to the [`submit`](#submit-transaction) endpoint.
+
+#### One-step Submission ####
+1. Create and submit a transaction using one of the transaction endpoints without the `submit=false` query parameter. For payments, you must include a `client_resource_id`. For other transaction types, this method should not be used because there is no simple way to verify the transaction.
+
+#### Post-submission Transaction Verification ####
+A submitted transaction is not valid until it is accepted into a validated ledger, so even if the submission succeeds, the transaction may never become validated. To verify a transaction, access the [`transactions`](#retrieve-ripple-transaction) endpoint with the persisted transaction `hash`. You may also use the [`notifications`](#check-notification) endpoint.
+
 
 ### Sending Payments ###
 
@@ -792,6 +824,7 @@ Optionally, you can include the following as a URL query parameter:
 | Field     | Type    | Description |
 |-----------|---------|-------------|
 | validated | Boolean | If `true`, the server waits to respond until the account transaction has been successfully validated by the network. A validated transaction has `state` field of the response set to `"validated"`. |
+| submit | Boolean | If `false`, the server will not submit the transaction to the network and instead return the following additional fields in the response: `tx_json`, `tx_blob`, and `hash`. In this mode, `secret` is optional. If `secret` is not provided, `tx_blob` and `hash` will not be in the response. |
 
 __DO NOT SUBMIT YOUR SECRET TO AN UNTRUSTED REST API SERVER__ -- The secret key can be used to send transactions from your account, including spending all the balances it holds. For the public server, only use test accounts.
 
@@ -1011,6 +1044,7 @@ Optionally, you can include the following as a URL query parameter:
 | Field | Type | Description |
 |-------|------|-------------|
 | validated | Boolean | If `true`, the server waits to respond until the payment has been successfully validated by the network and returns the payment object. Otherwise, the server responds immediately with a message indicating that the transaction was received for processing. |
+| submit | Boolean | If `false`, the server will not submit the transaction to the network and instead return the following additional fields in the response: `tx_json`, `tx_blob`, and `hash`. In this mode, `secret` is optional. If `secret` is not provided, `tx_blob` and `hash` will not be in the response. |
 
 
 #### Response ####
@@ -1290,6 +1324,7 @@ Optionally, you can include the following as a URL query parameter:
 | Field | Type | Description |
 |-------|------|-------------|
 | validated | String | `true` or `false`. When set to `true`, will force the request to wait until the trustline transaction has been successfully validated by the server. A validated transaction will have the `state` attribute set to `"validated"` in the response. |
+| submit | Boolean | If `false`, the server will not submit the transaction to the network and instead return the following additional fields in the response: `tx_json`, `tx_blob`, and `hash`. In this mode, `secret` is optional. If `secret` is not provided, `tx_blob` and `hash` will not be in the response. |
 
 __DO NOT SUBMIT YOUR SECRET TO AN UNTRUSTED REST API SERVER__ -- The secret key can be used to send transactions from your account, including spending all the balances it holds. For the public server, only use test accounts.
 
@@ -1360,6 +1395,7 @@ Optionally, you can include the following as a URL query parameter:
 | Field | Type | Description |
 |-------|------|-------------|
 | validated | String | `true` or `false`. When set to `true`, will force the request to wait until the trustline transaction has been successfully validated by the server. A validated transaction will have the `state` attribute set to `"validated"` in the response. |
+| submit | Boolean | If `false`, the server will not submit the transaction to the network and instead return the following additional fields in the response: `tx_json`, `tx_blob`, and `hash`. In this mode, `secret` is optional. If `secret` is not provided, `tx_blob` and `hash` will not be in the response. |
 
 __DO NOT SUBMIT YOUR SECRET TO AN UNTRUSTED REST API SERVER__ -- The secret key can be used to send transactions from your account, including spending all the balances it holds. For the public server, only use test accounts.
 
@@ -1994,6 +2030,7 @@ Optionally, you can include the following as a URL query parameter:
 | Field | Type | Description |
 |-------|------|-------------|
 | validated | String | `true` or `false`. When set to `true`, will force the request to wait until the trustline transaction has been successfully validated by the server. A validated transaction will have the `state` attribute set to `"validated"` in the response. |
+| submit | Boolean | If `false`, the server will not submit the transaction to the network and instead return the following additional fields in the response: `tx_json`, `tx_blob`, and `hash`. In this mode, `secret` is optional. If `secret` is not provided, `tx_blob` and `hash` will not be in the response. |
 
 __DO NOT SUBMIT YOUR SECRET TO AN UNTRUSTED REST API SERVER__ -- The secret key can be used to send transactions from your account, including spending all the balances it holds. For the public server, only use test accounts.
 
@@ -2275,6 +2312,92 @@ The `rippled_server_status` object may have any of the following fields:
 
 
 # UTILITIES #
+
+## Sign Transaction ##
+[[Source]<br>](https://github.com/ripple/ripple-rest/blob/develop/api/transaction/sign.js#L50 "Source")
+
+Signs a Ripple transaction. You can subsequently submit the signed transaction to the Ripple network with the [`submit`](#submit-transaction) endpoint. You must persist the transaction `hash` before submitting so that you can verify the transaction.
+
+<!-- <div class='multicode'> -->
+
+<!-- *REST* -->
+
+```
+POST /v1/transaction/sign
+```
+
+<!-- </div> -->
+
+[Try it! >](https://ripple.com/build/rest-tool#sign-transaction)
+
+The following URL parameters are required by this API endpoint:
+
+| Field | Value | Description |
+|-------|-------|-------------|
+| tx_json | Object | A transaction object as returned by any of the [transaction endpoints](#transaction-endpoints) with the `?submit=false` query parameter |
+| secret | String | The Ripple secret for the account that is creating the transaction |
+
+#### Response ####
+
+The result is a JSON object, with a field `tx_blob` containing a signed transaction, and a field `hash` containing the transaction's hash.
+
+```js
+{
+  "success": true,
+  "tx_blob": "12000322000000002400000B7A201B0086955468400000000000000C732102F89EAEC7667B30F33D0687BBA86C3FE2A08CCA40A9186C5BDE2DAA6FA97A37D87446304402207660BDEF67105CE1EBA9AD35DC7156BAB43FF1D47633199EE257D70B6B9AAFBF022022A492002DC25C1C735458127FE195A24F362148536A11E48C04DBA515023B20770A726970706C652E636F6D81144FBFF73DA4ECF9B701940F27341FA8020C313443",
+  "hash": "69FFB0855771C08E611F1CF79211C03494D20718F1F90A8FC1E265D2ACAD2CA9"
+}
+```
+
+## Submit Transaction ##
+[[Source]<br>](https://github.com/ripple/ripple-rest/blob/develop/api/transaction/submit.js#L5 "Source")
+
+Submits a signed transaction to the Ripple Network.
+
+<!-- <div class='multicode'> -->
+
+<!-- *REST* -->
+
+```
+POST /v1/transaction/submit
+```
+
+<!-- </div> -->
+
+[Try it! >](https://ripple.com/build/rest-tool#submit-transaction)
+
+The following URL parameters are required by this API endpoint:
+
+| Field | Value | Description |
+|-------|-------|-------------|
+| tx_blob | String | A signed transaction as returned by any of the [transaction endpoints](#transaction-endpoints) with the `?submit=false` query parameter or the [`sign`](#sign-transaction) endpoint |
+
+#### Response ####
+
+The result is a JSON object, with a field `engine_result` containing the result of the submission. A successful submission means that the transaction is pending validation, it is not valid until it has been accepted into a validated ledger.
+
+```js
+{
+  "success": true,
+  "engine_result": "tesSUCCESS",
+  "engine_result_code": 0,
+  "engine_result_message": "The transaction was applied. Only final in a validated ledger.",
+  "tx_blob": "12000322000000002400000B7A201B0086961168400000000000000C732102F89EAEC7667B30F33D0687BBA86C3FE2A08CCA40A9186C5BDE2DAA6FA97A37D87446304402207660BDEF67105CE1EBA9AD35DC7156BAB43FF1D47633199EE257D70B6B9AAFBF0220723E54B026DF8C6FF19DC7CBEB6AB458C7D367B2BE42827E91CBA934143F2729770A726970706C652E636F6D81144FBFF73DA4ECF9B701940F27341FA8020C313443",
+  "tx_json": {
+    "Account": "r3GgMwvgvP8h4yVWvjH1dPZNvC37TjzBBE",
+    "Domain": "6162632E726970706C652E636F6D",
+    "Fee": "12",
+    "Flags": 0,
+    "LastLedgerSequence": 8820241,
+    "Sequence": 2938,
+    "SigningPubKey": "039371D0465097AC8F9C02EB60D5599AAD08AADBD623D6D40D642CF2D7C0481B83",
+    "TransactionType": "AccountSet",
+    "TxnSignature": "3045022100BD1C0F7A411773D84AEEBFE35749467C1EE6F815E9237FCA38850A2A3432AC300220064EDAB08B202685AEE3685E475D8008EC7349F80A021200B27475412C899454",
+    "hash": "3455FA783DE44EACAD2243C53EA243C96A32BB8A1EC96E8939C43CFAFED802A9"
+  }
+}
+```
+
 
 ## Retrieve Ripple Transaction ##
 [[Source]<br>](https://github.com/ripple/ripple-rest/blob/develop/api/transactions.js#L118 "Source")
