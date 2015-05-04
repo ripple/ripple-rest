@@ -14,7 +14,7 @@ suite('unit - database', function() {
   });
 
   test('saveTransaction() -- unsubmitted', function(done) {
-    dbinterface.saveTransaction(fixtures.unsubmittedTransaction).then(function() {
+    dbinterface.saveTransaction(fixtures.unsubmittedTransaction, function() {
       dbinterface.db(fixtures.tableName)
       .where({client_resource_id: fixtures.unsubmittedTransaction.clientID})
       .then(function(res) {
@@ -34,7 +34,7 @@ suite('unit - database', function() {
     });
   });
   test('saveTransaction() -- pending', function(done) {
-    dbinterface.saveTransaction(fixtures.pendingTransaction).then(function() {
+    dbinterface.saveTransaction(fixtures.pendingTransaction, function() {
       dbinterface.db(fixtures.tableName)
       .where({client_resource_id: fixtures.pendingTransaction.clientID})
       .then(function(res) {
@@ -54,7 +54,7 @@ suite('unit - database', function() {
     });
   });
   test('saveTransaction() -- validated', function(done) {
-    dbinterface.saveTransaction(fixtures.validatedTransaction).then(function() {
+    dbinterface.saveTransaction(fixtures.validatedTransaction, function() {
       dbinterface.db(fixtures.tableName)
       .where({client_resource_id: fixtures.validatedTransaction.clientID})
       .then(function(res) {
@@ -75,7 +75,7 @@ suite('unit - database', function() {
   });
   test('saveTransaction() -- changing state', function(done) {
     function saveUnsubmitted(callback) {
-      dbinterface.saveTransaction(fixtures.unsubmittedTransaction).then(function() {
+      dbinterface.saveTransaction(fixtures.unsubmittedTransaction, function() {
         dbinterface.db(fixtures.tableName)
         .where({client_resource_id: fixtures.unsubmittedTransaction.clientID})
         .then(function(res) {
@@ -95,7 +95,7 @@ suite('unit - database', function() {
       });
     }
     function savePending(callback) {
-      dbinterface.saveTransaction(fixtures.pendingTransaction).then(function() {
+      dbinterface.saveTransaction(fixtures.pendingTransaction, function() {
         dbinterface.db(fixtures.tableName)
         .where({client_resource_id: fixtures.pendingTransaction.clientID})
         .then(function(res) {
