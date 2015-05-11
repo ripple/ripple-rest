@@ -1,6 +1,7 @@
 /* eslint-disable new-cap */
 /* eslint-disable max-len */
 'use strict';
+var _ = require('lodash');
 var assert = require('assert-diff');
 var ripple = require('ripple-lib');
 var testutils = require('./testutils');
@@ -9,6 +10,49 @@ var errors = require('./fixtures').errors;
 var addresses = require('./fixtures').addresses;
 var utils = require('../api/lib/utils');
 var requestPath = fixtures.requestPath;
+
+suite('prepare payment', function() {
+  var self = this;
+  setup(testutils.setup.bind(self));
+  teardown(testutils.teardown.bind(self));
+
+  test('0.001 USD', function(done) {
+    self.wss.on('request_account_info', function(message, conn) {
+      assert.strictEqual(message.command, 'account_info');
+      assert.strictEqual(message.account, addresses.VALID);
+      conn.send(fixtures.accountInfoResponse(message));
+    });
+
+    testutils.withDeterministicPRNG(function(_done) {
+      self.app
+        .post('/v1/accounts/' + addresses.VALID + '/payments?submit=false')
+        .send(fixtures.preparePaymentRequest)
+        .expect(testutils.checkStatus(200))
+        .expect(testutils.checkHeaders)
+        .expect(testutils.checkBody(fixtures.preparePaymentResponse))
+        .end(_done);
+    }, done);
+  });
+
+  test('0.001 USD -- no secret', function(done) {
+    self.wss.on('request_account_info', function(message, conn) {
+      assert.strictEqual(message.command, 'account_info');
+      assert.strictEqual(message.account, addresses.VALID);
+      conn.send(fixtures.accountInfoResponse(message));
+    });
+
+    testutils.withDeterministicPRNG(function(_done) {
+      self.app
+        .post('/v1/accounts/' + addresses.VALID + '/payments?submit=false')
+        .send(_.omit(fixtures.preparePaymentRequest, 'secret'))
+        .expect(testutils.checkStatus(200))
+        .expect(testutils.checkHeaders)
+        .expect(testutils.checkBody(testutils.withoutSigning(
+          fixtures.preparePaymentResponse)))
+        .end(_done);
+    }, done);
+  });
+});
 
 suite('get payments', function() {
   var self = this;
@@ -711,7 +755,7 @@ suite('post payments', function() {
     .send(fixtures.payment({
       secret: 'foo'
     }))
-    .expect(testutils.checkStatus(500))
+    .expect(testutils.checkStatus(400))
     .expect(testutils.checkHeaders)
     .expect(testutils.checkBody(errors.RESTInvalidSecret))
     .end(done);
@@ -737,7 +781,7 @@ suite('post payments', function() {
       value: '0.001',
       currency: 'USD',
       issuer: addresses.issuer,
-      lastLedgerSequence: 9036185
+      lastLedgerSequence: '9036185'
     }))
     .expect(testutils.checkStatus(200))
     .expect(testutils.checkHeaders)

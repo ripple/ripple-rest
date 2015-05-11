@@ -3,16 +3,22 @@
 
 var _ = require('lodash');
 var async = require('async');
+var asyncify = require('simple-asyncify');
 var bignum = require('bignumber.js');
 var ripple = require('ripple-lib');
 var transactions = require('./transactions');
 var validator = require('./lib/schema-validator');
 var serverLib = require('./lib/server-lib');
 var utils = require('./lib/utils');
-var RestToTxConverter = require('./lib/rest-to-tx-converter.js');
 var TxToRestConverter = require('./lib/tx-to-rest-converter.js');
-var SubmitTransactionHooks = require('./lib/submit_transaction_hooks.js');
 var validate = require('./lib/validate');
+var convertAmount = require('./transaction/utils').convertAmount;
+var createPaymentTransaction =
+  require('./transaction').createPaymentTransaction;
+var renameCounterpartyToIssuer =
+  require('./lib/utils').renameCounterpartyToIssuer;
+var xrpToDrops = require('./transaction/utils').xrpToDrops;
+var transact = require('./transact');
 
 var errors = require('./lib/errors');
 var InvalidRequestError = errors.InvalidRequestError;
@@ -32,69 +38,23 @@ var DEFAULT_RESULTS_PER_PAGE = 10;
  * @param {Error} error
  * @param {RippleRestTransaction} transaction
  */
-function formatPaymentHelper(account, transaction, callback) {
-  function checkIsPayment(_callback) {
-    var isPayment = transaction
-                  && /^payment$/i.test(transaction.TransactionType);
-
-    if (isPayment) {
-      _callback(null, transaction);
-    } else {
-      _callback(new InvalidRequestError('Not a payment. The transaction '
-        + 'corresponding to the given identifier is not a payment.'));
-    }
+function formatPaymentHelper(account, txJSON) {
+  if (!(txJSON && /^payment$/i.test(txJSON.TransactionType))) {
+    throw new InvalidRequestError('Not a payment. The transaction '
+      + 'corresponding to the given identifier is not a payment.');
   }
-
-  function getPaymentMetadata(_transaction) {
-    var clientResourceID = _transaction.client_resource_id || '';
-    var hash = _transaction.hash || '';
-
-    var ledger = !_.isUndefined(transaction.inLedger) ?
-      String(_transaction.inLedger) : String(_transaction.ledger_index);
-
-    var state = _transaction.validated === true ? 'validated' : 'pending';
-
-    return {
-      client_resource_id: clientResourceID,
-      hash: hash,
-      ledger: ledger,
-      state: state
-    };
-  }
-
-  function formatTransaction(_transaction, _callback) {
-    if (_transaction) {
-      TxToRestConverter.parsePaymentFromTx(_transaction, {account: account},
-          function(err, parsedPayment) {
-        if (err) {
-          return _callback(err);
-        }
-
-        var result = {
-          payment: parsedPayment
-        };
-
-        _.extend(result, getPaymentMetadata(_transaction));
-
-        return _callback(null, result);
-      });
-    } else {
-      _callback(new NotFoundError('Payment Not Found. This may indicate that '
-        + 'the payment was never validated and written into the Ripple ledger '
-        + 'and it was not submitted through this ripple-rest instance. '
-        + 'This error may also be seen if the databases of either ripple-rest '
-        + 'or rippled were recently created or deleted.'));
-    }
-  }
-
-  var steps = [
-    checkIsPayment,
-    formatTransaction
-  ];
-
-  async.waterfall(steps, callback);
+  var metadata = {
+    client_resource_id: txJSON.client_resource_id || '',
+    hash: txJSON.hash || '',
+    ledger: String(!_.isUndefined(txJSON.inLedger) ?
+      txJSON.inLedger : txJSON.ledger_index),
+    state: txJSON.validated === true ? 'validated' : 'pending'
+  };
+  var message = {tx_json: txJSON};
+  var meta = txJSON.meta;
+  var parsed = TxToRestConverter.parsePaymentFromTx(account, message, meta);
+  return _.assign({payment: parsed.payment}, metadata);
 }
-
 
 /**
  * Submit a payment in the ripple-rest format.
@@ -119,95 +79,55 @@ function formatPaymentHelper(account, transaction, callback) {
  *          submitted transaction
  */
 function submitPayment(account, payment, clientResourceID, secret,
-    lastLedgerSequence, urlBase, options, callback) {
-  var self = this;
-  var max_fee = Number(options.max_fee) > 0 ?
-    utils.xrpToDrops(options.max_fee) : undefined;
-  var fixed_fee = Number(options.fixed_fee) > 0 ?
-    utils.xrpToDrops(options.fixed_fee) : undefined;
+    urlBase, options, callback) {
 
-  var params = {
-    secret: secret,
-    validated: options.validated,
-    clientResourceId: clientResourceID,
-    blockDuplicates: true,
-    saveTransaction: true
-  };
-
-  validate.client_resource_id(clientResourceID);
-  // TODO: validate.addressAndSecret({address: account, secret: secret});
-  validate.address(account);
-  validate.payment(payment);
-  validate.last_ledger_sequence(lastLedgerSequence, true);
-  validate.validated(options.validated, true);
-
-  function initializeTransaction(_callback) {
-    RestToTxConverter.convert(payment, function(error, transaction) {
-      if (error) {
-        return _callback(error);
-      }
-
-      _callback(null, transaction);
-    });
-  }
-
-  function formatTransactionResponse(message, meta, _callback) {
+  function formatTransactionResponse(message, meta) {
     if (meta.state === 'validated') {
-      var transaction = message.tx_json;
-      transaction.meta = message.metadata;
-      transaction.validated = message.validated;
-      transaction.ledger_index = transaction.inLedger = message.ledger_index;
-
-      return formatPaymentHelper(payment.source_account, transaction,
-                                 _callback);
+      var txJSON = message.tx_json;
+      txJSON.meta = message.metadata;
+      txJSON.validated = message.validated;
+      txJSON.ledger_index = txJSON.inLedger = message.ledger_index;
+      return formatPaymentHelper(payment.source_account, txJSON);
     }
 
-    _callback(null, {
+    return {
       client_resource_id: clientResourceID,
       status_url: urlBase + '/v1/accounts/' + payment.source_account
         + '/payments/' + clientResourceID
-    });
+    };
   }
 
-  function setTransactionParameters(transaction) {
-    var ledgerIndex;
-    var maxFee = Number(max_fee);
-    var fixedFee = Number(fixed_fee);
+  function prepareTransaction(_transaction, remote) {
+    validate.client_resource_id(clientResourceID);
 
-    if (Number(lastLedgerSequence) > 0) {
-      ledgerIndex = Number(lastLedgerSequence);
-    } else {
-      ledgerIndex = Number(self.remote._ledger_current_index)
-        + transactions.DEFAULT_LEDGER_BUFFER;
+    _transaction.lastLedger(Number(options.last_ledger_sequence ||
+      (remote.getLedgerSequence() + transactions.DEFAULT_LEDGER_BUFFER)));
+
+    if (Number(options.max_fee) >= 0) {
+      _transaction.maxFee(Number(xrpToDrops(options.max_fee)));
     }
 
-    transaction.lastLedger(ledgerIndex);
-
-    if (maxFee >= 0) {
-      transaction.maxFee(maxFee);
+    if (Number(options.fixed_fee) >= 0) {
+      _transaction.setFixedFee(Number(xrpToDrops(options.fixed_fee)));
     }
 
-    if (fixedFee >= 0) {
-      transaction.setFixedFee(fixedFee);
-    }
-
-    transaction.clientID(clientResourceID);
+    _transaction.clientID(clientResourceID);
+    return _transaction;
   }
 
-  var hooks = {
-    initializeTransaction: initializeTransaction,
-    formatTransactionResponse: formatTransactionResponse,
-    setTransactionParameters: setTransactionParameters
-  };
-
-  transactions.submit(this, params, new SubmitTransactionHooks(hooks),
-      function(err, paymentResult) {
-    if (err) {
-      return callback(err);
-    }
-
-    callback(null, paymentResult);
+  var isSubmitMode = options.submit !== false;
+  var _options = _.assign({}, options, {
+    clientResourceId: clientResourceID,
+    blockDuplicates: isSubmitMode,
+    saveTransaction: isSubmitMode
   });
+
+  var initialTx = createPaymentTransaction(account, payment);
+  var transaction = isSubmitMode ? prepareTransaction(
+    initialTx, this.remote) : initialTx;
+  var converter = isSubmitMode ? formatTransactionResponse :
+    _.partial(TxToRestConverter.parsePaymentFromTx, account);
+  transact(transaction, this, secret, _options, converter, callback);
 }
 
 /**
@@ -229,26 +149,15 @@ function getPayment(account, identifier, callback) {
   // If the transaction was not in the outgoing_transactions db,
   // get it from rippled
   function getTransaction(_callback) {
-    transactions.getTransaction(self, account, identifier, {},
-        function(error, transaction) {
-      _callback(error, transaction);
-    });
+    transactions.getTransaction(self, account, identifier, {}, _callback);
   }
 
   var steps = [
     getTransaction,
-    function(transaction, _callback) {
-      return formatPaymentHelper(account, transaction, _callback);
-    }
+    asyncify(_.partial(formatPaymentHelper, account))
   ];
 
-  async.waterfall(steps, function(error, result) {
-    if (error) {
-      callback(error);
-    } else {
-      callback(null, result);
-    }
-  });
+  async.waterfall(steps, callback);
 }
 
 /**
@@ -295,17 +204,8 @@ function getAccountPayments(account, source_account, destination_account,
       _.merge(options, args), _callback);
   }
 
-  function formatTransactions(_transactions, _callback) {
-    if (!Array.isArray(_transactions)) {
-      return _callback(null);
-    }
-    async.map(_transactions,
-      function(transaction, async_map_callback) {
-        return formatPaymentHelper(account, transaction, async_map_callback);
-      },
-      _callback
-    );
-
+  function formatTransactions(_transactions) {
+    return _transactions.map(_.partial(formatPaymentHelper, account));
   }
 
   function attachResourceId(_transactions, _callback) {
@@ -328,20 +228,19 @@ function getAccountPayments(account, source_account, destination_account,
     }, _callback);
   }
 
+  function formatResponse(_transactions) {
+    return {payments: _transactions};
+  }
+
   var steps = [
     getTransactions,
     _.partial(utils.attachDate, self),
-    formatTransactions,
-    attachResourceId
+    asyncify(formatTransactions),
+    attachResourceId,
+    asyncify(formatResponse)
   ];
 
-  async.waterfall(steps, function(error, payments) {
-    if (error) {
-      callback(error);
-    } else {
-      callback(null, {payments: payments});
-    }
-  });
+  async.waterfall(steps, callback);
 }
 
 /**
@@ -363,7 +262,7 @@ function getPathFind(source_account, destination_account,
     destination_amount_string, source_currency_strings, callback) {
   var self = this;
 
-  var destination_amount = utils.renameCounterpartyToIssuer(
+  var destination_amount = renameCounterpartyToIssuer(
     utils.parseCurrencyQuery(destination_amount_string || ''));
 
   validate.pathfind({
@@ -409,11 +308,11 @@ function getPathFind(source_account, destination_account,
     }
   }
 
-  function prepareOptions(_callback) {
+  function prepareOptions() {
     var pathfindParams = {
       src_account: source_account,
       dst_account: destination_account,
-      dst_amount: utils.txFromRestAmount(destination_amount)
+      dst_amount: convertAmount(destination_amount)
     };
     if (typeof pathfindParams.dst_amount === 'object'
           && !pathfindParams.dst_amount.issuer) {
@@ -428,7 +327,7 @@ function getPathFind(source_account, destination_account,
     if (source_currencies.length > 0) {
       pathfindParams.src_currencies = source_currencies;
     }
-    _callback(null, pathfindParams);
+    return pathfindParams;
   }
 
   function findPath(pathfindParams, _callback) {
@@ -485,54 +384,50 @@ function getPathFind(source_account, destination_account,
     });
   }
 
-  function formatPath(pathfindResults, _callback) {
-    if (pathfindResults.alternatives
-            && pathfindResults.alternatives.length > 0) {
-      return TxToRestConverter.parsePaymentsFromPathFind(pathfindResults,
-                                                         _callback);
+  function formatPath(pathfindResults) {
+    var alternatives = pathfindResults.alternatives;
+    if (alternatives && alternatives.length > 0) {
+      return TxToRestConverter.parsePaymentsFromPathFind(pathfindResults);
     }
     if (pathfindResults.destination_currencies.indexOf(
             destination_amount.currency) === -1) {
-      _callback(new NotFoundError('No paths found. ' +
+      throw new NotFoundError('No paths found. ' +
         'The destination_account does not accept ' +
         destination_amount.currency +
         ', they only accept: ' +
-        pathfindResults.destination_currencies.join(', ')));
-
+        pathfindResults.destination_currencies.join(', '));
     } else if (pathfindResults.source_currencies
                && pathfindResults.source_currencies.length > 0) {
-      _callback(new NotFoundError('No paths found. Please ensure' +
+      throw new NotFoundError('No paths found. Please ensure' +
         ' that the source_account has sufficient funds to execute' +
         ' the payment in one of the specified source_currencies. If it does' +
         ' there may be insufficient liquidity in the network to execute' +
-        ' this payment right now'));
-
+        ' this payment right now');
     } else {
-      _callback(new NotFoundError('No paths found.' +
+      throw new NotFoundError('No paths found.' +
         ' Please ensure that the source_account has sufficient funds to' +
         ' execute the payment. If it does there may be insufficient liquidity' +
-        ' in the network to execute this payment right now'));
+        ' in the network to execute this payment right now');
     }
   }
 
+  function formatResponse(payments) {
+    return {payments: payments};
+  }
+
   var steps = [
-    prepareOptions,
+    asyncify(prepareOptions),
     findPath,
     addDirectXrpPath,
-    formatPath
+    asyncify(formatPath),
+    asyncify(formatResponse)
   ];
 
-  async.waterfall(steps, function(error, payments) {
-    if (error) {
-      callback(error);
-    } else {
-      callback(null, {payments: payments});
-    }
-  });
+  async.waterfall(steps, callback);
 }
 
 module.exports = {
-  submit: submitPayment,
+  submit: utils.wrapCatch(submitPayment),
   get: getPayment,
   getAccountPayments: getAccountPayments,
   getPathFind: getPathFind

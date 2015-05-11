@@ -2,24 +2,21 @@
 /* eslint-disable valid-jsdoc */
 'use strict';
 var _ = require('lodash');
+var asyncify = require('simple-asyncify');
 var Promise = require('bluebird');
 var ripple = require('ripple-lib');
-var transactions = require('./transactions');
-var SubmitTransactionHooks = require('./lib/submit_transaction_hooks.js');
 var utils = require('./lib/utils');
 var errors = require('./lib/errors.js');
 var TxToRestConverter = require('./lib/tx-to-rest-converter.js');
 var validator = require('./lib/schema-validator.js');
 var bignum = require('bignumber.js');
 var validate = require('./lib/validate');
+var createOrderTransaction = require('./transaction').createOrderTransaction;
+var createOrderCancellationTransaction =
+  require('./transaction').createOrderCancellationTransaction;
+var transact = require('./transact');
 
 var InvalidRequestError = errors.InvalidRequestError;
-
-var OfferCreateFlags = {
-  Passive: {name: 'passive', set: 'Passive'},
-  ImmediateOrCancel: {name: 'immediate_or_cancel', set: 'ImmediateOrCancel'},
-  FillOrKill: {name: 'fill_or_kill', set: 'FillOrKill'}
-};
 
 var DefaultPageLimit = 200;
 
@@ -44,9 +41,7 @@ function getOrders(account, options, callback) {
   var self = this;
 
   validate.address(account);
-  validate.ledger(options.ledger, true);
-  validate.limit(options.limit, true);
-  validate.paging(options, true);
+  validate.options(options);
 
   function getAccountOrders(prevResult) {
     var isAggregate = options.limit === 'all';
@@ -165,51 +160,9 @@ function getOrders(account, options, callback) {
  *         - validating the submitted transaction
  */
 function placeOrder(account, order, secret, options, callback) {
-  var params = {
-    secret: secret,
-    validated: options.validated
-  };
-
-  if (order) {
-    utils.renameCounterpartyToIssuer(order.taker_gets);
-    utils.renameCounterpartyToIssuer(order.taker_pays);
-  }
-  validate.addressAndSecret({address: account, secret: secret});
-  validate.order(order);
-  validate.validated(options.validated, true);
-
-  function setTransactionParameters(transaction) {
-    var takerPays = order.taker_pays.currency !== 'XRP'
-      ? order.taker_pays : utils.xrpToDrops(order.taker_pays.value);
-    var takerGets = order.taker_gets.currency !== 'XRP'
-      ? order.taker_gets : utils.xrpToDrops(order.taker_gets.value);
-
-    transaction.offerCreate(account, ripple.Amount.from_json(takerPays),
-      ripple.Amount.from_json(takerGets));
-
-    transactions.setTransactionBitFlags(transaction, {
-      input: order,
-      flags: OfferCreateFlags
-    });
-
-    if (order.type === 'sell') {
-      transaction.setFlags('Sell');
-    }
-  }
-
-  var hooks = {
-    formatTransactionResponse: TxToRestConverter.parseSubmitOrderFromTx,
-    setTransactionParameters: setTransactionParameters
-  };
-
-  transactions.submit(this, params, new SubmitTransactionHooks(hooks),
-      function(err, placedOrder) {
-    if (err) {
-      return callback(err);
-    }
-
-    callback(null, placedOrder);
-  });
+  var transaction = createOrderTransaction(account, order);
+  var converter = TxToRestConverter.parseSubmitOrderFromTx;
+  transact(transaction, this, secret, options, converter, callback);
 }
 
 /**
@@ -225,31 +178,9 @@ function placeOrder(account, order, secret, options, callback) {
  *        validating the submitted transaction
  */
 function cancelOrder(account, sequence, secret, options, callback) {
-  var params = {
-    secret: secret,
-    validated: options.validated
-  };
-
-  validate.sequence(sequence);
-  validate.address(account);
-
-  function setTransactionParameters(transaction) {
-    transaction.offerCancel(account, sequence);
-  }
-
-  var hooks = {
-    formatTransactionResponse: TxToRestConverter.parseCancelOrderFromTx,
-    setTransactionParameters: setTransactionParameters
-  };
-
-  transactions.submit(this, params, new SubmitTransactionHooks(hooks),
-      function(err, canceledOrder) {
-    if (err) {
-      return callback(err);
-    }
-
-    callback(null, canceledOrder);
-  });
+  var transaction = createOrderCancellationTransaction(account, sequence);
+  var converter = TxToRestConverter.parseCancelOrderFromTx;
+  transact(transaction, this, secret, options, converter, callback);
 }
 
 /**
@@ -281,7 +212,7 @@ function getOrderBook(account, base, counter, options, callback) {
   });
   validate.address(account);
   validate.orderbook(params);
-  validate.validated(options.validated, true);
+  validate.options(options);
 
   function getLastValidatedLedger(parameters) {
     var promise = new Promise(function(resolve, reject) {
@@ -427,51 +358,35 @@ function getOrderBook(account, base, counter, options, callback) {
  *  @param {Express.js Request} request
  */
 function getOrder(account, identifier, callback) {
-  var self = this;
-
   validate.address(account);
   validate.identifier(identifier);
 
-  function getOrderTx() {
-    return new Promise(function(resolve, reject) {
-      var txRequest = self.remote.requestTx({
-        hash: identifier
-      });
+  var txRequest = this.remote.requestTx({
+    hash: identifier
+  });
 
-      txRequest.once('error', reject);
-      txRequest.once('transaction', function(res) {
-        if (res.TransactionType !== 'OfferCreate'
-            && res.TransactionType !== 'OfferCancel') {
-          reject(new InvalidRequestError('Invalid parameter: identifier. '
-            + 'The transaction corresponding to the given identifier '
-            + 'is not an order'));
-        } else {
-          var options = {
-            account: account,
-            identifier: identifier
-          };
-          resolve(TxToRestConverter.parseOrderFromTx(res, options));
-        }
-      });
-      txRequest.request();
-    });
-  }
-
-  function respondWithOrder(order) {
-    return new Promise(function(resolve) {
-      resolve(callback(null, order));
-    });
-  }
-
-  getOrderTx()
-  .then(respondWithOrder)
-  .catch(callback);
+  txRequest.once('error', callback);
+  txRequest.once('transaction', function(response) {
+    if (response.TransactionType !== 'OfferCreate'
+        && response.TransactionType !== 'OfferCancel') {
+      callback(new InvalidRequestError('Invalid parameter: identifier. '
+        + 'The transaction corresponding to the given identifier '
+        + 'is not an order'));
+    } else {
+      var options = {
+        account: account,
+        identifier: identifier
+      };
+      asyncify(TxToRestConverter.parseOrderFromTx)(response, options, callback);
+    }
+  });
+  txRequest.request();
 }
 
 module.exports = {
   getOrders: getOrders,
-  placeOrder: placeOrder,
-  cancelOrder: cancelOrder,
+  placeOrder: utils.wrapCatch(placeOrder),
+  cancelOrder: utils.wrapCatch(cancelOrder),
   getOrderBook: getOrderBook,
   getOrder: getOrder
 };

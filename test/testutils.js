@@ -11,13 +11,49 @@ var app = require('../server/express_app');
 var crypto = require('crypto');
 var UInt256 = ripple.UInt256;
 var api = require('../server/api');
+var apiFactory = require('../server/apifactory');
+var version = require('../server/version');
+var PRNGMock = require('./prngmock');
 
 var LEDGER_OFFSET = 3;
+
+function withDeterministicPRNG(callback, done) {
+  var prng = ripple.sjcl.random;
+  ripple.sjcl.random = new PRNGMock();
+  callback(function(err, data) {
+    ripple.sjcl.random = prng;
+    done(err, data);
+  });
+}
+
+function getURLBase() {
+  return '/v' + version.getApiVersion();
+}
+
+function getSignURL() {
+  return getURLBase() + '/transaction/sign';
+}
+
+function getSubmitURL() {
+  return getURLBase() + '/transaction/submit';
+}
+
+function getPrepareURL(type) {
+  return getURLBase() + '/transaction/prepare/' + type;
+}
+
+function resetAPI() {
+  var newAPI = apiFactory();
+  api.remote = newAPI.remote;
+  api.db = newAPI.db;
+}
 
 function setup(done) {
   var self = this;
 
   self.app = supertest(app);
+
+  resetAPI();
   self.remote = api.remote;
   self.db = api.db;
 
@@ -42,7 +78,7 @@ function setup(done) {
         self.db.init(done);
       });
     });
-    self.remote.getServer().emit('message', fixtures.ledgerClose());
+    self.remote.getServer().emit('message', fixtures.ledgerClose(0));
   });
 
   // self.remote.trace = true;
@@ -83,11 +119,21 @@ function checkHeaders(res) {
     'X-Requested-With, Content-Type');
 }
 
+function dumpBody(res) {
+  console.log(JSON.stringify(res.body));
+}
+
 function checkBody(expected) {
   return function(res, err) {
     // console.log(require('util').inspect(res.body,false,null));
     assert.ifError(err);
-    assert.deepEqual(res.body, JSON.parse(expected));
+    var expectedObject;
+    try {
+      expectedObject = JSON.parse(expected);
+    } catch (e) {
+      throw new Error('expected body is not JSON');
+    }
+    assert.deepEqual(res.body, expectedObject);
   };
 }
 
@@ -117,8 +163,14 @@ function loadArguments(args, defaults) {
 
 function closeLedgers(conn) {
   for (var i = 0; i < LEDGER_OFFSET + 2; i++) {
-    conn.send(fixtures.ledgerClose());
+    conn.send(fixtures.ledgerClose(i + 1));
   }
+}
+
+function withoutSigning(response) {
+  var result = _.omit(JSON.parse(response), ['tx_blob', 'hash']);
+  result.tx_json = _.omit(result.tx_json, ['SigningPubKey', 'TxnSignature']);
+  return JSON.stringify(result);
 }
 
 module.exports = {
@@ -128,7 +180,13 @@ module.exports = {
   checkHeaders: checkHeaders,
   checkBody: checkBody,
   generateHash: generateHash,
-  loadArguments: loadArguments
+  loadArguments: loadArguments,
+  getPrepareURL: getPrepareURL,
+  getSignURL: getSignURL,
+  getSubmitURL: getSubmitURL,
+  withDeterministicPRNG: withDeterministicPRNG,
+  withoutSigning: withoutSigning,
+  dumpBody: dumpBody
 };
 
 module.exports.closeLedgers = closeLedgers;

@@ -168,10 +168,13 @@ function attachPreviousAndNextTransactionIdentifiers(api,
  *  @param {Notification} notification
  */
 function getNotificationHelper(api, account, identifier, urlBase, topCallback) {
-  validate.address(account);
 
   function getTransaction(callback) {
-    transactions.getTransaction(api, account, identifier, {}, callback);
+    try {
+      transactions.getTransaction(api, account, identifier, {}, callback);
+    } catch(err) {
+      callback(err);
+    }
   }
 
   function checkLedger(baseTransaction, callback) {

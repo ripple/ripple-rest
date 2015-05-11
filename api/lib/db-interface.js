@@ -1,4 +1,6 @@
 'use strict';
+
+var util = require('util');
 var assert = require('assert');
 var knex = require('knex');
 var ripple = require('ripple-lib');
@@ -23,9 +25,12 @@ var defaultLogger = {
 function DatabaseInterface(filePath, logger) {
   assert.strictEqual(typeof filePath, 'string', 'Invalid database path');
 
+  process.EventEmitter.apply(this);
+
   this.initialized = false;
   this.filePath = filePath;
   this.logger = logger || defaultLogger;
+  this.lock = {};
 
   this.db = knex({
     dialect: 'sqlite3',
@@ -67,8 +72,8 @@ function DatabaseInterface(filePath, logger) {
   this.init();
 }
 
+util.inherits(DatabaseInterface, process.EventEmitter);
 
-DatabaseInterface.prototype = new process.EventEmitter();
 var DI = DatabaseInterface.prototype;
 
 /**
@@ -138,6 +143,8 @@ DI.clear = function(callback) {
   .then(function(res) {
     (callback || noop)(null, res);
 
+    self.lock = {};
+
     return res;
   })
   .caught(function(err) {
@@ -152,7 +159,6 @@ DI.clear = function(callback) {
  *
  * @param {Object} transaction
  * @param [Function] callback
- * @return {Promise}
  */
 
 DI.saveTransaction = function(transaction, callback) {
@@ -198,13 +204,25 @@ DI.saveTransaction = function(transaction, callback) {
     txData.rippled_result = result.engine_result;
   }
 
+  var unlockEvent = 'unlocked:' + txData.client_resource_id;
+
+  if (this.lock[txData.client_resource_id]) {
+    // Force synchronous per-transaction updates
+    /* eslint-disable max-len */
+    this.once(unlockEvent, this.saveTransaction.bind(this, transaction, callback));
+    /* eslint-enable max-len */
+    return;
+  }
+
+  this.lock[txData.client_resource_id] = true;
+
   var txQuery = {
     source_account: txData.source_account,
     type: txData.type,
     client_resource_id: txData.client_resource_id
   };
 
-  var promise = this.db('transaction_history')
+  this.db('transaction_history')
   .where(txQuery)
   .then(function(res) {
     if (res.length) {
@@ -226,16 +244,17 @@ DI.saveTransaction = function(transaction, callback) {
                 + err);
 
     (callback || noop)(err);
+  })
+  .finally(function() {
+    self.lock[txData.client_resource_id] = null;
+    self.emit(unlockEvent);
   });
-
-  return promise;
 };
 
 /**
  * Get pending transactions
  *
  * @param {Function} callback
- * @return {Promise}
  */
 
 DI.getPendingTransactions = function(callback) {
@@ -248,7 +267,6 @@ DI.getPendingTransactions = function(callback) {
  *
  * @param {Object} options
  * @param [Function] callback
- * @return {Promise}
  */
 
 DI.getFailedTransactions = function(options, callback) {
@@ -257,7 +275,7 @@ DI.getFailedTransactions = function(options, callback) {
   assert(ripple.UInt160.is_valid(options.account),
          'Specified account is invalid');
 
-  var promise = this.db('transaction_history')
+  this.db('transaction_history')
   .where(function() {
     var failedQuery = this.where('state', 'failed')
     .andWhere('finalized', true)
@@ -290,8 +308,6 @@ DI.getFailedTransactions = function(options, callback) {
   .caught(function(err) {
     (callback || noop)(err);
   });
-
-  return promise;
 };
 
 /**
@@ -299,7 +315,6 @@ DI.getFailedTransactions = function(options, callback) {
  *
  * @param {Object} options
  * @param [Function] callback
- * @return {Promise}
  */
 
 DI.getTransaction = function(options, callback) {
@@ -315,7 +330,7 @@ DI.getTransaction = function(options, callback) {
     assert(validator.isValid(options.client_resource_id, 'ResourceId'),
            'Invalid or missing parameter: client_resource_id');
     txQuery.client_resource_id = options.client_resource_id;
-    } else if (options.hasOwnProperty('identifier')) {
+  } else if (options.hasOwnProperty('identifier')) {
     if (validator.isValid(options.identifier, 'Hash256')) {
       txQuery.hash = options.identifier;
     } else if (validator.isValid(options.identifier, 'ResourceId')) {
@@ -328,7 +343,7 @@ DI.getTransaction = function(options, callback) {
   assert(txQuery.hash || txQuery.client_resource_id,
          'Missing parameter: transaction identifier');
 
-  var promise = this.db('transaction_history')
+  this.db('transaction_history')
   .where(txQuery)
   .then(function(txEntry) {
     txEntry = txEntry[0];
@@ -345,8 +360,6 @@ DI.getTransaction = function(options, callback) {
   .caught(function(err) {
     (callback || noop)(err);
   });
-
-  return promise;
 };
 
 /**

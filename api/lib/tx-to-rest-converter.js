@@ -3,56 +3,49 @@
 var ripple = require('ripple-lib');
 var utils = require('./utils');
 var _ = require('lodash');
-var Promise = require('bluebird');
+var constants = require('./constants');
 var parseBalanceChanges = require('ripple-lib-transactionparser')
                           .parseBalanceChanges;
 var parseOrderBookChanges = require('ripple-lib-transactionparser')
                             .parseOrderBookChanges;
 
-function TxToRestConverter() {}
-
 // This is just to support the legacy naming of "counterparty", this
 // function should be removed when "issuer" is eliminated
-function renameCounterpartyToIssuer(orderChanges) {
+function renameCounterpartyToIssuerInOrderChanges(orderChanges) {
   return _.mapValues(orderChanges, function(changes) {
     return _.map(changes, function(change) {
-
-      var converted;
-      if (change.taker_pays) {
-        converted = _.omit(change, ['taker_pays', 'taker_gets']);
-        converted.taker_pays = {
-          issuer: change.taker_pays.counterparty,
-          value: change.taker_pays.value,
-          currency: change.taker_pays.currency
-        };
-        converted.taker_gets = {
-          issuer: change.taker_gets.counterparty,
-          value: change.taker_gets.value,
-          currency: change.taker_gets.currency
-        };
-      } else {
-        converted = _.omit(change, 'counterparty');
-        converted.issuer = change.counterparty;
-      }
-
-      return converted;
-
+      return utils.renameCounterpartyToIssuerInOrder(change);
     });
   });
 }
 
-// Orders
-var OfferCreateFlags = {
-  Passive: {name: 'passive',
-    value: ripple.Transaction.flags.OfferCreate.Passive},
-  ImmediateOrCancel: {name: 'immediate_or_cancel',
-    value: ripple.Transaction.flags.OfferCreate.ImmediateOrCancel},
-  FillOrKill: {name: 'fill_or_kill',
-    value: ripple.Transaction.flags.OfferCreate.FillOrKill},
-  Sell: {name: 'sell', value: ripple.Transaction.flags.OfferCreate.Sell}
-};
+function renameCounterpartyToIssuerInBalanceChanges(balanceChanges) {
+  return _.mapValues(balanceChanges, function(changes) {
+    return _.map(changes, function(change) {
+      return utils.renameCounterpartyToIssuer(change);
+    });
+  });
+}
 
-// Paths
+/**
+ *  Helper that parses bit flags from ripple response
+ *
+ *  @param {Number} responseFlags - Integer flag on the ripple response
+ *  @param {Object} flags - Object with parameter name and bit flag value pairs
+ *
+ *  @returns {Object} parsedFlags - Object with parameter name and boolean
+ *                                  flags depending on response flag
+ */
+function parseFlagsFromResponse(responseFlags, flags) {
+  var parsedFlags = {};
+
+  for (var flagName in flags) {
+    var flag = flags[flagName];
+    parsedFlags[flag.name] = Boolean(responseFlags & flag.value);
+  }
+
+  return parsedFlags;
+}
 
 /**
  *  Convert a transaction in rippled tx format
@@ -67,128 +60,110 @@ var OfferCreateFlags = {
  *  @param {Object} payment
  */
 
-TxToRestConverter.prototype.parsePaymentFromTx =
-    function(tx, options, callback) {
-  if (typeof options === 'function') {
-    callback = options;
-    options = {};
+function isPartialPayment(tx) {
+  return (tx.Flags & ripple.Transaction.flags.Payment.PartialPayment) !== 0;
+}
+
+function isNoDirectRipple(tx) {
+  return (tx.Flags & ripple.Transaction.flags.Payment.NoRippleDirect) !== 0;
+}
+
+function convertAmount(amount) {
+  if (typeof amount === 'string') {
+    return {
+      value: utils.dropsToXrp(amount),
+      currency: 'XRP',
+      issuer: ''
+    };
+  }
+  return amount;
+}
+
+function parsePaymentMeta(account, tx, meta) {
+  if (_.isUndefined(meta) || _.isEmpty(meta)) {
+    return {};
+  }
+  if (meta.TransactionResult === 'tejSecretInvalid') {
+    throw new Error('Invalid secret provided.');
   }
 
-  if (!options.account) {
-    if (callback !== undefined) {
-      callback(new Error('Internal Error. must supply options.account'));
-    }
-    return;
+  var balanceChanges = renameCounterpartyToIssuerInBalanceChanges(
+    parseBalanceChanges(meta));
+
+  var order_changes = renameCounterpartyToIssuerInOrderChanges(
+    parseOrderBookChanges(meta))[account];
+
+  var partialPayment = (isPartialPayment(tx) && meta.DeliveredAmount) ? {
+      destination_amount_submitted: convertAmount(tx.Amount),
+      source_amount_submitted: convertAmount(tx.SendMax || tx.Amount)
+    } : {};
+
+  return _.assign({
+    result: meta.TransactionResult,
+    balance_changes: balanceChanges[account] || [],
+    source_balance_changes: balanceChanges[tx.Account] || [],
+    destination_balance_changes: balanceChanges[tx.Destination] || [],
+    order_changes: order_changes || []
+  }, partialPayment);
+}
+
+function parsePaymentFromTx(account, message, meta) {
+  if (!account) {
+    throw new Error('Internal Error. must supply options.account');
   }
 
+  var tx = message.tx_json;
   if (tx.TransactionType !== 'Payment') {
-    if (callback !== undefined) {
-      callback(new Error('Not a payment. The transaction corresponding to '
-        + 'the given identifier is not a payment.'));
-    }
-    return;
+    throw new Error('Not a payment. The transaction corresponding to '
+                    + 'the given identifier is not a payment.');
   }
 
-  if (tx.meta !== undefined && tx.meta.TransactionResult !== undefined) {
-    if (tx.meta.TransactionResult === 'tejSecretInvalid') {
-      if (callback !== undefined) {
-        callback(new Error('Invalid secret provided.'));
-      }
-      return;
-    }
-  }
-
-  var Amount;
-  var isPartialPayment = tx.Flags & 0x00020000 ? true : false;
-
+  var amount;
   // if there is a DeliveredAmount we should use it over Amount there should
   // always be a DeliveredAmount if the partial payment flag is set. also
   // there shouldn't be a DeliveredAmount if there's no partial payment flag
-  if (isPartialPayment && tx.meta && tx.meta.DeliveredAmount) {
-    Amount = tx.meta.DeliveredAmount;
+  if (isPartialPayment(tx) && meta && meta.DeliveredAmount) {
+    amount = meta.DeliveredAmount;
   } else {
-    Amount = tx.Amount;
+    amount = tx.Amount;
   }
 
-  var balanceChanges = tx.meta ?
-    renameCounterpartyToIssuer(parseBalanceChanges(tx.meta)) : [];
-
-  var order_changes = tx.meta ?
-    renameCounterpartyToIssuer(
-      parseOrderBookChanges(tx.meta))[options.account] : [];
-
-  var source_amount = tx.SendMax ?
-    utils.parseCurrencyAmount(tx.SendMax, true) :
-    utils.parseCurrencyAmount(Amount, true);
-
-  var destination_amount = utils.parseCurrencyAmount(Amount, true);
+  var source_amount = utils.parseCurrencyAmount(tx.SendMax || amount, true);
+  var destination_amount = utils.parseCurrencyAmount(amount, true);
 
   var payment = {
     // User supplied
     source_account: tx.Account,
     source_tag: (tx.SourceTag ? '' + tx.SourceTag : ''),
     source_amount: source_amount,
-    source_slippage: '0',
+    source_slippage: '0',     // TODO: why is this hard-coded?
     destination_account: tx.Destination,
     destination_tag: (tx.DestinationTag ? '' + tx.DestinationTag : ''),
     destination_amount: destination_amount,
     // Advanced options
     invoice_id: tx.InvoiceID || '',
     paths: JSON.stringify(tx.Paths || []),
-    no_direct_ripple: (tx.Flags & 0x00010000 ? true : false),
-    partial_payment: isPartialPayment,
-    // Generated after validation
+    no_direct_ripple: isNoDirectRipple(tx),
+    partial_payment: isPartialPayment(tx),
     // TODO: Update to use `unaffected` when perspective account in URI
     // is not affected
-    direction: (options.account ?
-      (options.account === tx.Account ?
-        'outgoing' :
-        (options.account === tx.Destination ?
-          'incoming' :
-          'passthrough')) :
-      ''),
-    result: tx.meta ? tx.meta.TransactionResult : '',
+    direction: (account === tx.Account ? 'outgoing' :
+        (account === tx.Destination ? 'incoming' : 'passthrough')),
     timestamp: (tx.date
       ? new Date(ripple.utils.toTimestamp(tx.date)).toISOString() : ''),
-    fee: utils.dropsToXrp(tx.Fee) || '',
-    balance_changes: balanceChanges[options.account] || [],
-    source_balance_changes: balanceChanges[tx.Account] || [],
-    destination_balance_changes: balanceChanges[tx.Destination] || [],
-    order_changes: order_changes || []
+    fee: utils.dropsToXrp(tx.Fee) || ''
   };
+
   if (Array.isArray(tx.Memos) && tx.Memos.length > 0) {
     payment.memos = [];
     for (var m = 0; m < tx.Memos.length; m++) {
       payment.memos.push(tx.Memos[m].Memo);
     }
   }
-  if (isPartialPayment && tx.meta && tx.meta.DeliveredAmount) {
-    payment.destination_amount_submitted = (typeof tx.Amount === 'object' ?
-      tx.Amount :
-    {
-      value: utils.dropsToXrp(tx.Amount),
-      currency: 'XRP',
-      issuer: ''
-    });
-    payment.source_amount_submitted = (tx.SendMax ?
-      (typeof tx.SendMax === 'object' ?
-        tx.SendMax :
-      {
-        value: utils.dropsToXrp(tx.SendMax),
-        currency: 'XRP',
-        issuer: ''
-      }) :
-      (typeof tx.Amount === 'string' ?
-      {
-        value: utils.dropsToXrp(tx.Amount),
-        currency: 'XRP',
-        issuer: ''
-      } :
-        tx.Amount));
-  }
 
-  callback(null, payment);
-};
+  var fullPayment = _.assign(payment, parsePaymentMeta(account, tx, meta));
+  return _.assign({payment: fullPayment}, meta);
+}
 
 /**
  *  Convert an OfferCreate or OfferCancel transaction in rippled tx format
@@ -203,79 +178,74 @@ TxToRestConverter.prototype.parsePaymentFromTx =
  *                                      transaction or an Error
  */
 
-TxToRestConverter.prototype.parseOrderFromTx = function(tx, options) {
-  return new Promise(function(resolve, reject) {
-    if (!options.account) {
-      reject(new Error('Internal Error. must supply options.account'));
+function parseOrderFromTx(tx, options) {
+  if (!options.account) {
+    throw new Error('Internal Error. must supply options.account');
+  }
+  if (tx.TransactionType !== 'OfferCreate'
+      && tx.TransactionType !== 'OfferCancel') {
+    throw new Error('Invalid parameter: identifier. The transaction '
+      + 'corresponding to the given identifier is not an order');
+  }
+  if (tx.meta !== undefined && tx.meta.TransactionResult !== undefined) {
+    if (tx.meta.TransactionResult === 'tejSecretInvalid') {
+      throw new Error('Invalid secret provided.');
     }
-    if (tx.TransactionType !== 'OfferCreate'
-        && tx.TransactionType !== 'OfferCancel') {
-      reject(new Error('Invalid parameter: identifier. The transaction '
-        + 'corresponding to the given identifier is not an order'));
-    }
-    if (tx.meta !== undefined && tx.meta.TransactionResult !== undefined) {
-      if (tx.meta.TransactionResult === 'tejSecretInvalid') {
-        reject(new Error('Invalid secret provided.'));
-      }
-    }
+  }
 
-    var order;
-    var flags = TxToRestConverter.prototype.parseFlagsFromResponse(tx.flags,
-      OfferCreateFlags);
-    var action = tx.TransactionType === 'OfferCreate'
-      ? 'order_create' : 'order_cancel';
-    var balance_changes = tx.meta
-      ? parseBalanceChanges(tx.meta)[options.account] || [] : [];
-    var timestamp = tx.date
-      ? new Date(ripple.utils.toTimestamp(tx.date)).toISOString() : '';
-    var order_changes = tx.meta ?
-      parseOrderBookChanges(tx.meta)[options.account] : [];
+  var order;
+  var flags = parseFlagsFromResponse(tx.flags, constants.OfferCreateFlags);
+  var action = tx.TransactionType === 'OfferCreate'
+    ? 'order_create' : 'order_cancel';
+  var balance_changes = tx.meta
+    ? parseBalanceChanges(tx.meta)[options.account] || [] : [];
+  var timestamp = tx.date
+    ? new Date(ripple.utils.toTimestamp(tx.date)).toISOString() : '';
+  var order_changes = tx.meta ?
+    parseOrderBookChanges(tx.meta)[options.account] : [];
 
-    var direction;
-    if (options.account === tx.Account) {
-      direction = 'outgoing';
-    } else if (balance_changes.length && order_changes.length) {
-      direction = 'incoming';
-    } else {
-      direction = 'passthrough';
-    }
+  var direction;
+  if (options.account === tx.Account) {
+    direction = 'outgoing';
+  } else if (balance_changes.length && order_changes.length) {
+    direction = 'incoming';
+  } else {
+    direction = 'passthrough';
+  }
 
-    if (action === 'order_create') {
-      order = {
-        account: tx.Account,
-        taker_pays: utils.parseCurrencyAmount(tx.TakerPays),
-        taker_gets: utils.parseCurrencyAmount(tx.TakerGets),
-        passive: flags.passive,
-        immediate_or_cancel: flags.immediate_or_cancel,
-        fill_or_kill: flags.fill_or_kill,
-        type: flags.sell ? 'sell' : 'buy',
-        sequence: tx.Sequence
-      };
-    } else {
-      order = {
-        account: tx.Account,
-        type: 'cancel',
-        sequence: tx.Sequence,
-        cancel_sequence: tx.OfferSequence
-      };
-    }
+  if (action === 'order_create') {
+    order = {
+      account: tx.Account,
+      taker_pays: utils.parseCurrencyAmount(tx.TakerPays),
+      taker_gets: utils.parseCurrencyAmount(tx.TakerGets),
+      passive: flags.passive,
+      immediate_or_cancel: flags.immediate_or_cancel,
+      fill_or_kill: flags.fill_or_kill,
+      type: flags.sell ? 'sell' : 'buy',
+      sequence: tx.Sequence
+    };
+  } else {
+    order = {
+      account: tx.Account,
+      type: 'cancel',
+      sequence: tx.Sequence,
+      cancel_sequence: tx.OfferSequence
+    };
+  }
 
-    resolve({
-      hash: tx.hash,
-      ledger: tx.ledger_index,
-      validated: tx.validated,
-      timestamp: timestamp,
-      fee: utils.dropsToXrp(tx.Fee),
-      action: action,
-      direction: direction,
-      order: order,
-      balance_changes: balance_changes,
-      order_changes: order_changes || []
-    });
-  });
-};
-
-// Paths
+  return {
+    hash: tx.hash,
+    ledger: tx.ledger_index,
+    validated: tx.validated,
+    timestamp: timestamp,
+    fee: utils.dropsToXrp(tx.Fee),
+    action: action,
+    direction: direction,
+    order: order,
+    balance_changes: balance_changes,
+    order_changes: order_changes || []
+  };
+}
 
 /**
  *  Convert the pathfind results returned from rippled into an
@@ -292,12 +262,9 @@ TxToRestConverter.prototype.parseOrderFromTx = function(tx, options) {
  *
  *  @returns {Array of Payments} payments
  */
-TxToRestConverter.prototype.parsePaymentsFromPathFind =
-    function(pathfindResults, callback) {
-  var payments = [];
-
-  pathfindResults.alternatives.forEach(function(alternative) {
-    var payment = {
+function parsePaymentsFromPathFind(pathfindResults) {
+  return pathfindResults.alternatives.map(function(alternative) {
+    return {
       source_account: pathfindResults.source_account,
       source_tag: '',
       source_amount: (typeof alternative.source_amount === 'string' ?
@@ -333,37 +300,21 @@ TxToRestConverter.prototype.parsePaymentsFromPathFind =
       partial_payment: false,
       no_direct_ripple: false
     };
-
-    payments.push(payment);
   });
+}
 
-  callback(null, payments);
-};
-
-TxToRestConverter.prototype.parseCancelOrderFromTx =
-    function(message, meta, callback) {
-  var result = {
-    order: {}
-  };
-
-  _.extend(result.order, {
+function parseOrderCancellationResponse(message, meta) {
+  var order = {
     account: message.tx_json.Account,
     fee: utils.dropsToXrp(message.tx_json.Fee),
     offer_sequence: message.tx_json.OfferSequence,
     sequence: message.tx_json.Sequence
-  });
-  _.extend(result, meta);
-
-  callback(null, result);
-};
-
-TxToRestConverter.prototype.parseSubmitOrderFromTx =
-    function(message, meta, callback) {
-  var result = {
-    order: {}
   };
+  return _.assign({order: order}, meta);
+}
 
-  _.extend(result.order, {
+function parseOrderResponse(message, meta) {
+  var order = {
     account: message.tx_json.Account,
     taker_gets: utils.parseCurrencyAmount(message.tx_json.TakerGets),
     taker_pays: utils.parseCurrencyAmount(message.tx_json.TakerPays),
@@ -371,105 +322,50 @@ TxToRestConverter.prototype.parseSubmitOrderFromTx =
     type: (message.tx_json.Flags & ripple.Transaction.flags.OfferCreate.Sell)
       > 0 ? 'sell' : 'buy',
     sequence: message.tx_json.Sequence
-  });
-
-  _.extend(result, meta);
-
-  callback(null, result);
-};
-
-// Trustlines
-
-var TrustSetResponseFlags = {
-  NoRipple: {name: 'prevent_rippling',
-    value: ripple.Transaction.flags.TrustSet.NoRipple},
-  SetFreeze: {name: 'account_trustline_frozen',
-    value: ripple.Transaction.flags.TrustSet.SetFreeze},
-  SetAuth: {name: 'authorized',
-    value: ripple.Transaction.flags.TrustSet.SetAuth}
-};
-
-TxToRestConverter.prototype.parseTrustResponseFromTx =
-    function(message, meta, callback) {
-  var result = {
-    trustline: {}
   };
-  var line = message.tx_json.LimitAmount;
-  var parsedFlags = TxToRestConverter.prototype.parseFlagsFromResponse(
-    message.tx_json.Flags, TrustSetResponseFlags);
+  return _.assign({order: order}, meta);
+}
 
-  _.extend(result.trustline, {
+function parseTrustLineResponse(message, meta) {
+  var limit = message.tx_json.LimitAmount;
+  var parsedFlags = parseFlagsFromResponse(message.tx_json.Flags,
+    constants.TrustSetResponseFlags);
+  var trustline = {
     account: message.tx_json.Account,
-    limit: line.value,
-    currency: line.currency,
-    counterparty: line.issuer,
+    limit: limit.value,
+    currency: limit.currency,
+    counterparty: limit.issuer,
     account_allows_rippling: !parsedFlags.prevent_rippling,
     account_trustline_frozen: parsedFlags.account_trustline_frozen,
     authorized: parsedFlags.authorized ? parsedFlags.authorized : undefined
-  });
-  _.extend(result, meta);
-
-  callback(null, result);
-};
-
-// Settings
-
-var AccountSetResponseFlags = {
-  RequireDestTag: {name: 'require_destination_tag',
-    value: ripple.Transaction.flags.AccountSet.RequireDestTag},
-  RequireAuth: {name: 'require_authorization',
-    value: ripple.Transaction.flags.AccountSet.RequireAuth},
-  DisallowXRP: {name: 'disallow_xrp',
-    value: ripple.Transaction.flags.AccountSet.DisallowXRP}
-};
-
-TxToRestConverter.prototype.parseSettingResponseFromTx =
-    function(settings, message, meta, callback) {
-  var result = {
-    settings: {}
   };
+  return _.assign({trustline: trustline}, meta);
+}
 
-  // cannot require at the top due to circular dependency
-  var settingsModule = require('../settings');
-
-  for (var flagName in settingsModule.AccountSetIntFlags) {
-    var flag = settingsModule.AccountSetIntFlags[flagName];
-    result.settings[flag.name] = settings[flag.name];
+function parseSettingsResponse(settings, message, meta) {
+  var _settings = {};
+  for (var flagName in constants.AccountSetIntFlags) {
+    var flag = constants.AccountSetIntFlags[flagName];
+    _settings[flag.name] = settings[flag.name];
   }
 
-  for (var fieldName in settingsModule.AccountRootFields) {
-    var field = settingsModule.AccountRootFields[fieldName];
-    result.settings[field.name] = settings[field.name];
+  for (var fieldName in constants.AccountRootFields) {
+    var field = constants.AccountRootFields[fieldName];
+    _settings[field.name] = settings[field.name];
   }
 
-  _.extend(result.settings, TxToRestConverter.prototype.parseFlagsFromResponse(
-    message.tx_json.Flags, AccountSetResponseFlags));
-  _.extend(result, meta);
+  _.assign(_settings, parseFlagsFromResponse(message.tx_json.Flags,
+    constants.AccountSetResponseFlags));
+  return _.assign({settings: _settings}, meta);
+}
 
-  callback(null, result);
+module.exports = {
+  parsePaymentFromTx: parsePaymentFromTx,
+  parsePaymentsFromPathFind: parsePaymentsFromPathFind,
+  parseOrderFromTx: parseOrderFromTx,
+  parseCancelOrderFromTx: parseOrderCancellationResponse,
+  parseSubmitOrderFromTx: parseOrderResponse,
+  parseTrustResponseFromTx: parseTrustLineResponse,
+  parseSettingsResponseFromTx: parseSettingsResponse,
+  parseFlagsFromResponse: parseFlagsFromResponse
 };
-
-// Utilities
-
-/**
- *  Helper that parses bit flags from ripple response
- *
- *  @param {Number} responseFlags - Integer flag on the ripple response
- *  @param {Object} flags - Object with parameter name and bit flag value pairs
- *
- *  @returns {Object} parsedFlags - Object with parameter name and boolean
- *                                  flags depending on response flag
- */
-TxToRestConverter.prototype.parseFlagsFromResponse =
-    function(responseFlags, flags) {
-  var parsedFlags = {};
-
-  for (var flagName in flags) {
-    var flag = flags[flagName];
-    parsedFlags[flag.name] = Boolean(responseFlags & flag.value);
-  }
-
-  return parsedFlags;
-};
-
-module.exports = new TxToRestConverter();

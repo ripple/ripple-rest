@@ -7,7 +7,7 @@ var ws = require('ws');
 var route = new (require('events').EventEmitter);
 var fixtures = require('./fixtures')._payments;
 var RL = require('ripple-lib');
-var remote = require('../server/api').remote;
+var api = require('../server/api');
 
 var testutils = { };
 
@@ -75,7 +75,7 @@ suite('payments', function() {
 
   suiteSetup(function(done) {
     var self = this;
-    self.remote = remote;
+    self.remote = api.remote;
     rippled = new ws.Server({port: 5150});
 
     route.on('ping', fixtures.ping);
@@ -950,7 +950,7 @@ suite('payments', function() {
 
   test('Posting XRP from genesis to dan with missing client resource id',
       function(done) {
-    app.post('/v1/accounts/' + fixtures.accounts.alice.address + '/payments')
+    app.post('/v1/accounts/' + fixtures.accounts.genesis.address + '/payments')
       .send(store.paymentGenesisToDan)
       .end(function(err, resp) {
         if (err) {
@@ -969,7 +969,7 @@ suite('payments', function() {
   test('Posting XRP from genesis to dan with empty client resource id',
       function(done) {
     store.paymentGenesisToDan.client_resource_id = '';
-    app.post('/v1/accounts/' + fixtures.accounts.alice.address + '/payments')
+    app.post('/v1/accounts/' + fixtures.accounts.genesis.address + '/payments')
       .send(store.paymentGenesisToDan)
       .end(function(err, resp) {
         if (err) {
@@ -991,7 +991,7 @@ suite('payments', function() {
   test('Posting XRP from genesis to dan with valid client resource id',
       function(done) {
     store.paymentGenesisToDan.client_resource_id = 'qwerty';
-    app.post('/v1/accounts/' + fixtures.accounts.alice.address + '/payments')
+    app.post('/v1/accounts/' + fixtures.accounts.genesis.address + '/payments')
       .send(store.paymentGenesisToDan)
       .end(function(err, resp) {
         if (err) {
@@ -1010,7 +1010,7 @@ suite('payments', function() {
   test('Double posting XRP from genesis to dan with valid client resource id',
       function(done) {
     store.paymentGenesisToDan.client_resource_id = 'qwerty';
-    app.post('/v1/accounts/' + fixtures.accounts.alice.address + '/payments')
+    app.post('/v1/accounts/' + fixtures.accounts.genesis.address + '/payments')
       .send(store.paymentGenesisToDan)
       .expect(function(resp) {
         assert.equal(resp.status, 500);
@@ -1189,7 +1189,7 @@ suite('payments', function() {
 
   test.skip('Posting 10USD from carol to dan with valid client resource id '
       + 'but incorrect secret', function(done) {
-    app.post('/v1/accounts/' + fixtures.accounts.alice.address + '/payments')
+    app.post('/v1/accounts/' + fixtures.accounts.carol.address + '/payments')
       .send(store.paymentCarolToDan)
       .expect(function(resp) {
         assert.deepEqual(resp.body,
@@ -1207,7 +1207,7 @@ suite('payments', function() {
     store.paymentCarolToDan.secret = fixtures.accounts.carol.secret;
     store.value = store.paymentCarolToDan.payment.destination_amount.value;
     delete store.paymentCarolToDan.payment.destination_amount.value;
-    app.post('/v1/accounts/' + fixtures.accounts.alice.address + '/payments')
+    app.post('/v1/accounts/' + fixtures.accounts.carol.address + '/payments')
       .send(store.paymentCarolToDan)
       .expect(function(resp) {
         assert.equal(resp.status, 400);
@@ -1227,7 +1227,7 @@ suite('payments', function() {
     store.paymentCarolToDan.payment.destination_amount.value = store.value;
     store.paymentCarolToDan.secret = fixtures.accounts.carol.secret;
     store.paymentCarolToDan.client_resource_id = 'abc';
-    app.post('/v1/accounts/' + fixtures.accounts.alice.address + '/payments')
+    app.post('/v1/accounts/' + fixtures.accounts.carol.address + '/payments')
       .send(store.paymentCarolToDan)
       .expect(function(resp) {
         assert.equal(resp.status, 200);

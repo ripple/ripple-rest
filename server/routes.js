@@ -1,8 +1,23 @@
 'use strict';
-
+var _ = require('lodash');
 var api = require('./api');
 var respond = require('./response-handler');
 var config = require('./config');
+
+function invalid(message) {
+  return new api.errors.InvalidRequestError(message);
+}
+
+function validateRequest(request) {
+  if (request.query.submit === 'false') {
+    if (request.query.validated === 'true') {
+      throw invalid('validated=true cannot be set with submit=false');
+    }
+    if (request.body.client_resource_id) {
+      throw invalid('client_resource_id cannot be set with submit=false');
+    }
+  }
+}
 
 function getUrlBase(request) {
   if (config.get('url_base')) {
@@ -31,6 +46,27 @@ function makeMiddleware(handler, type) {
   return function(request, response, next) {
     handler(request, makeCallback(response, next, type));
   };
+}
+
+function removeUndefinedValues(object) {
+  return _.omit(object, _.isUndefined);
+}
+
+function loadInstructions(body) {
+  return removeUndefinedValues({
+    max_fee: body.max_fee,
+    fixed_fee: body.fixed_fee,
+    last_ledger_sequence: body.last_ledger_sequence,
+    last_ledger_offset: body.last_ledger_offset,
+    sequence: body.sequence
+  });
+}
+
+function loadOptions(request) {
+  return _.assign(loadInstructions(request.body), {
+    validated: request.query.validated === 'true',
+    submit: request.query.submit !== 'false'
+  });
 }
 
 function getUUID(request, callback) {
@@ -69,6 +105,7 @@ function getAccountPayments(request, callback) {
   api.getAccountPayments(account, source_account, destination_account,
     direction, options, callback);
 }
+
 
 function getPayment(request, callback) {
   var account = request.params.account;
@@ -155,8 +192,10 @@ function getSettings(request, callback) {
 function getTransaction(request, callback) {
   var account = request.params.account;
   var identifier = request.params.identifier;
+
   var options = {
-    ledger: request.query.ledger
+    min_ledger: request.query.min_ledger,
+    max_ledger: request.query.max_ledger
   };
 
   api.getTransaction(account, identifier, options, callback);
@@ -175,51 +214,63 @@ function getTrustLines(request, callback) {
 }
 
 function submitPayment(request, callback) {
+  validateRequest(request);
   var account = request.params.account;
   var payment = request.body.payment;
   var clientResourceID = request.body.client_resource_id;
-  var lastLedgerSequence = request.body.last_ledger_sequence;
   var secret = request.body.secret;
   var urlBase = getUrlBase(request);
-  var options = {
-    max_fee: request.body.max_fee,
-    fixed_fee: request.body.fixed_fee,
-    validated: request.query.validated === 'true'
-  };
+  var options = loadOptions(request);
   api.submitPayment(account, payment, clientResourceID, secret,
-    lastLedgerSequence, urlBase, options, callback);
+    urlBase, options, callback);
 }
 
 function submitOrder(request, callback) {
+  validateRequest(request);
   var account = request.params.account;
   var order = request.body.order;
   var secret = request.body.secret;
-  var options = {validated: request.query.validated === 'true'};
+  var options = loadOptions(request);
   api.submitOrder(account, order, secret, options, callback);
 }
 
 function changeSettings(request, callback) {
+  validateRequest(request);
   var account = request.params.account;
   var settings = request.body.settings;
   var secret = request.body.secret;
-  var options = {validated: request.query.validated === 'true'};
+  var options = loadOptions(request);
   api.changeSettings(account, settings, secret, options, callback);
 }
 
 function addTrustLine(request, callback) {
+  validateRequest(request);
   var account = request.params.account;
   var trustline = request.body.trustline;
   var secret = request.body.secret;
-  var options = {validated: request.query.validated === 'true'};
+  var options = loadOptions(request);
   api.addTrustLine(account, trustline, secret, options, callback);
 }
 
 function cancelOrder(request, callback) {
+  validateRequest(request);
   var account = request.params.account;
   var sequence = request.params.sequence;
   var secret = request.body.secret;
-  var options = {validated: request.query.validated === 'true'};
+  var options = loadOptions(request);
   api.cancelOrder(account, sequence, secret, options, callback);
+}
+
+function sign(request, callback) {
+  var tx_json = request.body.tx_json;
+  var secret = request.body.secret;
+  var response = api.sign(tx_json, secret);
+  callback(null, response);
+}
+
+function submit(request, callback) {
+  var tx_blob = request.body.tx_blob;
+  api.submit(tx_blob, callback);
 }
 
 /* eslint-disable max-len */
@@ -247,7 +298,9 @@ module.exports = {
     '/accounts/:account/payments': makeMiddleware(submitPayment),
     '/accounts/:account/orders': makeMiddleware(submitOrder),
     '/accounts/:account/settings': makeMiddleware(changeSettings),
-    '/accounts/:account/trustlines': makeMiddleware(addTrustLine, respond.created)
+    '/accounts/:account/trustlines': makeMiddleware(addTrustLine, respond.created),
+    '/transaction/sign': makeMiddleware(sign),
+    '/transaction/submit': makeMiddleware(submit)
   },
   DELETE: {
     '/accounts/:account/orders/:sequence': makeMiddleware(cancelOrder)

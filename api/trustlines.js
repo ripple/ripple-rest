@@ -2,20 +2,13 @@
 /* eslint-disable valid-jsdoc */
 'use strict';
 var Promise = require('bluebird');
-var transactions = require('./transactions.js');
-var SubmitTransactionHooks = require('./lib/submit_transaction_hooks.js');
 var utils = require('./lib/utils');
 var validator = require('./lib/schema-validator');
 var TxToRestConverter = require('./lib/tx-to-rest-converter.js');
 var validate = require('./lib/validate');
-
-var TrustSetFlags = {
-  SetAuth: {name: 'authorized', set: 'SetAuth'},
-  ClearNoRipple: {name: 'account_allows_rippling', set: 'ClearNoRipple',
-    unset: 'NoRipple'},
-  SetFreeze: {name: 'account_trustline_frozen', set: 'SetFreeze',
-    unset: 'ClearFreeze'}
-};
+var createTrustLineTransaction =
+  require('./transaction').createTrustLineTransaction;
+var transact = require('./transact');
 
 var DefaultPageLimit = 200;
 
@@ -43,9 +36,7 @@ function getTrustLines(account, options, callback) {
   validate.address(account);
   validate.currency(options.currency, true);
   validate.counterparty(options.counterparty, true);
-  validate.ledger(options.ledger, true);
-  validate.limit(options.limit, true);
-  validate.paging(options, true);
+  validate.options(options);
 
   var self = this;
 
@@ -156,56 +147,12 @@ function getTrustLines(account, options, callback) {
  */
 
 function addTrustLine(account, trustline, secret, options, callback) {
-  var params = {
-    secret: secret,
-    validated: options.validated
-  };
-
-  if (trustline && trustline.limit) {
-    trustline.limit = String(trustline.limit);
-  }
-
-  validate.address(account);
-  validate.trustline(trustline);
-  validate.validated(options.validated, true);
-
-  function setTransactionParameters(transaction) {
-    var limit = [
-      trustline.limit,
-      trustline.currency,
-      trustline.counterparty
-    ].join('/');
-
-    transaction.trustSet(account, limit);
-    transaction.secret(secret);
-
-    if (typeof trustline.quality_in === 'number') {
-      transaction.tx_json.QualityIn = trustline.quality_in;
-    }
-    if (typeof trustline.quality_out === 'number') {
-      transaction.tx_json.QualityOut = trustline.quality_out;
-    }
-
-    transactions.setTransactionBitFlags(transaction, {
-      input: trustline,
-      flags: TrustSetFlags,
-      clear_setting: ''
-    });
-  }
-
-  var hooks = {
-    formatTransactionResponse: TxToRestConverter.parseTrustResponseFromTx,
-    setTransactionParameters: setTransactionParameters
-  };
-
-  transactions.submit(this, params, new SubmitTransactionHooks(hooks),
-      function(err, trustlineResult) {
-    if (err) {
-      return callback(err);
-    }
-    callback(null, trustlineResult);
-  });
+  var transaction = createTrustLineTransaction(account, trustline);
+  var converter = TxToRestConverter.parseTrustResponseFromTx;
+  transact(transaction, this, secret, options, converter, callback);
 }
 
-module.exports.get = getTrustLines;
-module.exports.add = addTrustLine;
+module.exports = {
+  get: getTrustLines,
+  add: utils.wrapCatch(addTrustLine)
+};

@@ -5,10 +5,6 @@ var validator = require('./schema-validator');
 var ripple = require('ripple-lib');
 var utils = require('./utils');
 
-function isBoolean(value) {
-  return (value === true || value === false);
-}
-
 function error(text) {
   return new InvalidRequestError(text);
 }
@@ -47,6 +43,14 @@ function validateAddressAndSecret(obj) {
     }
   } catch (exception) {
     throw error('Invalid secret', secret);
+  }
+}
+
+function validateAddressAndMaybeSecret(obj) {
+  if (obj.secret === undefined) {
+    validateAddress(obj.address);
+  } else {
+    validateAddressAndSecret(obj);
   }
 }
 
@@ -129,6 +133,25 @@ function validateSchema(object, schemaName) {
 }
 */
 
+function isValidValue(value) {
+  return typeof value === 'string' && value.length > 0 && isFinite(value);
+}
+
+function isValidCurrency(currency) {
+  return currency && validator.isValid(currency, 'Currency');
+}
+
+function isValidIssue(issue) {
+  return issue && isValidCurrency(issue.currency)
+      && ((issue.currency === 'XRP' && !issue.counterparty && !issue.issuer)
+          || (issue.currency !== 'XRP' && isValidAddress(
+              issue.counterparty || issue.issuer)));
+}
+
+function isValidAmount(amount) {
+  return isValidIssue(amount) && isValidValue(amount.value);
+}
+
 function validateOrder(order) {
   if (!order) {
     throw error('Missing parameter: order. '
@@ -143,38 +166,30 @@ function validateOrder(order) {
   } else if (!_.isUndefined(order.fill_or_kill)
       && !_.isBoolean(order.fill_or_kill)) {
     throw error('Parameter must be a boolean: fill_or_kill');
-  } else if (!order.taker_gets
-      || (!validator.isValid(order.taker_gets, 'Amount'))
-      || (!order.taker_gets.issuer && order.taker_gets.currency !== 'XRP')) {
+  } else if (!isValidAmount(order.taker_gets)) {
     throw error('Parameter must be a valid Amount object: taker_gets');
-  } else if (!order.taker_pays
-      || (!validator.isValid(order.taker_pays, 'Amount'))
-      || (!order.taker_pays.issuer && order.taker_pays.currency !== 'XRP')) {
+  } else if (!isValidAmount(order.taker_pays)) {
     throw error('Parameter must be a valid Amount object: taker_pays');
   }
   // TODO: validateSchema(order, 'Order');
 }
 
-function isValidAmount(amount) {
-  return (amount.currency && validator.isValid(amount.currency, 'Currency')
-      && (amount.currency === 'XRP' || isValidAddress(amount.counterparty)));
-}
-
 function validateOrderbook(orderbook) {
-  if (!isValidAmount(orderbook.base)) {
-    throw error('Invalid parameter: base. '
-      + 'Must be a currency string in the form currency+counterparty');
-  }
-  if (!isValidAmount(orderbook.counter)) {
-    throw error('Invalid parameter: counter. '
-      + 'Must be a currency string in the form currency+counterparty');
-  }
-  if (orderbook.counter.currency === 'XRP'
+  if (orderbook.counter && orderbook.counter.currency === 'XRP'
       && orderbook.counter.counterparty) {
     throw error('Invalid parameter: counter. XRP cannot have counterparty');
   }
-  if (orderbook.base.currency === 'XRP' && orderbook.base.counterparty) {
+  if (orderbook.base && orderbook.base.currency === 'XRP'
+      && orderbook.base.counterparty) {
     throw error('Invalid parameter: base. XRP cannot have counterparty');
+  }
+  if (!isValidIssue(orderbook.base)) {
+    throw error('Invalid parameter: base. '
+      + 'Must be a currency string in the form currency+counterparty');
+  }
+  if (!isValidIssue(orderbook.counter)) {
+    throw error('Invalid parameter: counter. '
+      + 'Must be a currency string in the form currency+counterparty');
   }
 }
 
@@ -440,10 +455,90 @@ function validateTrustline(trustline) {
   // TODO: validateSchema(trustline, 'Trustline');
 }
 
-function validateValidated(validated) {
-  if (!isBoolean(validated)) {
-    throw error('validated must be boolean, not: ' + validated);
+function validateTxJSON(txJSON) {
+  if (typeof txJSON !== 'object') {
+    throw error('tx_json must be an object, not: ' + typeof txJSON);
   }
+  if (!isValidAddress(txJSON.Account)) {
+    throw error('tx_json.Account must be a valid Ripple address, got: '
+                + txJSON.Account);
+  }
+}
+
+function validateBlob(blob) {
+  if (typeof blob !== 'string') {
+    throw error('tx_blob must be a string, not: ' + typeof blob);
+  }
+  if (blob.length === 0) {
+    throw error('tx_blob must not be empty');
+  }
+  if (!blob.match(/[0-9A-F]+/g)) {
+    throw error('tx_blob must be an uppercase hex string, got: ' + blob);
+  }
+}
+
+function isNumeric(value) {
+  return !isNaN(parseFloat(value)) && isFinite(value);
+}
+
+function validateNonNegativeStringFloat(value, name) {
+  if (typeof value !== 'string') {
+    throw error(name + ' must be a string, not: ' + typeof value);
+  }
+  if (!isNumeric(value)) {
+    throw error(name + ' must be a numeric string, not: ' + value);
+  }
+  if (parseFloat(value) < 0) {
+    throw error(name + ' must be non-negative, got: ' + parseFloat(value));
+  }
+}
+
+function validateNonNegativeStringInteger(value, name) {
+  validateNonNegativeStringFloat(value, name);
+  if (value.indexOf('.') !== -1) {
+    throw error(name + ' must be an integer, got: ' + value);
+  }
+}
+
+function validateOptions(options) {
+  if (options.max_fee !== undefined) {
+    validateNonNegativeStringFloat(options.max_fee, 'max_fee');
+  }
+  if (options.fixed_fee !== undefined) {
+    validateNonNegativeStringFloat(options.fixed_fee, 'fixed_fee');
+  }
+  if (options.max_fee !== undefined && options.fixed_fee !== undefined) {
+    throw error('"max_fee" and "fixed_fee" are mutually exclusive options');
+  }
+  if (options.last_ledger_sequence !== undefined) {
+    validateNonNegativeStringInteger(options.last_ledger_sequence,
+      'last_ledger_sequence');
+  }
+  if (options.last_ledger_offset !== undefined) {
+    validateNonNegativeStringInteger(options.last_ledger_offset,
+      'last_ledger_offset');
+  }
+  if (options.last_ledger_sequence !== undefined
+      && options.last_ledger_offset !== undefined) {
+    throw error('"last_ledger_sequence" and "last_ledger_offset" are'
+                + ' mutually exclusive options');
+  }
+  if (options.sequence !== undefined) {
+    validateNonNegativeStringInteger(options.sequence, 'sequence');
+  }
+  if (options.limit !== undefined) {
+    validateLimit(options.limit);
+  }
+  if (options.ledger !== undefined) {
+    validateLedger(options.ledger);
+  }
+  if (options.validated !== undefined && !_.isBoolean(options.validated)) {
+    throw error('"validated" must be boolean, not: ' + options.validated);
+  }
+  if (options.submit !== undefined && !_.isBoolean(options.submit)) {
+    throw error('"submit" must be boolean, not: ' + options.submit);
+  }
+  validatePaging(options);
 }
 
 function createValidators(validatorMap) {
@@ -465,12 +560,10 @@ function createValidators(validatorMap) {
 module.exports = createValidators({
   address: validateAddress,
   addressAndSecret: validateAddressAndSecret,
+  addressAndMaybeSecret: validateAddressAndMaybeSecret,
   currency: validateCurrency,
   counterparty: validateCounterparty,
   issue: validateIssue,
-  ledger: validateLedger,
-  limit: validateLimit,
-  paging: validatePaging,
   identifier: validateIdentifier,
   paymentIdentifier: validatePaymentIdentifier,
   sequence: validateSequence,
@@ -482,5 +575,7 @@ module.exports = createValidators({
   pathfind: validatePathFind,
   settings: validateSettings,
   trustline: validateTrustline,
-  validated: validateValidated
+  txJSON: validateTxJSON,
+  blob: validateBlob,
+  options: validateOptions
 });

@@ -1,5 +1,8 @@
 /* eslint-disable valid-jsdoc */
 'use strict';
+var _ = require('lodash');
+var async = require('async');
+var asyncify = require('simple-asyncify');
 var bignum = require('bignumber.js');
 var validator = require('./schema-validator.js');
 var ripple = require('ripple-lib');
@@ -7,19 +10,35 @@ var _ = require('lodash');
 var async = require('async');
 
 function renameCounterpartyToIssuer(amount) {
-  if (amount && amount.counterparty) {
-    amount.issuer = amount.counterparty;
-    delete amount.counterparty;
+  if (amount === undefined) {
+    return undefined;
   }
-  return amount;
+  var issuer = amount.counterparty === undefined ?
+    amount.issuer : amount.counterparty;
+  var withIssuer = _.assign({}, amount, {issuer: issuer});
+  return _.omit(withIssuer, 'counterparty');
+}
+
+function renameCounterpartyToIssuerInOrder(order) {
+  var taker_gets = renameCounterpartyToIssuer(order.taker_gets);
+  var taker_pays = renameCounterpartyToIssuer(order.taker_pays);
+  var changes = {taker_gets: taker_gets, taker_pays: taker_pays};
+  return _.assign({}, order, _.omit(changes, _.isUndefined));
+}
+
+function wrapCatch(asyncFunction) {
+  return function() {
+    var callback = arguments[arguments.length - 1];
+    try {
+      asyncFunction.apply(this, arguments);
+    } catch (error) {
+      callback(error);
+    }
+  };
 }
 
 function dropsToXrp(drops) {
   return bignum(drops).dividedBy(1000000.0).toString();
-}
-
-function xrpToDrops(xrp) {
-  return bignum(xrp).times(1000000.0).floor().toString();
 }
 
 function isValidHash256(hash) {
@@ -66,17 +85,6 @@ function parseCurrencyAmount(rippledAmount, useIssuer) {
   return amount;
 }
 
-function txFromRestAmount(restAmount) {
-  if (restAmount.currency === 'XRP') {
-    return xrpToDrops(restAmount.value);
-  }
-  return {
-    currency: restAmount.currency,
-    issuer: restAmount.counterparty ?
-      restAmount.counterparty : restAmount.issuer,
-    value: restAmount.value
-  };
-}
 
 function parseCurrencyQuery(query) {
   var params = query.split('+');
@@ -134,46 +142,42 @@ function attachDate(api, baseTransactions, callback) {
     return tx.ledger_index;
   });
 
-  function attachDateToTransactions(_groupedTx, ledger, _callback) {
-    api.remote.requestLedger({ledger_index: Number(ledger)},
-      function(err, data) {
-        if (err) {
-          return _callback(err);
-        }
-
-        _.each(_groupedTx[ledger], function(tx) {
-          tx.date = data.ledger.close_time;
-        });
-
-        _callback(null, _groupedTx[ledger]);
-      }
-    );
+  function attachDateToTransactions(transactions, data) {
+    return _.map(transactions, function(tx) {
+      return _.assign(tx, {date: data.ledger.close_time});
+    });
   }
 
-  // TODO: Decorate _.flatten and make it an async function
-  async.map(_.keys(groupedTx),
-    _.partial(attachDateToTransactions, groupedTx),
-    function(err, results) {
-      if (err) {
-        return callback(err);
-      }
-      callback(null, _.flatten(results));
-    });
-}
+  function getLedger(ledgerIndex, _callback) {
+    api.remote.requestLedger({ledger_index: ledgerIndex}, _callback);
+  }
 
+  function attachDateToLedgerTransactions(_groupedTx, ledger, _callback) {
+    var transactions = _groupedTx[ledger];
+    async.waterfall([
+      _.partial(getLedger, Number(ledger)),
+      asyncify(_.partial(attachDateToTransactions, transactions))
+    ], _callback);
+  }
+
+  var ledgers = _.keys(groupedTx);
+  var flatMap = async.seq(async.map, asyncify(_.flatten));
+  var iterator = _.partial(attachDateToLedgerTransactions, groupedTx);
+  flatMap(ledgers, iterator, callback);
+}
 
 module.exports = {
   isValidLedgerSequence: isValidLedgerSequence,
   isValidLedgerWord: isValidLedgerWord,
   isValidLedgerHash: isValidLedgerHash,
   dropsToXrp: dropsToXrp,
-  xrpToDrops: xrpToDrops,
   parseLedger: parseLedger,
   parseCurrencyAmount: parseCurrencyAmount,
   parseCurrencyQuery: parseCurrencyQuery,
-  txFromRestAmount: txFromRestAmount,
   compareTransactions: compareTransactions,
   renameCounterpartyToIssuer: renameCounterpartyToIssuer,
+  renameCounterpartyToIssuerInOrder: renameCounterpartyToIssuerInOrder,
+  wrapCatch: wrapCatch,
   attachDate: attachDate
 };
 

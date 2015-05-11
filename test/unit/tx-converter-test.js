@@ -8,71 +8,58 @@ var addresses = require('./../fixtures').addresses;
 var txToRestConverter = require('./../../api/lib/tx-to-rest-converter.js');
 
 suite('unit - converter - Tx to Rest', function() {
-  test('parsePaymentFromTx()', function(done) {
+  test('parsePaymentFromTx()', function() {
     var tx = fixtures.paymentTx();
-    var options = {
-      account: addresses.VALID
-    };
-
-    txToRestConverter.parsePaymentFromTx(tx, options, function(err, payment) {
-      assert.strictEqual(err, null);
-      assert.deepEqual(payment, fixtures.paymentRest);
-      done();
-    });
+    var message = {tx_json: tx};
+    var meta = tx.meta;
+    var payment = txToRestConverter.parsePaymentFromTx(addresses.VALID,
+      message, meta);
+    assert.deepEqual(payment.payment, fixtures.paymentRest);
   });
 
-  test('parsePaymentFromTx() -- complicated meta', function(done) {
+  test('parsePaymentFromTx() -- complicated meta', function() {
     var tx = fixtures.paymentTx({
       meta: fixtures.COMPLICATED_META
     });
+    var message = {tx_json: tx};
+    var meta = tx.meta;
     tx.Destination = 'rGAWXLxpsy77vWxgYriPZE5ktUfqa6prbG';
-    var options = {
-      account: addresses.VALID
-    };
+    var payment = txToRestConverter.parsePaymentFromTx(addresses.VALID,
+      message, meta).payment;
 
-    txToRestConverter.parsePaymentFromTx(tx, options, function(err, payment) {
-      assert.strictEqual(err, null);
+    assert.deepEqual(payment.source_balance_changes, [
+      {
+        value: '-0.834999999999999',
+        currency: 'EUR',
+        issuer: 'r3PDtZSa5LiYp1Ysn1vMuMzB59RzV3W9QH'
+      },
+      {
+        value: '-0.015',
+        currency: 'XRP',
+        issuer: ''}
+    ]);
 
-      assert.deepEqual(payment.source_balance_changes, [
-        {
-          value: '-0.834999999999999',
-          currency: 'EUR',
-          issuer: 'r3PDtZSa5LiYp1Ysn1vMuMzB59RzV3W9QH'
-        },
-        {
-          value: '-0.015',
-          currency: 'XRP',
-          issuer: ''}
-      ]);
-
-      assert.deepEqual(payment.destination_balance_changes, [
-        {
-          value: '-1',
-          currency: 'USD',
-          issuer: 'r3PDtZSa5LiYp1Ysn1vMuMzB59RzV3W9QH'
-        },
-        {
-         value: '0.833333333333',
-         currency: 'EUR',
-         issuer: 'r3PDtZSa5LiYp1Ysn1vMuMzB59RzV3W9QH'
-        }
-      ]);
-
-      done();
-    });
+    assert.deepEqual(payment.destination_balance_changes, [
+      {
+        value: '-1',
+        currency: 'USD',
+        issuer: 'r3PDtZSa5LiYp1Ysn1vMuMzB59RzV3W9QH'
+      },
+      {
+       value: '0.833333333333',
+       currency: 'EUR',
+       issuer: 'r3PDtZSa5LiYp1Ysn1vMuMzB59RzV3W9QH'
+      }
+    ]);
   });
 
-  test('parsePaymentsFromPathFind()', function(done) {
+  test('parsePaymentsFromPathFind()', function() {
     var pathFindResults = fixtures.pathFindResultsTx;
-
-    txToRestConverter.parsePaymentsFromPathFind(pathFindResults, function(err, payments) {
-      assert.strictEqual(err, null);
-      assert.deepEqual(payments, fixtures.pathPaymentsRest);
-      done();
-    });
+    var payments = txToRestConverter.parsePaymentsFromPathFind(pathFindResults);
+    assert.deepEqual(payments, fixtures.pathPaymentsRest);
   });
 
-  test('parseCancelOrderFromTx()', function(done) {
+  test('parseCancelOrderFromTx()', function() {
     var txMessage = fixtures.cancelOrderTx;
     var meta = {
       hash: '3fc6fe4050075aa3115f212b64d97565ccd8003412f6404478a256b2f48351f3',
@@ -80,14 +67,11 @@ suite('unit - converter - Tx to Rest', function() {
       state: 'validated'
     };
 
-    txToRestConverter.parseCancelOrderFromTx(txMessage, meta, function(err, orderObj) {
-      assert.strictEqual(err, null);
-      assert.deepEqual(orderObj, fixtures.cancelOrderResponseRest);
-      done();
-    });
+    var order = txToRestConverter.parseCancelOrderFromTx(txMessage, meta);
+    assert.deepEqual(order, fixtures.cancelOrderResponseRest);
   });
 
-  test('parseSubmitOrderFromTx()', function(done) {
+  test('parseSubmitOrderFromTx()', function() {
     var txMessage = fixtures.submitOrderResponseTx;
     var meta = {
       hash: '684fd723577624f4581fd35d3ada8ff9e536f0ce5ab2065a22adf81633be1f2c',
@@ -95,14 +79,11 @@ suite('unit - converter - Tx to Rest', function() {
       state: 'pending'
     };
 
-    txToRestConverter.parseSubmitOrderFromTx(txMessage, meta, function(err, orderObj) {
-      assert.strictEqual(err, null);
-      assert.deepEqual(orderObj, fixtures.submitOrderResponseRest);
-      done();
-    });
+    var order = txToRestConverter.parseSubmitOrderFromTx(txMessage, meta);
+    assert.deepEqual(order, fixtures.submitOrderResponseRest);
   });
 
-  test('parseTrustResponseFromTx()', function(done) {
+  test('parseTrustResponseFromTx()', function() {
     var txMessage = fixtures.trustResponseTx;
     var meta = {
       hash: '0F480D344CFC610DFA5CAC62CC1621C92953A05FE8C319281CA49C5C162AF40E',
@@ -110,14 +91,11 @@ suite('unit - converter - Tx to Rest', function() {
       state: 'validated'
     };
 
-    txToRestConverter.parseTrustResponseFromTx(txMessage, meta, function(err, trustObj) {
-      assert.strictEqual(err, null);
-      assert.deepEqual(trustObj, fixtures.trustResponseRest);
-      done();
-    });
+    var trustline = txToRestConverter.parseTrustResponseFromTx(txMessage, meta);
+    assert.deepEqual(trustline, fixtures.trustResponseRest);
   });
 
-  test('parseSettingResponseFromTx()', function(done) {
+  test('parseSettingsResponseFromTx()', function() {
     var params = {
       account: addresses.VALID,
       secret: addresses.SECRET,
@@ -143,14 +121,12 @@ suite('unit - converter - Tx to Rest', function() {
       state: 'validated'
     };
 
-    txToRestConverter.parseSettingResponseFromTx(params.settings, txMessage, meta, function(err, settingObj) {
-      assert.strictEqual(err, null);
-      assert.deepEqual(settingObj, fixtures.settingResponseRest);
-      done();
-    });
+    var settings = txToRestConverter.parseSettingsResponseFromTx(
+      params.settings, txMessage, meta);
+    assert.deepEqual(settings, fixtures.settingResponseRest);
   });
 
-  test('parseFlagsFromResponse()', function(done) {
+  test('parseFlagsFromResponse()', function() {
     var responseFlags = 2147614720;
     var flags = {
       NoRipple: {
@@ -167,69 +143,60 @@ suite('unit - converter - Tx to Rest', function() {
       }
     };
 
-    var parsedFlags = txToRestConverter.parseFlagsFromResponse(responseFlags, flags);
+    var parsedFlags = txToRestConverter.parseFlagsFromResponse(
+      responseFlags, flags);
 
     assert.deepEqual(parsedFlags, {
       prevent_rippling: true,
       account_trustline_frozen: false,
       authorized: false
     });
-
-    done();
   });
 
   suite('parseOrderFromTx', function() {
-    test('parse OfferCreate', function(done) {
+    test('parse OfferCreate', function() {
       var options = {
         account: addresses.VALID
       };
 
-      txToRestConverter.parseOrderFromTx(fixtures.offerCreateTx, options)
-      .then(function(orderChange) {
-        assert.deepEqual(orderChange, fixtures.parsedOfferCreateTx);
-        done();
-      })
-      .catch(done);
+      var orderChange = txToRestConverter.parseOrderFromTx(
+        fixtures.offerCreateTx, options);
+      assert.deepEqual(orderChange, fixtures.parsedOfferCreateTx);
     });
 
-    test('parse OfferCancel', function(done) {
+    test('parse OfferCancel', function() {
       var options = {
         account: addresses.VALID
       };
 
-      txToRestConverter.parseOrderFromTx(fixtures.offerCancelTx, options)
-      .then(function(orderChange) {
-        assert.deepEqual(orderChange, fixtures.parsedOfferCancelTx);
-        done();
-      })
-      .catch(done);
+      var orderChange = txToRestConverter.parseOrderFromTx(
+        fixtures.offerCancelTx, options);
+      assert.deepEqual(orderChange, fixtures.parsedOfferCancelTx);
     });
 
-    test('parse Payment -- invalid transaction type', function(done) {
+    test('parse Payment -- invalid transaction type', function() {
       var options = {
         account: addresses.VALID
       };
 
-      txToRestConverter.parseOrderFromTx(fixtures.paymentTx(), options)
-      .catch(function(err) {
-        assert.strictEqual(err.message, 'Invalid parameter: identifier. The transaction corresponding to the given identifier is not an order');
-      })
-      .then(done);
+      assert.throws(function() {
+        txToRestConverter.parseOrderFromTx(fixtures.paymentTx(), options);
+      }, 'Invalid parameter: identifier. The transaction corresponding to'
+          + ' the given identifier is not an order'
+      );
     });
 
-    test('parse OfferCreate -- missing options.account', function(done) {
+    test('parse OfferCreate -- missing options.account', function() {
       var options = {
         account: undefined
       };
 
-      txToRestConverter.parseOrderFromTx(fixtures.offerCreateTx, options)
-      .catch(function(err) {
-        assert.strictEqual(err.message, 'Internal Error. must supply options.account');
-      })
-      .then(done);
+      assert.throws(function() {
+        txToRestConverter.parseOrderFromTx(fixtures.offerCreateTx, options);
+      }, 'Internal Error. must supply options.account');
     });
 
-    test('parse OfferCreate -- invalid secret', function(done) {
+    test('parse OfferCreate -- invalid secret', function() {
       var options = {
         account: addresses.VALID
       };
@@ -237,12 +204,9 @@ suite('unit - converter - Tx to Rest', function() {
       var tx = fixtures.offerCreateTx;
       tx.meta.TransactionResult = 'tejSecretInvalid';
 
-      txToRestConverter.parseOrderFromTx(tx, options)
-      .catch(function(err) {
-        assert.strictEqual(err.message, 'Invalid secret provided.');
-      })
-      .then(done);
+      assert.throws(function() {
+        txToRestConverter.parseOrderFromTx(tx, options);
+      }, 'Invalid secret provided.');
     });
   });
-
 });
