@@ -99,7 +99,7 @@ function createPaymentTransaction(account, payment) {
   if (payment.memos && Array.isArray(payment.memos)) {
     for (var m = 0; m < payment.memos.length; m++) {
       var memo = payment.memos[m];
-      transaction.addMemo(memo.MemoType, memo.MemoData);
+      transaction.addMemo(memo.MemoType, memo.MemoFormat, memo.MemoData);
     }
   }
 

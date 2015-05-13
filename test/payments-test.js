@@ -1,6 +1,9 @@
 /* eslint-disable new-cap */
+/* eslint-disable space-in-brackets */
 /* eslint-disable max-len */
+
 'use strict';
+
 var _ = require('lodash');
 var assert = require('assert-diff');
 var ripple = require('ripple-lib');
@@ -542,7 +545,7 @@ suite('post payments', function() {
     });
 
     self.wss.once('request_submit', function() {
-      assert(false);
+      assert(false, 'Should not request submit');
     });
 
     self.app
@@ -560,22 +563,17 @@ suite('post payments', function() {
   });
 
   test('/payments -- invalid memos', function(done) {
-    self.wss.once('request_account_info', function(message, conn) {
-      assert.strictEqual(message.command, 'account_info');
-      assert.strictEqual(message.account, addresses.VALID);
-      conn.send(fixtures.accountInfoResponse(message));
+    self.wss.once('request_account_info', function() {
+      assert(false, 'Should not request account_info');
     });
 
-    self.wss.once('request_submit', function(message, conn) {
-      assert.strictEqual(message.command, 'submit');
-      conn.send(fixtures.requestSubmitResponse(message));
+    self.wss.once('request_submit', function() {
+      assert(false, 'Should not request submit');
     });
 
     self.app
     .post('/v1/accounts/' + addresses.VALID + '/payments')
-    .send(fixtures.payment({
-      memos: 'some string'
-    }))
+    .send(fixtures.payment({ memos: 'some string' }))
     .expect(testutils.checkStatus(400))
     .expect(testutils.checkHeaders)
     .expect(testutils.checkBody(errors.RESTErrorResponse({
@@ -587,15 +585,12 @@ suite('post payments', function() {
   });
 
   test('/payments -- empty memos array', function(done) {
-    self.wss.once('request_account_info', function(message, conn) {
-      assert.strictEqual(message.command, 'account_info');
-      assert.strictEqual(message.account, addresses.VALID);
-      conn.send(fixtures.accountInfoResponse(message));
+    self.wss.once('request_account_info', function() {
+      assert(false, 'Should not request account_info');
     });
 
-    self.wss.once('request_submit', function(message, conn) {
-      assert.strictEqual(message.command, 'submit');
-      conn.send(fixtures.requestSubmitResponse(message));
+    self.wss.once('request_submit', function() {
+      assert(false, 'Should not request submit');
     });
 
     self.app
@@ -614,28 +609,20 @@ suite('post payments', function() {
   });
 
   test('/payments -- memo containing a MemoType field with an int value', function(done) {
-    self.wss.once('request_account_info', function(message, conn) {
-      assert.strictEqual(message.command, 'account_info');
-      assert.strictEqual(message.account, addresses.VALID);
-      conn.send(fixtures.accountInfoResponse(message));
+    self.wss.once('request_account_info', function() {
+      assert(false, 'Should not request account_info');
     });
 
-    self.wss.once('request_submit', function(message, conn) {
-      assert.strictEqual(message.command, 'submit');
-      conn.send(fixtures.requestSubmitResponse(message));
+    self.wss.once('request_submit', function() {
+      assert(false, 'Should not request submit');
     });
 
     self.app
     .post('/v1/accounts/' + addresses.VALID + '/payments')
     .send(fixtures.payment({
       memos: [
-        {
-          MemoType: 1,
-          MemoData: 'some_value'
-        },
-        {
-          MemoData: 'some_value'
-        }
+        { MemoType: 1, MemoData: 'some_value' },
+        { MemoData: 'some_value' }
       ]
     }))
     .expect(testutils.checkStatus(400))
@@ -649,28 +636,20 @@ suite('post payments', function() {
   });
 
   test('/payments -- memo containing a MemoData field with an int value', function(done) {
-    self.wss.once('request_account_info', function(message, conn) {
-      assert.strictEqual(message.command, 'account_info');
-      assert.strictEqual(message.account, addresses.VALID);
-      conn.send(fixtures.accountInfoResponse(message));
+    self.wss.once('request_account_info', function() {
+      assert(false, 'Should not request account_info');
     });
 
-    self.wss.once('request_submit', function(message, conn) {
-      assert.strictEqual(message.command, 'submit');
-      conn.send(fixtures.requestSubmitResponse(message));
+    self.wss.once('request_submit', function() {
+      assert(false, 'Should not request submit');
     });
 
     self.app
     .post('/v1/accounts/' + addresses.VALID + '/payments')
     .send(fixtures.payment({
       memos: [
-        {
-          MemoType: 'some_key',
-          MemoData: 1
-        },
-        {
-          MemoData: 'some_value'
-        }
+        { MemoType: 'some_key', MemoData: 1 },
+        { MemoData: 'some_value' }
       ]
     }))
     .expect(testutils.checkStatus(400))
@@ -692,6 +671,51 @@ suite('post payments', function() {
 
     self.wss.once('request_submit', function(message, conn) {
       assert.strictEqual(message.command, 'submit');
+
+      var tx_json = new ripple.SerializedObject(message.tx_blob).to_json();
+      var expected = [ { Memo: { MemoData: '736F6D655F76616C7565' } } ];
+
+      assert.deepEqual(tx_json.Memos, expected);
+      conn.send(fixtures.requestSubmitResponse(message));
+    });
+
+    self.app
+    .post('/v1/accounts/' + addresses.VALID + '/payments')
+    .send(fixtures.payment({
+      memos: [
+        { MemoData: 'some_value' }
+      ]
+    }))
+    .expect(testutils.checkStatus(200))
+    .expect(testutils.checkHeaders)
+    .expect(testutils.checkBody(fixtures.RESTSuccessResponse()))
+    .end(done);
+  });
+
+  test('/payments -- memo with non-url-char MemoData', function(done) {
+    self.wss.once('request_account_info', function(message, conn) {
+      assert.strictEqual(message.command, 'account_info');
+      assert.strictEqual(message.account, addresses.VALID);
+      conn.send(fixtures.accountInfoResponse(message));
+    });
+
+    self.wss.once('request_submit', function(message, conn) {
+      assert.strictEqual(message.command, 'submit');
+      assert.strictEqual(typeof message.tx_blob, 'string');
+
+      var tx_json = new ripple.SerializedObject(message.tx_blob).to_json();
+      var expected = [{
+        Memo: {
+          MemoType: '736F6D655F74797065',
+          MemoData: '736F6D652064617461',
+          MemoFormat: '736F6D655F666F726D6174',
+          parsed_memo_type: 'some_type',
+          parsed_memo_format: 'some_format'
+        }}];
+
+      assert.strictEqual(typeof tx_json, 'object');
+      assert.deepEqual(tx_json.Memos, expected);
+
       conn.send(fixtures.requestSubmitResponse(message));
     });
 
@@ -700,7 +724,9 @@ suite('post payments', function() {
     .send(fixtures.payment({
       memos: [
         {
-          MemoData: 'some_value'
+          MemoData: 'some data',
+          MemoType: 'some_type',
+          MemoFormat: 'some_format'
         }
       ]
     }))
@@ -719,6 +745,18 @@ suite('post payments', function() {
 
     self.wss.once('request_submit', function(message, conn) {
       assert.strictEqual(message.command, 'submit');
+
+      var tx_json = new ripple.SerializedObject(message.tx_blob).to_json();
+      var expected = [{
+        Memo: {
+          MemoType: '736F6D655F6B6579',
+          MemoData: '736F6D655F76616C7565',
+          parsed_memo_type: 'some_key'
+        }},
+        { Memo: { MemoData: '736F6D655F76616C7565' } }
+      ];
+
+      assert.deepEqual(tx_json.Memos, expected);
       conn.send(fixtures.requestSubmitResponse(message));
     });
 
@@ -726,13 +764,8 @@ suite('post payments', function() {
     .post('/v1/accounts/' + addresses.VALID + '/payments')
     .send(fixtures.payment({
       memos: [
-        {
-          MemoType: 'some_key',
-          MemoData: 'some_value'
-        },
-        {
-          MemoData: 'some_value'
-        }
+        { MemoType: 'some_key', MemoData: 'some_value' },
+        { MemoData: 'some_value' }
       ]
     }))
     .expect(testutils.checkStatus(200))
