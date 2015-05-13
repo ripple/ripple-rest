@@ -1,5 +1,5 @@
 'use strict';
-
+var _ = require('lodash');
 var util = require('util');
 var assert = require('assert');
 var knex = require('knex');
@@ -208,9 +208,8 @@ DI.saveTransaction = function(transaction, callback) {
 
   if (this.lock[txData.client_resource_id]) {
     // Force synchronous per-transaction updates
-    /* eslint-disable max-len */
-    this.once(unlockEvent, this.saveTransaction.bind(this, transaction, callback));
-    /* eslint-enable max-len */
+    var handler = _.partial(this.saveTransaction, transaction, callback);
+    this.once(unlockEvent, handler);
     return;
   }
 
@@ -246,7 +245,7 @@ DI.saveTransaction = function(transaction, callback) {
     (callback || noop)(err);
   })
   .finally(function() {
-    self.lock[txData.client_resource_id] = null;
+    delete self.lock[txData.client_resource_id];
     self.emit(unlockEvent);
   });
 };
