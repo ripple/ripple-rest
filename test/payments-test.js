@@ -16,7 +16,6 @@ var requestPath = fixtures.requestPath;
 
 suite('prepare payment', function() {
   var self = this;
-  self.accountInfoResponseMulti = fixtures.accountInfoResponse;
   setup(testutils.setup.bind(self));
   teardown(testutils.teardown.bind(self));
 
@@ -61,11 +60,6 @@ suite('get payments', function() {
       conn.send(fixtures.accountTransactionsResponse(message));
     });
 
-    self.wss.once('request_ledger', function(message, conn) {
-      assert.strictEqual(message.command, 'ledger');
-      conn.send(fixtures.ledgerResponse(message));
-    });
-
     self.app
     .get(requestPath(addresses.VALID))
     .expect(testutils.checkStatus(200))
@@ -77,6 +71,7 @@ suite('get payments', function() {
   test('/accounts/:account/payments/:identifier -- with identifier as client_resource_id');
 
   test('/accounts/:account/payments/:identifier -- with identifier as txn hash', function(done) {
+    self.wss.removeAllListeners('request_tx');
     self.wss.once('request_tx', function(message, conn) {
       assert.strictEqual(message.command, 'tx');
       assert.strictEqual(message.transaction, fixtures.VALID_TRANSACTION_HASH);
@@ -92,6 +87,7 @@ suite('get payments', function() {
   });
 
   test('/accounts/:account/payments/:identifier -- pending with identifier as txn hash', function(done) {
+    self.wss.removeAllListeners('request_tx');
     self.wss.once('request_tx', function(message, conn) {
       assert.strictEqual(message.command, 'tx');
       assert.strictEqual(message.transaction, fixtures.VALID_TRANSACTION_HASH);
@@ -107,6 +103,7 @@ suite('get payments', function() {
   });
 
   test('/accounts/:account/payments/:identifier -- with memos', function(done) {
+    self.wss.removeAllListeners('request_tx');
     self.wss.once('request_tx', function(message, conn) {
       assert.strictEqual(message.command, 'tx');
       assert.strictEqual(message.transaction, fixtures.VALID_TRANSACTION_HASH_MEMO);
@@ -125,11 +122,6 @@ suite('get payments', function() {
           }
         ]
       }));
-    });
-
-    self.wss.once('request_ledger', function(message, conn) {
-      assert.strictEqual(message.command, 'ledger');
-      conn.send(fixtures.ledgerResponse(message));
     });
 
     self.app
@@ -175,7 +167,6 @@ suite('get payments', function() {
 
 suite('post payments', function() {
   var self = this;
-  self.accountInfoResponseMulti = fixtures.accountInfoResponse;
 
   // self.wss: rippled mock
   // self.app: supertest-enabled REST handler
@@ -731,12 +722,6 @@ suite('post payments', function() {
   test('/payments?validated=true -- not enough XRP to create a new account', function(done) {
     var hash = testutils.generateHash();
 
-    self.wss.once('request_subscribe', function(message, conn) {
-      assert.strictEqual(message.command, 'subscribe');
-      assert.strictEqual(message.accounts[0], addresses.VALID);
-      conn.send(fixtures.rippledSubcribeResponse(message));
-    });
-
     self.wss.once('request_submit', function(message, conn) {
       var so = new ripple.SerializedObject(message.tx_blob).to_json();
       assert.strictEqual(so.Amount, '1000000');
@@ -774,12 +759,6 @@ suite('post payments', function() {
   test('/payments?validated=true -- not enough balance to pay the fee', function(done) {
     var hash = testutils.generateHash();
 
-    self.wss.once('request_subscribe', function(message, conn) {
-      assert.strictEqual(message.command, 'subscribe');
-      assert.strictEqual(message.accounts[0], addresses.VALID);
-      conn.send(fixtures.rippledSubcribeResponse(message));
-    });
-
     self.wss.once('request_submit', function(message, conn) {
       assert.strictEqual(message.command, 'submit');
       conn.send(fixtures.rippledSubmitErrorResponse(message, {
@@ -805,12 +784,6 @@ suite('post payments', function() {
 
   test('/payments?validated=true -- unfunded account', function(done) {
     var hash = testutils.generateHash();
-
-    self.wss.once('request_subscribe', function(message, conn) {
-      assert.strictEqual(message.command, 'subscribe');
-      assert.strictEqual(message.accounts[0], addresses.VALID);
-      conn.send(fixtures.rippledSubcribeResponse(message));
-    });
 
     self.wss.once('request_submit', function(message, conn) {
       assert.strictEqual(message.command, 'submit');
@@ -929,12 +902,6 @@ suite('post payments', function() {
   test('/payments -- duplicate client resource id, first transaction failed and validated true for first transaction', function(done) {
     var hash = testutils.generateHash();
 
-    self.wss.once('request_subscribe', function(message, conn) {
-      assert.strictEqual(message.command, 'subscribe');
-      assert.strictEqual(message.accounts[0], addresses.VALID);
-      conn.send(fixtures.rippledSubcribeResponse(message));
-    });
-
     // "once" because second payment should not hit submit
     self.wss.once('request_submit', function(message, conn) {
       assert.strictEqual(message.command, 'submit');
@@ -993,12 +960,6 @@ suite('post payments', function() {
 
   test('/payments -- duplicate client resource id, first transaction failed and validated true for both transactions', function(done) {
     var hash = testutils.generateHash();
-
-    self.wss.once('request_subscribe', function(message, conn) {
-      assert.strictEqual(message.command, 'subscribe');
-      assert.strictEqual(message.accounts[0], addresses.VALID);
-      conn.send(fixtures.rippledSubcribeResponse(message));
-    });
 
     // "once" because second payment should not hit submit
     self.wss.once('request_submit', function(message, conn) {

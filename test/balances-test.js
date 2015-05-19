@@ -7,6 +7,8 @@ var fixtures = require('./fixtures').balances;
 var errors = require('./fixtures').errors;
 var addresses = require('./fixtures').addresses;
 var requestPath = fixtures.requestPath;
+var accountNotFoundResponse = require('./fixtures/mock')
+  .accountNotFoundResponse;
 
 var MARKER = '29F992CC252056BF690107D1E8F2D9FBAFF29FF107B62B1D1F4E4E11ADF2CC73';
 var NEXT_MARKER =
@@ -19,7 +21,6 @@ var DEFAULT_LIMIT = 200;
 
 suite('get balances', function() {
   var self = this;
-  self.accountInfoResponse = fixtures.accountInfoResponse;
 
   // self.wss: rippled mock
   // self.app: supertest-enabled REST handler
@@ -308,21 +309,14 @@ suite('get balances', function() {
   });
 
   test('/accounts/:account/balances -- non-existent account', function(done) {
-    self.wss.removeAllListeners('request_account_info');
-    self.wss.once('request_account_info', function(message, conn) {
-      assert.strictEqual(message.command, 'account_info');
-      assert.strictEqual(message.account, addresses.VALID);
-      conn.send(fixtures.accountNotFoundResponse(message));
-    });
-
     self.wss.once('request_account_lines', function(message, conn) {
       assert.strictEqual(message.command, 'account_lines');
-      assert.strictEqual(message.account, addresses.VALID);
-      conn.send(fixtures.accountNotFoundResponse(message));
+      assert.strictEqual(message.account, addresses.NOTFOUND);
+      conn.send(accountNotFoundResponse(message));
     });
 
     self.app
-    .get(requestPath(addresses.VALID))
+    .get(requestPath(addresses.NOTFOUND))
     .expect(testutils.checkStatus(404))
     .expect(testutils.checkHeaders)
     .expect(testutils.checkBody(errors.RESTAccountNotFound))
@@ -350,16 +344,6 @@ suite('get balances', function() {
   });
 
   test('/accounts/:account/balances?currency -- native currency', function(done) {
-    self.wss.removeAllListeners('request_account_info');
-    self.wss.once('request_account_info', function(message, conn) {
-      assert.strictEqual(message.command, 'account_info');
-      assert.strictEqual(message.account, addresses.VALID);
-      assert.strictEqual(message.ledger_index, 'validated');
-      conn.send(fixtures.accountInfoResponse(message, {
-        ledger: LEDGER
-      }));
-    });
-
     self.app
     .get(requestPath(addresses.VALID, '?currency=XRP'))
     .expect(testutils.checkStatus(200))

@@ -32,11 +32,6 @@ suite('get server info', function() {
   });
 
   test('/server', function(done) {
-    self.wss.once('request_server_info', function(message, conn) {
-      assert.strictEqual(message.command, 'server_info');
-      conn.send(fixtures.serverInfoResponse(message));
-    });
-
     self.app
     .get('/v1/server')
     .expect(function(res, err) {

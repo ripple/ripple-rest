@@ -8,9 +8,6 @@ var _ = require('lodash');
 var addresses = require('./../fixtures').addresses;
 var SerializedObject = require('ripple-lib').SerializedObject;
 
-module.exports.VALID_TRANSACTION_HASH = 'F4AB442A6D4CBB935D66E1DA7309A5FC71C7143ED4049053EC14E3875B0CF9BF';
-module.exports.INVALID_TRANSACTION_HASH = 'XF4AB442A6D4CBB935D66E1DA7309A5FC71C7143ED4049053EC14E3875B0CF9BF';
-
 module.exports.requestPath = function(address, params) {
   return '/v1/accounts/' + address + '/notifications' + (params || '');
 };
@@ -199,91 +196,6 @@ var METADATA = module.exports.METADATA = {
   TransactionResult: 'tesSUCCESS'
 };
 
-module.exports.transactionResponse = function(request) {
-  return JSON.stringify({
-    id: request.id,
-    status: 'success',
-    type: 'response',
-    result: _.extend({
-      meta: SerializedObject.from_json(METADATA).to_hex(),
-      tx: SerializedObject.from_json(BINARY_TRANSACTION).to_hex()
-    }, BINARY_TRANSACTION_SYNTH)
-  });
-};
-
-module.exports.transactionNotFoundResponse = function(request) {
-  return JSON.stringify({
-    id: request.id,
-    status: 'error',
-    type: 'response',
-    error: 'txnNotFound',
-    error_code: 24,
-    error_message: 'Transaction not found.',
-    request: {
-      command: 'tx',
-      id: request.id,
-      transaction: request.transaction
-    }
-  });
-};
-
-module.exports.serverInfoResponse = function(request) {
-  return JSON.stringify({
-    id: request.id,
-    status: 'success',
-    type: 'response',
-    result: {
-      info: {
-        build_version: '0.24.0-rc1',
-        complete_ledgers: '32570-6595042',
-        hostid: 'ARTS',
-        last_close: { converge_time_s: 2.007, proposers: 4 },
-        load_factor: 1,
-        peers: 53,
-        pubkey_node: 'n94wWvFUmaKGYrKUGgpv1DyYgDeXRGdACkNQaSe7zJiy5Znio7UC',
-        server_state: 'full',
-        validated_ledger: {
-          age: 5,
-          base_fee_xrp: 0.00001,
-          hash: '4482DEE5362332F54A4036ED57EE1767C9F33CF7CE5A6670355C16CECE381D46',
-          reserve_base_xrp: 20,
-          reserve_inc_xrp: 5,
-          seq: 6595042
-        },
-        validation_quorum: 3
-      }
-    }
-  });
-};
-
-module.exports.ledgerResponse = function(request) {
-  return JSON.stringify(
-    {
-      id: request.id,
-      status: 'success',
-      type: 'response',
-      result: {
-        ledger: {
-          accepted: true,
-          account_hash: 'EC028EC32896D537ECCA18D18BEBE6AE99709FEFF9EF72DBD3A7819E918D8B96',
-          close_time: 464908910,
-          close_time_human: '2014-Sep-24 21:21:50',
-          close_time_resolution: 10,
-          closed: true,
-          hash: '0F7ED9F40742D8A513AE86029462B7A6768325583DF8EE21B7EC663019DD6A0F',
-          ledger_hash: '0F7ED9F40742D8A513AE86029462B7A6768325583DF8EE21B7EC663019DD6A0F',
-          ledger_index: '9038214',
-          parent_hash: '4BB9CBE44C39DC67A1BE849C7467FE1A6D1F73949EA163C38A0121A15E04FFDE',
-          seqNum: '9038214',
-          totalCoins: '99999973964317514',
-          total_coins: '99999973964317514',
-          transaction_hash: 'ECB730839EB55B1B114D5D1AD2CD9A932C35BA9AB6D3A8C2F08935EAC2BAC239'
-        }
-      }
-    }
-  );
-};
-
 module.exports.serverInfoMissingLedgerResponse = function(request) {
   return JSON.stringify({
     id: request.id,
@@ -411,7 +323,7 @@ module.exports.RESTNotificationResponse = JSON.stringify({
     result: 'tesSUCCESS',
     ledger: String(LEDGER),
     hash: 'F4AB442A6D4CBB935D66E1DA7309A5FC71C7143ED4049053EC14E3875B0CF9BF',
-    timestamp: '2014-09-24T21:21:50.000Z',
+    timestamp: '2013-03-12T23:56:50.000Z',
     transaction_url: 'http://127.0.0.1:5990/v1/accounts/' + addresses.VALID + '/payments/F4AB442A6D4CBB935D66E1DA7309A5FC71C7143ED4049053EC14E3875B0CF9BF',
     previous_hash: 'BACD1473E1D778CE38AD6D7C671D519506D0BC33AE3C54FA5A59D9C9161C381B',
     previous_notification_url: 'http://127.0.0.1:5990/v1/accounts/' + addresses.VALID + '/notifications/BACD1473E1D778CE38AD6D7C671D519506D0BC33AE3C54FA5A59D9C9161C381B',
@@ -451,7 +363,7 @@ module.exports.RESTNotificationNoNextResponse = JSON.stringify({
     result: 'tesSUCCESS',
     ledger: String(LEDGER),
     hash: 'F4AB442A6D4CBB935D66E1DA7309A5FC71C7143ED4049053EC14E3875B0CF9BF',
-    timestamp: '2014-09-24T21:21:50.000Z',
+    timestamp: '2013-03-12T23:56:50.000Z',
     transaction_url: 'http://127.0.0.1:5990/v1/accounts/' + addresses.VALID + '/payments/F4AB442A6D4CBB935D66E1DA7309A5FC71C7143ED4049053EC14E3875B0CF9BF',
     previous_hash: 'BACD1473E1D778CE38AD6D7C671D519506D0BC33AE3C54FA5A59D9C9161C381B',
     previous_notification_url: 'http://127.0.0.1:5990/v1/accounts/' + addresses.VALID + '/notifications/BACD1473E1D778CE38AD6D7C671D519506D0BC33AE3C54FA5A59D9C9161C381B',

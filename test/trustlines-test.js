@@ -9,6 +9,8 @@ var testutils = require('./testutils');
 var fixtures = require('./fixtures').trustlines;
 var errors = require('./fixtures').errors;
 var addresses = require('./fixtures').addresses;
+var accountNotFoundResponse = require('./fixtures/mock')
+  .accountNotFoundResponse;
 
 var DEFAULT_LIMIT = 200;
 var LIMIT = 5;
@@ -20,7 +22,6 @@ var LEDGER_HASH = 'FD22E2A8D665A01711C0147173ECC0A32466BA976DE697E95197933311267
 
 suite('prepare trustLine', function() {
   var self = this;
-  self.accountInfoResponseMulti = fixtures.accountInfoResponse;
   setup(testutils.setup.bind(self));
   teardown(testutils.teardown.bind(self));
 
@@ -52,7 +53,6 @@ suite('prepare trustLine', function() {
 
 suite('get trustlines', function() {
   var self = this;
-  self.accountInfoResponse = fixtures.accountInfoResponse;
 
   // self.wss: rippled mock
   // self.app: supertest-enabled REST handler
@@ -394,7 +394,7 @@ suite('get trustlines', function() {
     self.wss.once('request_account_lines', function(message, conn) {
       assert.strictEqual(message.command, 'account_lines');
       assert.strictEqual(message.account, addresses.VALID);
-      conn.send(fixtures.accountNotFoundResponse(message));
+      conn.send(accountNotFoundResponse(message));
     });
 
     testGetRequest({
@@ -408,7 +408,6 @@ suite('get trustlines', function() {
 
 suite('post trustlines', function() {
   var self = this;
-  self.accountInfoResponse = fixtures.accountInfoResponse;
 
   var defaultData = {
     secret: addresses.SECRET,

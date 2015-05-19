@@ -5,14 +5,12 @@
 var assert = require('assert');
 var _ = require('lodash');
 var testutils = require('./testutils');
-var fixtures = require('./fixtures').payments;
-var pathFixtures = require('./fixtures').paths;
+var fixtures = require('./fixtures').paths;
 var errors = require('./fixtures').errors;
 var addresses = require('./fixtures').addresses;
 
 suite('get payment paths', function() {
   var self = this;
-  self.accountInfoResponse = fixtures.accountInfoResponse;
 
   // self.wss: rippled mock
   // self.app: supertest-enabled REST handler
@@ -122,7 +120,7 @@ suite('get payment paths', function() {
         currency: '0000000000000000000000005553440000000000'
       });
 
-      conn.send(pathFixtures.generateXRPPaymentPaths(message.id, message.source_account, message.destination_account, message.destination_amount));
+      conn.send(fixtures.generateXRPPaymentPaths(message.id, message.source_account, message.destination_account, message.destination_amount));
     });
 
     self.app
@@ -147,7 +145,7 @@ suite('get payment paths', function() {
         currency: '0000000000000000000000004944520000000000'
       });
 
-      conn.send(pathFixtures.generateXRPPaymentPaths(message.id, message.source_account, message.destination_account, message.destination_amount));
+      conn.send(fixtures.generateXRPPaymentPaths(message.id, message.source_account, message.destination_account, message.destination_amount));
     });
 
     self.app
@@ -188,7 +186,7 @@ suite('get payment paths', function() {
       assert.strictEqual(message.command, 'ripple_path_find');
       assert.strictEqual(message.source_account, addresses.VALID);
       assert.strictEqual(message.destination_account, addresses.VALID);
-      conn.send(pathFixtures.generateXRPPaymentPaths(message.id, message.source_account, message.destination_account, message.destination_amount));
+      conn.send(fixtures.generateXRPPaymentPaths(message.id, message.source_account, message.destination_account, message.destination_amount));
     });
 
     self.app
@@ -217,7 +215,7 @@ suite('get payment paths', function() {
       assert.strictEqual(message.command, 'ripple_path_find');
       assert.strictEqual(message.source_account, addresses.VALID);
       assert.strictEqual(message.destination_account, addresses.VALID);
-      conn.send(pathFixtures.generateIOUPaymentPaths(message.id, message.source_account, message.destination_account, message.destination_amount));
+      conn.send(fixtures.generateIOUPaymentPaths(message.id, message.source_account, message.destination_account, message.destination_amount));
     });
 
     self.app
@@ -244,14 +242,7 @@ suite('get payment paths', function() {
       assert.strictEqual(message.command, 'ripple_path_find');
       assert.strictEqual(message.source_account, addresses.COUNTERPARTY);
       assert.strictEqual(message.destination_account, addresses.VALID);
-      conn.send(pathFixtures.generateIOUPaymentPaths(message.id, message.source_account, message.destination_account, message.destination_amount));
-    });
-
-    self.wss.removeAllListeners('request_account_info');
-    self.wss.once('request_account_info', function(message, conn) {
-      assert.strictEqual(message.command, 'account_info');
-      assert.strictEqual(message.account, addresses.COUNTERPARTY);
-      conn.send(fixtures.accountInfoResponse(message));
+      conn.send(fixtures.generateIOUPaymentPaths(message.id, message.source_account, message.destination_account, message.destination_amount));
     });
 
     self.app
@@ -281,7 +272,7 @@ suite('get payment paths', function() {
       assert.strictEqual(message.command, 'ripple_path_find');
       assert.strictEqual(message.source_account, addresses.VALID);
       assert.strictEqual(message.destination_account, addresses.VALID);
-      conn.send(pathFixtures.generateIOUPaymentPaths(
+      conn.send(fixtures.generateIOUPaymentPaths(
         message.id, message.source_account, message.destination_account,
         message.destination_amount));
     });
@@ -310,7 +301,7 @@ suite('get payment paths', function() {
       assert.strictEqual(message.command, 'ripple_path_find');
       assert.strictEqual(message.source_account, addresses.VALID);
       assert.strictEqual(message.destination_account, addresses.VALID);
-      conn.send(pathFixtures.generateIOUPaymentPaths(message.id, message.source_account, message.destination_account, message.destination_amount));
+      conn.send(fixtures.generateIOUPaymentPaths(message.id, message.source_account, message.destination_account, message.destination_amount));
     });
 
     self.app
