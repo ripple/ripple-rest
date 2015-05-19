@@ -12,6 +12,7 @@ var addresses = require('./fixtures').addresses;
 
 suite('get payment paths', function() {
   var self = this;
+  self.accountInfoResponse = fixtures.accountInfoResponse;
 
   // self.wss: rippled mock
   // self.app: supertest-enabled REST handler
@@ -124,12 +125,6 @@ suite('get payment paths', function() {
       conn.send(pathFixtures.generateXRPPaymentPaths(message.id, message.source_account, message.destination_account, message.destination_amount));
     });
 
-    self.wss.once('request_account_info', function(message, conn) {
-      assert.strictEqual(message.command, 'account_info');
-      assert.strictEqual(message.account, addresses.VALID);
-      conn.send(fixtures.accountInfoResponse(message));
-    });
-
     self.app
     .get('/v1/accounts/' + addresses.VALID + '/payments/paths/' + addresses.VALID + '/100+USD+' + addresses.VALID + '?source_currencies=USD+' + addresses.VALID)
     .expect(testutils.checkStatus(200))
@@ -153,12 +148,6 @@ suite('get payment paths', function() {
       });
 
       conn.send(pathFixtures.generateXRPPaymentPaths(message.id, message.source_account, message.destination_account, message.destination_amount));
-    });
-
-    self.wss.once('request_account_info', function(message, conn) {
-      assert.strictEqual(message.command, 'account_info');
-      assert.strictEqual(message.account, addresses.VALID);
-      conn.send(fixtures.accountInfoResponse(message));
     });
 
     self.app
@@ -202,12 +191,6 @@ suite('get payment paths', function() {
       conn.send(pathFixtures.generateXRPPaymentPaths(message.id, message.source_account, message.destination_account, message.destination_amount));
     });
 
-    self.wss.once('request_account_info', function(message, conn) {
-      assert.strictEqual(message.command, 'account_info');
-      assert.strictEqual(message.account, addresses.VALID);
-      conn.send(fixtures.accountInfoResponse(message));
-    });
-
     self.app
     .get('/v1/accounts/' + addresses.VALID + '/payments/paths/' + addresses.VALID + '/100+XRP')
     .expect(testutils.checkStatus(200))
@@ -237,12 +220,6 @@ suite('get payment paths', function() {
       conn.send(pathFixtures.generateIOUPaymentPaths(message.id, message.source_account, message.destination_account, message.destination_amount));
     });
 
-    self.wss.once('request_account_info', function(message, conn) {
-      assert.strictEqual(message.command, 'account_info');
-      assert.strictEqual(message.account, addresses.VALID);
-      conn.send(fixtures.accountInfoResponse(message));
-    });
-
     self.app
       .get('/v1/accounts/' + addresses.VALID + '/payments/paths/' + addresses.VALID + '/0.001+0158415500000000C1F76FF6ECB0BAC600000000')
       .expect(testutils.checkStatus(200))
@@ -270,6 +247,7 @@ suite('get payment paths', function() {
       conn.send(pathFixtures.generateIOUPaymentPaths(message.id, message.source_account, message.destination_account, message.destination_amount));
     });
 
+    self.wss.removeAllListeners('request_account_info');
     self.wss.once('request_account_info', function(message, conn) {
       assert.strictEqual(message.command, 'account_info');
       assert.strictEqual(message.account, addresses.COUNTERPARTY);

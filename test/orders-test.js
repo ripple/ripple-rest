@@ -26,16 +26,11 @@ var LEDGER_HASH =
 
 suite('prepare order', function() {
   var self = this;
+  self.accountInfoResponseMulti = fixtures.accountInfoResponse;
   setup(testutils.setup.bind(self));
   teardown(testutils.teardown.bind(self));
 
   test('100 USD for 100 USD', function(done) {
-    self.wss.on('request_account_info', function(message, conn) {
-      assert.strictEqual(message.command, 'account_info');
-      assert.strictEqual(message.account, addresses.VALID);
-      conn.send(fixtures.accountInfoResponse(message));
-    });
-
     testutils.withDeterministicPRNG(function(_done) {
       self.app
         .post('/v1/accounts/' + addresses.VALID + '/orders?submit=false')
@@ -48,12 +43,6 @@ suite('prepare order', function() {
   });
 
   test('100 USD for 100 USD -- no secret', function(done) {
-    self.wss.on('request_account_info', function(message, conn) {
-      assert.strictEqual(message.command, 'account_info');
-      assert.strictEqual(message.account, addresses.VALID);
-      conn.send(fixtures.accountInfoResponse(message));
-    });
-
     testutils.withDeterministicPRNG(function(_done) {
       self.app
         .post('/v1/accounts/' + addresses.VALID + '/orders?submit=false')
@@ -69,16 +58,11 @@ suite('prepare order', function() {
 
 suite('prepare order cancellation', function() {
   var self = this;
+  self.accountInfoResponseMulti = fixtures.accountInfoResponse;
   setup(testutils.setup.bind(self));
   teardown(testutils.teardown.bind(self));
 
   test('order sequence 99', function(done) {
-    self.wss.on('request_account_info', function(message, conn) {
-      assert.strictEqual(message.command, 'account_info');
-      assert.strictEqual(message.account, addresses.VALID);
-      conn.send(fixtures.accountInfoResponse(message));
-    });
-
     testutils.withDeterministicPRNG(function(_done) {
       self.app
         .del('/v1/accounts/' + addresses.VALID + '/orders/99?submit=false')
@@ -93,12 +77,6 @@ suite('prepare order cancellation', function() {
   });
 
   test('order sequence 99 -- no secret', function(done) {
-    self.wss.on('request_account_info', function(message, conn) {
-      assert.strictEqual(message.command, 'account_info');
-      assert.strictEqual(message.account, addresses.VALID);
-      conn.send(fixtures.accountInfoResponse(message));
-    });
-
     testutils.withDeterministicPRNG(function(_done) {
       self.app
         .del('/v1/accounts/' + addresses.VALID + '/orders/99?submit=false')
@@ -114,6 +92,7 @@ suite('prepare order cancellation', function() {
 
 suite('get orders', function() {
   var self = this;
+  self.accountInfoResponse = fixtures.accountInfoResponse;
 
   setup(testutils.setup.bind(self));
   teardown(testutils.teardown.bind(self));
@@ -382,6 +361,7 @@ suite('get orders', function() {
 
 suite('post orders', function() {
   var self = this;
+  self.accountInfoResponse = fixtures.accountInfoResponse;
 
   setup(testutils.setup.bind(self));
   teardown(testutils.teardown.bind(self));
@@ -389,12 +369,6 @@ suite('post orders', function() {
   test('/orders?validated=true', function(done) {
     var lastLedger = self.remote._ledger_current_index;
     var hash = testutils.generateHash();
-
-    self.wss.once('request_account_info', function(message, conn) {
-      assert.strictEqual(message.command, 'account_info');
-      assert.strictEqual(message.account, addresses.VALID);
-      conn.send(fixtures.accountInfoResponse(message));
-    });
 
     self.wss.once('request_submit', function(message, conn) {
       assert.strictEqual(message.command, 'submit');
@@ -424,12 +398,6 @@ suite('post orders', function() {
 
   test('/orders?validated=true -- unfunded offer', function(done) {
     var hash = testutils.generateHash();
-
-    self.wss.once('request_account_info', function(message, conn) {
-      assert.strictEqual(message.command, 'account_info');
-      assert.strictEqual(message.account, addresses.VALID);
-      conn.send(fixtures.accountInfoResponse(message));
-    });
 
     self.wss.once('request_submit', function(message, conn) {
       assert.strictEqual(message.command, 'submit');
@@ -463,12 +431,6 @@ suite('post orders', function() {
   test('/orders', function(done) {
     var lastLedger = self.remote._ledger_current_index;
     var hash = testutils.generateHash();
-
-    self.wss.once('request_account_info', function(message, conn) {
-      assert.strictEqual(message.command, 'account_info');
-      assert.strictEqual(message.account, addresses.VALID);
-      conn.send(fixtures.accountInfoResponse(message));
-    });
 
     self.wss.once('request_submit', function(message, conn) {
       var so = new ripple.SerializedObject(message.tx_blob).to_json();
@@ -516,12 +478,6 @@ suite('post orders', function() {
         issuer: ISSUER
       }
     };
-
-    self.wss.once('request_account_info', function(message, conn) {
-      assert.strictEqual(message.command, 'account_info');
-      assert.strictEqual(message.account, addresses.VALID);
-      conn.send(fixtures.accountInfoResponse(message));
-    });
 
     self.wss.once('request_submit', function(message, conn) {
       var so = new ripple.SerializedObject(message.tx_blob).to_json();
@@ -571,12 +527,6 @@ suite('post orders', function() {
       }
     };
 
-    self.wss.once('request_account_info', function(message, conn) {
-      assert.strictEqual(message.command, 'account_info');
-      assert.strictEqual(message.account, addresses.VALID);
-      conn.send(fixtures.accountInfoResponse(message));
-    });
-
     self.wss.once('request_submit', function(message, conn) {
       var so = new ripple.SerializedObject(message.tx_blob).to_json();
       assert.strictEqual(so.TakerPays.value, VALUE);
@@ -612,12 +562,6 @@ suite('post orders', function() {
   });
 
   test('/orders -- ledger sequence too high', function(done) {
-    self.wss.once('request_account_info', function(message, conn) {
-      assert.strictEqual(message.command, 'account_info');
-      assert.strictEqual(message.account, addresses.VALID);
-      conn.send(fixtures.accountInfoResponse(message));
-    });
-
     self.wss.once('request_submit', function(message, conn) {
       assert.strictEqual(message.command, 'submit');
       conn.send(fixtures.ledgerSequenceTooHighResponse(message));
@@ -634,12 +578,6 @@ suite('post orders', function() {
   });
 
   test('/orders -- secret invalid', function(done) {
-    self.wss.once('request_account_info', function(message, conn) {
-      assert.strictEqual(message.command, 'account_info');
-      assert.strictEqual(message.account, addresses.VALID);
-      conn.send(fixtures.accountInfoResponse(message));
-    });
-
     self.app
     .post('/v1/accounts/' + addresses.VALID + '/orders')
     .send(fixtures.order({
@@ -654,12 +592,6 @@ suite('post orders', function() {
   test('/orders -- type sell', function(done) {
     var lastLedger = self.remote._ledger_current_index;
     var hash = testutils.generateHash();
-
-    self.wss.once('request_account_info', function(message, conn) {
-      assert.strictEqual(message.command, 'account_info');
-      assert.strictEqual(message.account, addresses.VALID);
-      conn.send(fixtures.accountInfoResponse(message));
-    });
 
     self.wss.once('request_submit', function(message, conn) {
       var so = new ripple.SerializedObject(message.tx_blob).to_json();
@@ -689,12 +621,6 @@ suite('post orders', function() {
     var lastLedger = self.remote._ledger_current_index;
     var hash = testutils.generateHash();
 
-    self.wss.once('request_account_info', function(message, conn) {
-      assert.strictEqual(message.command, 'account_info');
-      assert.strictEqual(message.account, addresses.VALID);
-      conn.send(fixtures.accountInfoResponse(message));
-    });
-
     self.wss.once('request_submit', function(message, conn) {
       var so = new ripple.SerializedObject(message.tx_blob).to_json();
       assert.strictEqual(message.command, 'submit');
@@ -722,12 +648,6 @@ suite('post orders', function() {
   test('/orders -- fill_or_kill true', function(done) {
     var lastLedger = self.remote._ledger_current_index;
     var hash = testutils.generateHash();
-
-    self.wss.once('request_account_info', function(message, conn) {
-      assert.strictEqual(message.command, 'account_info');
-      assert.strictEqual(message.account, addresses.VALID);
-      conn.send(fixtures.accountInfoResponse(message));
-    });
 
     self.wss.once('request_submit', function(message, conn) {
       var so = new ripple.SerializedObject(message.tx_blob).to_json();
@@ -757,12 +677,6 @@ suite('post orders', function() {
     var lastLedger = self.remote._ledger_current_index;
     var hash = testutils.generateHash();
 
-    self.wss.once('request_account_info', function(message, conn) {
-      assert.strictEqual(message.command, 'account_info');
-      assert.strictEqual(message.account, addresses.VALID);
-      conn.send(fixtures.accountInfoResponse(message));
-    });
-
     self.wss.once('request_submit', function(message, conn) {
       var so = new ripple.SerializedObject(message.tx_blob).to_json();
       assert.strictEqual(message.command, 'submit');
@@ -790,12 +704,6 @@ suite('post orders', function() {
   test('/orders -- passive false', function(done) {
     var lastLedger = self.remote._ledger_current_index;
     var hash = testutils.generateHash();
-
-    self.wss.once('request_account_info', function(message, conn) {
-      assert.strictEqual(message.command, 'account_info');
-      assert.strictEqual(message.account, addresses.VALID);
-      conn.send(fixtures.accountInfoResponse(message));
-    });
 
     self.wss.once('request_submit', function(message, conn) {
       var so = new ripple.SerializedObject(message.tx_blob).to_json();
@@ -825,12 +733,6 @@ suite('post orders', function() {
     var lastLedger = self.remote._ledger_current_index;
     var hash = testutils.generateHash();
 
-    self.wss.once('request_account_info', function(message, conn) {
-      assert.strictEqual(message.command, 'account_info');
-      assert.strictEqual(message.account, addresses.VALID);
-      conn.send(fixtures.accountInfoResponse(message));
-    });
-
     self.wss.once('request_submit', function(message, conn) {
       var so = new ripple.SerializedObject(message.tx_blob).to_json();
       assert.strictEqual(message.command, 'submit');
@@ -858,12 +760,6 @@ suite('post orders', function() {
   test('/orders -- immediate_or_cancel false', function(done) {
     var lastLedger = self.remote._ledger_current_index;
     var hash = testutils.generateHash();
-
-    self.wss.once('request_account_info', function(message, conn) {
-      assert.strictEqual(message.command, 'account_info');
-      assert.strictEqual(message.account, addresses.VALID);
-      conn.send(fixtures.accountInfoResponse(message));
-    });
 
     self.wss.once('request_submit', function(message, conn) {
       var so = new ripple.SerializedObject(message.tx_blob).to_json();
@@ -946,12 +842,6 @@ suite('post orders', function() {
       taker_gets: '100000000000'
     };
 
-    self.wss.once('request_account_info', function(message, conn) {
-      assert.strictEqual(message.command, 'account_info');
-      assert.strictEqual(message.account, addresses.VALID);
-      conn.send(fixtures.accountInfoResponse(message));
-    });
-
     self.wss.once('request_submit', function(message, conn) {
       var so = new ripple.SerializedObject(message.tx_blob).to_json();
       assert.strictEqual(message.command, 'submit');
@@ -994,12 +884,6 @@ suite('post orders', function() {
       taker_pays: '100000000000'
     };
 
-    self.wss.once('request_account_info', function(message, conn) {
-      assert.strictEqual(message.command, 'account_info');
-      assert.strictEqual(message.account, addresses.VALID);
-      conn.send(fixtures.accountInfoResponse(message));
-    });
-
     self.wss.once('request_submit', function(message, conn) {
       var so = new ripple.SerializedObject(message.tx_blob).to_json();
       assert.strictEqual(message.command, 'submit');
@@ -1036,12 +920,6 @@ suite('post orders', function() {
     var lastLedger = self.remote._ledger_current_index;
     var hash = testutils.generateHash();
 
-    self.wss.once('request_account_info', function(message, conn) {
-      assert.strictEqual(message.command, 'account_info');
-      assert.strictEqual(message.account, addresses.VALID);
-      conn.send(fixtures.accountInfoResponse(message));
-    });
-
     self.wss.once('request_submit', function(message, conn) {
       assert.strictEqual(message.command, 'submit');
       conn.send(fixtures.rippledSubmitErrorResponse(message, {
@@ -1075,12 +953,6 @@ suite('post orders', function() {
   });
 
   test('/orders -- secret invalid', function(done) {
-    self.wss.once('request_account_info', function(message, conn) {
-      assert.strictEqual(message.command, 'account_info');
-      assert.strictEqual(message.account, addresses.VALID);
-      conn.send(fixtures.accountInfoResponse(message));
-    });
-
     self.app
     .post('/v1/accounts/' + addresses.VALID + '/orders')
     .send(fixtures.order({
@@ -1207,6 +1079,7 @@ suite('post orders', function() {
 
 suite('delete orders', function() {
   var self = this;
+  self.accountInfoResponse = fixtures.accountInfoResponse;
 
   setup(testutils.setup.bind(self));
   teardown(testutils.teardown.bind(self));
@@ -1214,12 +1087,6 @@ suite('delete orders', function() {
   test('/orders/:sequence?validated=true', function(done) {
     var lastLedger = self.remote._ledger_current_index;
     var hash = testutils.generateHash();
-
-    self.wss.once('request_account_info', function(message, conn) {
-      assert.strictEqual(message.command, 'account_info');
-      assert.strictEqual(message.account, addresses.VALID);
-      conn.send(fixtures.accountInfoResponse(message));
-    });
 
     self.wss.once('request_submit', function(message, conn) {
       var so = new ripple.SerializedObject(message.tx_blob).to_json();
@@ -1253,12 +1120,6 @@ suite('delete orders', function() {
   });
 
   test('/orders/:sequence -- ledger sequence too high', function(done) {
-    self.wss.once('request_account_info', function(message, conn) {
-      assert.strictEqual(message.command, 'account_info');
-      assert.strictEqual(message.account, addresses.VALID);
-      conn.send(fixtures.accountInfoResponse(message));
-    });
-
     self.wss.once('request_submit', function(message, conn) {
       assert.strictEqual(message.command, 'submit');
       conn.send(fixtures.ledgerSequenceTooHighResponse(message));
@@ -1277,12 +1138,6 @@ suite('delete orders', function() {
   });
 
   test('/orders/:sequence -- secret invalid', function(done) {
-    self.wss.once('request_account_info', function(message, conn) {
-      assert.strictEqual(message.command, 'account_info');
-      assert.strictEqual(message.account, addresses.VALID);
-      conn.send(fixtures.accountInfoResponse(message));
-    });
-
     self.app
     .del('/v1/accounts/' + addresses.VALID + '/orders/99')
     .send(fixtures.order({
@@ -1297,12 +1152,6 @@ suite('delete orders', function() {
   test('/orders/:sequence', function(done) {
     var lastLedger = self.remote._ledger_current_index;
     var hash = testutils.generateHash();
-
-    self.wss.once('request_account_info', function(message, conn) {
-      assert.strictEqual(message.command, 'account_info');
-      assert.strictEqual(message.account, addresses.VALID);
-      conn.send(fixtures.accountInfoResponse(message));
-    });
 
     self.wss.once('request_submit', function(message, conn) {
       var so = new ripple.SerializedObject(message.tx_blob).to_json();
@@ -1330,12 +1179,6 @@ suite('delete orders', function() {
 
   test('/orders/:sequence -- bad sequence', function(done) {
     var hash = testutils.generateHash();
-
-    self.wss.once('request_account_info', function(message, conn) {
-      assert.strictEqual(message.command, 'account_info');
-      assert.strictEqual(message.account, addresses.VALID);
-      conn.send(fixtures.accountInfoResponse(message));
-    });
 
     self.wss.once('request_submit', function(message, conn) {
       var so = new ripple.SerializedObject(message.tx_blob).to_json();
@@ -1392,12 +1235,6 @@ suite('delete orders', function() {
   });
 
   test('/orders/:sequence -- secret invalid', function(done) {
-    self.wss.once('request_account_info', function(message, conn) {
-      assert.strictEqual(message.command, 'account_info');
-      assert.strictEqual(message.account, addresses.VALID);
-      conn.send(fixtures.accountInfoResponse(message));
-    });
-
     self.app
     .del('/v1/accounts/' + addresses.VALID + '/orders/99')
     .send({
@@ -1424,6 +1261,7 @@ suite('delete orders', function() {
 
 suite('get order book', function() {
   var self = this;
+  self.accountInfoResponse = fixtures.accountInfoResponse;
 
   setup(testutils.setup.bind(self));
   teardown(testutils.teardown.bind(self));
@@ -1680,6 +1518,7 @@ suite('get order book', function() {
 suite('get order', function() {
   var self = this;
   var hash = testutils.generateHash();
+  self.accountInfoResponse = fixtures.accountInfoResponse;
 
   setup(testutils.setup.bind(self));
   teardown(testutils.teardown.bind(self));

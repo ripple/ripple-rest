@@ -10,16 +10,11 @@ var addresses = require('./fixtures').addresses;
 
 suite('prepare settings', function() {
   var self = this;
+  self.accountInfoResponseMulti = fixtures.accountInfoResponse;
   setup(testutils.setup.bind(self));
   teardown(testutils.teardown.bind(self));
 
   test('set domain', function(done) {
-    self.wss.on('request_account_info', function(message, conn) {
-      assert.strictEqual(message.command, 'account_info');
-      assert.strictEqual(message.account, addresses.VALID);
-      conn.send(fixtures.accountInfoResponse(message));
-    });
-
     testutils.withDeterministicPRNG(function(_done) {
       self.app
         .post(fixtures.requestPath(addresses.VALID, '?submit=false'))
@@ -32,12 +27,6 @@ suite('prepare settings', function() {
   });
 
   test('set domain -- no secret', function(done) {
-    self.wss.on('request_account_info', function(message, conn) {
-      assert.strictEqual(message.command, 'account_info');
-      assert.strictEqual(message.account, addresses.VALID);
-      conn.send(fixtures.accountInfoResponse(message));
-    });
-
     testutils.withDeterministicPRNG(function(_done) {
       self.app
         .post(fixtures.requestPath(addresses.VALID, '?submit=false'))
@@ -53,6 +42,7 @@ suite('prepare settings', function() {
 
 suite('get settings', function() {
   var self = this;
+  self.accountInfoResponse = fixtures.accountInfoResponse;
 
   // self.wss: rippled mock
   // self.app: supertest-enabled REST handler
@@ -61,12 +51,6 @@ suite('get settings', function() {
   teardown(testutils.teardown.bind(self));
 
   test('/accounts/:account/settings', function(done) {
-    self.wss.once('request_account_info', function(message, conn) {
-      assert.strictEqual(message.command, 'account_info');
-      assert.strictEqual(message.account, addresses.VALID);
-      conn.send(fixtures.accountInfoResponse(message));
-    });
-
     self.app
     .get(fixtures.requestPath(addresses.VALID))
     .expect(testutils.checkStatus(200))
@@ -85,6 +69,7 @@ suite('get settings', function() {
   });
 
   test('/accounts/:account/settings -- non-existent account', function(done) {
+    self.wss.removeAllListeners('request_account_info');
     self.wss.once('request_account_info', function(message, conn) {
       assert.strictEqual(message.command, 'account_info');
       assert.strictEqual(message.account, addresses.VALID);
@@ -101,6 +86,7 @@ suite('get settings', function() {
 
 suite('post settings', function() {
   var self = this;
+  self.accountInfoResponse = fixtures.accountInfoResponse;
 
   // self.wss: rippled mock
   // self.app: supertest-enabled REST handler
@@ -111,12 +97,6 @@ suite('post settings', function() {
   test('/accounts/:account/settings?validated=true', function(done) {
     var currentLedger = self.remote._ledger_current_index;
     var lastLedger = currentLedger + testutils.LEDGER_OFFSET;
-
-    self.wss.once('request_account_info', function(message, conn) {
-      assert.strictEqual(message.command, 'account_info');
-      assert.strictEqual(message.account, addresses.VALID);
-      conn.send(fixtures.accountInfoResponse(message));
-    });
 
     self.wss.once('request_submit', function(message, conn) {
       assert.strictEqual(message.command, 'submit');
@@ -205,12 +185,6 @@ suite('post settings', function() {
   });
 
   test('/accounts/:account/settings -- secret invalid', function(done) {
-    self.wss.once('request_account_info', function(message, conn) {
-      assert.strictEqual(message.command, 'account_info');
-      assert.strictEqual(message.account, addresses.VALID);
-      conn.send(fixtures.accountInfoResponse(message));
-    });
-
     self.app
     .post(fixtures.requestPath(addresses.VALID))
     .send({
@@ -429,12 +403,6 @@ suite('post settings', function() {
         + ' -- no op setting', function(done) {
     var hash = testutils.generateHash();
 
-    self.wss.once('request_account_info', function(message, conn) {
-      assert.strictEqual(message.command, 'account_info');
-      assert.strictEqual(message.account, addresses.VALID);
-      conn.send(fixtures.accountInfoResponse(message));
-    });
-
     self.wss.once('request_submit', function(message, conn) {
       assert.strictEqual(message.command, 'submit');
       assert(message.hasOwnProperty('tx_blob'));
@@ -466,12 +434,6 @@ suite('post settings', function() {
   test('/accounts/:account/settings -- require_destination_tag'
         + ' -- clear setting', function(done) {
     var hash = testutils.generateHash();
-
-    self.wss.once('request_account_info', function(message, conn) {
-      assert.strictEqual(message.command, 'account_info');
-      assert.strictEqual(message.account, addresses.VALID);
-      conn.send(fixtures.accountInfoResponse(message));
-    });
 
     self.wss.once('request_submit', function(message, conn) {
       assert.strictEqual(message.command, 'submit');
@@ -505,12 +467,6 @@ suite('post settings', function() {
       function(done) {
     var hash = testutils.generateHash();
 
-    self.wss.once('request_account_info', function(message, conn) {
-      assert.strictEqual(message.command, 'account_info');
-      assert.strictEqual(message.account, addresses.VALID);
-      conn.send(fixtures.accountInfoResponse(message));
-    });
-
     self.wss.once('request_submit', function(message, conn) {
       assert.strictEqual(message.command, 'submit');
       assert(message.hasOwnProperty('tx_blob'));
@@ -541,12 +497,6 @@ suite('post settings', function() {
   test('/accounts/:account/settings -- email_hash -- clear setting',
       function(done) {
     var hash = testutils.generateHash();
-
-    self.wss.once('request_account_info', function(message, conn) {
-      assert.strictEqual(message.command, 'account_info');
-      assert.strictEqual(message.account, addresses.VALID);
-      conn.send(fixtures.accountInfoResponse(message));
-    });
 
     self.wss.once('request_submit', function(message, conn) {
       assert.strictEqual(message.command, 'submit');
@@ -579,12 +529,6 @@ suite('post settings', function() {
       function(done) {
     var hash = testutils.generateHash();
 
-    self.wss.once('request_account_info', function(message, conn) {
-      assert.strictEqual(message.command, 'account_info');
-      assert.strictEqual(message.account, addresses.VALID);
-      conn.send(fixtures.accountInfoResponse(message));
-    });
-
     self.wss.once('request_submit', function(message, conn) {
       assert.strictEqual(message.command, 'submit');
       assert(message.hasOwnProperty('tx_blob'));
@@ -615,12 +559,6 @@ suite('post settings', function() {
   test('/accounts/:account/settings -- transfer_rate -- clear setting',
       function(done) {
     var hash = testutils.generateHash();
-
-    self.wss.once('request_account_info', function(message, conn) {
-      assert.strictEqual(message.command, 'account_info');
-      assert.strictEqual(message.account, addresses.VALID);
-      conn.send(fixtures.accountInfoResponse(message));
-    });
 
     self.wss.once('request_submit', function(message, conn) {
       assert.strictEqual(message.command, 'submit');
@@ -653,12 +591,6 @@ suite('post settings', function() {
       function(done) {
     var hash = testutils.generateHash();
 
-    self.wss.once('request_account_info', function(message, conn) {
-      assert.strictEqual(message.command, 'account_info');
-      assert.strictEqual(message.account, addresses.VALID);
-      conn.send(fixtures.accountInfoResponse(message));
-    });
-
     self.wss.once('request_submit', function(message, conn) {
       assert.strictEqual(message.command, 'submit');
       assert(message.hasOwnProperty('tx_blob'));
@@ -689,12 +621,6 @@ suite('post settings', function() {
   test('/accounts/:account/settings -- default_ripple -- clear setting',
       function(done) {
     var hash = testutils.generateHash();
-
-    self.wss.once('request_account_info', function(message, conn) {
-      assert.strictEqual(message.command, 'account_info');
-      assert.strictEqual(message.account, addresses.VALID);
-      conn.send(fixtures.accountInfoResponse(message));
-    });
 
     self.wss.once('request_submit', function(message, conn) {
       assert.strictEqual(message.command, 'submit');
@@ -747,12 +673,6 @@ suite('post settings', function() {
     var currentLedger = self.remote._ledger_current_index;
     var lastLedger = currentLedger + testutils.LEDGER_OFFSET;
 
-    self.wss.once('request_account_info', function(message, conn) {
-      assert.strictEqual(message.command, 'account_info');
-      assert.strictEqual(message.account, addresses.VALID);
-      conn.send(fixtures.accountInfoResponse(message));
-    });
-
     self.wss.once('request_submit', function(message, conn) {
       assert.strictEqual(message.command, 'submit');
       assert(message.hasOwnProperty('tx_blob'));
@@ -787,12 +707,6 @@ suite('post settings', function() {
 
   test('/accounts/:account/settings?validated=true -- ledger sequence too high',
       function(done) {
-    self.wss.once('request_account_info', function(message, conn) {
-      assert.strictEqual(message.command, 'account_info');
-      assert.strictEqual(message.account, addresses.VALID);
-      conn.send(fixtures.accountInfoResponse(message));
-    });
-
     self.wss.once('request_submit', function(message, conn) {
       assert.strictEqual(message.command, 'submit');
       assert(message.hasOwnProperty('tx_blob'));
@@ -813,12 +727,6 @@ suite('post settings', function() {
   });
 
   test('/accounts/:account/settings -- secret invalid', function(done) {
-    self.wss.once('request_account_info', function(message, conn) {
-      assert.strictEqual(message.command, 'account_info');
-      assert.strictEqual(message.account, addresses.VALID);
-      conn.send(fixtures.accountInfoResponse(message));
-    });
-
     self.app
     .post(fixtures.requestPath(addresses.VALID))
     .send({

@@ -100,6 +100,20 @@ function setup(done) {
     self.remote.getServer().emit('message', fixtures.ledgerClose(0));
   });
 
+  if (self.accountInfoResponse !== undefined) {
+    self.wss.once('request_account_info', function(message, conn) {
+      assert.strictEqual(message.command, 'account_info');
+      assert.strictEqual(message.account, addresses.VALID);
+      conn.send(self.accountInfoResponse(message));
+    });
+  } else if (self.accountInfoResponseMulti !== undefined) {
+    self.wss.on('request_account_info', function(message, conn) {
+      assert.strictEqual(message.command, 'account_info');
+      assert.strictEqual(message.account, addresses.VALID);
+      conn.send(self.accountInfoResponseMulti(message));
+    });
+  }
+
   // self.remote.trace = true;
   self.remote._servers = [ ];
   self.remote.addServer('ws://localhost:5995');
