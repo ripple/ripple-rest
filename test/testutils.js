@@ -14,6 +14,7 @@ var api = require('../server/api');
 var apiFactory = require('../server/apifactory');
 var version = require('../server/version');
 var PRNGMock = require('./prngmock');
+var EventEmitter2 = require('eventemitter2').EventEmitter2;
 
 var LEDGER_OFFSET = 3;
 
@@ -58,6 +59,24 @@ function setup(done) {
   self.db = api.db;
 
   self.wss = new WSS({port: 5995});
+  _.assign(self.wss, EventEmitter2.prototype);
+
+  self.wss.onAny(function() {
+    if (self.wss.listeners(this.event).length === 0) {
+      throw new Error('Should not ' + this.event.replace(/_/g, ' '));
+    }
+  });
+
+  self.wss.on('listening', function() {});
+  self.wss.on('headers', function() {});
+  self.wss.on('connection/', function() {});
+  self.wss.on('request_subscribe', function(message) {
+    // always allow subscribing to account notifications
+    if (self.wss.listeners('request_subscribe').length <= 1) {
+      assert(message.accounts && message.accounts.length === 1);
+      assert(message.streams === undefined);
+    }
+  });
 
   self.wss.once('connection', function(conn) {
     conn.on('message', function(message) {

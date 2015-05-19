@@ -46,6 +46,7 @@
   "devDependencies": {
     "assert-diff": "^0.0.4",
     "coveralls": "^2.10.0",
+    "eventemitter2": "^0.4.14",
     "istanbul": "^0.2.10",
     "mocha": "^2.1.0",
     "npm-shrinkwrap": "^5.3",

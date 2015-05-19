@@ -440,11 +440,11 @@ suite('get balances', function() {
       conn.send(fixtures.accountNotFoundResponse(message));
     });
 
-    /* TODO: uncommenting this breaks *other* test cases
     self.wss.once('request_account_lines', function(message, conn) {
-      assert(false, 'Should not request account lines');
+      assert.strictEqual(message.command, 'account_lines');
+      assert.strictEqual(message.account, addresses.VALID);
+      conn.send(fixtures.accountNotFoundResponse(message));
     });
-    */
 
     self.app
     .get(requestPath(addresses.VALID))

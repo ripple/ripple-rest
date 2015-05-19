@@ -831,7 +831,8 @@ suite('post payments', function() {
       conn.send(fixtures.accountInfoResponse(message));
     });
 
-    self.wss.once('request_submit', function(message, conn) {
+    // "on" instead of "once" because ripple-lib resubmits
+    self.wss.on('request_submit', function(message, conn) {
       assert.strictEqual(message.command, 'submit');
 
       conn.send(fixtures.rippledSubmitErrorResponse(message, {
@@ -969,7 +970,7 @@ suite('post payments', function() {
       conn.send(fixtures.rippledSubcribeResponse(message));
     });
 
-    self.wss.once('request_account_info', function(message, conn) {
+    self.wss.on('request_account_info', function(message, conn) {
       assert.strictEqual(message.command, 'account_info');
       assert.strictEqual(message.account, addresses.VALID);
       conn.send(fixtures.accountInfoResponse(message));
@@ -1007,7 +1008,7 @@ suite('post payments', function() {
       conn.send(fixtures.rippledSubcribeResponse(message));
     });
 
-    self.wss.once('request_account_info', function(message, conn) {
+    self.wss.on('request_account_info', function(message, conn) {
       assert.strictEqual(message.command, 'account_info');
       assert.strictEqual(message.account, addresses.VALID);
       conn.send(fixtures.accountInfoResponse(message));
