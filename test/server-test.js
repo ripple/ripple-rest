@@ -39,7 +39,15 @@ suite('get server info', function() {
 
     self.app
     .get('/v1/server')
-    .expect(testutils.checkBody(fixtures.RESTServerInfoResponse))
+    .expect(function(res, err) {
+      assert.ifError(err);
+      var expected = JSON.parse(fixtures.RESTServerInfoResponse);
+      if (res.body.rippled_server_url) {
+        res.body.rippled_server_url = res.body.rippled_server_url.replace(
+          /:[0-9]*$/, ':5995');
+      }
+      assert.deepEqual(res.body, expected);
+    })
     .expect(testutils.checkStatus(200))
     .expect(testutils.checkHeaders)
     .end(done);
