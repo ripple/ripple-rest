@@ -113,10 +113,6 @@ suite('get balances', function() {
       conn.send(fixtures.accountInfoResponse(message));
     });
 
-    self.wss.once('request_account_lines', function() {
-      assert(false);
-    });
-
     self.app
     .get(requestPath(addresses.VALID, '?ledger=foo'))
     .expect(testutils.checkStatus(400))
@@ -218,10 +214,6 @@ suite('get balances', function() {
       conn.send(fixtures.accountInfoResponse(message));
     });
 
-    self.wss.once('request_account_lines', function() {
-      assert(false);
-    });
-
     self.app
     .get(requestPath(addresses.VALID, '?limit=foo'))
     .expect(testutils.checkStatus(400))
@@ -235,10 +227,6 @@ suite('get balances', function() {
       assert.strictEqual(message.command, 'account_info');
       assert.strictEqual(message.account, addresses.VALID);
       conn.send(fixtures.accountInfoResponse(message));
-    });
-
-    self.wss.once('request_account_lines', function() {
-      assert(false);
     });
 
     self.app
@@ -315,10 +303,6 @@ suite('get balances', function() {
       conn.send(fixtures.accountInfoResponse(message));
     });
 
-    self.wss.once('request_account_lines', function() {
-      assert(false);
-    });
-
     self.app
     .get(requestPath(addresses.VALID, '?marker=' + MARKER + '&limit=' + LIMIT + '&ledger=foo'))
     .expect(testutils.checkStatus(400))
@@ -332,10 +316,6 @@ suite('get balances', function() {
       assert.strictEqual(message.command, 'account_info');
       assert.strictEqual(message.account, addresses.VALID);
       conn.send(fixtures.accountInfoResponse(message));
-    });
-
-    self.wss.once('request_account_lines', function() {
-      assert(false);
     });
 
     self.app
@@ -353,10 +333,6 @@ suite('get balances', function() {
       conn.send(fixtures.accountInfoResponse(message));
     });
 
-    self.wss.once('request_account_lines', function() {
-      assert(false);
-    });
-
     self.app
     .get(requestPath(addresses.VALID, '?marker=' + MARKER + '&limit=' + LIMIT + '&ledger=closed'))
     .expect(testutils.checkStatus(400))
@@ -370,10 +346,6 @@ suite('get balances', function() {
       assert.strictEqual(message.command, 'account_info');
       assert.strictEqual(message.account, addresses.VALID);
       conn.send(fixtures.accountInfoResponse(message));
-    });
-
-    self.wss.once('request_account_lines', function() {
-      assert(false);
     });
 
     self.app
@@ -417,14 +389,6 @@ suite('get balances', function() {
   });
 
   test('/accounts/:account/balances -- invalid account', function(done) {
-    self.wss.once('request_account_info', function() {
-      assert(false, 'Should not request account info');
-    });
-
-    self.wss.once('request_account_lines', function() {
-      assert(false, 'Should not request account lines');
-    });
-
     self.app
     .get(requestPath(addresses.INVALID))
     .expect(testutils.checkStatus(400))
@@ -455,10 +419,6 @@ suite('get balances', function() {
   });
 
   test('/accounts/:account/balances?currency', function(done) {
-    self.wss.once('request_account_info', function() {
-      assert(false, 'Should not request account info');
-    });
-
     self.wss.once('request_account_lines', function(message, conn) {
       assert.strictEqual(message.command, 'account_lines');
       assert.strictEqual(message.account, addresses.VALID);
@@ -488,10 +448,6 @@ suite('get balances', function() {
       }));
     });
 
-    self.wss.once('request_account_lines', function() {
-      assert(false, 'Should not request account lines');
-    });
-
     self.app
     .get(requestPath(addresses.VALID, '?currency=XRP'))
     .expect(testutils.checkStatus(200))
@@ -503,14 +459,6 @@ suite('get balances', function() {
   });
 
   test('/accounts/:account/balances?currency -- invalid currency', function(done) {
-    self.wss.once('request_account_info', function() {
-      assert(false, 'Should not request account info');
-    });
-
-    self.wss.once('request_account_lines', function() {
-      assert(false, 'Should not request account lines');
-    });
-
     self.app
     .get(requestPath(addresses.VALID, '?currency=AAAA'))
     .expect(testutils.checkStatus(400))
@@ -520,10 +468,6 @@ suite('get balances', function() {
   });
 
   test('/accounts/:account/balances?counterparty', function(done) {
-    self.wss.once('request_account_info', function() {
-      assert(false, 'Should not request account info');
-    });
-
     self.wss.once('request_account_lines', function(message, conn) {
       assert.strictEqual(message.command, 'account_lines');
       assert.strictEqual(message.account, addresses.VALID);
@@ -547,14 +491,6 @@ suite('get balances', function() {
   });
 
   test('/accounts/:account/balances?counterparty -- invalid counterparty', function(done) {
-    self.wss.once('request_account_info', function() {
-      assert(false, 'Should not request account info');
-    });
-
-    self.wss.once('request_account_lines', function() {
-      assert(false, 'Should not request account lines');
-    });
-
     self.app
     .get(requestPath(addresses.VALID, '?counterparty=asdf'))
     .expect(testutils.checkStatus(400))
@@ -564,10 +500,6 @@ suite('get balances', function() {
   });
 
   test('/accounts/:account/balances?counterparty -- non-existent counterparty', function(done) {
-    self.wss.once('request_account_info', function() {
-      assert(false, 'Should not request account info');
-    });
-
     self.wss.once('request_account_lines', function(message, conn) {
       assert.strictEqual(message.command, 'account_lines');
       assert.strictEqual(message.account, addresses.VALID);
@@ -584,10 +516,6 @@ suite('get balances', function() {
   });
 
   test('/accounts/:account/balances?counterparty&currency=EUR', function(done) {
-    self.wss.once('request_account_info', function() {
-      assert(false, 'Should not request account info');
-    });
-
     self.wss.once('request_account_lines', function(message, conn) {
       assert.strictEqual(message.command, 'account_lines');
       assert.strictEqual(message.account, addresses.VALID);
@@ -610,10 +538,6 @@ suite('get balances', function() {
   });
 
   test('/accounts/:account/balances?frozen', function(done) {
-    self.wss.once('request_account_info', function() {
-      assert(false, 'Should not request account_info');
-    });
-
     self.wss.once('request_account_lines', function(message, conn) {
       assert.strictEqual(message.command, 'account_lines');
       assert.strictEqual(message.account, addresses.VALID);

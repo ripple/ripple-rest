@@ -1,5 +1,5 @@
+'use strict';
 var assert = require('assert');
-var ripple = require('ripple-lib');
 var testutils = require('./testutils');
 var fixtures = require('./fixtures').server;
 var errors = require('./fixtures').errors;
@@ -7,17 +7,13 @@ var errors = require('./fixtures').errors;
 suite('get server info', function() {
   var self = this;
 
-  //self.wss: rippled mock
-  //self.app: supertest-enabled REST handler
+  // self.wss: rippled mock
+  // self.app: supertest-enabled REST handler
 
   setup(testutils.setup.bind(self));
   teardown(testutils.teardown.bind(self));
 
   test('/', function(done) {
-    self.wss.once('request_server_info', function(message, conn) {
-      assert(false, 'should not request server info');
-    });
-
     self.app
     .get('/v1')
     .expect(testutils.checkBody(fixtures.RESTServerIndexResponse))
@@ -27,10 +23,6 @@ suite('get server info', function() {
   });
 
   test('/v1', function(done) {
-    self.wss.once('request_server_info', function(message, conn) {
-      assert(false, 'should not request server info');
-    });
-
     self.app
     .get('/v1')
     .expect(testutils.checkBody(fixtures.RESTServerIndexResponse))
@@ -54,10 +46,6 @@ suite('get server info', function() {
   });
 
   test('/server/connected', function(done) {
-    self.wss.once('request_server_info', function(message, conn) {
-      assert(false, 'Should not request server info');
-    });
-
     self.app
     .get('/v1/server/connected')
     .expect(testutils.checkBody(fixtures.RESTServerConnectedResponse))
@@ -67,10 +55,6 @@ suite('get server info', function() {
   });
 
   test('/server/connected -- no ledger close', function(done) {
-    self.wss.once('request_server_info', function(message, conn) {
-      assert(false, 'Should not request server info');
-    });
-
     var closeTime = new Date();
     closeTime.setSeconds(closeTime.getSeconds() - 60);
     self.remote.getServer()._lastLedgerClose = closeTime.getTime();

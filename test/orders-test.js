@@ -249,10 +249,6 @@ suite('get orders', function() {
   });
 
   test('/accounts/:account/orders -- with valid marker and invalid limit', function(done) {
-    self.wss.once('request_account_offers', function() {
-      assert(false);
-    });
-
     self.app
     .get('/v1/accounts/' + addresses.VALID + '/orders?marker=' + MARKER + '&limit=foo')
     .expect(testutils.checkStatus(400))
@@ -262,10 +258,6 @@ suite('get orders', function() {
   });
 
   test('/accounts/:account/orders -- with valid marker, valid limit, missing ledger', function(done) {
-    self.wss.once('request_account_offers', function() {
-      assert(false);
-    });
-
     self.app
     .get('/v1/accounts/' + addresses.VALID + '/orders?marker=' + MARKER + '&limit=' + LIMIT)
     .expect(testutils.checkStatus(400))
@@ -321,10 +313,6 @@ suite('get orders', function() {
   });
 
   test('/accounts/:account/orders -- with valid marker, valid limit, and invalid ledger', function(done) {
-    self.wss.once('request_account_offers', function() {
-      assert(false);
-    });
-
     self.app
     .get('/v1/accounts/' + addresses.VALID + '/orders?marker=' + MARKER + '&limit=' + LIMIT + '&ledger=foo')
     .expect(testutils.checkStatus(400))
@@ -334,10 +322,6 @@ suite('get orders', function() {
   });
 
   test('/accounts/:account/orders -- with valid marker, valid limit, and ledger=validated', function(done) {
-    self.wss.once('request_account_offers', function() {
-      assert(false);
-    });
-
     self.app
     .get('/v1/accounts/' + addresses.VALID + '/orders?marker=' + MARKER + '&limit=' + LIMIT + '&ledger=validated')
     .expect(testutils.checkStatus(400))
@@ -347,10 +331,6 @@ suite('get orders', function() {
   });
 
   test('/accounts/:account/orders -- with valid marker, valid limit, and ledger=current', function(done) {
-    self.wss.once('request_account_offers', function() {
-      assert(false);
-    });
-
     self.app
     .get('/v1/accounts/' + addresses.VALID + '/orders?marker=' + MARKER + '&limit=' + LIMIT + '&ledger=current')
     .expect(testutils.checkStatus(400))
@@ -360,10 +340,6 @@ suite('get orders', function() {
   });
 
   test('/accounts/:account/orders -- with valid marker, valid limit, and ledger=closed', function(done) {
-    self.wss.once('request_account_offers', function() {
-      assert(false);
-    });
-
     self.app
     .get('/v1/accounts/' + addresses.VALID + '/orders?marker=' + MARKER + '&limit=' + LIMIT + '&ledger=closed')
     .expect(testutils.checkStatus(400))
@@ -395,10 +371,6 @@ suite('get orders', function() {
   });
 
   test('/accounts/:account/orders -- invalid account', function(done) {
-    self.wss.once('request_account_offers', function() {
-      assert(false, 'Should not request account lines');
-    });
-
     self.app
     .get('/v1/accounts/' + addresses.INVALID + '/orders')
     .expect(testutils.checkStatus(400))
@@ -668,10 +640,6 @@ suite('post orders', function() {
       conn.send(fixtures.accountInfoResponse(message));
     });
 
-    self.wss.once('request_submit', function() {
-      assert(false);
-    });
-
     self.app
     .post('/v1/accounts/' + addresses.VALID + '/orders')
     .send(fixtures.order({
@@ -922,14 +890,6 @@ suite('post orders', function() {
   });
 
   test('/orders -- passive invalid', function(done) {
-    self.wss.once('request_account_info', function() {
-      assert(false, 'should not request account info');
-    });
-
-    self.wss.once('request_submit', function() {
-      assert(false, 'should not submit request');
-    });
-
     self.app
     .post('/v1/accounts/' + addresses.VALID + '/orders')
     .send(fixtures.order({
@@ -946,14 +906,6 @@ suite('post orders', function() {
   });
 
   test('/orders -- immediate_or_cancel invalid', function(done) {
-    self.wss.once('request_account_info', function() {
-      assert(false, 'should not request account info');
-    });
-
-    self.wss.once('request_submit', function() {
-      assert(false, 'should not submit request');
-    });
-
     self.app
     .post('/v1/accounts/' + addresses.VALID + '/orders')
     .send(fixtures.order({
@@ -970,14 +922,6 @@ suite('post orders', function() {
   });
 
   test('/orders -- fill_or_kill invalid', function(done) {
-    self.wss.once('request_account_info', function() {
-      assert(false, 'should not request account info');
-    });
-
-    self.wss.once('request_submit', function() {
-      assert(false, 'should not submit request');
-    });
-
     self.app
     .post('/v1/accounts/' + addresses.VALID + '/orders')
     .send(fixtures.order({
@@ -1121,14 +1065,6 @@ suite('post orders', function() {
   });
 
   test('/orders -- secret missing', function(done) {
-    self.wss.once('request_account_info', function() {
-      assert(false, 'should not request account info');
-    });
-
-    self.wss.once('request_submit', function() {
-      assert(false, 'should not submit request');
-    });
-
     self.app
     .post('/v1/accounts/' + addresses.VALID + '/orders')
     .send(_.omit(fixtures.order(), 'secret'))
@@ -1145,10 +1081,6 @@ suite('post orders', function() {
       conn.send(fixtures.accountInfoResponse(message));
     });
 
-    self.wss.once('request_submit', function() {
-      assert(false, 'should not submit request');
-    });
-
     self.app
     .post('/v1/accounts/' + addresses.VALID + '/orders')
     .send(fixtures.order({
@@ -1161,14 +1093,6 @@ suite('post orders', function() {
   });
 
   test('/orders -- order missing', function(done) {
-    self.wss.once('request_account_info', function() {
-      assert(false, 'should not request account info');
-    });
-
-    self.wss.once('request_submit', function() {
-      assert(false, 'should not submit request');
-    });
-
     self.app
     .post('/v1/accounts/' + addresses.VALID + '/orders')
     .send({
@@ -1185,14 +1109,6 @@ suite('post orders', function() {
   });
 
   test('/orders -- type missing', function(done) {
-    self.wss.once('request_account_info', function() {
-      assert(false, 'should not request account info');
-    });
-
-    self.wss.once('request_submit', function() {
-      assert(false, 'should not submit request');
-    });
-
     self.app
     .post('/v1/accounts/' + addresses.VALID + '/orders')
     .send(fixtures.order({
@@ -1209,14 +1125,6 @@ suite('post orders', function() {
   });
 
   test('/orders -- taker_gets invalid', function(done) {
-    self.wss.once('request_account_info', function() {
-      assert(false, 'should not request account info');
-    });
-
-    self.wss.once('request_submit', function() {
-      assert(false, 'should not submit request');
-    });
-
     self.app
     .post('/v1/accounts/' + addresses.VALID + '/orders')
     .send(fixtures.order({
@@ -1233,14 +1141,6 @@ suite('post orders', function() {
   });
 
   test('/orders -- taker_gets -- currency without issuer', function(done) {
-    self.wss.once('request_account_info', function() {
-      assert(false, 'should not request account info');
-    });
-
-    self.wss.once('request_submit', function() {
-      assert(false, 'should not submit request');
-    });
-
     self.app
     .post('/v1/accounts/' + addresses.VALID + '/orders')
     .send(fixtures.order({
@@ -1260,14 +1160,6 @@ suite('post orders', function() {
   });
 
   test('/orders -- taker_pays invalid', function(done) {
-    self.wss.once('request_account_info', function() {
-      assert(false, 'should not request account info');
-    });
-
-    self.wss.once('request_submit', function() {
-      assert(false, 'should not submit request');
-    });
-
     self.app
     .post('/v1/accounts/' + addresses.VALID + '/orders')
     .send(fixtures.order({
@@ -1284,14 +1176,6 @@ suite('post orders', function() {
   });
 
   test('/orders -- taker_pays -- currency without issuer', function(done) {
-    self.wss.once('request_account_info', function() {
-      assert(false, 'should not request account info');
-    });
-
-    self.wss.once('request_submit', function() {
-      assert(false, 'should not submit request');
-    });
-
     self.app
     .post('/v1/accounts/' + addresses.VALID + '/orders')
     .send(fixtures.order({
@@ -1311,14 +1195,6 @@ suite('post orders', function() {
   });
 
   test('/orders -- account invalid', function(done) {
-    self.wss.once('request_account_info', function() {
-      assert(false, 'should not request account info');
-    });
-
-    self.wss.once('request_submit', function() {
-      assert(false, 'should not submit request');
-    });
-
     self.app
     .post('/v1/accounts/' + addresses.INVALID + '/orders?validated=true')
     .send(fixtures.order())
@@ -1407,10 +1283,6 @@ suite('delete orders', function() {
       conn.send(fixtures.accountInfoResponse(message));
     });
 
-    self.wss.once('request_submit', function() {
-      assert(false);
-    });
-
     self.app
     .del('/v1/accounts/' + addresses.VALID + '/orders/99')
     .send(fixtures.order({
@@ -1494,14 +1366,6 @@ suite('delete orders', function() {
   });
 
   test('/orders/:sequence -- sequence invalid', function(done) {
-    self.wss.once('request_account_info', function() {
-      assert(false, 'should not request account info');
-    });
-
-    self.wss.once('request_submit', function() {
-      assert(false, 'should not submit request');
-    });
-
     self.app
     .del('/v1/accounts/' + addresses.VALID + '/orders/foo')
     .send({
@@ -1518,14 +1382,6 @@ suite('delete orders', function() {
   });
 
   test('/orders/:sequence -- secret missing', function(done) {
-    self.wss.once('request_account_info', function() {
-      assert(false, 'should not request account info');
-    });
-
-    self.wss.once('request_submit', function() {
-      assert(false, 'should not submit request');
-    });
-
     self.app
     .del('/v1/accounts/' + addresses.VALID + '/orders/99')
     .send({})
@@ -1542,10 +1398,6 @@ suite('delete orders', function() {
       conn.send(fixtures.accountInfoResponse(message));
     });
 
-    self.wss.once('request_submit', function() {
-      assert(false, 'should not submit request');
-    });
-
     self.app
     .del('/v1/accounts/' + addresses.VALID + '/orders/99')
     .send({
@@ -1558,14 +1410,6 @@ suite('delete orders', function() {
   });
 
   test('/orders/:sequence -- account invalid', function(done) {
-    self.wss.once('request_account_info', function() {
-      assert(false, 'should not request account info');
-    });
-
-    self.wss.once('request_submit', function() {
-      assert(false, 'should not submit request');
-    });
-
     self.app
     .del('/v1/accounts/' + addresses.INVALID + '/orders/99?validated=true')
     .send({
@@ -1770,14 +1614,6 @@ suite('get order book', function() {
   });
 
   test('v1/accounts/:account/order_book/:base/:counter -- with invalid currency as base', function(done) {
-    self.wss.on('request_ledger', function() {
-      assert(false, 'Should not request ledger info');
-    });
-
-    self.wss.on('request_book_offers', function() {
-      assert(false, 'Should not request book offers');
-    });
-
     self.app
     .get('/v1/accounts/' + addresses.VALID + '/order_book/' + 'AAAA+' + addresses.ISSUER + '/BTC+' + addresses.ISSUER)
     .expect(testutils.checkStatus(400))
@@ -1787,14 +1623,6 @@ suite('get order book', function() {
   });
 
   test('v1/accounts/:account/order_book/:base/:counter -- with invalid currency as counter', function(done) {
-    self.wss.on('request_ledger', function() {
-      assert(false, 'Should not request ledger info');
-    });
-
-    self.wss.on('request_book_offers', function() {
-      assert(false, 'Should not request book offers');
-    });
-
     self.app
     .get('/v1/accounts/' + addresses.VALID + '/order_book/' + 'BTC+' + addresses.ISSUER + '/AAAA+' + addresses.ISSUER)
     .expect(testutils.checkStatus(400))
@@ -1804,14 +1632,6 @@ suite('get order book', function() {
   });
 
   test('v1/accounts/:account/order_book/:base/:counter -- with invalid base counterparty', function(done) {
-    self.wss.on('request_ledger', function() {
-      assert(false, 'Should not request ledger info');
-    });
-
-    self.wss.on('request_book_offers', function() {
-      assert(false, 'Should not request book offers');
-    });
-
     self.app
     .get('/v1/accounts/' + addresses.VALID + '/order_book/' + 'BTC+' + addresses.INVALID + '/USD+' + addresses.ISSUER)
     .expect(testutils.checkStatus(400))
@@ -1821,14 +1641,6 @@ suite('get order book', function() {
   });
 
   test('v1/accounts/:account/order_book/:base/:counter -- with invalid counter counterparty', function(done) {
-    self.wss.on('request_ledger', function() {
-      assert(false, 'Should not request ledger info');
-    });
-
-    self.wss.on('request_book_offers', function() {
-      assert(false, 'Should not request book offers');
-    });
-
     self.app
     .get('/v1/accounts/' + addresses.VALID + '/order_book/' + 'BTC+' + addresses.ISSUER + '/USD+' + addresses.INVALID)
     .expect(testutils.checkStatus(400))
@@ -1838,14 +1650,6 @@ suite('get order book', function() {
   });
 
   test('v1/accounts/:account/order_book/:base/:counter -- with XRP as base with counterparty', function(done) {
-    self.wss.on('request_ledger', function() {
-      assert(false, 'Should not request ledger info');
-    });
-
-    self.wss.on('request_book_offers', function() {
-      assert(false, 'Should not request book offers');
-    });
-
     self.app
     .get('/v1/accounts/' + addresses.VALID + '/order_book/' + 'XRP+' + addresses.ISSUER + '/USD+' + addresses.ISSUER)
     .expect(testutils.checkStatus(400))
@@ -1855,14 +1659,6 @@ suite('get order book', function() {
   });
 
   test('v1/accounts/:account/order_book/:base/:counter -- with XRP as counter with issuer', function(done) {
-    self.wss.on('request_ledger', function() {
-      assert(false, 'Should not request ledger info');
-    });
-
-    self.wss.on('request_book_offers', function() {
-      assert(false, 'Should not request book offers');
-    });
-
     self.app
     .get('/v1/accounts/' + addresses.VALID + '/order_book/' + 'BTC+' + addresses.ISSUER + '/XRP+' + addresses.ISSUER)
     .expect(testutils.checkStatus(400))
@@ -1872,14 +1668,6 @@ suite('get order book', function() {
   });
 
   test('v1/accounts/:account/order_book/:base/:counter -- with invalid account', function(done) {
-    self.wss.on('request_ledger', function() {
-      assert(false, 'Should not request ledger info');
-    });
-
-    self.wss.on('request_book_offers', function() {
-      assert(false, 'Should not request book offers');
-    });
-
     self.app
     .get('/v1/accounts/' + addresses.INVALID + '/order_book/BTC+' + addresses.ISSUER + '/XRP')
     .expect(testutils.checkStatus(400))
@@ -1917,10 +1705,6 @@ suite('get order', function() {
   });
 
   test('v1/accounts/:account/order_change/:identifier -- invalid transaction hash', function(done) {
-    self.wss.on('request_tx', function() {
-      assert(false, 'should not submit request');
-    });
-
     self.app
     .get('/v1/accounts/' + addresses.VALID + '/orders/foo')
     .expect(testutils.checkStatus(400))
@@ -1945,10 +1729,6 @@ suite('get order', function() {
   });
 
   test('v1/accounts/:account/order_change/:identifier -- invalid account', function(done) {
-    self.wss.once('request_tx', function() {
-      assert(false, 'Should not request transaction');
-    });
-
     self.app
     .get('/v1/accounts/' + addresses.INVALID + '/orders/' + hash)
     .expect(testutils.checkStatus(400))

@@ -162,10 +162,6 @@ suite('get payments', function() {
   });
 
   test('/accounts/:account/payments/:identifier -- invalid identifier', function(done) {
-    self.wss.once('request_tx', function() {
-      assert(false, 'Should not request transaction');
-    });
-
     self.app
     .get(requestPath(addresses.VALID) + '/' + fixtures.INVALID_TRANSACTION_HASH)
     .expect(testutils.checkStatus(400))
@@ -179,10 +175,6 @@ suite('get payments', function() {
   });
 
   test('/accounts/:account/payments/:identifier -- invalid account', function(done) {
-    self.wss.once('request_tx', function() {
-      assert(false, 'Should not request transaction');
-    });
-
     self.app
     .get(requestPath(addresses.INVALID) + '/' + fixtures.VALID_TRANSACTION_HASH)
     .expect(testutils.checkStatus(400))
@@ -495,10 +487,6 @@ suite('post payments', function() {
       conn.send(fixtures.accountInfoResponse(message));
     });
 
-    self.wss.once('request_submit', function() {
-      assert(false);
-    });
-
     self.app
     .post('/v1/accounts/' + addresses.VALID + '/payments?validated=true')
     .send(fixtures.payment({
@@ -544,10 +532,6 @@ suite('post payments', function() {
       conn.send(fixtures.accountInfoResponse(message));
     });
 
-    self.wss.once('request_submit', function() {
-      assert(false, 'Should not request submit');
-    });
-
     self.app
     .post('/v1/accounts/' + addresses.VALID + '/payments')
     .send(fixtures.payment({
@@ -563,14 +547,6 @@ suite('post payments', function() {
   });
 
   test('/payments -- invalid memos', function(done) {
-    self.wss.once('request_account_info', function() {
-      assert(false, 'Should not request account_info');
-    });
-
-    self.wss.once('request_submit', function() {
-      assert(false, 'Should not request submit');
-    });
-
     self.app
     .post('/v1/accounts/' + addresses.VALID + '/payments')
     .send(fixtures.payment({ memos: 'some string' }))
@@ -585,14 +561,6 @@ suite('post payments', function() {
   });
 
   test('/payments -- empty memos array', function(done) {
-    self.wss.once('request_account_info', function() {
-      assert(false, 'Should not request account_info');
-    });
-
-    self.wss.once('request_submit', function() {
-      assert(false, 'Should not request submit');
-    });
-
     self.app
     .post('/v1/accounts/' + addresses.VALID + '/payments')
     .send(fixtures.payment({
@@ -609,14 +577,6 @@ suite('post payments', function() {
   });
 
   test('/payments -- memo containing a MemoType field with an int value', function(done) {
-    self.wss.once('request_account_info', function() {
-      assert(false, 'Should not request account_info');
-    });
-
-    self.wss.once('request_submit', function() {
-      assert(false, 'Should not request submit');
-    });
-
     self.app
     .post('/v1/accounts/' + addresses.VALID + '/payments')
     .send(fixtures.payment({
@@ -636,14 +596,6 @@ suite('post payments', function() {
   });
 
   test('/payments -- memo containing a MemoData field with an int value', function(done) {
-    self.wss.once('request_account_info', function() {
-      assert(false, 'Should not request account_info');
-    });
-
-    self.wss.once('request_submit', function() {
-      assert(false, 'Should not request submit');
-    });
-
     self.app
     .post('/v1/accounts/' + addresses.VALID + '/payments')
     .send(fixtures.payment({
@@ -775,14 +727,6 @@ suite('post payments', function() {
   });
 
   test('/payments -- secret invalid', function(done) {
-    self.wss.once('request_account_info', function() {
-      assert(false);
-    });
-
-    self.wss.once('request_submit', function() {
-      assert(false);
-    });
-
     self.app
     .post('/v1/accounts/' + addresses.VALID + '/payments')
     .send(fixtures.payment({
@@ -864,10 +808,6 @@ suite('post payments', function() {
       assert.strictEqual(message.command, 'account_info');
       assert.strictEqual(message.account, addresses.VALID);
       conn.send(fixtures.accountInfoResponse(message));
-    });
-
-    self.wss.once('request_submit', function() {
-      assert(false);
     });
 
     self.app
@@ -1045,14 +985,10 @@ suite('post payments', function() {
       conn.send(fixtures.accountInfoResponse(message));
     });
 
+    // "once" because second payment should not hit submit
     self.wss.once('request_submit', function(message, conn) {
       assert.strictEqual(message.command, 'submit');
       conn.send(fixtures.requestSubmitResponse(message));
-
-      self.wss.once('request_submit', function() {
-        // second payment should not hit submit
-        assert(false);
-      });
     });
 
     function secondPayment(err) {
@@ -1098,6 +1034,7 @@ suite('post payments', function() {
       conn.send(fixtures.accountInfoResponse(message));
     });
 
+    // "once" because second payment should not hit submit
     self.wss.once('request_submit', function(message, conn) {
       assert.strictEqual(message.command, 'submit');
 
@@ -1107,11 +1044,6 @@ suite('post payments', function() {
         engineResultMessage: 'Destination does not exist. Too little XRP sent to create it.',
         hash: hash
       }));
-
-      self.wss.once('request_submit', function() {
-        // second payment should not hit submit
-        assert(false);
-      });
     });
 
     function secondPayment(err) {
@@ -1163,6 +1095,7 @@ suite('post payments', function() {
       conn.send(fixtures.accountInfoResponse(message));
     });
 
+    // "once" because second payment should not hit submit
     self.wss.once('request_submit', function(message, conn) {
       assert.strictEqual(message.command, 'submit');
       conn.send(fixtures.rippledSubmitErrorResponse(message, {
@@ -1179,11 +1112,6 @@ suite('post payments', function() {
           engineResultMessage: 'Destination does not exist. Too little XRP sent to create it.',
           hash: hash
         }));
-      });
-
-      self.wss.once('request_submit', function() {
-        // second payment should not hit submit
-        assert(false);
       });
     });
 
@@ -1238,6 +1166,7 @@ suite('post payments', function() {
       conn.send(fixtures.accountInfoResponse(message));
     });
 
+    // "once" because second payment should not hit submit
     self.wss.once('request_submit', function(message, conn) {
       assert.strictEqual(message.command, 'submit');
       conn.send(fixtures.rippledSubmitErrorResponse(message, {
@@ -1254,11 +1183,6 @@ suite('post payments', function() {
           engineResultMessage: 'Destination does not exist. Too little XRP sent to create it.',
           hash: hash
         }));
-      });
-
-      self.wss.once('request_submit', function() {
-        // second payment should not hit submit
-        assert(false);
       });
     });
 

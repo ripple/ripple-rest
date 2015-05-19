@@ -76,10 +76,6 @@ suite('get settings', function() {
   });
 
   test('/accounts/:account/settings -- invalid account', function(done) {
-    self.wss.once('request_account_info', function() {
-      assert(false, 'Should not request account info');
-    });
-
     self.app
     .get(fixtures.requestPath(addresses.INVALID))
     .expect(testutils.checkStatus(400))
@@ -159,14 +155,6 @@ suite('post settings', function() {
   });
 
   test('/accounts/:account/settings -- invalid account', function(done) {
-    self.wss.once('request_account_info', function() {
-      assert(false, 'Should not request account info');
-    });
-
-    self.wss.once('request_submit', function() {
-      assert(false, 'Should not request submit');
-    });
-
     self.app
     .post(fixtures.requestPath(addresses.INVALID))
     .send({
@@ -180,14 +168,6 @@ suite('post settings', function() {
   });
 
   test('/accounts/:account/settings -- settings missing', function(done) {
-    self.wss.once('request_account_info', function() {
-      assert(false, 'Should not request account info');
-    });
-
-    self.wss.once('request_submit', function() {
-      assert(false, 'Should not request submit');
-    });
-
     self.app
     .post(fixtures.requestPath(addresses.VALID))
     .send({
@@ -204,14 +184,6 @@ suite('post settings', function() {
   });
 
   test('/accounts/:account/settings -- secret missing', function(done) {
-    self.wss.once('request_account_info', function() {
-      assert(false, 'Should not request account info');
-    });
-
-    self.wss.once('request_submit', function() {
-      assert(false, 'Should not request submit');
-    });
-
     self.app
     .post(fixtures.requestPath(addresses.VALID))
     .send({
@@ -239,10 +211,6 @@ suite('post settings', function() {
       conn.send(fixtures.accountInfoResponse(message));
     });
 
-    self.wss.once('request_submit', function() {
-      assert(false, 'Should not request submit');
-    });
-
     self.app
     .post(fixtures.requestPath(addresses.VALID))
     .send({
@@ -265,14 +233,6 @@ suite('post settings', function() {
 
   test('/accounts/:account/settings -- require_destination_tag invalid',
       function(done) {
-    self.wss.once('request_account_info', function() {
-      assert(false, 'Should not request account info');
-    });
-
-    self.wss.once('request_submit', function() {
-      assert(false, 'Should not request submit');
-    });
-
     self.app
     .post(fixtures.requestPath(addresses.VALID))
     .send({
@@ -293,14 +253,6 @@ suite('post settings', function() {
 
   test('/accounts/:account/settings -- require_authorization invalid',
       function(done) {
-    self.wss.once('request_account_info', function() {
-      assert(false, 'Should not request account info');
-    });
-
-    self.wss.once('request_submit', function() {
-      assert(false, 'Should not request submit');
-    });
-
     self.app
     .post(fixtures.requestPath(addresses.VALID))
     .send({
@@ -320,14 +272,6 @@ suite('post settings', function() {
   });
 
   test('/accounts/:account/settings -- disallow_xrp invalid', function(done) {
-    self.wss.once('request_account_info', function() {
-      assert(false, 'Should not request account info');
-    });
-
-    self.wss.once('request_submit', function() {
-      assert(false, 'Should not request submit');
-    });
-
     self.app
     .post(fixtures.requestPath(addresses.VALID))
     .send({
@@ -347,14 +291,6 @@ suite('post settings', function() {
   });
 
   test('/accounts/:account/settings -- domain invalid', function(done) {
-    self.wss.once('request_account_info', function() {
-      assert(false, 'Should not request account info');
-    });
-
-    self.wss.once('request_submit', function() {
-      assert(false, 'Should not request submit');
-    });
-
     self.app
     .post(fixtures.requestPath(addresses.VALID))
     .send({
@@ -374,14 +310,6 @@ suite('post settings', function() {
   });
 
   test('/accounts/:account/settings -- transfer_rate invalid', function(done) {
-    self.wss.once('request_account_info', function() {
-      assert(false, 'Should not request account info');
-    });
-
-    self.wss.once('request_submit', function() {
-      assert(false, 'Should not request submit');
-    });
-
     self.app
     .post(fixtures.requestPath(addresses.VALID))
     .send({
@@ -402,14 +330,6 @@ suite('post settings', function() {
 
   test('/accounts/:account/settings -- no_freeze and global_freeze',
       function(done) {
-    self.wss.once('request_account_info', function() {
-      assert(false, 'Should not request account info');
-    });
-
-    self.wss.once('request_submit', function() {
-      assert(false, 'Should not request submit');
-    });
-
     self.app
     .post(fixtures.requestPath(addresses.VALID))
     .send({
@@ -430,14 +350,6 @@ suite('post settings', function() {
 
   test('/accounts/:account/settings -- clear no_freeze and global_freeze',
       function(done) {
-    self.wss.once('request_account_info', function() {
-      assert(false, 'Should not request account info');
-    });
-
-    self.wss.once('request_submit', function() {
-      assert(false, 'Should not request submit');
-    });
-
     self.app
     .post(fixtures.requestPath(addresses.VALID))
     .send({
@@ -457,14 +369,6 @@ suite('post settings', function() {
   });
 
   test('/accounts/:account/settings -- password_spent invalid', function(done) {
-    self.wss.once('request_account_info', function() {
-      assert(false, 'Should not request account info');
-    });
-
-    self.wss.once('request_submit', function() {
-      assert(false, 'Should not request submit');
-    });
-
     self.app
       .post(fixtures.requestPath(addresses.VALID))
       .send({
@@ -484,14 +388,6 @@ suite('post settings', function() {
   });
 
   test('/accounts/:account/settings -- disable_master invalid', function(done) {
-    self.wss.once('request_account_info', function() {
-      assert(false, 'Should not request account info');
-    });
-
-    self.wss.once('request_submit', function() {
-      assert(false, 'Should not request submit');
-    });
-
     self.app
       .post(fixtures.requestPath(addresses.VALID))
       .send({
@@ -511,14 +407,6 @@ suite('post settings', function() {
   });
 
   test('/accounts/:account/settings -- email_hash too long', function(done) {
-    self.wss.once('request_account_info', function() {
-      assert(false, 'Should not request account info');
-    });
-
-    self.wss.once('request_submit', function() {
-      assert(false, 'Should not request submit');
-    });
-
     self.app
       .post(fixtures.requestPath(addresses.VALID))
       .send({
@@ -837,14 +725,6 @@ suite('post settings', function() {
 
   test('/accounts/:account/settings -- no_freeze and global_freeze'
         + ' -- clear settings', function(done) {
-    self.wss.once('request_account_info', function() {
-      assert(false, 'Should not request account info');
-    });
-
-    self.wss.once('request_submit', function() {
-      assert(false, 'Should not request submit');
-    });
-
     self.app
     .post(fixtures.requestPath(addresses.VALID))
     .send({
@@ -937,10 +817,6 @@ suite('post settings', function() {
       assert.strictEqual(message.command, 'account_info');
       assert.strictEqual(message.account, addresses.VALID);
       conn.send(fixtures.accountInfoResponse(message));
-    });
-
-    self.wss.once('request_submit', function() {
-      assert(false, 'Should not request submit');
     });
 
     self.app

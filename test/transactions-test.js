@@ -33,10 +33,6 @@ suite('get transaction', function() {
   });
 
   test('/transactions/:identifier -- invalid transaction hash', function(done) {
-    self.wss.once('request_tx', function() {
-      assert(false, 'Should not request transaction');
-    });
-
     self.app
     .get(requestPath(fixtures.INVALID_TRANSACTION_HASH))
     .expect(testutils.checkStatus(400))
@@ -76,10 +72,6 @@ suite('get transaction', function() {
     .end(done);
   });
   test('/transactions/:identifier?ledger -- invalid ledger', function(done) {
-    self.wss.once('request_tx', function() {
-      assert(false, 'Should not request transaction');
-    });
-
     self.app
     .get(requestPath(fixtures.VALID_TRANSACTION_HASH) + '?min_ledger=asdf&max_ledger=asdf')
     .expect(testutils.checkStatus(400))
@@ -87,10 +79,6 @@ suite('get transaction', function() {
     .end(done);
   });
   test('/transactions/:identifier?ledger -- invalid ledger range', function(done) {
-    self.wss.once('request_tx', function() {
-      assert(false, 'Should not request transaction');
-    });
-
     self.app
     .get(requestPath(fixtures.VALID_TRANSACTION_HASH) + '?min_ledger=2&max_ledger=1')
     .expect(testutils.checkStatus(400))
@@ -98,10 +86,6 @@ suite('get transaction', function() {
     .end(done);
   });
   test('/transactions/:identifier?ledger -- missing ledger', function(done) {
-    self.wss.once('request_tx', function() {
-      assert(false, 'Should not request transaction');
-    });
-
     self.app
     .get(requestPath(fixtures.VALID_TRANSACTION_HASH) + '?min_ledger=1&max_ledger=2')
     .expect(testutils.checkStatus(404))
