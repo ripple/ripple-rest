@@ -20,16 +20,11 @@ var LEDGER_HASH = 'FD22E2A8D665A01711C0147173ECC0A32466BA976DE697E95197933311267
 
 suite('prepare trustLine', function() {
   var self = this;
+  self.accountInfoResponseMulti = fixtures.accountInfoResponse;
   setup(testutils.setup.bind(self));
   teardown(testutils.teardown.bind(self));
 
   test('USD with COUNTERPARTY', function(done) {
-    self.wss.on('request_account_info', function(message, conn) {
-      assert.strictEqual(message.command, 'account_info');
-      assert.strictEqual(message.account, addresses.VALID);
-      conn.send(fixtures.accountInfoResponse(message));
-    });
-
     testutils.withDeterministicPRNG(function(_done) {
       self.app
         .post(fixtures.requestPath(addresses.VALID, '?submit=false'))
@@ -42,12 +37,6 @@ suite('prepare trustLine', function() {
   });
 
   test('USD with COUNTERPARTY -- no secret', function(done) {
-    self.wss.on('request_account_info', function(message, conn) {
-      assert.strictEqual(message.command, 'account_info');
-      assert.strictEqual(message.account, addresses.VALID);
-      conn.send(fixtures.accountInfoResponse(message));
-    });
-
     testutils.withDeterministicPRNG(function(_done) {
       self.app
         .post(fixtures.requestPath(addresses.VALID, '?submit=false'))
@@ -63,6 +52,7 @@ suite('prepare trustLine', function() {
 
 suite('get trustlines', function() {
   var self = this;
+  self.accountInfoResponse = fixtures.accountInfoResponse;
 
   // self.wss: rippled mock
   // self.app: supertest-enabled REST handler
@@ -239,10 +229,6 @@ suite('get trustlines', function() {
   });
 
   test('/accounts/:account/trustlines -- with invalid marker', function(done) {
-    self.wss.once('request_account_lines', function() {
-      assert(false);
-    });
-
     testGetRequest({
       account: addresses.VALID,
       queryString: '?marker=abcd',
@@ -252,10 +238,6 @@ suite('get trustlines', function() {
   });
 
   test('/accounts/:account/trustlines -- with valid marker and invalid limit', function(done) {
-    self.wss.once('request_account_lines', function() {
-      assert(false);
-    });
-
     testGetRequest({
       account: addresses.VALID,
       queryString: '?marker=' + MARKER + '&limit=foo',
@@ -265,10 +247,6 @@ suite('get trustlines', function() {
   });
 
   test('/accounts/:account/trustlines -- with valid marker and valid limit', function(done) {
-    self.wss.once('request_account_lines', function() {
-      assert(false);
-    });
-
     testGetRequest({
       account: addresses.VALID,
       queryString: '?marker=' + MARKER + '&limit=' + LIMIT,
@@ -325,10 +303,6 @@ suite('get trustlines', function() {
   });
 
   test('/accounts/:account/trustlines -- with valid marker, valid limit, and invalid ledger', function(done) {
-    self.wss.once('request_account_lines', function() {
-      assert(false);
-    });
-
     testGetRequest({
       account: addresses.VALID,
       queryString: '?marker=' + MARKER + '&limit=' + LIMIT + '&ledger=foo',
@@ -338,10 +312,6 @@ suite('get trustlines', function() {
   });
 
   test('/accounts/:account/trustlines -- with valid marker, valid limit, and ledger=validated', function(done) {
-    self.wss.once('request_account_lines', function() {
-      assert(false);
-    });
-
     testGetRequest({
       account: addresses.VALID,
       queryString: '?marker=' + MARKER + '&limit=' + LIMIT + '&ledger=validated',
@@ -351,10 +321,6 @@ suite('get trustlines', function() {
   });
 
   test('/accounts/:account/trustlines -- with valid marker, valid limit, and ledger=current', function(done) {
-    self.wss.once('request_account_lines', function() {
-      assert(false);
-    });
-
     testGetRequest({
       account: addresses.VALID,
       queryString: '?marker=' + MARKER + '&limit=' + LIMIT + '&ledger=current',
@@ -364,10 +330,6 @@ suite('get trustlines', function() {
   });
 
   test('/accounts/:account/trustlines -- with valid marker, valid limit, and ledger=closed', function(done) {
-    self.wss.once('request_account_lines', function() {
-      assert(false);
-    });
-
     testGetRequest({
       account: addresses.VALID,
       queryString: '?marker=' + MARKER + '&limit=' + LIMIT + '&ledger=closed',
@@ -402,10 +364,6 @@ suite('get trustlines', function() {
   });
 
   test('/accounts/:account/trustlines -- invalid account', function(done) {
-    self.wss.once('request_account_lines', function() {
-      assert(false, 'Should not request account lines');
-    });
-
     testGetRequest({
       account: addresses.INVALID,
       queryString: '',
@@ -415,10 +373,6 @@ suite('get trustlines', function() {
   });
 
   test('/accounts/:account/trustlines -- invalid counterparty', function(done) {
-    self.wss.once('request_account_lines', function() {
-      assert(false, 'Should not request account lines');
-    });
-
     testGetRequest({
       account: addresses.VALID,
       queryString: '?counterparty=' + addresses.INVALID,
@@ -428,10 +382,6 @@ suite('get trustlines', function() {
   });
 
   test('/accounts/:account/trustlines -- invalid currency', function(done) {
-    self.wss.once('request_account_lines', function() {
-      assert(false, 'Should not request account lines');
-    });
-
     testGetRequest({
       account: addresses.VALID,
       queryString: '?currency=invalid',
@@ -458,6 +408,7 @@ suite('get trustlines', function() {
 
 suite('post trustlines', function() {
   var self = this;
+  self.accountInfoResponse = fixtures.accountInfoResponse;
 
   var defaultData = {
     secret: addresses.SECRET,
@@ -506,12 +457,6 @@ suite('post trustlines', function() {
   teardown(testutils.teardown.bind(self));
 
   test('/accounts/:account/trustlines?validated=true', function(done) {
-    self.wss.once('request_account_info', function(message, conn) {
-      assert.strictEqual(message.command, 'account_info');
-      assert.strictEqual(message.account, addresses.VALID);
-      conn.send(fixtures.accountInfoResponse(message));
-    });
-
     self.wss.once('request_submit', function(message, conn) {
       assert.strictEqual(message.command, 'submit');
       assert(message.hasOwnProperty('tx_blob'),
@@ -541,12 +486,6 @@ suite('post trustlines', function() {
 
   test('/accounts/:account/trustlines -- complex currency', function(done) {
     var hash = testutils.generateHash();
-
-    self.wss.once('request_account_info', function(message, conn) {
-      assert.strictEqual(message.command, 'account_info');
-      assert.strictEqual(message.account, addresses.VALID);
-      conn.send(fixtures.accountInfoResponse(message));
-    });
 
     self.wss.once('request_submit', function(message, conn) {
       assert.strictEqual(message.command, 'submit');
@@ -582,12 +521,6 @@ suite('post trustlines', function() {
   test('/accounts/:account/trustlines -- complex currency, remove trustline', function(done) {
     var hash = testutils.generateHash();
 
-    self.wss.once('request_account_info', function(message, conn) {
-      assert.strictEqual(message.command, 'account_info');
-      assert.strictEqual(message.account, addresses.VALID);
-      conn.send(fixtures.accountInfoResponse(message));
-    });
-
     self.wss.once('request_submit', function(message, conn) {
       assert.strictEqual(message.command, 'submit');
       assert(message.hasOwnProperty('tx_blob'), 'Missing signed transaction blob');
@@ -617,12 +550,6 @@ suite('post trustlines', function() {
   });
 
   test('/accounts/:account/trustlines -- with validated false and transaction verified response', function(done) {
-    self.wss.once('request_account_info', function(message, conn) {
-      assert.strictEqual(message.command, 'account_info');
-      assert.strictEqual(message.account, addresses.VALID);
-      conn.send(fixtures.accountInfoResponse(message));
-    });
-
     self.wss.once('request_submit', function(message, conn) {
       assert.strictEqual(message.command, 'submit');
       assert(message.hasOwnProperty('tx_blob'), 'Missing signed transaction blob');
@@ -645,12 +572,6 @@ suite('post trustlines', function() {
   });
 
   test('/accounts/:account/trustlines -- ledger sequence too high error', function(done) {
-    self.wss.once('request_account_info', function(message, conn) {
-      assert.strictEqual(message.command, 'account_info');
-      assert.strictEqual(message.account, addresses.VALID);
-      conn.send(fixtures.accountInfoResponse(message));
-    });
-
     self.wss.once('request_submit', function(message, conn) {
       assert.strictEqual(message.command, 'submit');
       assert(message.hasOwnProperty('tx_blob'), 'Missing signed transaction blob');
@@ -668,16 +589,6 @@ suite('post trustlines', function() {
   });
 
   test('/accounts/:account/trustlines -- invalid secret error', function(done) {
-    self.wss.once('request_account_info', function(message, conn) {
-      assert.strictEqual(message.command, 'account_info');
-      assert.strictEqual(message.account, addresses.VALID);
-      conn.send(fixtures.accountInfoResponse(message));
-    });
-
-    self.wss.once('request_submit', function() {
-      assert(false);
-    });
-
     var data = _.cloneDeep(defaultData);
     data.secret = addresses.INVALID;
     testPostRequest({
@@ -692,12 +603,6 @@ suite('post trustlines', function() {
     var hash = testutils.generateHash();
     var currentLedger = self.remote._ledger_current_index;
     var lastLedger = currentLedger + testutils.LEDGER_OFFSET;
-
-    self.wss.once('request_account_info', function(message, conn) {
-      assert.strictEqual(message.command, 'account_info');
-      assert.strictEqual(message.account, addresses.VALID);
-      conn.send(fixtures.accountInfoResponse(message));
-    });
 
     self.wss.once('request_submit', function(message, conn) {
       assert.strictEqual(message.command, 'submit');
@@ -746,12 +651,6 @@ suite('post trustlines', function() {
   test('/accounts/:account/trustlines -- limit 0', function(done) {
     var hash = testutils.generateHash();
 
-    self.wss.once('request_account_info', function(message, conn) {
-      assert.strictEqual(message.command, 'account_info');
-      assert.strictEqual(message.account, addresses.VALID);
-      conn.send(fixtures.accountInfoResponse(message));
-    });
-
     self.wss.once('request_submit', function(message, conn) {
       assert.strictEqual(message.command, 'submit');
       var so = new ripple.SerializedObject(message.tx_blob).to_json();
@@ -783,12 +682,6 @@ suite('post trustlines', function() {
 
   test('/accounts/:account/trustlines -- no-rippling', function(done) {
     var hash = testutils.generateHash();
-
-    self.wss.once('request_account_info', function(message, conn) {
-      assert.strictEqual(message.command, 'account_info');
-      assert.strictEqual(message.account, addresses.VALID);
-      conn.send(fixtures.accountInfoResponse(message));
-    });
 
     self.wss.once('request_submit', function(message, conn) {
       assert.strictEqual(message.command, 'submit');
@@ -824,12 +717,6 @@ suite('post trustlines', function() {
   test('/accounts/:account/trustlines -- frozen trustline', function(done) {
     var hash = testutils.generateHash();
 
-    self.wss.once('request_account_info', function(message, conn) {
-      assert.strictEqual(message.command, 'account_info');
-      assert.strictEqual(message.account, addresses.VALID);
-      conn.send(fixtures.accountInfoResponse(message));
-    });
-
     self.wss.once('request_submit', function(message, conn) {
       assert.strictEqual(message.command, 'submit');
       assert(message.hasOwnProperty('tx_blob'), 'Missing signed transaction blob');
@@ -863,12 +750,6 @@ suite('post trustlines', function() {
 
   test('/accounts/:account/trustlines -- unfreeze trustline', function(done) {
     var hash = testutils.generateHash();
-
-    self.wss.once('request_account_info', function(message, conn) {
-      assert.strictEqual(message.command, 'account_info');
-      assert.strictEqual(message.account, addresses.VALID);
-      conn.send(fixtures.accountInfoResponse(message));
-    });
 
     self.wss.once('request_submit', function(message, conn) {
       assert.strictEqual(message.command, 'submit');
@@ -904,12 +785,6 @@ suite('post trustlines', function() {
   test('/accounts/:account/trustlines -- authorized', function(done) {
     var hash = testutils.generateHash();
 
-    self.wss.once('request_account_info', function(message, conn) {
-      assert.strictEqual(message.command, 'account_info');
-      assert.strictEqual(message.account, addresses.VALID);
-      conn.send(fixtures.accountInfoResponse(message));
-    });
-
     self.wss.once('request_submit', function(message, conn) {
       assert.strictEqual(message.command, 'submit');
       assert(message.hasOwnProperty('tx_blob'), 'Missing signed transaction blob');
@@ -942,14 +817,6 @@ suite('post trustlines', function() {
   });
 
   test('/accounts/:account/trustlines -- invalid account', function(done) {
-    self.wss.once('request_account_info', function() {
-      assert(false, 'Should not request account info');
-    });
-
-    self.wss.once('request_submit', function() {
-      assert(false, 'Should not request submit');
-    });
-
     testPostRequest({
       account: addresses.INVALID,
       data: defaultData,
@@ -959,14 +826,6 @@ suite('post trustlines', function() {
   });
 
   test('/accounts/:account/trustlines -- missing secret', function(done) {
-    self.wss.once('request_account_info', function() {
-      assert(false, 'Should not request account info');
-    });
-
-    self.wss.once('request_submit', function() {
-      assert(false, 'Should not request submit');
-    });
-
     testPostRequest({
       account: addresses.VALID,
       data: _.omit(defaultData, 'secret'),
@@ -975,14 +834,6 @@ suite('post trustlines', function() {
   });
 
   test('/accounts/:account/trustlines -- missing trustline', function(done) {
-    self.wss.once('request_account_info', function() {
-      assert(false, 'Should not request account info');
-    });
-
-    self.wss.once('request_submit', function() {
-      assert(false, 'Should not request submit');
-    });
-
     testPostRequest({
       account: addresses.VALID,
       data: {secret: addresses.SECRET},
@@ -991,14 +842,6 @@ suite('post trustlines', function() {
   });
 
   test('/accounts/:account/trustlines -- missing limit amount', function(done) {
-    self.wss.once('request_account_info', function() {
-      assert(false, 'Should not request account info');
-    });
-
-    self.wss.once('request_submit', function() {
-      assert(false, 'Should not request submit');
-    });
-
     var data = _.cloneDeep(defaultData);
     delete data.trustline.limit;
     testPostRequest({
@@ -1009,14 +852,6 @@ suite('post trustlines', function() {
   });
 
   test('/accounts/:account/trustlines -- missing limit currency', function(done) {
-    self.wss.once('request_account_info', function() {
-      assert(false, 'Should not request account info');
-    });
-
-    self.wss.once('request_submit', function() {
-      assert(false, 'Should not request submit');
-    });
-
     var data = _.cloneDeep(defaultData);
     delete data.trustline.limit;
     testPostRequest({
@@ -1027,14 +862,6 @@ suite('post trustlines', function() {
   });
 
   test('/accounts/:account/trustlines -- missing limit currency', function(done) {
-    self.wss.once('request_account_info', function() {
-      assert(false, 'Should not request account info');
-    });
-
-    self.wss.once('request_submit', function() {
-      assert(false, 'Should not request submit');
-    });
-
     var data = _.cloneDeep(defaultData);
     delete data.trustline.currency;
     testPostRequest({
@@ -1045,14 +872,6 @@ suite('post trustlines', function() {
   });
 
   test('/accounts/:account/trustlines -- missing limit counterparty', function(done) {
-    self.wss.once('request_account_info', function() {
-      assert(false, 'Should not request account info');
-    });
-
-    self.wss.once('request_submit', function() {
-      assert(false, 'Should not request submit');
-    });
-
     var data = _.cloneDeep(defaultData);
     delete data.trustline.counterparty;
     testPostRequest({
@@ -1063,14 +882,6 @@ suite('post trustlines', function() {
   });
 
   test('/accounts/:account/trustlines -- invalid limit amount', function(done) {
-    self.wss.once('request_account_info', function() {
-      assert(false, 'Should not request account info');
-    });
-
-    self.wss.once('request_submit', function() {
-      assert(false, 'Should not request submit');
-    });
-
     var data = _.cloneDeep(defaultData);
     data.trustline.limit = 'asdf';
     testPostRequest({
@@ -1081,14 +892,6 @@ suite('post trustlines', function() {
   });
 
   test('/accounts/:account/trustlines -- invalid limit currency', function(done) {
-    self.wss.once('request_account_info', function() {
-      assert(false, 'Should not request account info');
-    });
-
-    self.wss.once('request_submit', function() {
-      assert(false, 'Should not request submit');
-    });
-
     var data = _.cloneDeep(defaultData);
     data.trustline.currency = 'usd2';
     testPostRequest({
@@ -1099,14 +902,6 @@ suite('post trustlines', function() {
   });
 
   test('/accounts/:account/trustlines -- invalid limit counterparty', function(done) {
-    self.wss.once('request_account_info', function() {
-      assert(false, 'Should not request account info');
-    });
-
-    self.wss.once('request_submit', function() {
-      assert(false, 'Should not request submit');
-    });
-
     var data = _.cloneDeep(defaultData);
     data.trustline.counterparty = addresses.INVALID;
     testPostRequest({

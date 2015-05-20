@@ -16,16 +16,11 @@ var requestPath = fixtures.requestPath;
 
 suite('prepare payment', function() {
   var self = this;
+  self.accountInfoResponseMulti = fixtures.accountInfoResponse;
   setup(testutils.setup.bind(self));
   teardown(testutils.teardown.bind(self));
 
   test('0.001 USD', function(done) {
-    self.wss.on('request_account_info', function(message, conn) {
-      assert.strictEqual(message.command, 'account_info');
-      assert.strictEqual(message.account, addresses.VALID);
-      conn.send(fixtures.accountInfoResponse(message));
-    });
-
     testutils.withDeterministicPRNG(function(_done) {
       self.app
         .post('/v1/accounts/' + addresses.VALID + '/payments?submit=false')
@@ -38,12 +33,6 @@ suite('prepare payment', function() {
   });
 
   test('0.001 USD -- no secret', function(done) {
-    self.wss.on('request_account_info', function(message, conn) {
-      assert.strictEqual(message.command, 'account_info');
-      assert.strictEqual(message.account, addresses.VALID);
-      conn.send(fixtures.accountInfoResponse(message));
-    });
-
     testutils.withDeterministicPRNG(function(_done) {
       self.app
         .post('/v1/accounts/' + addresses.VALID + '/payments?submit=false')
@@ -162,10 +151,6 @@ suite('get payments', function() {
   });
 
   test('/accounts/:account/payments/:identifier -- invalid identifier', function(done) {
-    self.wss.once('request_tx', function() {
-      assert(false, 'Should not request transaction');
-    });
-
     self.app
     .get(requestPath(addresses.VALID) + '/' + fixtures.INVALID_TRANSACTION_HASH)
     .expect(testutils.checkStatus(400))
@@ -179,10 +164,6 @@ suite('get payments', function() {
   });
 
   test('/accounts/:account/payments/:identifier -- invalid account', function(done) {
-    self.wss.once('request_tx', function() {
-      assert(false, 'Should not request transaction');
-    });
-
     self.app
     .get(requestPath(addresses.INVALID) + '/' + fixtures.VALID_TRANSACTION_HASH)
     .expect(testutils.checkStatus(400))
@@ -194,6 +175,7 @@ suite('get payments', function() {
 
 suite('post payments', function() {
   var self = this;
+  self.accountInfoResponseMulti = fixtures.accountInfoResponse;
 
   // self.wss: rippled mock
   // self.app: supertest-enabled REST handler
@@ -203,12 +185,6 @@ suite('post payments', function() {
 
   test('/payments -- issuer', function(done) {
     var hash = testutils.generateHash();
-
-    self.wss.once('request_account_info', function(message, conn) {
-      assert.strictEqual(message.command, 'account_info');
-      assert.strictEqual(message.account, addresses.VALID);
-      conn.send(fixtures.accountInfoResponse(message));
-    });
 
     self.wss.once('request_submit', function(message, conn) {
       assert.strictEqual(message.command, 'submit');
@@ -232,12 +208,6 @@ suite('post payments', function() {
   test('/payments -- no issuer', function(done) {
     var hash = testutils.generateHash();
 
-    self.wss.once('request_account_info', function(message, conn) {
-      assert.strictEqual(message.command, 'account_info');
-      assert.strictEqual(message.account, addresses.VALID);
-      conn.send(fixtures.accountInfoResponse(message));
-    });
-
     self.wss.once('request_submit', function(message, conn) {
       var tx = ripple.Remote.parseBinaryAccountTransaction(message).tx;
       assert.strictEqual(tx.Amount.issuer, addresses.COUNTERPARTY);
@@ -260,12 +230,6 @@ suite('post payments', function() {
 
   test('/payments -- fixed fee', function(done) {
     var hash = testutils.generateHash();
-
-    self.wss.once('request_account_info', function(message, conn) {
-      assert.strictEqual(message.command, 'account_info');
-      assert.strictEqual(message.account, addresses.VALID);
-      conn.send(fixtures.accountInfoResponse(message));
-    });
 
     self.wss.once('request_submit', function(message, conn) {
       var so = new ripple.SerializedObject(message.tx_blob).to_json();
@@ -294,12 +258,6 @@ suite('post payments', function() {
   test('/payments -- hex currency gold', function(done) {
     var hash = testutils.generateHash();
 
-    self.wss.once('request_account_info', function(message, conn) {
-      assert.strictEqual(message.command, 'account_info');
-      assert.strictEqual(message.account, addresses.VALID);
-      conn.send(fixtures.accountInfoResponse(message));
-    });
-
     self.wss.once('request_submit', function(message, conn) {
       assert.strictEqual(message.command, 'submit');
       conn.send(fixtures.requestSubmitResponse(message, {hash: hash}));
@@ -321,12 +279,6 @@ suite('post payments', function() {
 
   test('/payments?validated=true', function(done) {
     var currentLedger = self.remote._ledger_current_index;
-
-    self.wss.once('request_account_info', function(message, conn) {
-      assert.strictEqual(message.command, 'account_info');
-      assert.strictEqual(message.account, addresses.VALID);
-      conn.send(fixtures.accountInfoResponse(message));
-    });
 
     self.wss.once('request_submit', function(message, conn) {
       assert.strictEqual(message.command, 'submit');
@@ -357,12 +309,6 @@ suite('post payments', function() {
   test('/payments?validated=true -- fixed fee', function(done) {
     var currentLedger = self.remote._ledger_current_index;
     var hash = testutils.generateHash();
-
-    self.wss.once('request_account_info', function(message, conn) {
-      assert.strictEqual(message.command, 'account_info');
-      assert.strictEqual(message.account, addresses.VALID);
-      conn.send(fixtures.accountInfoResponse(message));
-    });
 
     self.wss.once('request_submit', function(message, conn) {
       var so = new ripple.SerializedObject(message.tx_blob).to_json();
@@ -403,12 +349,6 @@ suite('post payments', function() {
     var hash = testutils.generateHash();
     var currentLedger = self.remote._ledger_current_index;
 
-    self.wss.once('request_account_info', function(message, conn) {
-      assert.strictEqual(message.command, 'account_info');
-      assert.strictEqual(message.account, addresses.VALID);
-      conn.send(fixtures.accountInfoResponse(message));
-    });
-
     self.wss.once('request_submit', function(message, conn) {
       assert.strictEqual(message.command, 'submit');
       conn.send(fixtures.requestSubmitResponse(message, {hash: hash}));
@@ -439,12 +379,6 @@ suite('post payments', function() {
   });
 
   test('/payments?validated=true -- ledger sequence too high', function(done) {
-    self.wss.once('request_account_info', function(message, conn) {
-      assert.strictEqual(message.command, 'account_info');
-      assert.strictEqual(message.account, addresses.VALID);
-      conn.send(fixtures.accountInfoResponse(message));
-    });
-
     self.wss.once('request_submit', function(message, conn) {
       assert.strictEqual(message.command, 'submit');
       conn.send(fixtures.ledgerSequenceTooHighResponse(message));
@@ -464,12 +398,6 @@ suite('post payments', function() {
   });
 
   test('/payments?validated=true -- destination tag missing', function(done) {
-    self.wss.once('request_account_info', function(message, conn) {
-      assert.strictEqual(message.command, 'account_info');
-      assert.strictEqual(message.account, addresses.VALID);
-      conn.send(fixtures.accountInfoResponse(message));
-    });
-
     self.wss.once('request_submit', function(message, conn) {
       assert.strictEqual(message.command, 'submit');
       conn.send(fixtures.destinationTagNeededResponse(message));
@@ -489,16 +417,6 @@ suite('post payments', function() {
   });
 
   test('/payments?validated=true -- max fee exceeded', function(done) {
-    self.wss.once('request_account_info', function(message, conn) {
-      assert.strictEqual(message.command, 'account_info');
-      assert.strictEqual(message.account, addresses.VALID);
-      conn.send(fixtures.accountInfoResponse(message));
-    });
-
-    self.wss.once('request_submit', function() {
-      assert(false);
-    });
-
     self.app
     .post('/v1/accounts/' + addresses.VALID + '/payments?validated=true')
     .send(fixtures.payment({
@@ -514,12 +432,6 @@ suite('post payments', function() {
   });
 
   test('/payments?validated=false', function(done) {
-    self.wss.once('request_account_info', function(message, conn) {
-      assert.strictEqual(message.command, 'account_info');
-      assert.strictEqual(message.account, addresses.VALID);
-      conn.send(fixtures.accountInfoResponse(message));
-    });
-
     self.wss.once('request_submit', function(message, conn) {
       assert.strictEqual(message.command, 'submit');
       conn.send(fixtures.requestSubmitResponse(message));
@@ -538,16 +450,6 @@ suite('post payments', function() {
   });
 
   test('/payments -- max fee exceeded', function(done) {
-    self.wss.once('request_account_info', function(message, conn) {
-      assert.strictEqual(message.command, 'account_info');
-      assert.strictEqual(message.account, addresses.VALID);
-      conn.send(fixtures.accountInfoResponse(message));
-    });
-
-    self.wss.once('request_submit', function() {
-      assert(false, 'Should not request submit');
-    });
-
     self.app
     .post('/v1/accounts/' + addresses.VALID + '/payments')
     .send(fixtures.payment({
@@ -563,14 +465,6 @@ suite('post payments', function() {
   });
 
   test('/payments -- invalid memos', function(done) {
-    self.wss.once('request_account_info', function() {
-      assert(false, 'Should not request account_info');
-    });
-
-    self.wss.once('request_submit', function() {
-      assert(false, 'Should not request submit');
-    });
-
     self.app
     .post('/v1/accounts/' + addresses.VALID + '/payments')
     .send(fixtures.payment({ memos: 'some string' }))
@@ -585,14 +479,6 @@ suite('post payments', function() {
   });
 
   test('/payments -- empty memos array', function(done) {
-    self.wss.once('request_account_info', function() {
-      assert(false, 'Should not request account_info');
-    });
-
-    self.wss.once('request_submit', function() {
-      assert(false, 'Should not request submit');
-    });
-
     self.app
     .post('/v1/accounts/' + addresses.VALID + '/payments')
     .send(fixtures.payment({
@@ -609,14 +495,6 @@ suite('post payments', function() {
   });
 
   test('/payments -- memo containing a MemoType field with an int value', function(done) {
-    self.wss.once('request_account_info', function() {
-      assert(false, 'Should not request account_info');
-    });
-
-    self.wss.once('request_submit', function() {
-      assert(false, 'Should not request submit');
-    });
-
     self.app
     .post('/v1/accounts/' + addresses.VALID + '/payments')
     .send(fixtures.payment({
@@ -636,14 +514,6 @@ suite('post payments', function() {
   });
 
   test('/payments -- memo containing a MemoData field with an int value', function(done) {
-    self.wss.once('request_account_info', function() {
-      assert(false, 'Should not request account_info');
-    });
-
-    self.wss.once('request_submit', function() {
-      assert(false, 'Should not request submit');
-    });
-
     self.app
     .post('/v1/accounts/' + addresses.VALID + '/payments')
     .send(fixtures.payment({
@@ -663,12 +533,6 @@ suite('post payments', function() {
   });
 
   test('/payments -- memo without MemoData', function(done) {
-    self.wss.once('request_account_info', function(message, conn) {
-      assert.strictEqual(message.command, 'account_info');
-      assert.strictEqual(message.account, addresses.VALID);
-      conn.send(fixtures.accountInfoResponse(message));
-    });
-
     self.wss.once('request_submit', function(message, conn) {
       assert.strictEqual(message.command, 'submit');
 
@@ -693,12 +557,6 @@ suite('post payments', function() {
   });
 
   test('/payments -- memo with non-url-char MemoData', function(done) {
-    self.wss.once('request_account_info', function(message, conn) {
-      assert.strictEqual(message.command, 'account_info');
-      assert.strictEqual(message.account, addresses.VALID);
-      conn.send(fixtures.accountInfoResponse(message));
-    });
-
     self.wss.once('request_submit', function(message, conn) {
       assert.strictEqual(message.command, 'submit');
       assert.strictEqual(typeof message.tx_blob, 'string');
@@ -737,12 +595,6 @@ suite('post payments', function() {
   });
 
   test('/payments -- memo', function(done) {
-    self.wss.once('request_account_info', function(message, conn) {
-      assert.strictEqual(message.command, 'account_info');
-      assert.strictEqual(message.account, addresses.VALID);
-      conn.send(fixtures.accountInfoResponse(message));
-    });
-
     self.wss.once('request_submit', function(message, conn) {
       assert.strictEqual(message.command, 'submit');
 
@@ -775,14 +627,6 @@ suite('post payments', function() {
   });
 
   test('/payments -- secret invalid', function(done) {
-    self.wss.once('request_account_info', function() {
-      assert(false);
-    });
-
-    self.wss.once('request_submit', function() {
-      assert(false);
-    });
-
     self.app
     .post('/v1/accounts/' + addresses.VALID + '/payments')
     .send(fixtures.payment({
@@ -795,12 +639,6 @@ suite('post payments', function() {
   });
 
   test('/payments -- lastLedgerSequence', function(done) {
-    self.wss.once('request_account_info', function(message, conn) {
-      assert.strictEqual(message.command, 'account_info');
-      assert.strictEqual(message.account, addresses.VALID);
-      conn.send(fixtures.accountInfoResponse(message));
-    });
-
     self.wss.once('request_submit', function(message, conn) {
       var so = new ripple.SerializedObject(message.tx_blob).to_json();
       assert.strictEqual(message.command, 'submit');
@@ -825,13 +663,8 @@ suite('post payments', function() {
   test('/payments?validated=true -- max fee above computed fee but below expected server fee and remote\'s local_fee flag turned off', function(done) {
     self.remote.local_fee = false;
 
-    self.wss.once('request_account_info', function(message, conn) {
-      assert.strictEqual(message.command, 'account_info');
-      assert.strictEqual(message.account, addresses.VALID);
-      conn.send(fixtures.accountInfoResponse(message));
-    });
-
-    self.wss.once('request_submit', function(message, conn) {
+    // "on" instead of "once" because ripple-lib resubmits
+    self.wss.on('request_submit', function(message, conn) {
       assert.strictEqual(message.command, 'submit');
 
       conn.send(fixtures.rippledSubmitErrorResponse(message, {
@@ -859,16 +692,6 @@ suite('post payments', function() {
   });
 
   test('/payments -- max fee below computed fee', function(done) {
-    self.wss.once('request_account_info', function(message, conn) {
-      assert.strictEqual(message.command, 'account_info');
-      assert.strictEqual(message.account, addresses.VALID);
-      conn.send(fixtures.accountInfoResponse(message));
-    });
-
-    self.wss.once('request_submit', function() {
-      assert(false);
-    });
-
     self.app
     .post('/v1/accounts/' + addresses.VALID + '/payments')
     .send(fixtures.payment({
@@ -884,12 +707,6 @@ suite('post payments', function() {
   });
 
   test('/payments -- max fee above expected server fee', function(done) {
-    self.wss.once('request_account_info', function(message, conn) {
-      assert.strictEqual(message.command, 'account_info');
-      assert.strictEqual(message.account, addresses.VALID);
-      conn.send(fixtures.accountInfoResponse(message));
-    });
-
     self.wss.once('request_submit', function(message, conn) {
       var so = new ripple.SerializedObject(message.tx_blob).to_json();
       assert.strictEqual(message.command, 'submit');
@@ -918,12 +735,6 @@ suite('post payments', function() {
       assert.strictEqual(message.command, 'subscribe');
       assert.strictEqual(message.accounts[0], addresses.VALID);
       conn.send(fixtures.rippledSubcribeResponse(message));
-    });
-
-    self.wss.once('request_account_info', function(message, conn) {
-      assert.strictEqual(message.command, 'account_info');
-      assert.strictEqual(message.account, addresses.VALID);
-      conn.send(fixtures.accountInfoResponse(message));
     });
 
     self.wss.once('request_submit', function(message, conn) {
@@ -969,12 +780,6 @@ suite('post payments', function() {
       conn.send(fixtures.rippledSubcribeResponse(message));
     });
 
-    self.wss.once('request_account_info', function(message, conn) {
-      assert.strictEqual(message.command, 'account_info');
-      assert.strictEqual(message.account, addresses.VALID);
-      conn.send(fixtures.accountInfoResponse(message));
-    });
-
     self.wss.once('request_submit', function(message, conn) {
       assert.strictEqual(message.command, 'submit');
       conn.send(fixtures.rippledSubmitErrorResponse(message, {
@@ -1007,12 +812,6 @@ suite('post payments', function() {
       conn.send(fixtures.rippledSubcribeResponse(message));
     });
 
-    self.wss.once('request_account_info', function(message, conn) {
-      assert.strictEqual(message.command, 'account_info');
-      assert.strictEqual(message.account, addresses.VALID);
-      conn.send(fixtures.accountInfoResponse(message));
-    });
-
     self.wss.once('request_submit', function(message, conn) {
       assert.strictEqual(message.command, 'submit');
       conn.send(fixtures.rippledSubmitErrorResponse(message, {
@@ -1038,20 +837,10 @@ suite('post payments', function() {
   });
 
   test('/payments -- duplicate client resource id', function(done) {
-    self.wss.once('request_account_info', function(message, conn) {
-      assert.strictEqual(message.command, 'account_info');
-      assert.strictEqual(message.account, addresses.VALID);
-      conn.send(fixtures.accountInfoResponse(message));
-    });
-
+    // "once" because second payment should not hit submit
     self.wss.once('request_submit', function(message, conn) {
       assert.strictEqual(message.command, 'submit');
       conn.send(fixtures.requestSubmitResponse(message));
-
-      self.wss.once('request_submit', function() {
-        // second payment should not hit submit
-        assert(false);
-      });
     });
 
     function secondPayment(err) {
@@ -1091,12 +880,7 @@ suite('post payments', function() {
   test('/payments -- duplicate client resource id and first transaction failed', function(done) {
     var hash = testutils.generateHash();
 
-    self.wss.once('request_account_info', function(message, conn) {
-      assert.strictEqual(message.command, 'account_info');
-      assert.strictEqual(message.account, addresses.VALID);
-      conn.send(fixtures.accountInfoResponse(message));
-    });
-
+    // "once" because second payment should not hit submit
     self.wss.once('request_submit', function(message, conn) {
       assert.strictEqual(message.command, 'submit');
 
@@ -1106,11 +890,6 @@ suite('post payments', function() {
         engineResultMessage: 'Destination does not exist. Too little XRP sent to create it.',
         hash: hash
       }));
-
-      self.wss.once('request_submit', function() {
-        // second payment should not hit submit
-        assert(false);
-      });
     });
 
     function secondPayment(err) {
@@ -1156,12 +935,7 @@ suite('post payments', function() {
       conn.send(fixtures.rippledSubcribeResponse(message));
     });
 
-    self.wss.once('request_account_info', function(message, conn) {
-      assert.strictEqual(message.command, 'account_info');
-      assert.strictEqual(message.account, addresses.VALID);
-      conn.send(fixtures.accountInfoResponse(message));
-    });
-
+    // "once" because second payment should not hit submit
     self.wss.once('request_submit', function(message, conn) {
       assert.strictEqual(message.command, 'submit');
       conn.send(fixtures.rippledSubmitErrorResponse(message, {
@@ -1178,11 +952,6 @@ suite('post payments', function() {
           engineResultMessage: 'Destination does not exist. Too little XRP sent to create it.',
           hash: hash
         }));
-      });
-
-      self.wss.once('request_submit', function() {
-        // second payment should not hit submit
-        assert(false);
       });
     });
 
@@ -1231,12 +1000,7 @@ suite('post payments', function() {
       conn.send(fixtures.rippledSubcribeResponse(message));
     });
 
-    self.wss.once('request_account_info', function(message, conn) {
-      assert.strictEqual(message.command, 'account_info');
-      assert.strictEqual(message.account, addresses.VALID);
-      conn.send(fixtures.accountInfoResponse(message));
-    });
-
+    // "once" because second payment should not hit submit
     self.wss.once('request_submit', function(message, conn) {
       assert.strictEqual(message.command, 'submit');
       conn.send(fixtures.rippledSubmitErrorResponse(message, {
@@ -1253,11 +1017,6 @@ suite('post payments', function() {
           engineResultMessage: 'Destination does not exist. Too little XRP sent to create it.',
           hash: hash
         }));
-      });
-
-      self.wss.once('request_submit', function() {
-        // second payment should not hit submit
-        assert(false);
       });
     });
 
@@ -1300,12 +1059,6 @@ suite('post payments', function() {
   test('/payments -- empty client_resource_id', function(done) {
     var hash = testutils.generateHash();
 
-    self.wss.once('request_account_info', function(message, conn) {
-      assert.strictEqual(message.command, 'account_info');
-      assert.strictEqual(message.account, addresses.VALID);
-      conn.send(fixtures.accountInfoResponse(message));
-    });
-
     self.wss.once('request_submit', function(message, conn) {
       assert.strictEqual(message.command, 'submit');
       conn.send(fixtures.requestSubmitResponse(message, {hash: hash}));
@@ -1336,12 +1089,6 @@ suite('post payments', function() {
   test('/payments -- invalid client_resource_id', function(done) {
     var hash = testutils.generateHash();
 
-    self.wss.once('request_account_info', function(message, conn) {
-      assert.strictEqual(message.command, 'account_info');
-      assert.strictEqual(message.account, addresses.VALID);
-      conn.send(fixtures.accountInfoResponse(message));
-    });
-
     self.wss.once('request_submit', function(message, conn) {
       assert.strictEqual(message.command, 'submit');
       conn.send(fixtures.requestSubmitResponse(message, {hash: hash}));
@@ -1369,12 +1116,6 @@ suite('post payments', function() {
   test('/payments -- invalid source_account', function(done) {
     var hash = testutils.generateHash();
 
-    self.wss.once('request_account_info', function(message, conn) {
-      assert.strictEqual(message.command, 'account_info');
-      assert.strictEqual(message.account, addresses.VALID);
-      conn.send(fixtures.accountInfoResponse(message));
-    });
-
     self.wss.once('request_submit', function(message, conn) {
       assert.strictEqual(message.command, 'submit');
       conn.send(fixtures.requestSubmitResponse(message, {hash: hash}));
@@ -1401,12 +1142,6 @@ suite('post payments', function() {
 
   test('/payments -- invalid destination_account', function(done) {
     var hash = testutils.generateHash();
-
-    self.wss.once('request_account_info', function(message, conn) {
-      assert.strictEqual(message.command, 'account_info');
-      assert.strictEqual(message.account, addresses.VALID);
-      conn.send(fixtures.accountInfoResponse(message));
-    });
 
     self.wss.once('request_submit', function(message, conn) {
       assert.strictEqual(message.command, 'submit');

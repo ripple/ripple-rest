@@ -26,16 +26,11 @@ var LEDGER_HASH =
 
 suite('prepare order', function() {
   var self = this;
+  self.accountInfoResponseMulti = fixtures.accountInfoResponse;
   setup(testutils.setup.bind(self));
   teardown(testutils.teardown.bind(self));
 
   test('100 USD for 100 USD', function(done) {
-    self.wss.on('request_account_info', function(message, conn) {
-      assert.strictEqual(message.command, 'account_info');
-      assert.strictEqual(message.account, addresses.VALID);
-      conn.send(fixtures.accountInfoResponse(message));
-    });
-
     testutils.withDeterministicPRNG(function(_done) {
       self.app
         .post('/v1/accounts/' + addresses.VALID + '/orders?submit=false')
@@ -48,12 +43,6 @@ suite('prepare order', function() {
   });
 
   test('100 USD for 100 USD -- no secret', function(done) {
-    self.wss.on('request_account_info', function(message, conn) {
-      assert.strictEqual(message.command, 'account_info');
-      assert.strictEqual(message.account, addresses.VALID);
-      conn.send(fixtures.accountInfoResponse(message));
-    });
-
     testutils.withDeterministicPRNG(function(_done) {
       self.app
         .post('/v1/accounts/' + addresses.VALID + '/orders?submit=false')
@@ -69,16 +58,11 @@ suite('prepare order', function() {
 
 suite('prepare order cancellation', function() {
   var self = this;
+  self.accountInfoResponseMulti = fixtures.accountInfoResponse;
   setup(testutils.setup.bind(self));
   teardown(testutils.teardown.bind(self));
 
   test('order sequence 99', function(done) {
-    self.wss.on('request_account_info', function(message, conn) {
-      assert.strictEqual(message.command, 'account_info');
-      assert.strictEqual(message.account, addresses.VALID);
-      conn.send(fixtures.accountInfoResponse(message));
-    });
-
     testutils.withDeterministicPRNG(function(_done) {
       self.app
         .del('/v1/accounts/' + addresses.VALID + '/orders/99?submit=false')
@@ -93,12 +77,6 @@ suite('prepare order cancellation', function() {
   });
 
   test('order sequence 99 -- no secret', function(done) {
-    self.wss.on('request_account_info', function(message, conn) {
-      assert.strictEqual(message.command, 'account_info');
-      assert.strictEqual(message.account, addresses.VALID);
-      conn.send(fixtures.accountInfoResponse(message));
-    });
-
     testutils.withDeterministicPRNG(function(_done) {
       self.app
         .del('/v1/accounts/' + addresses.VALID + '/orders/99?submit=false')
@@ -114,6 +92,7 @@ suite('prepare order cancellation', function() {
 
 suite('get orders', function() {
   var self = this;
+  self.accountInfoResponse = fixtures.accountInfoResponse;
 
   setup(testutils.setup.bind(self));
   teardown(testutils.teardown.bind(self));
@@ -249,10 +228,6 @@ suite('get orders', function() {
   });
 
   test('/accounts/:account/orders -- with valid marker and invalid limit', function(done) {
-    self.wss.once('request_account_offers', function() {
-      assert(false);
-    });
-
     self.app
     .get('/v1/accounts/' + addresses.VALID + '/orders?marker=' + MARKER + '&limit=foo')
     .expect(testutils.checkStatus(400))
@@ -262,10 +237,6 @@ suite('get orders', function() {
   });
 
   test('/accounts/:account/orders -- with valid marker, valid limit, missing ledger', function(done) {
-    self.wss.once('request_account_offers', function() {
-      assert(false);
-    });
-
     self.app
     .get('/v1/accounts/' + addresses.VALID + '/orders?marker=' + MARKER + '&limit=' + LIMIT)
     .expect(testutils.checkStatus(400))
@@ -321,10 +292,6 @@ suite('get orders', function() {
   });
 
   test('/accounts/:account/orders -- with valid marker, valid limit, and invalid ledger', function(done) {
-    self.wss.once('request_account_offers', function() {
-      assert(false);
-    });
-
     self.app
     .get('/v1/accounts/' + addresses.VALID + '/orders?marker=' + MARKER + '&limit=' + LIMIT + '&ledger=foo')
     .expect(testutils.checkStatus(400))
@@ -334,10 +301,6 @@ suite('get orders', function() {
   });
 
   test('/accounts/:account/orders -- with valid marker, valid limit, and ledger=validated', function(done) {
-    self.wss.once('request_account_offers', function() {
-      assert(false);
-    });
-
     self.app
     .get('/v1/accounts/' + addresses.VALID + '/orders?marker=' + MARKER + '&limit=' + LIMIT + '&ledger=validated')
     .expect(testutils.checkStatus(400))
@@ -347,10 +310,6 @@ suite('get orders', function() {
   });
 
   test('/accounts/:account/orders -- with valid marker, valid limit, and ledger=current', function(done) {
-    self.wss.once('request_account_offers', function() {
-      assert(false);
-    });
-
     self.app
     .get('/v1/accounts/' + addresses.VALID + '/orders?marker=' + MARKER + '&limit=' + LIMIT + '&ledger=current')
     .expect(testutils.checkStatus(400))
@@ -360,10 +319,6 @@ suite('get orders', function() {
   });
 
   test('/accounts/:account/orders -- with valid marker, valid limit, and ledger=closed', function(done) {
-    self.wss.once('request_account_offers', function() {
-      assert(false);
-    });
-
     self.app
     .get('/v1/accounts/' + addresses.VALID + '/orders?marker=' + MARKER + '&limit=' + LIMIT + '&ledger=closed')
     .expect(testutils.checkStatus(400))
@@ -395,10 +350,6 @@ suite('get orders', function() {
   });
 
   test('/accounts/:account/orders -- invalid account', function(done) {
-    self.wss.once('request_account_offers', function() {
-      assert(false, 'Should not request account lines');
-    });
-
     self.app
     .get('/v1/accounts/' + addresses.INVALID + '/orders')
     .expect(testutils.checkStatus(400))
@@ -410,6 +361,7 @@ suite('get orders', function() {
 
 suite('post orders', function() {
   var self = this;
+  self.accountInfoResponse = fixtures.accountInfoResponse;
 
   setup(testutils.setup.bind(self));
   teardown(testutils.teardown.bind(self));
@@ -417,12 +369,6 @@ suite('post orders', function() {
   test('/orders?validated=true', function(done) {
     var lastLedger = self.remote._ledger_current_index;
     var hash = testutils.generateHash();
-
-    self.wss.once('request_account_info', function(message, conn) {
-      assert.strictEqual(message.command, 'account_info');
-      assert.strictEqual(message.account, addresses.VALID);
-      conn.send(fixtures.accountInfoResponse(message));
-    });
 
     self.wss.once('request_submit', function(message, conn) {
       assert.strictEqual(message.command, 'submit');
@@ -452,12 +398,6 @@ suite('post orders', function() {
 
   test('/orders?validated=true -- unfunded offer', function(done) {
     var hash = testutils.generateHash();
-
-    self.wss.once('request_account_info', function(message, conn) {
-      assert.strictEqual(message.command, 'account_info');
-      assert.strictEqual(message.account, addresses.VALID);
-      conn.send(fixtures.accountInfoResponse(message));
-    });
 
     self.wss.once('request_submit', function(message, conn) {
       assert.strictEqual(message.command, 'submit');
@@ -491,12 +431,6 @@ suite('post orders', function() {
   test('/orders', function(done) {
     var lastLedger = self.remote._ledger_current_index;
     var hash = testutils.generateHash();
-
-    self.wss.once('request_account_info', function(message, conn) {
-      assert.strictEqual(message.command, 'account_info');
-      assert.strictEqual(message.account, addresses.VALID);
-      conn.send(fixtures.accountInfoResponse(message));
-    });
 
     self.wss.once('request_submit', function(message, conn) {
       var so = new ripple.SerializedObject(message.tx_blob).to_json();
@@ -544,12 +478,6 @@ suite('post orders', function() {
         issuer: ISSUER
       }
     };
-
-    self.wss.once('request_account_info', function(message, conn) {
-      assert.strictEqual(message.command, 'account_info');
-      assert.strictEqual(message.account, addresses.VALID);
-      conn.send(fixtures.accountInfoResponse(message));
-    });
 
     self.wss.once('request_submit', function(message, conn) {
       var so = new ripple.SerializedObject(message.tx_blob).to_json();
@@ -599,12 +527,6 @@ suite('post orders', function() {
       }
     };
 
-    self.wss.once('request_account_info', function(message, conn) {
-      assert.strictEqual(message.command, 'account_info');
-      assert.strictEqual(message.account, addresses.VALID);
-      conn.send(fixtures.accountInfoResponse(message));
-    });
-
     self.wss.once('request_submit', function(message, conn) {
       var so = new ripple.SerializedObject(message.tx_blob).to_json();
       assert.strictEqual(so.TakerPays.value, VALUE);
@@ -640,12 +562,6 @@ suite('post orders', function() {
   });
 
   test('/orders -- ledger sequence too high', function(done) {
-    self.wss.once('request_account_info', function(message, conn) {
-      assert.strictEqual(message.command, 'account_info');
-      assert.strictEqual(message.account, addresses.VALID);
-      conn.send(fixtures.accountInfoResponse(message));
-    });
-
     self.wss.once('request_submit', function(message, conn) {
       assert.strictEqual(message.command, 'submit');
       conn.send(fixtures.ledgerSequenceTooHighResponse(message));
@@ -662,16 +578,6 @@ suite('post orders', function() {
   });
 
   test('/orders -- secret invalid', function(done) {
-    self.wss.once('request_account_info', function(message, conn) {
-      assert.strictEqual(message.command, 'account_info');
-      assert.strictEqual(message.account, addresses.VALID);
-      conn.send(fixtures.accountInfoResponse(message));
-    });
-
-    self.wss.once('request_submit', function() {
-      assert(false);
-    });
-
     self.app
     .post('/v1/accounts/' + addresses.VALID + '/orders')
     .send(fixtures.order({
@@ -686,12 +592,6 @@ suite('post orders', function() {
   test('/orders -- type sell', function(done) {
     var lastLedger = self.remote._ledger_current_index;
     var hash = testutils.generateHash();
-
-    self.wss.once('request_account_info', function(message, conn) {
-      assert.strictEqual(message.command, 'account_info');
-      assert.strictEqual(message.account, addresses.VALID);
-      conn.send(fixtures.accountInfoResponse(message));
-    });
 
     self.wss.once('request_submit', function(message, conn) {
       var so = new ripple.SerializedObject(message.tx_blob).to_json();
@@ -721,12 +621,6 @@ suite('post orders', function() {
     var lastLedger = self.remote._ledger_current_index;
     var hash = testutils.generateHash();
 
-    self.wss.once('request_account_info', function(message, conn) {
-      assert.strictEqual(message.command, 'account_info');
-      assert.strictEqual(message.account, addresses.VALID);
-      conn.send(fixtures.accountInfoResponse(message));
-    });
-
     self.wss.once('request_submit', function(message, conn) {
       var so = new ripple.SerializedObject(message.tx_blob).to_json();
       assert.strictEqual(message.command, 'submit');
@@ -754,12 +648,6 @@ suite('post orders', function() {
   test('/orders -- fill_or_kill true', function(done) {
     var lastLedger = self.remote._ledger_current_index;
     var hash = testutils.generateHash();
-
-    self.wss.once('request_account_info', function(message, conn) {
-      assert.strictEqual(message.command, 'account_info');
-      assert.strictEqual(message.account, addresses.VALID);
-      conn.send(fixtures.accountInfoResponse(message));
-    });
 
     self.wss.once('request_submit', function(message, conn) {
       var so = new ripple.SerializedObject(message.tx_blob).to_json();
@@ -789,12 +677,6 @@ suite('post orders', function() {
     var lastLedger = self.remote._ledger_current_index;
     var hash = testutils.generateHash();
 
-    self.wss.once('request_account_info', function(message, conn) {
-      assert.strictEqual(message.command, 'account_info');
-      assert.strictEqual(message.account, addresses.VALID);
-      conn.send(fixtures.accountInfoResponse(message));
-    });
-
     self.wss.once('request_submit', function(message, conn) {
       var so = new ripple.SerializedObject(message.tx_blob).to_json();
       assert.strictEqual(message.command, 'submit');
@@ -822,12 +704,6 @@ suite('post orders', function() {
   test('/orders -- passive false', function(done) {
     var lastLedger = self.remote._ledger_current_index;
     var hash = testutils.generateHash();
-
-    self.wss.once('request_account_info', function(message, conn) {
-      assert.strictEqual(message.command, 'account_info');
-      assert.strictEqual(message.account, addresses.VALID);
-      conn.send(fixtures.accountInfoResponse(message));
-    });
 
     self.wss.once('request_submit', function(message, conn) {
       var so = new ripple.SerializedObject(message.tx_blob).to_json();
@@ -857,12 +733,6 @@ suite('post orders', function() {
     var lastLedger = self.remote._ledger_current_index;
     var hash = testutils.generateHash();
 
-    self.wss.once('request_account_info', function(message, conn) {
-      assert.strictEqual(message.command, 'account_info');
-      assert.strictEqual(message.account, addresses.VALID);
-      conn.send(fixtures.accountInfoResponse(message));
-    });
-
     self.wss.once('request_submit', function(message, conn) {
       var so = new ripple.SerializedObject(message.tx_blob).to_json();
       assert.strictEqual(message.command, 'submit');
@@ -891,12 +761,6 @@ suite('post orders', function() {
     var lastLedger = self.remote._ledger_current_index;
     var hash = testutils.generateHash();
 
-    self.wss.once('request_account_info', function(message, conn) {
-      assert.strictEqual(message.command, 'account_info');
-      assert.strictEqual(message.account, addresses.VALID);
-      conn.send(fixtures.accountInfoResponse(message));
-    });
-
     self.wss.once('request_submit', function(message, conn) {
       var so = new ripple.SerializedObject(message.tx_blob).to_json();
       assert.strictEqual(message.command, 'submit');
@@ -922,14 +786,6 @@ suite('post orders', function() {
   });
 
   test('/orders -- passive invalid', function(done) {
-    self.wss.once('request_account_info', function() {
-      assert(false, 'should not request account info');
-    });
-
-    self.wss.once('request_submit', function() {
-      assert(false, 'should not submit request');
-    });
-
     self.app
     .post('/v1/accounts/' + addresses.VALID + '/orders')
     .send(fixtures.order({
@@ -946,14 +802,6 @@ suite('post orders', function() {
   });
 
   test('/orders -- immediate_or_cancel invalid', function(done) {
-    self.wss.once('request_account_info', function() {
-      assert(false, 'should not request account info');
-    });
-
-    self.wss.once('request_submit', function() {
-      assert(false, 'should not submit request');
-    });
-
     self.app
     .post('/v1/accounts/' + addresses.VALID + '/orders')
     .send(fixtures.order({
@@ -970,14 +818,6 @@ suite('post orders', function() {
   });
 
   test('/orders -- fill_or_kill invalid', function(done) {
-    self.wss.once('request_account_info', function() {
-      assert(false, 'should not request account info');
-    });
-
-    self.wss.once('request_submit', function() {
-      assert(false, 'should not submit request');
-    });
-
     self.app
     .post('/v1/accounts/' + addresses.VALID + '/orders')
     .send(fixtures.order({
@@ -1001,12 +841,6 @@ suite('post orders', function() {
       hash: hash,
       taker_gets: '100000000000'
     };
-
-    self.wss.once('request_account_info', function(message, conn) {
-      assert.strictEqual(message.command, 'account_info');
-      assert.strictEqual(message.account, addresses.VALID);
-      conn.send(fixtures.accountInfoResponse(message));
-    });
 
     self.wss.once('request_submit', function(message, conn) {
       var so = new ripple.SerializedObject(message.tx_blob).to_json();
@@ -1050,12 +884,6 @@ suite('post orders', function() {
       taker_pays: '100000000000'
     };
 
-    self.wss.once('request_account_info', function(message, conn) {
-      assert.strictEqual(message.command, 'account_info');
-      assert.strictEqual(message.account, addresses.VALID);
-      conn.send(fixtures.accountInfoResponse(message));
-    });
-
     self.wss.once('request_submit', function(message, conn) {
       var so = new ripple.SerializedObject(message.tx_blob).to_json();
       assert.strictEqual(message.command, 'submit');
@@ -1092,12 +920,6 @@ suite('post orders', function() {
     var lastLedger = self.remote._ledger_current_index;
     var hash = testutils.generateHash();
 
-    self.wss.once('request_account_info', function(message, conn) {
-      assert.strictEqual(message.command, 'account_info');
-      assert.strictEqual(message.account, addresses.VALID);
-      conn.send(fixtures.accountInfoResponse(message));
-    });
-
     self.wss.once('request_submit', function(message, conn) {
       assert.strictEqual(message.command, 'submit');
       conn.send(fixtures.rippledSubmitErrorResponse(message, {
@@ -1121,14 +943,6 @@ suite('post orders', function() {
   });
 
   test('/orders -- secret missing', function(done) {
-    self.wss.once('request_account_info', function() {
-      assert(false, 'should not request account info');
-    });
-
-    self.wss.once('request_submit', function() {
-      assert(false, 'should not submit request');
-    });
-
     self.app
     .post('/v1/accounts/' + addresses.VALID + '/orders')
     .send(_.omit(fixtures.order(), 'secret'))
@@ -1139,16 +953,6 @@ suite('post orders', function() {
   });
 
   test('/orders -- secret invalid', function(done) {
-    self.wss.once('request_account_info', function(message, conn) {
-      assert.strictEqual(message.command, 'account_info');
-      assert.strictEqual(message.account, addresses.VALID);
-      conn.send(fixtures.accountInfoResponse(message));
-    });
-
-    self.wss.once('request_submit', function() {
-      assert(false, 'should not submit request');
-    });
-
     self.app
     .post('/v1/accounts/' + addresses.VALID + '/orders')
     .send(fixtures.order({
@@ -1161,14 +965,6 @@ suite('post orders', function() {
   });
 
   test('/orders -- order missing', function(done) {
-    self.wss.once('request_account_info', function() {
-      assert(false, 'should not request account info');
-    });
-
-    self.wss.once('request_submit', function() {
-      assert(false, 'should not submit request');
-    });
-
     self.app
     .post('/v1/accounts/' + addresses.VALID + '/orders')
     .send({
@@ -1185,14 +981,6 @@ suite('post orders', function() {
   });
 
   test('/orders -- type missing', function(done) {
-    self.wss.once('request_account_info', function() {
-      assert(false, 'should not request account info');
-    });
-
-    self.wss.once('request_submit', function() {
-      assert(false, 'should not submit request');
-    });
-
     self.app
     .post('/v1/accounts/' + addresses.VALID + '/orders')
     .send(fixtures.order({
@@ -1209,14 +997,6 @@ suite('post orders', function() {
   });
 
   test('/orders -- taker_gets invalid', function(done) {
-    self.wss.once('request_account_info', function() {
-      assert(false, 'should not request account info');
-    });
-
-    self.wss.once('request_submit', function() {
-      assert(false, 'should not submit request');
-    });
-
     self.app
     .post('/v1/accounts/' + addresses.VALID + '/orders')
     .send(fixtures.order({
@@ -1233,14 +1013,6 @@ suite('post orders', function() {
   });
 
   test('/orders -- taker_gets -- currency without issuer', function(done) {
-    self.wss.once('request_account_info', function() {
-      assert(false, 'should not request account info');
-    });
-
-    self.wss.once('request_submit', function() {
-      assert(false, 'should not submit request');
-    });
-
     self.app
     .post('/v1/accounts/' + addresses.VALID + '/orders')
     .send(fixtures.order({
@@ -1260,14 +1032,6 @@ suite('post orders', function() {
   });
 
   test('/orders -- taker_pays invalid', function(done) {
-    self.wss.once('request_account_info', function() {
-      assert(false, 'should not request account info');
-    });
-
-    self.wss.once('request_submit', function() {
-      assert(false, 'should not submit request');
-    });
-
     self.app
     .post('/v1/accounts/' + addresses.VALID + '/orders')
     .send(fixtures.order({
@@ -1284,14 +1048,6 @@ suite('post orders', function() {
   });
 
   test('/orders -- taker_pays -- currency without issuer', function(done) {
-    self.wss.once('request_account_info', function() {
-      assert(false, 'should not request account info');
-    });
-
-    self.wss.once('request_submit', function() {
-      assert(false, 'should not submit request');
-    });
-
     self.app
     .post('/v1/accounts/' + addresses.VALID + '/orders')
     .send(fixtures.order({
@@ -1311,14 +1067,6 @@ suite('post orders', function() {
   });
 
   test('/orders -- account invalid', function(done) {
-    self.wss.once('request_account_info', function() {
-      assert(false, 'should not request account info');
-    });
-
-    self.wss.once('request_submit', function() {
-      assert(false, 'should not submit request');
-    });
-
     self.app
     .post('/v1/accounts/' + addresses.INVALID + '/orders?validated=true')
     .send(fixtures.order())
@@ -1331,6 +1079,7 @@ suite('post orders', function() {
 
 suite('delete orders', function() {
   var self = this;
+  self.accountInfoResponse = fixtures.accountInfoResponse;
 
   setup(testutils.setup.bind(self));
   teardown(testutils.teardown.bind(self));
@@ -1338,12 +1087,6 @@ suite('delete orders', function() {
   test('/orders/:sequence?validated=true', function(done) {
     var lastLedger = self.remote._ledger_current_index;
     var hash = testutils.generateHash();
-
-    self.wss.once('request_account_info', function(message, conn) {
-      assert.strictEqual(message.command, 'account_info');
-      assert.strictEqual(message.account, addresses.VALID);
-      conn.send(fixtures.accountInfoResponse(message));
-    });
 
     self.wss.once('request_submit', function(message, conn) {
       var so = new ripple.SerializedObject(message.tx_blob).to_json();
@@ -1377,12 +1120,6 @@ suite('delete orders', function() {
   });
 
   test('/orders/:sequence -- ledger sequence too high', function(done) {
-    self.wss.once('request_account_info', function(message, conn) {
-      assert.strictEqual(message.command, 'account_info');
-      assert.strictEqual(message.account, addresses.VALID);
-      conn.send(fixtures.accountInfoResponse(message));
-    });
-
     self.wss.once('request_submit', function(message, conn) {
       assert.strictEqual(message.command, 'submit');
       conn.send(fixtures.ledgerSequenceTooHighResponse(message));
@@ -1401,16 +1138,6 @@ suite('delete orders', function() {
   });
 
   test('/orders/:sequence -- secret invalid', function(done) {
-    self.wss.once('request_account_info', function(message, conn) {
-      assert.strictEqual(message.command, 'account_info');
-      assert.strictEqual(message.account, addresses.VALID);
-      conn.send(fixtures.accountInfoResponse(message));
-    });
-
-    self.wss.once('request_submit', function() {
-      assert(false);
-    });
-
     self.app
     .del('/v1/accounts/' + addresses.VALID + '/orders/99')
     .send(fixtures.order({
@@ -1425,12 +1152,6 @@ suite('delete orders', function() {
   test('/orders/:sequence', function(done) {
     var lastLedger = self.remote._ledger_current_index;
     var hash = testutils.generateHash();
-
-    self.wss.once('request_account_info', function(message, conn) {
-      assert.strictEqual(message.command, 'account_info');
-      assert.strictEqual(message.account, addresses.VALID);
-      conn.send(fixtures.accountInfoResponse(message));
-    });
 
     self.wss.once('request_submit', function(message, conn) {
       var so = new ripple.SerializedObject(message.tx_blob).to_json();
@@ -1458,12 +1179,6 @@ suite('delete orders', function() {
 
   test('/orders/:sequence -- bad sequence', function(done) {
     var hash = testutils.generateHash();
-
-    self.wss.once('request_account_info', function(message, conn) {
-      assert.strictEqual(message.command, 'account_info');
-      assert.strictEqual(message.account, addresses.VALID);
-      conn.send(fixtures.accountInfoResponse(message));
-    });
 
     self.wss.once('request_submit', function(message, conn) {
       var so = new ripple.SerializedObject(message.tx_blob).to_json();
@@ -1494,14 +1209,6 @@ suite('delete orders', function() {
   });
 
   test('/orders/:sequence -- sequence invalid', function(done) {
-    self.wss.once('request_account_info', function() {
-      assert(false, 'should not request account info');
-    });
-
-    self.wss.once('request_submit', function() {
-      assert(false, 'should not submit request');
-    });
-
     self.app
     .del('/v1/accounts/' + addresses.VALID + '/orders/foo')
     .send({
@@ -1518,14 +1225,6 @@ suite('delete orders', function() {
   });
 
   test('/orders/:sequence -- secret missing', function(done) {
-    self.wss.once('request_account_info', function() {
-      assert(false, 'should not request account info');
-    });
-
-    self.wss.once('request_submit', function() {
-      assert(false, 'should not submit request');
-    });
-
     self.app
     .del('/v1/accounts/' + addresses.VALID + '/orders/99')
     .send({})
@@ -1536,16 +1235,6 @@ suite('delete orders', function() {
   });
 
   test('/orders/:sequence -- secret invalid', function(done) {
-    self.wss.once('request_account_info', function(message, conn) {
-      assert.strictEqual(message.command, 'account_info');
-      assert.strictEqual(message.account, addresses.VALID);
-      conn.send(fixtures.accountInfoResponse(message));
-    });
-
-    self.wss.once('request_submit', function() {
-      assert(false, 'should not submit request');
-    });
-
     self.app
     .del('/v1/accounts/' + addresses.VALID + '/orders/99')
     .send({
@@ -1558,14 +1247,6 @@ suite('delete orders', function() {
   });
 
   test('/orders/:sequence -- account invalid', function(done) {
-    self.wss.once('request_account_info', function() {
-      assert(false, 'should not request account info');
-    });
-
-    self.wss.once('request_submit', function() {
-      assert(false, 'should not submit request');
-    });
-
     self.app
     .del('/v1/accounts/' + addresses.INVALID + '/orders/99?validated=true')
     .send({
@@ -1580,6 +1261,7 @@ suite('delete orders', function() {
 
 suite('get order book', function() {
   var self = this;
+  self.accountInfoResponse = fixtures.accountInfoResponse;
 
   setup(testutils.setup.bind(self));
   teardown(testutils.teardown.bind(self));
@@ -1770,14 +1452,6 @@ suite('get order book', function() {
   });
 
   test('v1/accounts/:account/order_book/:base/:counter -- with invalid currency as base', function(done) {
-    self.wss.on('request_ledger', function() {
-      assert(false, 'Should not request ledger info');
-    });
-
-    self.wss.on('request_book_offers', function() {
-      assert(false, 'Should not request book offers');
-    });
-
     self.app
     .get('/v1/accounts/' + addresses.VALID + '/order_book/' + 'AAAA+' + addresses.ISSUER + '/BTC+' + addresses.ISSUER)
     .expect(testutils.checkStatus(400))
@@ -1787,14 +1461,6 @@ suite('get order book', function() {
   });
 
   test('v1/accounts/:account/order_book/:base/:counter -- with invalid currency as counter', function(done) {
-    self.wss.on('request_ledger', function() {
-      assert(false, 'Should not request ledger info');
-    });
-
-    self.wss.on('request_book_offers', function() {
-      assert(false, 'Should not request book offers');
-    });
-
     self.app
     .get('/v1/accounts/' + addresses.VALID + '/order_book/' + 'BTC+' + addresses.ISSUER + '/AAAA+' + addresses.ISSUER)
     .expect(testutils.checkStatus(400))
@@ -1804,14 +1470,6 @@ suite('get order book', function() {
   });
 
   test('v1/accounts/:account/order_book/:base/:counter -- with invalid base counterparty', function(done) {
-    self.wss.on('request_ledger', function() {
-      assert(false, 'Should not request ledger info');
-    });
-
-    self.wss.on('request_book_offers', function() {
-      assert(false, 'Should not request book offers');
-    });
-
     self.app
     .get('/v1/accounts/' + addresses.VALID + '/order_book/' + 'BTC+' + addresses.INVALID + '/USD+' + addresses.ISSUER)
     .expect(testutils.checkStatus(400))
@@ -1821,14 +1479,6 @@ suite('get order book', function() {
   });
 
   test('v1/accounts/:account/order_book/:base/:counter -- with invalid counter counterparty', function(done) {
-    self.wss.on('request_ledger', function() {
-      assert(false, 'Should not request ledger info');
-    });
-
-    self.wss.on('request_book_offers', function() {
-      assert(false, 'Should not request book offers');
-    });
-
     self.app
     .get('/v1/accounts/' + addresses.VALID + '/order_book/' + 'BTC+' + addresses.ISSUER + '/USD+' + addresses.INVALID)
     .expect(testutils.checkStatus(400))
@@ -1838,14 +1488,6 @@ suite('get order book', function() {
   });
 
   test('v1/accounts/:account/order_book/:base/:counter -- with XRP as base with counterparty', function(done) {
-    self.wss.on('request_ledger', function() {
-      assert(false, 'Should not request ledger info');
-    });
-
-    self.wss.on('request_book_offers', function() {
-      assert(false, 'Should not request book offers');
-    });
-
     self.app
     .get('/v1/accounts/' + addresses.VALID + '/order_book/' + 'XRP+' + addresses.ISSUER + '/USD+' + addresses.ISSUER)
     .expect(testutils.checkStatus(400))
@@ -1855,14 +1497,6 @@ suite('get order book', function() {
   });
 
   test('v1/accounts/:account/order_book/:base/:counter -- with XRP as counter with issuer', function(done) {
-    self.wss.on('request_ledger', function() {
-      assert(false, 'Should not request ledger info');
-    });
-
-    self.wss.on('request_book_offers', function() {
-      assert(false, 'Should not request book offers');
-    });
-
     self.app
     .get('/v1/accounts/' + addresses.VALID + '/order_book/' + 'BTC+' + addresses.ISSUER + '/XRP+' + addresses.ISSUER)
     .expect(testutils.checkStatus(400))
@@ -1872,14 +1506,6 @@ suite('get order book', function() {
   });
 
   test('v1/accounts/:account/order_book/:base/:counter -- with invalid account', function(done) {
-    self.wss.on('request_ledger', function() {
-      assert(false, 'Should not request ledger info');
-    });
-
-    self.wss.on('request_book_offers', function() {
-      assert(false, 'Should not request book offers');
-    });
-
     self.app
     .get('/v1/accounts/' + addresses.INVALID + '/order_book/BTC+' + addresses.ISSUER + '/XRP')
     .expect(testutils.checkStatus(400))
@@ -1892,6 +1518,7 @@ suite('get order book', function() {
 suite('get order', function() {
   var self = this;
   var hash = testutils.generateHash();
+  self.accountInfoResponse = fixtures.accountInfoResponse;
 
   setup(testutils.setup.bind(self));
   teardown(testutils.teardown.bind(self));
@@ -1917,10 +1544,6 @@ suite('get order', function() {
   });
 
   test('v1/accounts/:account/order_change/:identifier -- invalid transaction hash', function(done) {
-    self.wss.on('request_tx', function() {
-      assert(false, 'should not submit request');
-    });
-
     self.app
     .get('/v1/accounts/' + addresses.VALID + '/orders/foo')
     .expect(testutils.checkStatus(400))
@@ -1945,10 +1568,6 @@ suite('get order', function() {
   });
 
   test('v1/accounts/:account/order_change/:identifier -- invalid account', function(done) {
-    self.wss.once('request_tx', function() {
-      assert(false, 'Should not request transaction');
-    });
-
     self.app
     .get('/v1/accounts/' + addresses.INVALID + '/orders/' + hash)
     .expect(testutils.checkStatus(400))

@@ -1,6 +1,7 @@
 /* global crypto: true */
 'use strict';
 var _ = require('lodash');
+var net = require('net');
 var assert = require('assert-diff');
 var supertest = require('supertest');
 var WSS = require('ws').Server;
@@ -14,6 +15,7 @@ var api = require('../server/api');
 var apiFactory = require('../server/apifactory');
 var version = require('../server/version');
 var PRNGMock = require('./prngmock');
+var EventEmitter2 = require('eventemitter2').EventEmitter2;
 
 var LEDGER_OFFSET = 3;
 
@@ -48,43 +50,95 @@ function resetAPI() {
   api.db = newAPI.db;
 }
 
-function setup(done) {
-  var self = this;
+function getFreePort(callback) {
+  var server = net.createServer();
+  var port;
+  server.on('listening', function() {
+    port = server.address().port;
+    server.close();
+  });
+  server.on('close', function() {
+    callback(null, port);
+  });
+  server.on('error', function(error) {
+    callback(error);
+  });
+  server.listen(0);
+}
 
-  self.app = supertest(app);
+function setupServer(testcase, port, done) {
+  testcase.wss = new WSS({port: port});
+  _.assign(testcase.wss, EventEmitter2.prototype);
 
-  resetAPI();
-  self.remote = api.remote;
-  self.db = api.db;
+  testcase.wss.onAny(function() {
+    if (testcase.wss.listeners(this.event).length === 0) {
+      throw new Error('Should not ' + this.event.replace(/_/g, ' '));
+    }
+  });
 
-  self.wss = new WSS({port: 5995});
+  testcase.wss.on('listening', function() {});
+  testcase.wss.on('headers', function() {});
+  testcase.wss.on('connection/', function() {});
+  testcase.wss.on('request_subscribe', function(message) {
+    // always allow subscribing to account notifications
+    if (testcase.wss.listeners('request_subscribe').length <= 1) {
+      assert(message.accounts && message.accounts.length === 1);
+      assert(message.streams === undefined);
+    }
+  });
 
-  self.wss.once('connection', function(conn) {
+  testcase.wss.once('connection', function(conn) {
     conn.on('message', function(message) {
       message = JSON.parse(message);
-      self.wss.emit('request_' + message.command, message, conn);
+      testcase.wss.emit('request_' + message.command, message, conn);
     });
   });
 
-  self.wss.once('request_subscribe', function(message, conn) {
+  testcase.wss.once('request_subscribe', function(message, conn) {
     assert.strictEqual(message.command, 'subscribe');
     assert.deepEqual(message.streams, ['ledger', 'server']);
     conn.send(fixtures.subscribeResponse(message));
   });
 
-  self.remote.once('connect', function() {
-    self.remote.getServer().once('ledger_closed', function() {
-      self.db.clear().then(function() {
-        self.db.init(done);
+  if (testcase.accountInfoResponse !== undefined) {
+    testcase.wss.once('request_account_info', function(message, conn) {
+      assert.strictEqual(message.command, 'account_info');
+      assert.strictEqual(message.account, addresses.VALID);
+      conn.send(testcase.accountInfoResponse(message));
+    });
+  } else if (testcase.accountInfoResponseMulti !== undefined) {
+    testcase.wss.on('request_account_info', function(message, conn) {
+      assert.strictEqual(message.command, 'account_info');
+      assert.strictEqual(message.account, addresses.VALID);
+      conn.send(testcase.accountInfoResponseMulti(message));
+    });
+  }
+
+  testcase.remote.once('connect', function() {
+    testcase.remote.getServer().once('ledger_closed', function() {
+      testcase.db.clear().then(function() {
+        testcase.db.init(done);
       });
     });
-    self.remote.getServer().emit('message', fixtures.ledgerClose(0));
+    testcase.remote.getServer().emit('message', fixtures.ledgerClose(0));
   });
 
-  // self.remote.trace = true;
-  self.remote._servers = [ ];
-  self.remote.addServer('ws://localhost:5995');
-  self.remote.connect();
+  // testcase.remote.trace = true;
+  testcase.remote._servers = [ ];
+  testcase.remote.addServer('ws://localhost:' + port);
+  testcase.remote.connect();
+}
+
+function setup(done) {
+  var self = this;
+  self.app = supertest(app);
+  resetAPI();
+  self.remote = api.remote;
+  self.db = api.db;
+
+  getFreePort(function(error, port) {
+    setupServer(self, port, done);
+  });
 }
 
 function teardown(done) {

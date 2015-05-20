@@ -154,12 +154,6 @@ suite('get notification', function() {
       conn.send(fixtures.serverInfoMissingLedgerResponse(message));
     });
 
-    function handleLedgerQuery() {
-      assert(false, 'Should not request account transactions');
-    }
-
-    self.wss.once('request_account_tx', handleLedgerQuery);
-
     self.wss.once('request_ledger', function(message, conn) {
       assert.strictEqual(message.command, 'ledger');
       conn.send(fixtures.ledgerResponse(message));
@@ -174,20 +168,6 @@ suite('get notification', function() {
   });
 
   test('/accounts/:account/notifications/:identifier -- invalid account', function(done) {
-    self.wss.once('request_tx', function() {
-      assert(false, 'Should not request transaction');
-    });
-
-    self.wss.once('request_server_info', function() {
-      assert(false, 'Should not request server info');
-    });
-
-    function handleLedgerQuery() {
-      assert(false, 'Should not request account transactions');
-    }
-
-    self.wss.once('request_account_tx', handleLedgerQuery);
-
     self.app
     .get(fixtures.requestPath(addresses.INVALID, '/' + VALID_TRANSACTION_HASH))
     .expect(testutils.checkBody(errors.RESTInvalidAccount))
@@ -197,20 +177,6 @@ suite('get notification', function() {
   });
 
   test('/accounts/:account/notifications/:identifier -- invalid transaction hash', function(done) {
-    self.wss.once('request_tx', function() {
-      assert(false, 'Should not request transaction');
-    });
-
-    self.wss.once('request_server_info', function() {
-      assert(false, 'Should not request server info');
-    });
-
-    function handleLedgerQuery() {
-      assert(false, 'Should not request account transactions');
-    }
-
-    self.wss.once('request_account_tx', handleLedgerQuery);
-
     self.app
     .get(fixtures.requestPath(addresses.VALID, '/' + INVALID_TRANSACTION_HASH))
     .expect(testutils.checkBody(errors.RESTInvalidTransactionHashOrClientResourceID))
@@ -225,16 +191,6 @@ suite('get notification', function() {
       assert.strictEqual(message.transaction, fixtures.VALID_TRANSACTION_HASH);
       conn.send(fixtures.transactionNotFoundResponse(message));
     });
-
-    self.wss.once('request_server_info', function() {
-      assert(false, 'Should not request server info');
-    });
-
-    function handleLedgerQuery() {
-      assert(false, 'Should not request account transactions');
-    }
-
-    self.wss.once('request_account_tx', handleLedgerQuery);
 
     self.app
     .get(fixtures.requestPath(addresses.VALID, '/' + VALID_TRANSACTION_HASH))
