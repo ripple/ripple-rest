@@ -110,11 +110,11 @@ A submitted transaction is not valid until it is accepted into a validated ledge
 
 Sending a payment involves three steps:
 
-1. Generate the payment object with the [Prepare Payment method](#prepare-payment).  If the payment is not a direct send of XRP from one account to another, the Ripple system identifies the chain of trust, or ___path___, that connects the source and destination accounts, and includes it in the payment object.
+1. Optional: Generate the payment object with the [Prepare Payment method](#prepare-payment).  If the payment is not a direct send of XRP from one account to another, the Ripple system identifies the chain of trust, or ___path___, that connects the source and destination accounts, and includes it in the payment object.
 2. Modify the payment object if desired, and then [submit it](#submit-payment) to the API for processing. *Caution:* Making many changes to the payment object increases the chances of causing an error.
 3. Finally, ___confirm___ that the payment has completed, using the [Confirm Payment method](#confirm-payment). Payment submission is an asynchronous process, so payments can fail even after they have been submitted successfully.
 
-When you submit a payment for processing, you assign a unique `client resource identifier` to that payment.  This is a string which uniquely identifies the payment, and ensures that you do not accidentally submit the same payment twice.  You can also use the `client_resource_id` to retrieve a payment once it has been submitted.
+When you submit a payment for processing without the `submit` option set to `false`, you assign a unique `client resource identifier` to that payment.  This is a string which uniquely identifies the payment, and ensures that you do not accidentally submit the same payment twice.  You can also use the `client_resource_id` to retrieve a payment once it has been submitted.
 
 ### Transaction Types ###
 
@@ -123,8 +123,12 @@ The Ripple protocol supports multiple types of transactions, not just payments. 
  * Payment: A Payment transaction is an authorized transfer of balance from one address to another. (This maps to rippled's [Payment transaction type](https://ripple.com/build/transactions#payment))
  * Trustline: A Trustline transaction is an authorized grant of trust between two addresses. (This maps to rippled's [TrustSet transaction type](https://ripple.com/build/transactions#trustset))
  * Setting: A Setting transaction is an authorized update of account flags under a Ripple Account. (This maps to rippled's [AccountSet transaction type](https://ripple.com/build/transactions#accountset))
+ * Order: An Order transaction submits an order to buy or sell a Ripple asset for another Ripple asset. (This maps to rippled's [OfferCreate transaction type](https://ripple.com/build/transactions/#offercreate))
+ * Order Cancellation: An Order Cancellation cancels an Order transaction before it is executed. (This maps to rippled's and [OfferCancel transaction type](https://ripple.com/build/transactions/#offercancel))
  
 ### Client Resource IDs ###
+
+**Client Resource IDs are only used for submitting *payments* when the `submit` query parameter is not set to `false`.** 
 
 All Ripple transactions are identified by a unique hash, which is generated with the fields of the transaction. Ripple-REST uses an additional type of identifier, called a Client Resource ID, which is an arbitrary string provided at the time a transaction is submitted.
 
@@ -551,9 +555,9 @@ An order change object describes the changes to to a Ripple account's open order
 | status | String(`created`, `closed`, `canceled`, `open`) | The status of the order on the ledger. An order that is partially filled has the status `open`. |
 
 
-## Bid Objects ##
+## Order Objects ##
 
-An bid object describes an offer to exchange two currencies, including the current funding status of the offer. Bid objects are used to describe bids and asks when retrieving an order book. 
+An order object describes an offer to exchange two currencies, including the current funding status of the offer. Order objects are used to describe bids and asks when retrieving an order book. 
 
 | Field | Value | Description |
 |-------|-------|-------------|
@@ -816,7 +820,7 @@ The request body must be a JSON object with the following fields:
 
 | Field | Value | Description |
 |-------|-------|-------------|
-| secret | String | A secret key for your Ripple account. This is either the master secret, or a regular secret, if your account has one configured. |
+| secret | String | (Optional if `submit` is set to `false`, required otherwise) A secret key for your Ripple account. This is either the master secret, or a regular secret, if your account has one configured. |
 | settings | Object | A map of settings to change for this account. Any settings not included are left unchanged. |
 
 Optionally, you can include the following as a URL query parameter:
@@ -824,7 +828,7 @@ Optionally, you can include the following as a URL query parameter:
 | Field     | Type    | Description |
 |-----------|---------|-------------|
 | validated | Boolean | If `true`, the server waits to respond until the account transaction has been successfully validated by the network. A validated transaction has `state` field of the response set to `"validated"`. |
-| submit | Boolean | If `false`, the server will not submit the transaction to the network and instead return the following additional fields in the response: `tx_json`, `tx_blob`, and `hash`. In this mode, `secret` is optional. If `secret` is not provided, `tx_blob` and `hash` will not be in the response. |
+| submit | Boolean | If `false`, the server will not submit the transaction to the network and instead return the following additional fields in the response: `tx_json`, `tx_blob`, and `hash`. In this mode, `secret` is optional. If `secret` is not provided, `tx_blob` and `hash` will not be in the response. See [Transaction Flow](transaction-flow) for more information. |
 
 __DO NOT SUBMIT YOUR SECRET TO AN UNTRUSTED REST API SERVER__ -- The secret key can be used to send transactions from your account, including spending all the balances it holds. For the public server, only use test accounts.
 
@@ -854,11 +858,11 @@ The `settings` object can contain any of the following fields (any omitted field
     "require_destination_tag": false,
     "require_authorization": false,
     "disallow_xrp": false,
-    "email_hash": "98b4375e1d753e5b91627516f6d70977",
-    "state": "pending",
-    "ledger": "9248628",
-    "hash": "81FA244915767DAF65B0ACF262C88ABC60E9437A4A1B728F7A9F932E727B82C6"
+    "email_hash": "98b4375e1d753e5b91627516f6d70977"
   }
+  "state": "pending",
+  "ledger": "9248628",
+  "hash": "81FA244915767DAF65B0ACF262C88ABC60E9437A4A1B728F7A9F932E727B82C6"
 }
 ```
 
@@ -866,11 +870,13 @@ The response is a JSON object containing the following fields:
 
 | Field | Value | Description |
 |-------|-------|-------------|
-| hash | String | A unique hash that identifies the Ripple transaction to change settings |
-| ledger | String (Quoted integer) | The sequence number of the ledger version where the settings-change transaction was applied. |
+| success | Boolean | A value of `true` only indicates that the request was received, not that the transaction was processed. |
 | settings | Object | The settings that were changed, as provided in the request. |
-
-
+| hash | String | (Only if `secret` is provided in the request) A unique hash that identifies the Ripple transaction to change settings |
+| tx_json | Object | (Only if `submit` is set to `false`) A JSON object representing the transaction |
+| tx_blob | Object | (Only if `submit` is set to `false` and `secret` is provided in the request) |
+| ledger | String (Quoted integer) | (Only if `submit` is omitted or set to `true` and `validated` is set to `true`) The sequence number of the ledger version where the settings-change transaction was applied. |
+| state | String | (Only if `submit` is omitted or set to `true` and `validated` is set to `true`) Whether or not the transaction is included in a ledger that has been validated by consensus. |
 
 
 # PAYMENTS #
@@ -981,11 +987,10 @@ Submit a payment object to be processed and executed.
 <!-- *REST* -->
 
 ```
-POST /v1/accounts/{address}/payments?validated=true
+POST /v1/accounts/{address}/payments?submit=false
 
 {
   "secret": "s...",
-  "client_resource_id": "123",
   "last_ledger_sequence": "1...",
   "max_fee": "0.1",
   "fixed_fee": "0.01",
@@ -1017,13 +1022,13 @@ POST /v1/accounts/{address}/payments?validated=true
 
 [Try it! >](https://ripple.com/build/rest-tool#submit-payment)
 
-The JSON body of the request includes the following parameters:
+The request body must be a JSON object with the following fields:
 
 | Field | Type | Description |
 |-------|------|-------------|
 | payment | [Payment object](#payment_object) | The payment to send. You can generate a payment object using the [Prepare Payment](#prepare-payment) method. |
-| client\_resource\_id | String | A unique identifier for this payment. You can generate one using the [`GET /v1/uuid`](#calculating_a_uuid) method. |
-| secret | String | A secret key for your Ripple account. This is either the master secret, or a regular secret, if your account has one configured. |
+| client\_resource\_id | String | (Required if `submit` is ommitted or `true`, disallowed otherwise) A unique identifier for this payment. You can generate one using the [`GET /v1/uuid`](#calculating_a_uuid) method. |
+| secret | String | (Optional if `submit` is set to `false`, required otherwise) A secret key for your Ripple account. This is either the master secret, or a regular secret, if your account has one configured. |
 | last\_ledger\_sequence | String | (Optional) A string representation of a ledger sequence number. If this parameter is not set, it defaults to the current ledger sequence plus an appropriate buffer. |
 | max\_fee | String | (Optional) The maximum transaction fee to allow, as a decimal amount of XRP. |
 | fixed\_fee | String | (Optional) The exact transaction fee the payer wishes to pay to the server, as a decimal amount of XRP. |
@@ -1035,7 +1040,7 @@ __DO NOT SUBMIT YOUR SECRET TO AN UNTRUSTED REST API SERVER__ -- The secret key 
 1. If `fixed_fee` is included, that exact value is used for the transaction fee. Otherwise, the transaction fee is set dynamically based on the server's current fee.
 2. If `max_fee` is included and the transaction fee is higher than `max_fee`, then the transaction is rejected without being submitted. This is true regardless of whether the fee was fixed or dynamically set. Otherwise, the transaction is submitted to the `rippled` server with the specified fee.
 3. If the transaction succeeds, the sending account loses the whole amount of the transaction fee, even if it was higher than the server's current fee. 
-4. If the transaction fails because the fee was not high enough, Ripple-REST automatically resubmits it later. In this case, return to step 1.
+4. If the transaction fails because the fee was not high enough, Ripple-REST automatically resubmits it later (when `submit` is omitted or set to `true`). In this case, return to step 1.
 
 Consequently, you can use `max_fee` as a "set-it-and-forget-it" safeguard on the fees you are willing to pay.
 
@@ -1044,16 +1049,65 @@ Optionally, you can include the following as a URL query parameter:
 | Field | Type | Description |
 |-------|------|-------------|
 | validated | Boolean | If `true`, the server waits to respond until the payment has been successfully validated by the network and returns the payment object. Otherwise, the server responds immediately with a message indicating that the transaction was received for processing. |
-| submit | Boolean | If `false`, the server will not submit the transaction to the network and instead return the following additional fields in the response: `tx_json`, `tx_blob`, and `hash`. In this mode, `secret` is optional. If `secret` is not provided, `tx_blob` and `hash` will not be in the response. |
+| submit | Boolean | If `false`, the server will not submit the transaction to the network and instead return the following additional fields in the response: `tx_json`, `tx_blob`, and `hash`. In this mode, `secret` is optional. If `secret` is not provided, `tx_blob` and `hash` will not be in the response. See [Transaction Flow](transaction-flow) for more information. |
 
 
 #### Response ####
 
 The response can take two formats, depending on the `validated` query parameter:
 
-* If `validated` is set to `true`, then the response matches the format from [Confirm Payment](#confirm-payment).
-* If `validated` is omitted or set to `false`, then the response is a JSON object as follows:
+* If `validated` is set to `true` and `submit` is omitted or set to `true`, then the response matches the format from [Confirm Payment](#confirm-payment).
+* It is an error if `validated` is set to `true` and `submit` is set to `false`.
+* If `validated` is omitted or set to `false`, and `submit` is set to `false` then the response is a JSON object as follows:
+```js
+{
+  "success": true,
+  "tx_blob": "12000022000000002400000017201B008694F361D3C38D7EA4C68000000000000000000000000000555344000000000050FCCA71E98DFA43305149F9F0C7897DE5A9D18C68400000000000000C732102F89EAEC7667B30F33D0687BBA86C3FE2A08CCA40A9186C5BDE2DAA6FA97A37D87446304402207660BDEF67105CE1EBA9AD35DC7156BAB43FF1D47633199EE257D70B6B9AAFBF02201C06A0C8C9466C35B62F7FDF0C1009BED05FDA34DB9626ED634AE74FBD04CBF781144FBFF73DA4ECF9B701940F27341FA8020C31344383140A20B3C85F482532A9578DBB3950B85CA06594D1",
+  "hash": "C32A85BA3EE9071D35E583D9062E5B8C327C28BB834B45B882651DD7E50CEA1C",
+  "payment": {
+    "source_account": "r3GgMwvgvP8h4yVWvjH1dPZNvC37TjzBBE",
+    "source_tag": "",
+    "source_amount": {
+      "currency": "USD",
+      "value": "0.001",
+      "issuer": "r3PDtZSa5LiYp1Ysn1vMuMzB59RzV3W9QH"
+    },
+    "source_slippage": "0",
+    "destination_account": "rvYAfWj5gh67oV6fW32ZzP3Aw4Eubs59B",
+    "destination_tag": "",
+    "destination_amount": {
+      "currency": "USD",
+      "value": "0.001",
+      "issuer": "r3PDtZSa5LiYp1Ysn1vMuMzB59RzV3W9QH"
+    },
+    "invoice_id": "",
+    "paths": "[]",
+    "no_direct_ripple": false,
+    "partial_payment": false,
+    "direction": "outgoing",
+    "timestamp": "",
+    "fee": "0.000012"
+  },
+  "tx_json": {
+    "Flags": 0,
+    "TransactionType": "Payment",
+    "Account": "r3GgMwvgvP8h4yVWvjH1dPZNvC37TjzBBE",
+    "Amount": {
+      "value": "0.001",
+      "currency": "USD",
+      "issuer": "r3PDtZSa5LiYp1Ysn1vMuMzB59RzV3W9QH"
+    },
+    "Destination": "rvYAfWj5gh67oV6fW32ZzP3Aw4Eubs59B",
+    "LastLedgerSequence": 8819955,
+    "Fee": "12",
+    "Sequence": 23,
+    "SigningPubKey": "02F89EAEC7667B30F33D0687BBA86C3FE2A08CCA40A9186C5BDE2DAA6FA97A37D8",
+    "TxnSignature": "304402207660BDEF67105CE1EBA9AD35DC7156BAB43FF1D47633199EE257D70B6B9AAFBF02201C06A0C8C9466C35B62F7FDF0C1009BED05FDA34DB9626ED634AE74FBD04CBF7"
+  }
+}
+```
 
+* If `validated` is omitted or set to `false` and `submit` is omitted or set to `true`, the reponse is a JSON object as follows:
 ```js
 {
   "success": true,
@@ -1065,9 +1119,14 @@ The response can take two formats, depending on the `validated` query parameter:
 | Field | Type | Description |
 |-------|------|-------------|
 | success | Boolean | A value of `true` only indicates that the request was received, not that the transaction was processed. |
-| client_resource_id | String | The client resource ID provided in the request |
-| status_url | String | A URL that you can GET to check the status of the request. This refers to the [Confirm Payment](#confirm-payment) method. |
-
+| payment | Object | (Only if `validated` is set to `true` or `submit` is set to `false`) The payment object from the request. |
+| client_resource\_id | String | (Only if `client_resource_id` is provided in the request) The client resource ID provided in the request |
+| status_url | String | (Only if `validated` is omitted or set to `false` and `submit` is omitted or set to `true`) A URL that you can GET to check the status of the request. This refers to the [Confirm Payment](#confirm-payment) method. |
+| hash | String | (Only if `secret` is provided in the request) A unique hash that identifies the Ripple transaction to change settings |
+| tx_json | Object | (Only if `submit` is set to `false`) A JSON object representing the transaction |
+| tx_blob | Object | (Only if `submit` is set to `false` and `secret` is provided in the request) |
+| ledger | String (Quoted integer) | (Only if `submit` is omitted or set to `true` and `validated` is set to `true`) The sequence number of the ledger version where the settings-change transaction was applied. |
+| state | String | (Only if `submit` is omitted or set to `true` and `validated` is set to `true`) Whether or not the transaction is included in a ledger that has been validated by consensus. |
 
 
 ## Confirm Payment ##
@@ -1261,8 +1320,8 @@ Optionally, you can also include the following query parameters:
     "hash": "1D381C0FCA00E8C34A6D4D3A91DAC9F3697B4E66BC49ED3D9B2D6F57D7F15E2E",
     "ledger": "11620700",
     "state": "validated"
-  }
-]
+  }]
+}
 ```
 
 If the length of the `payments` array is equal to `results_per_page`, then there may be more results. To get them, increment the `page` query paramter and run the request again.
@@ -1312,11 +1371,11 @@ The following URL parameters are required by this API endpoint:
 |-------|------|-------------|
 | address | String | The Ripple account address the account creating the order. |
 
-The following parameters are required in the JSON body of the request:
+The request body must be a JSON object with the following fields:
 
 | Field | Value | Description |
 |-------|-------|-------------|
-| secret | String | A secret key for your Ripple account. This is either the master secret, or a regular secret, if your account has one configured. |
+| secret | String | (Optional if `submit` is set to `false`, required otherwise) A secret key for your Ripple account. This is either the master secret, or a regular secret, if your account has one configured. |
 | order | Object ([Order](#order-objects)) | The order to place. |
 
 Optionally, you can include the following as a URL query parameter:
@@ -1324,7 +1383,7 @@ Optionally, you can include the following as a URL query parameter:
 | Field | Type | Description |
 |-------|------|-------------|
 | validated | String | `true` or `false`. When set to `true`, will force the request to wait until the trustline transaction has been successfully validated by the server. A validated transaction will have the `state` attribute set to `"validated"` in the response. |
-| submit | Boolean | If `false`, the server will not submit the transaction to the network and instead return the following additional fields in the response: `tx_json`, `tx_blob`, and `hash`. In this mode, `secret` is optional. If `secret` is not provided, `tx_blob` and `hash` will not be in the response. |
+| submit | Boolean | If `false`, the server will not submit the transaction to the network and instead return the following additional fields in the response: `tx_json`, `tx_blob`, and `hash`. In this mode, `secret` is optional. If `secret` is not provided, `tx_blob` and `hash` will not be in the response. See [Transaction Flow](transaction-flow) for more information. |
 
 __DO NOT SUBMIT YOUR SECRET TO AN UNTRUSTED REST API SERVER__ -- The secret key can be used to send transactions from your account, including spending all the balances it holds. For the public server, only use test accounts.
 
@@ -1334,9 +1393,6 @@ __DO NOT SUBMIT YOUR SECRET TO AN UNTRUSTED REST API SERVER__ -- The secret key 
 {
   "success": true,
   "order": {
-    "hash": "71AE74B03DE3B9A06C559AD4D173A362D96B7D2A5AA35F56B9EF21543D627F34",
-    "ledger": "9592219",
-    "state": "validated",
     "account": "sn3nxiW7v8KXzPzAqzyHXbSSKNuN9",
     "taker_pays": {
       "currency": "JPY",
@@ -1351,9 +1407,20 @@ __DO NOT SUBMIT YOUR SECRET TO AN UNTRUSTED REST API SERVER__ -- The secret key 
     "fee": "0.012",
     "type": "sell",
     "sequence": 99
-  }
+  },
+  "hash": "71AE74B03DE3B9A06C559AD4D173A362D96B7D2A5AA35F56B9EF21543D627F34",
+  "ledger": "9592219",
+  "state": "validated"
 }
 ```
+
+| success | Boolean | A value of `true` only indicates that the request was received, not that the transaction was processed. |
+| order | Object | The order object provided in the request. |
+| hash | String | (Only if `secret` is provided in the request) A unique hash that identifies the Ripple transaction to change settings |
+| tx_json | Object | (Only if `submit` is set to `false`) A JSON object representing the transaction |
+| tx_blob | Object | (Only if `submit` is set to `false` and `secret` is provided in the request) |
+| ledger | String (Quoted integer) | (Only if `submit` is omitted or set to `true` and `validated` is set to `true`) The sequence number of the ledger version where the settings-change transaction was applied. |
+| state | String | (Only if `submit` is omitted or set to `true` and `validated` is set to `true`) Whether or not the transaction is included in a ledger that has been validated by consensus. |
 
 ## Cancel Order ##
 [[Source]<br>](https://github.com/ripple/ripple-rest/blob/59ea02d634ac4a308db2ba21781efbc02f5ccf53/api/orders.js#L250 "Source")
@@ -1382,11 +1449,11 @@ The following URL parameters are required by this API endpoint:
 | address | String | The Ripple account address of an account involved in the transaction. |
 | order | Integer | The `sequence` number of the order to cancel. |
 
-The following parameters are required in the JSON body of the request:
+The request body must be a JSON object with the following fields:
 
 | Field | Value | Description |
 |-------|-------|-------------|
-| secret | String | A secret key for your Ripple account. This is either the master secret, or a regular secret, if your account has one configured. |
+| secret | String | (Optional if `submit` is set to `false`, required otherwise) A secret key for your Ripple account. This is either the master secret, or a regular secret, if your account has one configured. |
 
 *Note:* Some older client libraries do not support a body for the DELETE method. If this is a problem for you, please [file an issue in Ripple Labs' bug tracker](https://ripplelabs.atlassian.net/browse/RLJS).
 
@@ -1395,7 +1462,7 @@ Optionally, you can include the following as a URL query parameter:
 | Field | Type | Description |
 |-------|------|-------------|
 | validated | String | `true` or `false`. When set to `true`, will force the request to wait until the trustline transaction has been successfully validated by the server. A validated transaction will have the `state` attribute set to `"validated"` in the response. |
-| submit | Boolean | If `false`, the server will not submit the transaction to the network and instead return the following additional fields in the response: `tx_json`, `tx_blob`, and `hash`. In this mode, `secret` is optional. If `secret` is not provided, `tx_blob` and `hash` will not be in the response. |
+| submit | Boolean | If `false`, the server will not submit the transaction to the network and instead return the following additional fields in the response: `tx_json`, `tx_blob`, and `hash`. In this mode, `secret` is optional. If `secret` is not provided, `tx_blob` and `hash` will not be in the response. See [Transaction Flow](transaction-flow) for more information. |
 
 __DO NOT SUBMIT YOUR SECRET TO AN UNTRUSTED REST API SERVER__ -- The secret key can be used to send transactions from your account, including spending all the balances it holds. For the public server, only use test accounts.
 
@@ -1405,16 +1472,24 @@ __DO NOT SUBMIT YOUR SECRET TO AN UNTRUSTED REST API SERVER__ -- The secret key 
 {
   "success": true,
   "order": {
-    "hash": "71AE74B03DE3B9A06C559AD4D173A362D96B7D2A5AA35F56B9EF21543D627F34",
-    "ledger": "9592219",
-    "state": "validated",
     "account": "sn3nxiW7v8KXzPzAqzyHXbSSKNuN9",
     "fee": "0.012",
     "offer_sequence": 99,
     "sequence": 100
   }
+  "hash": "71AE74B03DE3B9A06C559AD4D173A362D96B7D2A5AA35F56B9EF21543D627F34",
+  "ledger": "9592219",
+  "state": "validated"
 }
 ```
+
+| success | Boolean | A value of `true` only indicates that the request was received, not that the transaction was processed. |
+| order | Object | The order object corresponding to the sequence number in the request. |
+| hash | String | (Only if `secret` is provided in the request) A unique hash that identifies the Ripple transaction to change settings |
+| tx_json | Object | (Only if `submit` is set to `false`) A JSON object representing the transaction |
+| tx_blob | Object | (Only if `submit` is set to `false` and `secret` is provided in the request) |
+| ledger | String (Quoted integer) | (Only if `submit` is omitted or set to `true` and `validated` is set to `true`) The sequence number of the ledger version where the settings-change transaction was applied. |
+| state | String | (Only if `submit` is omitted or set to `true` and `validated` is set to `true`) Whether or not the transaction is included in a ledger that has been validated by consensus. |
 
 ## Get Account Orders ##
 [[Source]<br>](https://github.com/ripple/ripple-rest/blob/59ea02d634ac4a308db2ba21781efbc02f5ccf53/api/orders.js#L38 "Source")
@@ -2018,11 +2093,11 @@ POST /v1/accounts/{:address}/trustlines?validated=true
 
 [Try it! >](https://ripple.com/build/rest-tool#grant-trustline)
 
-The following parameters are required in the JSON body of the request:
+The request body must be a JSON object with the following fields:
 
 | Field | Value | Description |
 |-------|-------|-------------|
-| secret | String | A secret key for your Ripple account. This is either the master secret, or a regular secret, if your account has one configured. |
+| secret | String | (Optional if `submit` is set to `false`, required otherwise) A secret key for your Ripple account. This is either the master secret, or a regular secret, if your account has one configured. |
 | trustline | Object ([Trustline](#trustline-objects)) | The trustline object to set. Ignores fields not controlled by this account. Any fields that are omitted are unchanged. |
 
 Optionally, you can include the following as a URL query parameter:
@@ -2030,7 +2105,7 @@ Optionally, you can include the following as a URL query parameter:
 | Field | Type | Description |
 |-------|------|-------------|
 | validated | String | `true` or `false`. When set to `true`, will force the request to wait until the trustline transaction has been successfully validated by the server. A validated transaction will have the `state` attribute set to `"validated"` in the response. |
-| submit | Boolean | If `false`, the server will not submit the transaction to the network and instead return the following additional fields in the response: `tx_json`, `tx_blob`, and `hash`. In this mode, `secret` is optional. If `secret` is not provided, `tx_blob` and `hash` will not be in the response. |
+| submit | Boolean | If `false`, the server will not submit the transaction to the network and instead return the following additional fields in the response: `tx_json`, `tx_blob`, and `hash`. In this mode, `secret` is optional. If `secret` is not provided, `tx_blob` and `hash` will not be in the response. See [Transaction Flow](transaction-flow) for more information. |
 
 __DO NOT SUBMIT YOUR SECRET TO AN UNTRUSTED REST API SERVER__ -- The secret key can be used to send transactions from your account, including spending all the balances it holds. For the public server, only use test accounts.
 
@@ -2049,15 +2124,21 @@ A successful response uses the `201 Created` HTTP response code, and provides a 
     "currency": "USD",
     "counterparty": "rMwjYedjc7qqtKYVLiAccJSmCwih4LnE2q",
     "account_allows_rippling": false,
-    "account_trustline_frozen": false,
-    "state": "pending",
-    "ledger": "9302926",
-    "hash": "57695598CD32333F67A70DC6EBC3501D71569CE11C9803162CBA61990D89C1EE"
+    "account_trustline_frozen": false
   }
+  "state": "pending",
+  "ledger": "9302926",
+  "hash": "57695598CD32333F67A70DC6EBC3501D71569CE11C9803162CBA61990D89C1EE"
 }
 ```
 
-
+| success | Boolean | A value of `true` only indicates that the request was received, not that the transaction was processed. |
+| trustline | Object | The trustline object specified in the request. |
+| hash | String | (Only if `secret` is provided in the request) A unique hash that identifies the Ripple transaction to change settings |
+| tx_json | Object | (Only if `submit` is set to `false`) A JSON object representing the transaction |
+| tx_blob | Object | (Only if `submit` is set to `false` and `secret` is provided in the request) |
+| ledger | String (Quoted integer) | (Only if `submit` is omitted or set to `true` and `validated` is set to `true`) The sequence number of the ledger version where the settings-change transaction was applied. |
+| state | String | (Only if `submit` is omitted or set to `true` and `validated` is set to `true`) Whether or not the transaction is included in a ledger that has been validated by consensus. |
 
 
 # NOTIFICATIONS #
@@ -2330,12 +2411,12 @@ POST /v1/transaction/sign
 
 [Try it! >](https://ripple.com/build/rest-tool#sign-transaction)
 
-The following URL parameters are required by this API endpoint:
+The request body must be a JSON object with the following fields:
 
 | Field | Value | Description |
 |-------|-------|-------------|
 | tx_json | Object | A transaction object as returned by any of the [transaction endpoints](#transaction-endpoints) with the `?submit=false` query parameter |
-| secret | String | The Ripple secret for the account that is creating the transaction |
+| secret | String | (Optional if `submit` is set to `false`, required otherwise) The Ripple secret for the account that is creating the transaction |
 
 #### Response ####
 
