@@ -10,7 +10,6 @@ var addresses = require('./fixtures').addresses;
 
 suite('prepare settings', function() {
   var self = this;
-  self.accountInfoResponseMulti = fixtures.accountInfoResponse;
   setup(testutils.setup.bind(self));
   teardown(testutils.teardown.bind(self));
 
@@ -42,7 +41,6 @@ suite('prepare settings', function() {
 
 suite('get settings', function() {
   var self = this;
-  self.accountInfoResponse = fixtures.accountInfoResponse;
 
   // self.wss: rippled mock
   // self.app: supertest-enabled REST handler
@@ -69,15 +67,8 @@ suite('get settings', function() {
   });
 
   test('/accounts/:account/settings -- non-existent account', function(done) {
-    self.wss.removeAllListeners('request_account_info');
-    self.wss.once('request_account_info', function(message, conn) {
-      assert.strictEqual(message.command, 'account_info');
-      assert.strictEqual(message.account, addresses.VALID);
-      conn.send(fixtures.accountNotFoundResponse(message));
-    });
-
     self.app
-    .get(fixtures.requestPath(addresses.VALID))
+    .get(fixtures.requestPath(addresses.NOTFOUND))
     .expect(testutils.checkStatus(404))
     .expect(testutils.checkHeaders)
     .end(done);
@@ -86,7 +77,6 @@ suite('get settings', function() {
 
 suite('post settings', function() {
   var self = this;
-  self.accountInfoResponse = fixtures.accountInfoResponse;
 
   // self.wss: rippled mock
   // self.app: supertest-enabled REST handler

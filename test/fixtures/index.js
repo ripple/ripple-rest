@@ -1,4 +1,5 @@
-module.exports.startup = require('./startup');
+'use strict';
+module.exports.mock = require('./mock');
 module.exports.addresses = require('./addresses');
 module.exports.errors = require('./errors');
 module.exports.server = require('./server');

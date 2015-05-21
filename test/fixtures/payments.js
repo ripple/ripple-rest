@@ -439,34 +439,6 @@ module.exports.transactionResponse = function(request, options) {
   });
 };
 
-module.exports.ledgerResponse = function(request) {
-  return JSON.stringify(
-    {
-      id: request.id,
-      status: 'success',
-      type: 'response',
-      result: {
-        ledger: {
-          accepted: true,
-          account_hash: 'EC028EC32896D537ECCA18D18BEBE6AE99709FEFF9EF72DBD3A7819E918D8B96',
-          close_time: 464908910,
-          close_time_human: '2014-Sep-24 21:21:50',
-          close_time_resolution: 10,
-          closed: true,
-          hash: '0F7ED9F40742D8A513AE86029462B7A6768325583DF8EE21B7EC663019DD6A0F',
-          ledger_hash: '0F7ED9F40742D8A513AE86029462B7A6768325583DF8EE21B7EC663019DD6A0F',
-          ledger_index: '9038214',
-          parent_hash: '4BB9CBE44C39DC67A1BE849C7467FE1A6D1F73949EA163C38A0121A15E04FFDE',
-          seqNum: '9038214',
-          totalCoins: '99999973964317514',
-          total_coins: '99999973964317514',
-          transaction_hash: 'ECB730839EB55B1B114D5D1AD2CD9A932C35BA9AB6D3A8C2F08935EAC2BAC239'
-        }
-      }
-    }
-  );
-};
-
 module.exports.RESTTransactionResponse = function(options) {
   options = options || {};
 
@@ -735,31 +707,6 @@ module.exports.payment = function(options) {
   };
 };
 
-module.exports.accountInfoResponse = function(request) {
-  return JSON.stringify(
-    {
-      id: request.id,
-      status: 'success',
-      type: 'response',
-      result: {
-        account_data: {
-          Account: fromAccount,
-          Balance: '30999545',
-          Flags: 0,
-          LedgerEntryType: 'AccountRoot',
-          OwnerCount: 2,
-          PreviousTxnID: '272B581E78B8FA3F532A89C506901F7F6625683BEA280FFB8E3B90E29A837E94',
-          PreviousTxnLgrSeq: 9036179,
-          Sequence: 23,
-          index: '819EBB8946A3FF55FBFFE32F3AD429F866B5E5AADC253796E3E068E51D22F569'
-        },
-        ledger_current_index: 9036069,
-        validated: false
-      }
-    }
-  );
-};
-
 module.exports.requestSubmitResponse = function(request, options) {
   options = options || {};
   _.defaults(options, {
@@ -919,15 +866,6 @@ module.exports.rippledSubscribeRequest = function(request) {
     accounts: [
       fromAccount
     ]
-  });
-};
-
-module.exports.rippledSubcribeResponse = function(request) {
-  return JSON.stringify({
-    id: request.id,
-    result: {},
-    status: 'success',
-    type: 'response'
   });
 };
 

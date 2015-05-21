@@ -6,9 +6,7 @@ var testutils = require('./testutils');
 var fixtures = require('./fixtures').notifications;
 var errors = require('./fixtures').errors;
 var addresses = require('./fixtures').addresses;
-
-var VALID_TRANSACTION_HASH = 'F4AB442A6D4CBB935D66E1DA7309A5FC71C7143ED4049053EC14E3875B0CF9BF';
-var INVALID_TRANSACTION_HASH = 'XF4AB442A6D4CBB935D66E1DA7309A5FC71C7143ED4049053EC14E3875B0CF9BF';
+var hashes = require('./fixtures/hashes');
 
 suite('get notification', function() {
   var self = this;
@@ -20,22 +18,6 @@ suite('get notification', function() {
   teardown(testutils.teardown.bind(self));
 
   test('/accounts/:account/notifications/:identifier', function(done) {
-    self.wss.once('request_tx', function(message, conn) {
-      assert.strictEqual(message.command, 'tx');
-      assert.strictEqual(message.transaction, fixtures.VALID_TRANSACTION_HASH);
-      conn.send(fixtures.transactionResponse(message));
-    });
-
-    self.wss.once('request_server_info', function(message, conn) {
-      assert.strictEqual(message.command, 'server_info');
-      conn.send(fixtures.serverInfoResponse(message));
-    });
-
-    self.wss.once('request_ledger', function(message, conn) {
-      assert.strictEqual(message.command, 'ledger');
-      conn.send(fixtures.ledgerResponse(message));
-    });
-
     function handleDirectionalTxQuery(message, conn) {
       assert.strictEqual(message.command, 'account_tx');
       assert.strictEqual(message.account, addresses.VALID);
@@ -57,7 +39,6 @@ suite('get notification', function() {
       }
     }
 
-
     function handleLedgerQuery(message, conn) {
       assert.strictEqual(message.command, 'account_tx');
       assert.strictEqual(message.account, addresses.VALID);
@@ -74,7 +55,7 @@ suite('get notification', function() {
     self.wss.once('request_account_tx', handleLedgerQuery);
 
     self.app
-    .get(fixtures.requestPath(addresses.VALID, '/' + VALID_TRANSACTION_HASH))
+    .get(fixtures.requestPath(addresses.VALID, '/' + hashes.VALID_TRANSACTION_HASH))
     .expect(testutils.checkBody(fixtures.RESTNotificationResponse))
     .expect(testutils.checkStatus(200))
     .expect(testutils.checkHeaders)
@@ -82,22 +63,6 @@ suite('get notification', function() {
   });
 
   test('/accounts/:account/notifications/:identifier -- no next notification', function(done) {
-    self.wss.once('request_tx', function(message, conn) {
-      assert.strictEqual(message.command, 'tx');
-      assert.strictEqual(message.transaction, fixtures.VALID_TRANSACTION_HASH);
-      conn.send(fixtures.transactionResponse(message));
-    });
-
-    self.wss.once('request_server_info', function(message, conn) {
-      assert.strictEqual(message.command, 'server_info');
-      conn.send(fixtures.serverInfoResponse(message));
-    });
-
-    self.wss.once('request_ledger', function(message, conn) {
-      assert.strictEqual(message.command, 'ledger');
-      conn.send(fixtures.ledgerResponse(message));
-    });
-
     function handleDirectionalTxQuery(message, conn) {
       assert.strictEqual(message.command, 'account_tx');
       assert.strictEqual(message.account, addresses.VALID);
@@ -135,7 +100,7 @@ suite('get notification', function() {
     self.wss.once('request_account_tx', handleLedgerQuery);
 
     self.app
-    .get(fixtures.requestPath(addresses.VALID, '/' + VALID_TRANSACTION_HASH))
+    .get(fixtures.requestPath(addresses.VALID, '/' + hashes.VALID_TRANSACTION_HASH))
     .expect(testutils.checkBody(fixtures.RESTNotificationNoNextResponse))
     .expect(testutils.checkStatus(200))
     .expect(testutils.checkHeaders)
@@ -143,24 +108,14 @@ suite('get notification', function() {
   });
 
   test('/accounts/:account/notifications/:identifier -- remote missing ledger', function(done) {
-    self.wss.once('request_tx', function(message, conn) {
-      assert.strictEqual(message.command, 'tx');
-      assert.strictEqual(message.transaction, fixtures.VALID_TRANSACTION_HASH);
-      conn.send(fixtures.transactionResponse(message));
-    });
-
+    self.wss.removeAllListeners('request_server_info');
     self.wss.once('request_server_info', function(message, conn) {
       assert.strictEqual(message.command, 'server_info');
       conn.send(fixtures.serverInfoMissingLedgerResponse(message));
     });
 
-    self.wss.once('request_ledger', function(message, conn) {
-      assert.strictEqual(message.command, 'ledger');
-      conn.send(fixtures.ledgerResponse(message));
-    });
-
     self.app
-    .get(fixtures.requestPath(addresses.VALID, '/' + VALID_TRANSACTION_HASH))
+    .get(fixtures.requestPath(addresses.VALID, '/' + hashes.VALID_TRANSACTION_HASH))
     .expect(testutils.checkBody(fixtures.RESTMissingLedgerResponse))
     .expect(testutils.checkStatus(404))
     .expect(testutils.checkHeaders)
@@ -169,7 +124,7 @@ suite('get notification', function() {
 
   test('/accounts/:account/notifications/:identifier -- invalid account', function(done) {
     self.app
-    .get(fixtures.requestPath(addresses.INVALID, '/' + VALID_TRANSACTION_HASH))
+    .get(fixtures.requestPath(addresses.INVALID, '/' + hashes.VALID_TRANSACTION_HASH))
     .expect(testutils.checkBody(errors.RESTInvalidAccount))
     .expect(testutils.checkStatus(400))
     .expect(testutils.checkHeaders)
@@ -178,7 +133,7 @@ suite('get notification', function() {
 
   test('/accounts/:account/notifications/:identifier -- invalid transaction hash', function(done) {
     self.app
-    .get(fixtures.requestPath(addresses.VALID, '/' + INVALID_TRANSACTION_HASH))
+    .get(fixtures.requestPath(addresses.VALID, '/' + hashes.INVALID_TRANSACTION_HASH))
     .expect(testutils.checkBody(errors.RESTInvalidTransactionHashOrClientResourceID))
     .expect(testutils.checkStatus(400))
     .expect(testutils.checkHeaders)
@@ -186,14 +141,8 @@ suite('get notification', function() {
   });
 
   test('/accounts/:account/notifications/:identifier -- non-existent transaction hash', function(done) {
-    self.wss.once('request_tx', function(message, conn) {
-      assert.strictEqual(message.command, 'tx');
-      assert.strictEqual(message.transaction, fixtures.VALID_TRANSACTION_HASH);
-      conn.send(fixtures.transactionNotFoundResponse(message));
-    });
-
     self.app
-    .get(fixtures.requestPath(addresses.VALID, '/' + VALID_TRANSACTION_HASH))
+    .get(fixtures.requestPath(addresses.VALID, '/' + hashes.NOTFOUND_TRANSACTION_HASH))
     .expect(testutils.checkBody(errors.RESTTransactionNotFound))
     .expect(testutils.checkStatus(404))
     .expect(testutils.checkHeaders)
@@ -212,13 +161,6 @@ suite('get notifications', function() {
   teardown(testutils.teardown.bind(self));
 
   test('/accounts/:account/notifications/', function(done) {
-
-    // request_ledger for timestamp
-    self.wss.once('request_ledger', function(message, conn) {
-      assert.strictEqual(message.command, 'ledger');
-      conn.send(fixtures.ledgerResponse(message));
-    });
-
     // Getting next and previous transaction hashes
     function handleDirectionalTxQuery(message, conn) {
       assert.strictEqual(message.command, 'account_tx');

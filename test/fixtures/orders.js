@@ -1,14 +1,14 @@
 /* eslint-disable max-len */
 'use strict';
 var _ = require('lodash');
-var addresses = require('./../fixtures').addresses;
+var addresses = require('./addresses');
+var hashes = require('./hashes');
 var SerializedObject = require('ripple-lib').SerializedObject;
 
-var ORDER_HASH = '71AE74B03DE3B9A06C559AD4D173A362D96B7D2A5AA35F56B9EF21543D627F34';
 var DEFAULTS = {
   account: addresses.VALID,
   flags: 2148007936,
-  hash: ORDER_HASH,
+  hash: hashes.ORDER_HASH,
   type: 'sell',
   state: 'pending',
   sequence: 99
@@ -322,61 +322,6 @@ module.exports.accountOrdersResponse = function(request, options) {
    },
     'status': 'success',
     'type': 'response'
- });
-};
-
-module.exports.accountInfoResponse = function(request) {
-  return JSON.stringify(
-    {
-      'id': request.id,
-      'status': 'success',
-      'type': 'response',
-      'result': {
-        'account_data': {
-          'Account': addresses.VALID,
-          'Balance': '30999545',
-          'Flags': 0,
-          'LedgerEntryType': 'AccountRoot',
-          'OwnerCount': 2,
-          'PreviousTxnID': '272B581E78B8FA3F532A89C506901F7F6625683BEA280FFB8E3B90E29A837E94',
-          'PreviousTxnLgrSeq': 9036179,
-          'Sequence': 23,
-          'index': '819EBB8946A3FF55FBFFE32F3AD429F866B5E5AADC253796E3E068E51D22F569'
-       },
-        'ledger_current_index': 9036069,
-        'validated': false
-     }
-   }
-  );
-};
-
-module.exports.requestLedgerResponse = function(request, options) {
-  return JSON.stringify({
-    id: request.id,
-    status: 'success',
-    type: 'response',
-    result: {
-      ledger: {
-        accepted: true,
-        account_hash: '6AB712C3CA840436E4544A6E9D804BA4DFBE2CFF52EF9FD148F5CF1DC13FA84F',
-        close_time: 473217650,
-        close_time_human: '2014-Dec-30 01:20:50',
-        close_time_resolution: 10,
-        closed: true,
-        hash: 'B513CA3DE23463401F44F4F1AC168C97998D321E060AAEE25B21D1BFB78735C8',
-        ledger_hash: 'B513CA3DE23463401F44F4F1AC168C97998D321E060AAEE25B21D1BFB78735C8',
-        ledger_index: options.ledger,
-        parent_hash: 'E3A9B7E86136542239162756FD174FE014300D1881DC193E67F2445C2C28A4D2',
-        seqNum: '10814408',
-        totalCoins: '99999638715444995',
-        total_coins: '99999638715444995',
-        transaction_hash: 'A6DF9EC1F661300538FCB855E8A0C0438696531663C52F8EDA1F9FA728D504D3',
-        transactions: [
-          '1FC4D12C30CE206A6E23F46FAC62BD393BE9A79A1C452C6F3A04A13BC7A5E5A3',
-          'E25C38FDB8DD4A2429649588638EE05D055EE6D839CABAF8ABFB4BD17CFE1F3E'
-       ]
-     }
-   }
  });
 };
 
@@ -2602,13 +2547,13 @@ module.exports.RESTOrderBookResponse = function(options) {
   options = options || {};
 
   _.defaults(options, {
-    ledger: 9592219
+    ledger: 9038214
  });
 
   return JSON.stringify({
     success: true,
     order_book: 'BTC+r3PDtZSa5LiYp1Ysn1vMuMzB59RzV3W9QH/USD+r3PDtZSa5LiYp1Ysn1vMuMzB59RzV3W9QH',
-    ledger: 9592219,
+    ledger: 9038214,
     validated: true,
     bids:
     [{price:
@@ -3099,13 +3044,13 @@ module.exports.RESTOrderBookPartialAskResponse = function(options) {
   options = options || {};
 
   _.defaults(options, {
-    ledger: 9592219
+    ledger: 9038214
  });
 
   return JSON.stringify({
     success: true,
     order_book: 'BTC+r3PDtZSa5LiYp1Ysn1vMuMzB59RzV3W9QH/USD+r3PDtZSa5LiYp1Ysn1vMuMzB59RzV3W9QH',
-    ledger: 9592219,
+    ledger: 9038214,
     validated: true,
     bids:
     [{price:
@@ -3380,7 +3325,7 @@ module.exports.RESTOrderBookXRPBaseResponse = function(options) {
   options = options || {};
 
   _.defaults(options, {
-    ledger: 9592219
+    ledger: 9038214
  });
 
   return JSON.stringify({
@@ -4019,7 +3964,7 @@ module.exports.RESTOrderBookXRPCounterResponse = function(options) {
   options = options || {};
 
   _.defaults(options, {
-    ledger: 9592219
+    ledger: 9038214
  });
 
   return JSON.stringify({
@@ -4396,13 +4341,13 @@ module.exports.RESTOrderBookPartialBidResponse = function(options) {
   options = options || {};
 
   _.defaults(options, {
-    ledger: 9592219
+    ledger: 9038214
  });
 
   return JSON.stringify({
     success: true,
     order_book: 'BTC+r3PDtZSa5LiYp1Ysn1vMuMzB59RzV3W9QH/USD+r3PDtZSa5LiYp1Ysn1vMuMzB59RzV3W9QH',
-    ledger: 9592219,
+    ledger: 9038214,
     validated: true,
     bids:
     [{price:
