@@ -875,7 +875,7 @@ The response is a JSON object containing the following fields:
 | hash | String | (Only if `secret` is provided in the request) A unique hash that identifies the Ripple transaction to change settings |
 | tx_json | Object | (Only if `submit` is set to `false`) A JSON object representing the transaction |
 | tx_blob | Object | (Only if `submit` is set to `false` and `secret` is provided in the request) |
-| ledger | String (Quoted integer) | (Only if `submit` is omitted or set to `true` and `validated` is set to `true`) The sequence number of the ledger version where the settings-change transaction was applied. |
+| ledger | String (Quoted integer) | (Only if `submit` is omitted or set to `true` and `validated` is set to `true`) The sequence number of the ledger version where the transaction was applied. |
 | state | String | (Only if `submit` is omitted or set to `true` and `validated` is set to `true`) Whether or not the transaction is included in a ledger that has been validated by consensus. |
 
 
@@ -1125,7 +1125,7 @@ The response can take two formats, depending on the `validated` query parameter:
 | hash | String | (Only if `secret` is provided in the request) A unique hash that identifies the Ripple transaction to change settings |
 | tx_json | Object | (Only if `submit` is set to `false`) A JSON object representing the transaction |
 | tx_blob | Object | (Only if `submit` is set to `false` and `secret` is provided in the request) |
-| ledger | String (Quoted integer) | (Only if `submit` is omitted or set to `true` and `validated` is set to `true`) The sequence number of the ledger version where the settings-change transaction was applied. |
+| ledger | String (Quoted integer) | (Only if `submit` is omitted or set to `true` and `validated` is set to `true`) The sequence number of the ledger version where the transaction was applied. |
 | state | String | (Only if `submit` is omitted or set to `true` and `validated` is set to `true`) Whether or not the transaction is included in a ledger that has been validated by consensus. |
 
 
@@ -1414,12 +1414,14 @@ __DO NOT SUBMIT YOUR SECRET TO AN UNTRUSTED REST API SERVER__ -- The secret key 
 }
 ```
 
+| Field | Value | Description |
+|-------|-------|-------------|
 | success | Boolean | A value of `true` only indicates that the request was received, not that the transaction was processed. |
 | order | Object | The order object provided in the request. |
 | hash | String | (Only if `secret` is provided in the request) A unique hash that identifies the Ripple transaction to change settings |
 | tx_json | Object | (Only if `submit` is set to `false`) A JSON object representing the transaction |
 | tx_blob | Object | (Only if `submit` is set to `false` and `secret` is provided in the request) |
-| ledger | String (Quoted integer) | (Only if `submit` is omitted or set to `true` and `validated` is set to `true`) The sequence number of the ledger version where the settings-change transaction was applied. |
+| ledger | String (Quoted integer) | (Only if `submit` is omitted or set to `true` and `validated` is set to `true`) The sequence number of the ledger version where the transaction was applied. |
 | state | String | (Only if `submit` is omitted or set to `true` and `validated` is set to `true`) Whether or not the transaction is included in a ledger that has been validated by consensus. |
 
 ## Cancel Order ##
@@ -1483,12 +1485,14 @@ __DO NOT SUBMIT YOUR SECRET TO AN UNTRUSTED REST API SERVER__ -- The secret key 
 }
 ```
 
+| Field | Value | Description |
+|-------|-------|-------------|
 | success | Boolean | A value of `true` only indicates that the request was received, not that the transaction was processed. |
 | order | Object | The order object corresponding to the sequence number in the request. |
 | hash | String | (Only if `secret` is provided in the request) A unique hash that identifies the Ripple transaction to change settings |
 | tx_json | Object | (Only if `submit` is set to `false`) A JSON object representing the transaction |
 | tx_blob | Object | (Only if `submit` is set to `false` and `secret` is provided in the request) |
-| ledger | String (Quoted integer) | (Only if `submit` is omitted or set to `true` and `validated` is set to `true`) The sequence number of the ledger version where the settings-change transaction was applied. |
+| ledger | String (Quoted integer) | (Only if `submit` is omitted or set to `true` and `validated` is set to `true`) The sequence number of the ledger version where the transaction was applied. |
 | state | String | (Only if `submit` is omitted or set to `true` and `validated` is set to `true`) Whether or not the transaction is included in a ledger that has been validated by consensus. |
 
 ## Get Account Orders ##
@@ -2132,12 +2136,14 @@ A successful response uses the `201 Created` HTTP response code, and provides a 
 }
 ```
 
+| Field | Value | Description |
+|-------|-------|-------------|
 | success | Boolean | A value of `true` only indicates that the request was received, not that the transaction was processed. |
 | trustline | Object | The trustline object specified in the request. |
 | hash | String | (Only if `secret` is provided in the request) A unique hash that identifies the Ripple transaction to change settings |
 | tx_json | Object | (Only if `submit` is set to `false`) A JSON object representing the transaction |
 | tx_blob | Object | (Only if `submit` is set to `false` and `secret` is provided in the request) |
-| ledger | String (Quoted integer) | (Only if `submit` is omitted or set to `true` and `validated` is set to `true`) The sequence number of the ledger version where the settings-change transaction was applied. |
+| ledger | String (Quoted integer) | (Only if `submit` is omitted or set to `true` and `validated` is set to `true`) The sequence number of the ledger version where the transaction was applied. |
 | state | String | (Only if `submit` is omitted or set to `true` and `validated` is set to `true`) Whether or not the transaction is included in a ledger that has been validated by consensus. |
 
 
