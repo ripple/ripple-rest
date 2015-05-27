@@ -1,6 +1,6 @@
 {
   "name": "ripple-rest",
-  "version": "1.8.0-rc1",
+  "version": "1.8.0-rc2",
   "description": "A RESTful API for submitting payments and monitoring accounts on the Ripple network.",
   "scripts": {
     "test": "NODE_ENV=test istanbul test _mocha",
