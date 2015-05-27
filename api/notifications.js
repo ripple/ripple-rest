@@ -318,8 +318,8 @@ function getNotifications(account, urlBase, options, callback) {
 
       // Attaching previous and next identifiers
       var idx = baseTransactions.indexOf(transaction);
-      var previous = baseTransactions[idx + 1];
-      var next = baseTransactions[idx - 1];
+      var previous = baseTransactions[idx - 1];
+      var next = baseTransactions[idx + 1];
 
       if (!options.earliest_first) {
         args.previous_hash = previous ? previous.hash : undefined;
