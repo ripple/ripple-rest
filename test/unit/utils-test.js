@@ -55,12 +55,17 @@ suite('unit - utils.parseLedger()', function() {
   });
 
   test('parseLedger() -- ledger (zero)', function() {
-    var ledger = -1;
+    var ledger = 0;
     assert.strictEqual(utils.parseLedger(ledger), DEFAULT_LEDGER);
   });
 
   test('parseLedger() -- ledger (infinity)', function() {
-    var ledger = -1;
+    var ledger = Infinity;
+    assert.strictEqual(utils.parseLedger(ledger), DEFAULT_LEDGER);
+  });
+
+  test('parseLedger() -- ledger (NaN)', function() {
+    var ledger = NaN;
     assert.strictEqual(utils.parseLedger(ledger), DEFAULT_LEDGER);
   });
 
