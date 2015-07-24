@@ -30,52 +30,6 @@ module.exports.settings = function(options) {
   return options;
 };
 
-module.exports.accountInfoResponse = function(request) {
-  return JSON.stringify({
-    id: request.id,
-    status: 'success',
-    type: 'response',
-    result: {
-      account_data: {
-        Account: 'r3GgMwvgvP8h4yVWvjH1dPZNvC37TjzBBE',
-        Balance: '922913243',
-        Domain: '6578616D706C652E636F6D',
-        EmailHash: '23463B99B62A72F26ED677CC556C44E8',
-        Flags: 9043968,
-        LedgerEntryType: 'AccountRoot',
-        OwnerCount: 1,
-        PreviousTxnID: '19899273706A9E040FDB5885EE991A1DC2BAD878A0D6E7DBCFB714E63BF737F7',
-        PreviousTxnLgrSeq: 6614625,
-        Sequence: 2938,
-        TransferRate: 1002000000,
-        WalletLocator: '00000000000000000000000000000000000000000000000000000000DEADBEEF',
-        index: '396400950EA27EB5710C0D5BE1D2B4689139F168AC5D07C13B8140EC3F82AE71',
-        urlgravatar: 'http://www.gravatar.com/avatar/23463b99b62a72f26ed677cc556c44e8'
-      },
-      ledger_current_index: 6614628
-    }
-  });
-};
-
-module.exports.accountNotFoundResponse = function(request) {
-  return JSON.stringify({
-    id: request.id,
-    status: 'error',
-    type: 'response',
-    account: 'r3GgMwvgvP8h4yVWvjH1dPZNvC37TjzBBE',
-    error: 'actNotFound',
-    error_code: 15,
-    error_message: 'Account not found.',
-    ledger_current_index: 8941468,
-    request: {
-      account: 'r3GgMwvgvP8h4yVWvjH1dPZNvC37TjzBBE',
-      command: 'account_info',
-      id: request.id
-    },
-    validated: false
-  });
-};
-
 module.exports.submitSettingsResponse = function(request, options) {
   options = options || {};
   _.defaults(options, DEFAULTS);
@@ -198,14 +152,14 @@ module.exports.RESTAccountSettingsResponse = JSON.stringify({
     disable_master: false,
     no_freeze: false,
     global_freeze: false,
-    transaction_sequence: '2938',
+    transaction_sequence: '23',
     email_hash: '23463B99B62A72F26ED677CC556C44E8',
     wallet_locator: '00000000000000000000000000000000000000000000000000000000DEADBEEF',
     wallet_size: '',
     message_key: '',
     domain: 'example.com',
     signers: '',
-    default_ripple: true
+    default_ripple: false
   }
 });
 
@@ -256,10 +210,10 @@ module.exports.prepareSettingsResponse = JSON.stringify({
     Domain: '726970706C652E636F6D',
     LastLedgerSequence: 8820052,
     Fee: '12',
-    Sequence: 2938,
+    Sequence: 23,
     SigningPubKey: '02F89EAEC7667B30F33D0687BBA86C3FE2A08CCA40A9186C5BDE2DAA6FA97A37D8',
-    TxnSignature: '304402207660BDEF67105CE1EBA9AD35DC7156BAB43FF1D47633199EE257D70B6B9AAFBF0220136AF1C22A66F65326FBA0016227A59AFB09FD2A057E65889735A1FC49770060'
+    TxnSignature: '304402207660BDEF67105CE1EBA9AD35DC7156BAB43FF1D47633199EE257D70B6B9AAFBF02207F5517BC8AEF2ADC1325897ECDBA8C673838048BCA62F4E98B252F19BE88796D'
   },
-  tx_blob: '12000322000000002400000B7A201B0086955468400000000000000C732102F89EAEC7667B30F33D0687BBA86C3FE2A08CCA40A9186C5BDE2DAA6FA97A37D87446304402207660BDEF67105CE1EBA9AD35DC7156BAB43FF1D47633199EE257D70B6B9AAFBF0220136AF1C22A66F65326FBA0016227A59AFB09FD2A057E65889735A1FC49770060770A726970706C652E636F6D81144FBFF73DA4ECF9B701940F27341FA8020C313443',
-  hash: 'E2643649D7F9D3EEAE719A5610B134BC71ED935EA6C1EE9C5671A954C5A94714'
+  tx_blob: '12000322000000002400000017201B0086955468400000000000000C732102F89EAEC7667B30F33D0687BBA86C3FE2A08CCA40A9186C5BDE2DAA6FA97A37D87446304402207660BDEF67105CE1EBA9AD35DC7156BAB43FF1D47633199EE257D70B6B9AAFBF02207F5517BC8AEF2ADC1325897ECDBA8C673838048BCA62F4E98B252F19BE88796D770A726970706C652E636F6D81144FBFF73DA4ECF9B701940F27341FA8020C313443',
+  hash: 'DB44C111583A95AF973A0B0A40348D90512FCBCDDCA3315A286D2BF4FAC100F1'
 });

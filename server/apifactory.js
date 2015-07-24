@@ -6,6 +6,7 @@ var logger = require('./logger').logger;
 
 var OPTIONS = {
   servers: config.get('rippled_servers'),
+  proxy: config.get('proxy'),
   max_fee: parseFloat(config.get('max_transaction_fee')),
   database_path: config.get('NODE_ENV') === 'test'
     ? ':memory:' : config.get('db_path'),

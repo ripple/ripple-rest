@@ -1,34 +1,6 @@
-var utils   = require('./../../api/lib/utils.js');
-var pJson  = require('./../../package.json');
-
-module.exports.serverInfoResponse = function(request) {
-  return JSON.stringify({
-    id: request.id,
-    status: 'success',
-    type: 'response',
-    result: {
-      info: {
-        build_version: '0.24.0-rc1',
-        complete_ledgers: '32570-6595042',
-        hostid: 'ARTS',
-        last_close: { converge_time_s: 2.007, proposers: 4 },
-        load_factor: 1,
-        peers: 53,
-        pubkey_node: 'n94wWvFUmaKGYrKUGgpv1DyYgDeXRGdACkNQaSe7zJiy5Znio7UC',
-        server_state: 'full',
-        validated_ledger: {
-          age: 5,
-          base_fee_xrp: 0.00001,
-          hash: '4482DEE5362332F54A4036ED57EE1767C9F33CF7CE5A6670355C16CECE381D46',
-          reserve_base_xrp: 20,
-          reserve_inc_xrp: 5,
-          seq: 6595042
-        },
-        validation_quorum: 3
-      }
-    }
-  });
-};
+/* eslint-disable max-len */
+'use strict';
+var pJson = require('./../../package.json');
 
 module.exports.RESTServerInfoResponse = JSON.stringify({
   success: true,
@@ -38,7 +10,7 @@ module.exports.RESTServerInfoResponse = JSON.stringify({
     build_version: '0.24.0-rc1',
     complete_ledgers: '32570-6595042',
     hostid: 'ARTS',
-    last_close: { converge_time_s: 2.007, proposers: 4 },
+    last_close: {converge_time_s: 2.007, proposers: 4},
     load_factor: 1,
     peers: 53,
     pubkey_node: 'n94wWvFUmaKGYrKUGgpv1DyYgDeXRGdACkNQaSe7zJiy5Znio7UC',
@@ -49,8 +21,9 @@ module.exports.RESTServerInfoResponse = JSON.stringify({
       hash: '4482DEE5362332F54A4036ED57EE1767C9F33CF7CE5A6670355C16CECE381D46',
       reserve_base_xrp: 20,
       reserve_inc_xrp: 5,
-      seq: 6595042 },
-      validation_quorum: 3
+      seq: 6595042
+    },
+    validation_quorum: 3
   }
 });
 

@@ -5,8 +5,7 @@
 var assert = require('assert');
 var _ = require('lodash');
 var testutils = require('./testutils');
-var fixtures = require('./fixtures').payments;
-var pathFixtures = require('./fixtures').paths;
+var fixtures = require('./fixtures').paths;
 var errors = require('./fixtures').errors;
 var addresses = require('./fixtures').addresses;
 
@@ -20,14 +19,6 @@ suite('get payment paths', function() {
   teardown(testutils.teardown.bind(self));
 
   test('/accounts/:account/payments/paths/:destination/:amount -- invalid source account', function(done) {
-    self.wss.once('request_ripple_path_find', function() {
-      assert(false);
-    });
-
-    self.wss.once('request_account_info', function() {
-      assert(false);
-    });
-
     self.app
     .get('/v1/accounts/' + addresses.INVALID + '/payments/paths/' + addresses.VALID + '/100+USD')
     .expect(testutils.checkStatus(400))
@@ -41,14 +32,6 @@ suite('get payment paths', function() {
   });
 
   test('/accounts/:account/payments/paths/:destination/:amount -- invalid destination account', function(done) {
-    self.wss.once('request_ripple_path_find', function() {
-      assert(false);
-    });
-
-    self.wss.once('request_account_info', function() {
-      assert(false);
-    });
-
     self.app
     .get('/v1/accounts/' + addresses.VALID + '/payments/paths/' + addresses.INVALID + '/100+USD')
     .expect(testutils.checkStatus(400))
@@ -62,14 +45,6 @@ suite('get payment paths', function() {
   });
 
   test('/accounts/:account/payments/paths/:destination/:amount -- missing destination currency', function(done) {
-    self.wss.once('request_ripple_path_find', function() {
-      assert(false);
-    });
-
-    self.wss.once('request_account_info', function() {
-      assert(false);
-    });
-
     self.app
     .get('/v1/accounts/' + addresses.VALID + '/payments/paths/' + addresses.VALID + '/100')
     .expect(testutils.checkStatus(400))
@@ -83,14 +58,6 @@ suite('get payment paths', function() {
   });
 
   test('/accounts/:account/payments/paths/:destination/:amount -- invalid destination currency format', function(done) {
-    self.wss.once('request_ripple_path_find', function() {
-      assert(false);
-    });
-
-    self.wss.once('request_account_info', function() {
-      assert(false);
-    });
-
     self.app
     .get('/v1/accounts/' + addresses.VALID + '/payments/paths/' + addresses.VALID + '/100-USD')
     .expect(testutils.checkStatus(400))
@@ -104,14 +71,6 @@ suite('get payment paths', function() {
   });
 
   test('/accounts/:account/payments/paths/:destination/:amount -- invalid destination currency issuer', function(done) {
-    self.wss.once('request_ripple_path_find', function() {
-      assert(false);
-    });
-
-    self.wss.once('request_account_info', function() {
-      assert(false);
-    });
-
     self.app
     .get('/v1/accounts/' + addresses.VALID + '/payments/paths/' + addresses.VALID + '/100+USD+' + addresses.INVALID)
     .expect(testutils.checkStatus(400))
@@ -125,14 +84,6 @@ suite('get payment paths', function() {
   });
 
   test('/accounts/:account/payments/paths/:destination/:amount -- invalid IOU source currency without issuer', function(done) {
-    self.wss.once('request_ripple_path_find', function() {
-      assert(false);
-    });
-
-    self.wss.once('request_account_info', function() {
-      assert(false);
-    });
-
     self.app
     .get('/v1/accounts/' + addresses.VALID + '/payments/paths/' + addresses.VALID + '/100+USD+' + addresses.VALID + '?source_currencies=test')
     .expect(testutils.checkStatus(400))
@@ -146,14 +97,6 @@ suite('get payment paths', function() {
   });
 
   test('/accounts/:account/payments/paths/:destination/:amount -- valid IOU source currency with invalid issuer', function(done) {
-    self.wss.once('request_ripple_path_find', function() {
-      assert(false);
-    });
-
-    self.wss.once('request_account_info', function() {
-      assert(false);
-    });
-
     self.app
     .get('/v1/accounts/' + addresses.VALID + '/payments/paths/' + addresses.VALID + '/100+USD+' + addresses.VALID + '?source_currencies=USD+' + addresses.INVALID)
     .expect(testutils.checkStatus(400))
@@ -177,13 +120,7 @@ suite('get payment paths', function() {
         currency: '0000000000000000000000005553440000000000'
       });
 
-      conn.send(pathFixtures.generateXRPPaymentPaths(message.id, message.source_account, message.destination_account, message.destination_amount));
-    });
-
-    self.wss.once('request_account_info', function(message, conn) {
-      assert.strictEqual(message.command, 'account_info');
-      assert.strictEqual(message.account, addresses.VALID);
-      conn.send(fixtures.accountInfoResponse(message));
+      conn.send(fixtures.generateXRPPaymentPaths(message.id, message.source_account, message.destination_account, message.destination_amount));
     });
 
     self.app
@@ -208,13 +145,7 @@ suite('get payment paths', function() {
         currency: '0000000000000000000000004944520000000000'
       });
 
-      conn.send(pathFixtures.generateXRPPaymentPaths(message.id, message.source_account, message.destination_account, message.destination_amount));
-    });
-
-    self.wss.once('request_account_info', function(message, conn) {
-      assert.strictEqual(message.command, 'account_info');
-      assert.strictEqual(message.account, addresses.VALID);
-      conn.send(fixtures.accountInfoResponse(message));
+      conn.send(fixtures.generateXRPPaymentPaths(message.id, message.source_account, message.destination_account, message.destination_amount));
     });
 
     self.app
@@ -225,14 +156,6 @@ suite('get payment paths', function() {
   });
 
   test('/accounts/:account/payments/paths/:destination/:amount -- mutliple source currencies with invalid last source currency', function(done) {
-    self.wss.once('request_ripple_path_find', function() {
-      assert(false);
-    });
-
-    self.wss.once('request_account_info', function() {
-      assert(false);
-    });
-
     self.app
     .get('/v1/accounts/' + addresses.VALID + '/payments/paths/' + addresses.VALID + '/100+USD+' + addresses.VALID + '?source_currencies=USD+' + addresses.VALID + ',IDR+' + addresses.VALID + ',test')
     .expect(testutils.checkStatus(400))
@@ -246,14 +169,6 @@ suite('get payment paths', function() {
   });
 
   test('/accounts/:account/payments/paths/:destination/:amount -- multiple source currencies with invalid last source currency issuer', function(done) {
-    self.wss.once('request_ripple_path_find', function() {
-      assert(false);
-    });
-
-    self.wss.once('request_account_info', function() {
-      assert(false);
-    });
-
     self.app
     .get('/v1/accounts/' + addresses.VALID + '/payments/paths/' + addresses.VALID + '/100+USD+' + addresses.VALID + '?source_currencies=USD+' + addresses.VALID + ',IDR+' + addresses.VALID + ',JPY+' + addresses.INVALID)
     .expect(testutils.checkStatus(400))
@@ -271,13 +186,7 @@ suite('get payment paths', function() {
       assert.strictEqual(message.command, 'ripple_path_find');
       assert.strictEqual(message.source_account, addresses.VALID);
       assert.strictEqual(message.destination_account, addresses.VALID);
-      conn.send(pathFixtures.generateXRPPaymentPaths(message.id, message.source_account, message.destination_account, message.destination_amount));
-    });
-
-    self.wss.once('request_account_info', function(message, conn) {
-      assert.strictEqual(message.command, 'account_info');
-      assert.strictEqual(message.account, addresses.VALID);
-      conn.send(fixtures.accountInfoResponse(message));
+      conn.send(fixtures.generateXRPPaymentPaths(message.id, message.source_account, message.destination_account, message.destination_amount));
     });
 
     self.app
@@ -306,13 +215,7 @@ suite('get payment paths', function() {
       assert.strictEqual(message.command, 'ripple_path_find');
       assert.strictEqual(message.source_account, addresses.VALID);
       assert.strictEqual(message.destination_account, addresses.VALID);
-      conn.send(pathFixtures.generateIOUPaymentPaths(message.id, message.source_account, message.destination_account, message.destination_amount));
-    });
-
-    self.wss.once('request_account_info', function(message, conn) {
-      assert.strictEqual(message.command, 'account_info');
-      assert.strictEqual(message.account, addresses.VALID);
-      conn.send(fixtures.accountInfoResponse(message));
+      conn.send(fixtures.generateIOUPaymentPaths(message.id, message.source_account, message.destination_account, message.destination_amount));
     });
 
     self.app
@@ -339,13 +242,7 @@ suite('get payment paths', function() {
       assert.strictEqual(message.command, 'ripple_path_find');
       assert.strictEqual(message.source_account, addresses.COUNTERPARTY);
       assert.strictEqual(message.destination_account, addresses.VALID);
-      conn.send(pathFixtures.generateIOUPaymentPaths(message.id, message.source_account, message.destination_account, message.destination_amount));
-    });
-
-    self.wss.once('request_account_info', function(message, conn) {
-      assert.strictEqual(message.command, 'account_info');
-      assert.strictEqual(message.account, addresses.COUNTERPARTY);
-      conn.send(fixtures.accountInfoResponse(message));
+      conn.send(fixtures.generateIOUPaymentPaths(message.id, message.source_account, message.destination_account, message.destination_amount));
     });
 
     self.app
@@ -375,7 +272,7 @@ suite('get payment paths', function() {
       assert.strictEqual(message.command, 'ripple_path_find');
       assert.strictEqual(message.source_account, addresses.VALID);
       assert.strictEqual(message.destination_account, addresses.VALID);
-      conn.send(pathFixtures.generateIOUPaymentPaths(
+      conn.send(fixtures.generateIOUPaymentPaths(
         message.id, message.source_account, message.destination_account,
         message.destination_amount));
     });
@@ -404,7 +301,7 @@ suite('get payment paths', function() {
       assert.strictEqual(message.command, 'ripple_path_find');
       assert.strictEqual(message.source_account, addresses.VALID);
       assert.strictEqual(message.destination_account, addresses.VALID);
-      conn.send(pathFixtures.generateIOUPaymentPaths(message.id, message.source_account, message.destination_account, message.destination_amount));
+      conn.send(fixtures.generateIOUPaymentPaths(message.id, message.source_account, message.destination_account, message.destination_amount));
     });
 
     self.app

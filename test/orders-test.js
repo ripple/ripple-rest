@@ -1,6 +1,7 @@
+'use strict';
+
 /* eslint-disable new-cap */
 /* eslint-disable max-len */
-'use strict';
 var _ = require('lodash');
 var assert = require('assert');
 var ripple = require('ripple-lib');
@@ -18,11 +19,9 @@ var DEFAULT_LIMIT = 200;
 var LIMIT = 100;
 
 var MARKER = '29F992CC252056BF690107D1E8F2D9FBAFF29FF107B62B1D1F4E4E11ADF2CC73';
-var NEXT_MARKER =
-  '0C812C919D343EAE789B29E8027C62C5792C22172D37EA2B2C0121D2381F80E1';
-var LEDGER = 9592219;
-var LEDGER_HASH =
-  'FD22E2A8D665A01711C0147173ECC0A32466BA976DE697E95197933311267BE8';
+var NEXT_MARKER = '0C812C919D343EAE789B29E8027C62C5792C22172D37EA2B2C0121D2381F80E1';
+var LEDGER = 9038214;
+var LEDGER_HASH = 'FD22E2A8D665A01711C0147173ECC0A32466BA976DE697E95197933311267BE8';
 
 suite('prepare order', function() {
   var self = this;
@@ -30,12 +29,10 @@ suite('prepare order', function() {
   teardown(testutils.teardown.bind(self));
 
   test('100 USD for 100 USD', function(done) {
-    self.wss.on('request_account_info', function(message, conn) {
-      assert.strictEqual(message.command, 'account_info');
-      assert.strictEqual(message.account, addresses.VALID);
-      conn.send(fixtures.accountInfoResponse(message));
+    self.wss.expect({
+      request_subscribe: 1,
+      request_account_info: 2
     });
-
     testutils.withDeterministicPRNG(function(_done) {
       self.app
         .post('/v1/accounts/' + addresses.VALID + '/orders?submit=false')
@@ -48,12 +45,6 @@ suite('prepare order', function() {
   });
 
   test('100 USD for 100 USD -- no secret', function(done) {
-    self.wss.on('request_account_info', function(message, conn) {
-      assert.strictEqual(message.command, 'account_info');
-      assert.strictEqual(message.account, addresses.VALID);
-      conn.send(fixtures.accountInfoResponse(message));
-    });
-
     testutils.withDeterministicPRNG(function(_done) {
       self.app
         .post('/v1/accounts/' + addresses.VALID + '/orders?submit=false')
@@ -73,12 +64,6 @@ suite('prepare order cancellation', function() {
   teardown(testutils.teardown.bind(self));
 
   test('order sequence 99', function(done) {
-    self.wss.on('request_account_info', function(message, conn) {
-      assert.strictEqual(message.command, 'account_info');
-      assert.strictEqual(message.account, addresses.VALID);
-      conn.send(fixtures.accountInfoResponse(message));
-    });
-
     testutils.withDeterministicPRNG(function(_done) {
       self.app
         .del('/v1/accounts/' + addresses.VALID + '/orders/99?submit=false')
@@ -93,12 +78,6 @@ suite('prepare order cancellation', function() {
   });
 
   test('order sequence 99 -- no secret', function(done) {
-    self.wss.on('request_account_info', function(message, conn) {
-      assert.strictEqual(message.command, 'account_info');
-      assert.strictEqual(message.account, addresses.VALID);
-      conn.send(fixtures.accountInfoResponse(message));
-    });
-
     testutils.withDeterministicPRNG(function(_done) {
       self.app
         .del('/v1/accounts/' + addresses.VALID + '/orders/99?submit=false')
@@ -132,15 +111,15 @@ suite('get orders', function() {
     });
 
     self.app
-    .get('/v1/accounts/' + addresses.VALID + '/orders')
-    .expect(testutils.checkStatus(200))
-    .expect(testutils.checkHeaders)
-    .expect(testutils.checkBody(fixtures.RESTAccountOrdersResponse({
+      .get('/v1/accounts/' + addresses.VALID + '/orders')
+      .expect(testutils.checkStatus(200))
+      .expect(testutils.checkHeaders)
+      .expect(testutils.checkBody(fixtures.RESTAccountOrdersResponse({
         ledger: LEDGER,
         marker: NEXT_MARKER,
         limit: DEFAULT_LIMIT
-    })))
-    .end(done);
+      })))
+      .end(done);
   });
 
   test('/accounts/:account/orders -- with limit=all', function(done) {
@@ -169,23 +148,23 @@ suite('get orders', function() {
     });
 
     self.app
-    .get('/v1/accounts/' + addresses.VALID + '/orders?limit=all')
-    .expect(testutils.checkStatus(200))
-    .expect(testutils.checkHeaders)
-    .end(function(err, res) {
-      if (err) {
-        return done(err);
-      }
+      .get('/v1/accounts/' + addresses.VALID + '/orders?limit=all')
+      .expect(testutils.checkStatus(200))
+      .expect(testutils.checkHeaders)
+      .end(function(err, res) {
+        if (err) {
+          return done(err);
+        }
 
-      assert.strictEqual(res.body.orders.length, 34);
-      assert.strictEqual(res.body.limit, undefined);
-      assert.strictEqual(res.body.marker, undefined);
-      assert.strictEqual(res.body.ledger, LEDGER);
-      assert.strictEqual(res.body.validated, true);
+        assert.strictEqual(res.body.orders.length, 34);
+        assert.strictEqual(res.body.limit, undefined);
+        assert.strictEqual(res.body.marker, undefined);
+        assert.strictEqual(res.body.ledger, LEDGER);
+        assert.strictEqual(res.body.validated, true);
 
-      done();
+        done();
 
-    });
+      });
   });
 
   test('/accounts/:account/orders -- with invalid ledger', function(done) {
@@ -197,11 +176,11 @@ suite('get orders', function() {
     });
 
     self.app
-    .get('/v1/accounts/' + addresses.VALID + '/orders?ledger=foo')
-    .expect(testutils.checkStatus(400))
-    .expect(testutils.checkHeaders)
-    .expect(testutils.checkBody(errors.restInvalidParameter('ledger')))
-    .end(done);
+      .get('/v1/accounts/' + addresses.VALID + '/orders?ledger=foo')
+      .expect(testutils.checkStatus(400))
+      .expect(testutils.checkHeaders)
+      .expect(testutils.checkBody(errors.restInvalidParameter('ledger')))
+      .end(done);
   });
 
   test('/accounts/:account/orders -- with ledger (sequence)', function(done) {
@@ -216,14 +195,14 @@ suite('get orders', function() {
     });
 
     self.app
-    .get('/v1/accounts/' + addresses.VALID + '/orders?ledger=' + LEDGER)
-    .expect(testutils.checkStatus(200))
-    .expect(testutils.checkHeaders)
-    .expect(testutils.checkBody(fixtures.RESTAccountOrdersResponse({
-      marker: NEXT_MARKER,
-      ledger: LEDGER
-    })))
-    .end(done);
+      .get('/v1/accounts/' + addresses.VALID + '/orders?ledger=' + LEDGER)
+      .expect(testutils.checkStatus(200))
+      .expect(testutils.checkHeaders)
+      .expect(testutils.checkBody(fixtures.RESTAccountOrdersResponse({
+        marker: NEXT_MARKER,
+        ledger: LEDGER
+      })))
+      .end(done);
   });
 
   test('/accounts/:account/orders -- with ledger (hash)', function(done) {
@@ -238,40 +217,32 @@ suite('get orders', function() {
     });
 
     self.app
-    .get('/v1/accounts/' + addresses.VALID + '/orders?ledger=' + LEDGER_HASH)
-    .expect(testutils.checkStatus(200))
-    .expect(testutils.checkHeaders)
-    .expect(testutils.checkBody(fixtures.RESTAccountOrdersResponse({
-      marker: NEXT_MARKER,
-      ledger: LEDGER
-    })))
-    .end(done);
+      .get('/v1/accounts/' + addresses.VALID + '/orders?ledger=' + LEDGER_HASH)
+      .expect(testutils.checkStatus(200))
+      .expect(testutils.checkHeaders)
+      .expect(testutils.checkBody(fixtures.RESTAccountOrdersResponse({
+        marker: NEXT_MARKER,
+        ledger: LEDGER
+      })))
+      .end(done);
   });
 
   test('/accounts/:account/orders -- with valid marker and invalid limit', function(done) {
-    self.wss.once('request_account_offers', function() {
-      assert(false);
-    });
-
     self.app
-    .get('/v1/accounts/' + addresses.VALID + '/orders?marker=' + MARKER + '&limit=foo')
-    .expect(testutils.checkStatus(400))
-    .expect(testutils.checkHeaders)
-    .expect(testutils.checkBody(errors.restInvalidParameter('limit')))
-    .end(done);
+      .get('/v1/accounts/' + addresses.VALID + '/orders?marker=' + MARKER + '&limit=foo')
+      .expect(testutils.checkStatus(400))
+      .expect(testutils.checkHeaders)
+      .expect(testutils.checkBody(errors.restInvalidParameter('limit')))
+      .end(done);
   });
 
   test('/accounts/:account/orders -- with valid marker, valid limit, missing ledger', function(done) {
-    self.wss.once('request_account_offers', function() {
-      assert(false);
-    });
-
     self.app
-    .get('/v1/accounts/' + addresses.VALID + '/orders?marker=' + MARKER + '&limit=' + LIMIT)
-    .expect(testutils.checkStatus(400))
-    .expect(testutils.checkHeaders)
-    .expect(testutils.checkBody(errors.restInvalidParameter('ledger')))
-    .end(done);
+      .get('/v1/accounts/' + addresses.VALID + '/orders?marker=' + MARKER + '&limit=' + LIMIT)
+      .expect(testutils.checkStatus(400))
+      .expect(testutils.checkHeaders)
+      .expect(testutils.checkBody(errors.restInvalidParameter('ledger')))
+      .end(done);
   });
 
   test('/accounts/:account/orders -- with valid marker and valid ledger', function(done) {
@@ -287,21 +258,21 @@ suite('get orders', function() {
     });
 
     self.app
-    .get('/v1/accounts/' + addresses.VALID + '/orders?marker=' + MARKER + '&ledger=' + LEDGER)
-    .expect(testutils.checkStatus(200))
-    .expect(testutils.checkHeaders)
-    .expect(testutils.checkBody(fixtures.RESTAccountOrdersResponse({
-      marker: NEXT_MARKER,
-      ledger: LEDGER
-    })))
-    .end(done);
+      .get('/v1/accounts/' + addresses.VALID + '/orders?marker=' + MARKER + '&ledger=' + LEDGER)
+      .expect(testutils.checkStatus(200))
+      .expect(testutils.checkHeaders)
+      .expect(testutils.checkBody(fixtures.RESTAccountOrdersResponse({
+        marker: NEXT_MARKER,
+        ledger: LEDGER
+      })))
+      .end(done);
   });
 
   test('/accounts/:account/orders -- valid ledger and valid limit', function(done) {
     self.wss.once('request_account_offers', function(message, conn) {
       assert.strictEqual(message.command, 'account_offers');
       assert.strictEqual(message.account, addresses.VALID);
-      assert.strictEqual(message.ledger_index, 9592219);
+      assert.strictEqual(message.ledger_index, LEDGER);
       assert.strictEqual(message.limit, LIMIT);
       conn.send(fixtures.accountOrdersResponse(message, {
         marker: NEXT_MARKER,
@@ -310,73 +281,57 @@ suite('get orders', function() {
     });
 
     self.app
-    .get('/v1/accounts/' + addresses.VALID + '/orders?ledger=' + LEDGER + '&limit=' + LIMIT)
-    .expect(testutils.checkStatus(200))
-    .expect(testutils.checkHeaders)
-    .expect(testutils.checkBody(fixtures.RESTAccountOrdersResponse({
-      marker: NEXT_MARKER,
-      ledger: LEDGER
-    })))
-    .end(done);
+      .get('/v1/accounts/' + addresses.VALID + '/orders?ledger=' + LEDGER + '&limit=' + LIMIT)
+      .expect(testutils.checkStatus(200))
+      .expect(testutils.checkHeaders)
+      .expect(testutils.checkBody(fixtures.RESTAccountOrdersResponse({
+        marker: NEXT_MARKER,
+        ledger: LEDGER
+      })))
+      .end(done);
   });
 
   test('/accounts/:account/orders -- with valid marker, valid limit, and invalid ledger', function(done) {
-    self.wss.once('request_account_offers', function() {
-      assert(false);
-    });
-
     self.app
-    .get('/v1/accounts/' + addresses.VALID + '/orders?marker=' + MARKER + '&limit=' + LIMIT + '&ledger=foo')
-    .expect(testutils.checkStatus(400))
-    .expect(testutils.checkHeaders)
-    .expect(testutils.checkBody(errors.restInvalidParameter('ledger')))
-    .end(done);
+      .get('/v1/accounts/' + addresses.VALID + '/orders?marker=' + MARKER + '&limit=' + LIMIT + '&ledger=foo')
+      .expect(testutils.checkStatus(400))
+      .expect(testutils.checkHeaders)
+      .expect(testutils.checkBody(errors.restInvalidParameter('ledger')))
+      .end(done);
   });
 
   test('/accounts/:account/orders -- with valid marker, valid limit, and ledger=validated', function(done) {
-    self.wss.once('request_account_offers', function() {
-      assert(false);
-    });
-
     self.app
-    .get('/v1/accounts/' + addresses.VALID + '/orders?marker=' + MARKER + '&limit=' + LIMIT + '&ledger=validated')
-    .expect(testutils.checkStatus(400))
-    .expect(testutils.checkHeaders)
-    .expect(testutils.checkBody(errors.restInvalidParameter('ledger')))
-    .end(done);
+      .get('/v1/accounts/' + addresses.VALID + '/orders?marker=' + MARKER + '&limit=' + LIMIT + '&ledger=validated')
+      .expect(testutils.checkStatus(400))
+      .expect(testutils.checkHeaders)
+      .expect(testutils.checkBody(errors.restInvalidParameter('ledger')))
+      .end(done);
   });
 
   test('/accounts/:account/orders -- with valid marker, valid limit, and ledger=current', function(done) {
-    self.wss.once('request_account_offers', function() {
-      assert(false);
-    });
-
     self.app
-    .get('/v1/accounts/' + addresses.VALID + '/orders?marker=' + MARKER + '&limit=' + LIMIT + '&ledger=current')
-    .expect(testutils.checkStatus(400))
-    .expect(testutils.checkHeaders)
-    .expect(testutils.checkBody(errors.restInvalidParameter('ledger')))
-    .end(done);
+      .get('/v1/accounts/' + addresses.VALID + '/orders?marker=' + MARKER + '&limit=' + LIMIT + '&ledger=current')
+      .expect(testutils.checkStatus(400))
+      .expect(testutils.checkHeaders)
+      .expect(testutils.checkBody(errors.restInvalidParameter('ledger')))
+      .end(done);
   });
 
   test('/accounts/:account/orders -- with valid marker, valid limit, and ledger=closed', function(done) {
-    self.wss.once('request_account_offers', function() {
-      assert(false);
-    });
-
     self.app
-    .get('/v1/accounts/' + addresses.VALID + '/orders?marker=' + MARKER + '&limit=' + LIMIT + '&ledger=closed')
-    .expect(testutils.checkStatus(400))
-    .expect(testutils.checkHeaders)
-    .expect(testutils.checkBody(errors.restInvalidParameter('ledger')))
-    .end(done);
+      .get('/v1/accounts/' + addresses.VALID + '/orders?marker=' + MARKER + '&limit=' + LIMIT + '&ledger=closed')
+      .expect(testutils.checkStatus(400))
+      .expect(testutils.checkHeaders)
+      .expect(testutils.checkBody(errors.restInvalidParameter('ledger')))
+      .end(done);
   });
 
   test('/accounts/:account/orders -- with valid marker, valid limit, and valid ledger', function(done) {
     self.wss.once('request_account_offers', function(message, conn) {
       assert.strictEqual(message.command, 'account_offers');
       assert.strictEqual(message.account, addresses.VALID);
-      assert.strictEqual(message.ledger_index, 9592219);
+      assert.strictEqual(message.ledger_index, LEDGER);
       assert.strictEqual(message.limit, LIMIT);
       assert.strictEqual(message.marker, MARKER);
       conn.send(fixtures.accountOrdersResponse(message, {
@@ -385,26 +340,22 @@ suite('get orders', function() {
     });
 
     self.app
-    .get('/v1/accounts/' + addresses.VALID + '/orders?marker=' + MARKER + '&limit=' + LIMIT + '&ledger=' + LEDGER)
-    .expect(testutils.checkStatus(200))
-    .expect(testutils.checkHeaders)
-    .expect(testutils.checkBody(fixtures.RESTAccountOrdersResponse({
-      marker: NEXT_MARKER
-    })))
-    .end(done);
+      .get('/v1/accounts/' + addresses.VALID + '/orders?marker=' + MARKER + '&limit=' + LIMIT + '&ledger=' + LEDGER)
+      .expect(testutils.checkStatus(200))
+      .expect(testutils.checkHeaders)
+      .expect(testutils.checkBody(fixtures.RESTAccountOrdersResponse({
+        marker: NEXT_MARKER
+      })))
+      .end(done);
   });
 
   test('/accounts/:account/orders -- invalid account', function(done) {
-    self.wss.once('request_account_offers', function() {
-      assert(false, 'Should not request account lines');
-    });
-
     self.app
-    .get('/v1/accounts/' + addresses.INVALID + '/orders')
-    .expect(testutils.checkStatus(400))
-    .expect(testutils.checkHeaders)
-    .expect(testutils.checkBody(errors.RESTInvalidAccount))
-    .end(done);
+      .get('/v1/accounts/' + addresses.INVALID + '/orders')
+      .expect(testutils.checkStatus(400))
+      .expect(testutils.checkHeaders)
+      .expect(testutils.checkBody(errors.RESTInvalidAccount))
+      .end(done);
   });
 });
 
@@ -417,12 +368,6 @@ suite('post orders', function() {
   test('/orders?validated=true', function(done) {
     var lastLedger = self.remote._ledger_current_index;
     var hash = testutils.generateHash();
-
-    self.wss.once('request_account_info', function(message, conn) {
-      assert.strictEqual(message.command, 'account_info');
-      assert.strictEqual(message.account, addresses.VALID);
-      conn.send(fixtures.accountInfoResponse(message));
-    });
 
     self.wss.once('request_submit', function(message, conn) {
       assert.strictEqual(message.command, 'submit');
@@ -438,26 +383,20 @@ suite('post orders', function() {
     });
 
     self.app
-    .post('/v1/accounts/' + addresses.VALID + '/orders?validated=true')
-    .send(fixtures.order())
-    .expect(testutils.checkStatus(200))
-    .expect(testutils.checkHeaders)
-    .expect(testutils.checkBody(fixtures.RESTSubmitTransactionResponse({
-      state: 'validated',
-      hash: hash,
-      last_ledger: lastLedger
-    })))
-    .end(done);
+      .post('/v1/accounts/' + addresses.VALID + '/orders?validated=true')
+      .send(fixtures.order())
+      .expect(testutils.checkStatus(200))
+      .expect(testutils.checkHeaders)
+      .expect(testutils.checkBody(fixtures.RESTSubmitTransactionResponse({
+        state: 'validated',
+        hash: hash,
+        last_ledger: lastLedger
+      })))
+      .end(done);
   });
 
   test('/orders?validated=true -- unfunded offer', function(done) {
     var hash = testutils.generateHash();
-
-    self.wss.once('request_account_info', function(message, conn) {
-      assert.strictEqual(message.command, 'account_info');
-      assert.strictEqual(message.account, addresses.VALID);
-      conn.send(fixtures.accountInfoResponse(message));
-    });
 
     self.wss.once('request_submit', function(message, conn) {
       assert.strictEqual(message.command, 'submit');
@@ -476,27 +415,21 @@ suite('post orders', function() {
     });
 
     self.app
-    .post('/v1/accounts/' + addresses.VALID + '/orders?validated=true')
-    .send(fixtures.order())
-    .expect(testutils.checkStatus(500))
-    .expect(testutils.checkHeaders)
-    .expect(testutils.checkBody(errors.RESTErrorResponse({
-      type: 'transaction',
-      error: 'tecUNFUNDED_OFFER',
-      message: 'Insufficient balance to fund created offer.'
-    })))
-    .end(done);
+      .post('/v1/accounts/' + addresses.VALID + '/orders?validated=true')
+      .send(fixtures.order())
+      .expect(testutils.checkStatus(500))
+      .expect(testutils.checkHeaders)
+      .expect(testutils.checkBody(errors.RESTErrorResponse({
+        type: 'transaction',
+        error: 'tecUNFUNDED_OFFER',
+        message: 'Insufficient balance to fund created offer.'
+      })))
+      .end(done);
   });
 
   test('/orders', function(done) {
     var lastLedger = self.remote._ledger_current_index;
     var hash = testutils.generateHash();
-
-    self.wss.once('request_account_info', function(message, conn) {
-      assert.strictEqual(message.command, 'account_info');
-      assert.strictEqual(message.account, addresses.VALID);
-      conn.send(fixtures.accountInfoResponse(message));
-    });
 
     self.wss.once('request_submit', function(message, conn) {
       var so = new ripple.SerializedObject(message.tx_blob).to_json();
@@ -520,15 +453,15 @@ suite('post orders', function() {
     });
 
     self.app
-    .post('/v1/accounts/' + addresses.VALID + '/orders')
-    .send(fixtures.order())
-    .expect(testutils.checkStatus(200))
-    .expect(testutils.checkHeaders)
-    .expect(testutils.checkBody(fixtures.RESTSubmitTransactionResponse({
-      hash: hash,
-      last_ledger: lastLedger
-    })))
-    .end(done);
+      .post('/v1/accounts/' + addresses.VALID + '/orders')
+      .send(fixtures.order())
+      .expect(testutils.checkStatus(200))
+      .expect(testutils.checkHeaders)
+      .expect(testutils.checkBody(fixtures.RESTSubmitTransactionResponse({
+        hash: hash,
+        last_ledger: lastLedger
+      })))
+      .end(done);
   });
 
   test('/orders -- taker_gets -- hex currency', function(done) {
@@ -545,12 +478,6 @@ suite('post orders', function() {
       }
     };
 
-    self.wss.once('request_account_info', function(message, conn) {
-      assert.strictEqual(message.command, 'account_info');
-      assert.strictEqual(message.account, addresses.VALID);
-      conn.send(fixtures.accountInfoResponse(message));
-    });
-
     self.wss.once('request_submit', function(message, conn) {
       var so = new ripple.SerializedObject(message.tx_blob).to_json();
       assert.strictEqual(so.TakerGets.value, VALUE);
@@ -562,27 +489,27 @@ suite('post orders', function() {
     });
 
     self.app
-    .post('/v1/accounts/' + addresses.VALID + '/orders')
-    .send(fixtures.order({
-      taker_gets: {
-        currency: HEX_CURRENCY,
-        value: VALUE,
-        counterparty: ISSUER
-      }
-    }))
-    .expect(testutils.checkStatus(200))
-    .expect(testutils.checkHeaders)
-    .end(function(err, res) {
-      if (err) {
-        return done(err);
-      }
+      .post('/v1/accounts/' + addresses.VALID + '/orders')
+      .send(fixtures.order({
+        taker_gets: {
+          currency: HEX_CURRENCY,
+          value: VALUE,
+          counterparty: ISSUER
+        }
+      }))
+      .expect(testutils.checkStatus(200))
+      .expect(testutils.checkHeaders)
+      .end(function(err, res) {
+        if (err) {
+          return done(err);
+        }
 
-      assert.strictEqual(res.body.order.taker_gets.currency, HEX_CURRENCY);
-      assert.strictEqual(res.body.order.taker_gets.value, VALUE);
-      assert.strictEqual(res.body.order.taker_gets.counterparty, ISSUER);
+        assert.strictEqual(res.body.order.taker_gets.currency, HEX_CURRENCY);
+        assert.strictEqual(res.body.order.taker_gets.value, VALUE);
+        assert.strictEqual(res.body.order.taker_gets.counterparty, ISSUER);
 
-      done();
-    });
+        done();
+      });
   });
 
   test('/orders -- taker_pays -- hex currency', function(done) {
@@ -599,12 +526,6 @@ suite('post orders', function() {
       }
     };
 
-    self.wss.once('request_account_info', function(message, conn) {
-      assert.strictEqual(message.command, 'account_info');
-      assert.strictEqual(message.account, addresses.VALID);
-      conn.send(fixtures.accountInfoResponse(message));
-    });
-
     self.wss.once('request_submit', function(message, conn) {
       var so = new ripple.SerializedObject(message.tx_blob).to_json();
       assert.strictEqual(so.TakerPays.value, VALUE);
@@ -616,36 +537,30 @@ suite('post orders', function() {
     });
 
     self.app
-    .post('/v1/accounts/' + addresses.VALID + '/orders')
-    .send(fixtures.order({
-      taker_pays: {
-        currency: HEX_CURRENCY,
-        counterparty: ISSUER,
-        value: VALUE
-      }
-    }))
-    .expect(testutils.checkStatus(200))
-    .expect(testutils.checkHeaders)
-    .end(function(err, res) {
-      if (err) {
-        return done(err);
-      }
+      .post('/v1/accounts/' + addresses.VALID + '/orders')
+      .send(fixtures.order({
+        taker_pays: {
+          currency: HEX_CURRENCY,
+          counterparty: ISSUER,
+          value: VALUE
+        }
+      }))
+      .expect(testutils.checkStatus(200))
+      .expect(testutils.checkHeaders)
+      .end(function(err, res) {
+        if (err) {
+          return done(err);
+        }
 
-      assert.strictEqual(res.body.order.taker_pays.currency, HEX_CURRENCY);
-      assert.strictEqual(res.body.order.taker_pays.value, VALUE);
-      assert.strictEqual(res.body.order.taker_pays.counterparty, ISSUER);
+        assert.strictEqual(res.body.order.taker_pays.currency, HEX_CURRENCY);
+        assert.strictEqual(res.body.order.taker_pays.value, VALUE);
+        assert.strictEqual(res.body.order.taker_pays.counterparty, ISSUER);
 
-      done();
-    });
+        done();
+      });
   });
 
   test('/orders -- ledger sequence too high', function(done) {
-    self.wss.once('request_account_info', function(message, conn) {
-      assert.strictEqual(message.command, 'account_info');
-      assert.strictEqual(message.account, addresses.VALID);
-      conn.send(fixtures.accountInfoResponse(message));
-    });
-
     self.wss.once('request_submit', function(message, conn) {
       assert.strictEqual(message.command, 'submit');
       conn.send(fixtures.ledgerSequenceTooHighResponse(message));
@@ -653,45 +568,29 @@ suite('post orders', function() {
     });
 
     self.app
-    .post('/v1/accounts/' + addresses.VALID + '/orders')
-    .send(fixtures.order())
-    .expect(testutils.checkBody(errors.RESTResponseLedgerSequenceTooHigh))
-    .expect(testutils.checkStatus(500))
-    .expect(testutils.checkHeaders)
-    .end(done);
+      .post('/v1/accounts/' + addresses.VALID + '/orders')
+      .send(fixtures.order())
+      .expect(testutils.checkBody(errors.RESTResponseLedgerSequenceTooHigh))
+      .expect(testutils.checkStatus(500))
+      .expect(testutils.checkHeaders)
+      .end(done);
   });
 
   test('/orders -- secret invalid', function(done) {
-    self.wss.once('request_account_info', function(message, conn) {
-      assert.strictEqual(message.command, 'account_info');
-      assert.strictEqual(message.account, addresses.VALID);
-      conn.send(fixtures.accountInfoResponse(message));
-    });
-
-    self.wss.once('request_submit', function() {
-      assert(false);
-    });
-
     self.app
-    .post('/v1/accounts/' + addresses.VALID + '/orders')
-    .send(fixtures.order({
-      secret: 'foo'
-    }))
-    .expect(testutils.checkStatus(400))
-    .expect(testutils.checkHeaders)
-    .expect(testutils.checkBody(errors.RESTInvalidSecret))
-    .end(done);
+      .post('/v1/accounts/' + addresses.VALID + '/orders')
+      .send(fixtures.order({
+        secret: 'foo'
+      }))
+      .expect(testutils.checkStatus(400))
+      .expect(testutils.checkHeaders)
+      .expect(testutils.checkBody(errors.RESTInvalidSecret))
+      .end(done);
   });
 
   test('/orders -- type sell', function(done) {
     var lastLedger = self.remote._ledger_current_index;
     var hash = testutils.generateHash();
-
-    self.wss.once('request_account_info', function(message, conn) {
-      assert.strictEqual(message.command, 'account_info');
-      assert.strictEqual(message.account, addresses.VALID);
-      conn.send(fixtures.accountInfoResponse(message));
-    });
 
     self.wss.once('request_submit', function(message, conn) {
       var so = new ripple.SerializedObject(message.tx_blob).to_json();
@@ -704,28 +603,22 @@ suite('post orders', function() {
     });
 
     self.app
-    .post('/v1/accounts/' + addresses.VALID + '/orders')
-    .send(fixtures.order({
-      type: 'sell'
-    }))
-    .expect(testutils.checkStatus(200))
-    .expect(testutils.checkHeaders)
-    .expect(testutils.checkBody(fixtures.RESTSubmitTransactionResponse({
-      hash: hash,
-      last_ledger: lastLedger
-    })))
-    .end(done);
+      .post('/v1/accounts/' + addresses.VALID + '/orders')
+      .send(fixtures.order({
+        type: 'sell'
+      }))
+      .expect(testutils.checkStatus(200))
+      .expect(testutils.checkHeaders)
+      .expect(testutils.checkBody(fixtures.RESTSubmitTransactionResponse({
+        hash: hash,
+        last_ledger: lastLedger
+      })))
+      .end(done);
   });
 
   test('/orders -- passive true', function(done) {
     var lastLedger = self.remote._ledger_current_index;
     var hash = testutils.generateHash();
-
-    self.wss.once('request_account_info', function(message, conn) {
-      assert.strictEqual(message.command, 'account_info');
-      assert.strictEqual(message.account, addresses.VALID);
-      conn.send(fixtures.accountInfoResponse(message));
-    });
 
     self.wss.once('request_submit', function(message, conn) {
       var so = new ripple.SerializedObject(message.tx_blob).to_json();
@@ -738,28 +631,22 @@ suite('post orders', function() {
     });
 
     self.app
-    .post('/v1/accounts/' + addresses.VALID + '/orders')
-    .send(fixtures.order({
-      passive: true
-    }))
-    .expect(testutils.checkStatus(200))
-    .expect(testutils.checkHeaders)
-    .expect(testutils.checkBody(fixtures.RESTSubmitTransactionResponse({
-      hash: hash,
-      last_ledger: lastLedger
-    })))
-    .end(done);
+      .post('/v1/accounts/' + addresses.VALID + '/orders')
+      .send(fixtures.order({
+        passive: true
+      }))
+      .expect(testutils.checkStatus(200))
+      .expect(testutils.checkHeaders)
+      .expect(testutils.checkBody(fixtures.RESTSubmitTransactionResponse({
+        hash: hash,
+        last_ledger: lastLedger
+      })))
+      .end(done);
   });
 
   test('/orders -- fill_or_kill true', function(done) {
     var lastLedger = self.remote._ledger_current_index;
     var hash = testutils.generateHash();
-
-    self.wss.once('request_account_info', function(message, conn) {
-      assert.strictEqual(message.command, 'account_info');
-      assert.strictEqual(message.account, addresses.VALID);
-      conn.send(fixtures.accountInfoResponse(message));
-    });
 
     self.wss.once('request_submit', function(message, conn) {
       var so = new ripple.SerializedObject(message.tx_blob).to_json();
@@ -772,28 +659,22 @@ suite('post orders', function() {
     });
 
     self.app
-    .post('/v1/accounts/' + addresses.VALID + '/orders')
-    .send(fixtures.order({
-      fill_or_kill: true
-    }))
-    .expect(testutils.checkStatus(200))
-    .expect(testutils.checkHeaders)
-    .expect(testutils.checkBody(fixtures.RESTSubmitTransactionResponse({
-      hash: hash,
-      last_ledger: lastLedger
-    })))
-    .end(done);
+      .post('/v1/accounts/' + addresses.VALID + '/orders')
+      .send(fixtures.order({
+        fill_or_kill: true
+      }))
+      .expect(testutils.checkStatus(200))
+      .expect(testutils.checkHeaders)
+      .expect(testutils.checkBody(fixtures.RESTSubmitTransactionResponse({
+        hash: hash,
+        last_ledger: lastLedger
+      })))
+      .end(done);
   });
 
   test('/orders -- immediate_or_cancel true', function(done) {
     var lastLedger = self.remote._ledger_current_index;
     var hash = testutils.generateHash();
-
-    self.wss.once('request_account_info', function(message, conn) {
-      assert.strictEqual(message.command, 'account_info');
-      assert.strictEqual(message.account, addresses.VALID);
-      conn.send(fixtures.accountInfoResponse(message));
-    });
 
     self.wss.once('request_submit', function(message, conn) {
       var so = new ripple.SerializedObject(message.tx_blob).to_json();
@@ -806,28 +687,22 @@ suite('post orders', function() {
     });
 
     self.app
-    .post('/v1/accounts/' + addresses.VALID + '/orders')
-    .send(fixtures.order({
-      immediate_or_cancel: true
-    }))
-    .expect(testutils.checkStatus(200))
-    .expect(testutils.checkHeaders)
-    .expect(testutils.checkBody(fixtures.RESTSubmitTransactionResponse({
-      hash: hash,
-      last_ledger: lastLedger
-    })))
-    .end(done);
+      .post('/v1/accounts/' + addresses.VALID + '/orders')
+      .send(fixtures.order({
+        immediate_or_cancel: true
+      }))
+      .expect(testutils.checkStatus(200))
+      .expect(testutils.checkHeaders)
+      .expect(testutils.checkBody(fixtures.RESTSubmitTransactionResponse({
+        hash: hash,
+        last_ledger: lastLedger
+      })))
+      .end(done);
   });
 
   test('/orders -- passive false', function(done) {
     var lastLedger = self.remote._ledger_current_index;
     var hash = testutils.generateHash();
-
-    self.wss.once('request_account_info', function(message, conn) {
-      assert.strictEqual(message.command, 'account_info');
-      assert.strictEqual(message.account, addresses.VALID);
-      conn.send(fixtures.accountInfoResponse(message));
-    });
 
     self.wss.once('request_submit', function(message, conn) {
       var so = new ripple.SerializedObject(message.tx_blob).to_json();
@@ -840,28 +715,22 @@ suite('post orders', function() {
     });
 
     self.app
-    .post('/v1/accounts/' + addresses.VALID + '/orders')
-    .send(fixtures.order({
-      passive: false
-    }))
-    .expect(testutils.checkStatus(200))
-    .expect(testutils.checkHeaders)
-    .expect(testutils.checkBody(fixtures.RESTSubmitTransactionResponse({
-      hash: hash,
-      last_ledger: lastLedger
-    })))
-    .end(done);
+      .post('/v1/accounts/' + addresses.VALID + '/orders')
+      .send(fixtures.order({
+        passive: false
+      }))
+      .expect(testutils.checkStatus(200))
+      .expect(testutils.checkHeaders)
+      .expect(testutils.checkBody(fixtures.RESTSubmitTransactionResponse({
+        hash: hash,
+        last_ledger: lastLedger
+      })))
+      .end(done);
   });
 
   test('/orders -- fill_or_kill false', function(done) {
     var lastLedger = self.remote._ledger_current_index;
     var hash = testutils.generateHash();
-
-    self.wss.once('request_account_info', function(message, conn) {
-      assert.strictEqual(message.command, 'account_info');
-      assert.strictEqual(message.account, addresses.VALID);
-      conn.send(fixtures.accountInfoResponse(message));
-    });
 
     self.wss.once('request_submit', function(message, conn) {
       var so = new ripple.SerializedObject(message.tx_blob).to_json();
@@ -874,28 +743,22 @@ suite('post orders', function() {
     });
 
     self.app
-    .post('/v1/accounts/' + addresses.VALID + '/orders')
-    .send(fixtures.order({
-      fill_or_kill: false
-    }))
-    .expect(testutils.checkStatus(200))
-    .expect(testutils.checkHeaders)
-    .expect(testutils.checkBody(fixtures.RESTSubmitTransactionResponse({
-      hash: hash,
-      last_ledger: lastLedger
-    })))
-    .end(done);
+      .post('/v1/accounts/' + addresses.VALID + '/orders')
+      .send(fixtures.order({
+        fill_or_kill: false
+      }))
+      .expect(testutils.checkStatus(200))
+      .expect(testutils.checkHeaders)
+      .expect(testutils.checkBody(fixtures.RESTSubmitTransactionResponse({
+        hash: hash,
+        last_ledger: lastLedger
+      })))
+      .end(done);
   });
 
   test('/orders -- immediate_or_cancel false', function(done) {
     var lastLedger = self.remote._ledger_current_index;
     var hash = testutils.generateHash();
-
-    self.wss.once('request_account_info', function(message, conn) {
-      assert.strictEqual(message.command, 'account_info');
-      assert.strictEqual(message.account, addresses.VALID);
-      conn.send(fixtures.accountInfoResponse(message));
-    });
 
     self.wss.once('request_submit', function(message, conn) {
       var so = new ripple.SerializedObject(message.tx_blob).to_json();
@@ -908,89 +771,65 @@ suite('post orders', function() {
     });
 
     self.app
-    .post('/v1/accounts/' + addresses.VALID + '/orders')
-    .send(fixtures.order({
-      immediate_or_cancel: false
-    }))
-    .expect(testutils.checkStatus(200))
-    .expect(testutils.checkHeaders)
-    .expect(testutils.checkBody(fixtures.RESTSubmitTransactionResponse({
-      hash: hash,
-      last_ledger: lastLedger
-    })))
-    .end(done);
+      .post('/v1/accounts/' + addresses.VALID + '/orders')
+      .send(fixtures.order({
+        immediate_or_cancel: false
+      }))
+      .expect(testutils.checkStatus(200))
+      .expect(testutils.checkHeaders)
+      .expect(testutils.checkBody(fixtures.RESTSubmitTransactionResponse({
+        hash: hash,
+        last_ledger: lastLedger
+      })))
+      .end(done);
   });
 
   test('/orders -- passive invalid', function(done) {
-    self.wss.once('request_account_info', function() {
-      assert(false, 'should not request account info');
-    });
-
-    self.wss.once('request_submit', function() {
-      assert(false, 'should not submit request');
-    });
-
     self.app
-    .post('/v1/accounts/' + addresses.VALID + '/orders')
-    .send(fixtures.order({
-      passive: 'test'
-    }))
-    .expect(testutils.checkStatus(400))
-    .expect(testutils.checkHeaders)
-    .expect(testutils.checkBody(errors.RESTErrorResponse({
-      type: 'invalid_request',
-      error: 'restINVALID_PARAMETER',
-      message: 'Parameter must be a boolean: passive'
-    })))
-    .end(done);
+      .post('/v1/accounts/' + addresses.VALID + '/orders')
+      .send(fixtures.order({
+        passive: 'test'
+      }))
+      .expect(testutils.checkStatus(400))
+      .expect(testutils.checkHeaders)
+      .expect(testutils.checkBody(errors.RESTErrorResponse({
+        type: 'invalid_request',
+        error: 'restINVALID_PARAMETER',
+        message: 'Parameter must be a boolean: passive'
+      })))
+      .end(done);
   });
 
   test('/orders -- immediate_or_cancel invalid', function(done) {
-    self.wss.once('request_account_info', function() {
-      assert(false, 'should not request account info');
-    });
-
-    self.wss.once('request_submit', function() {
-      assert(false, 'should not submit request');
-    });
-
     self.app
-    .post('/v1/accounts/' + addresses.VALID + '/orders')
-    .send(fixtures.order({
-      immediate_or_cancel: 'test'
-    }))
-    .expect(testutils.checkStatus(400))
-    .expect(testutils.checkHeaders)
-    .expect(testutils.checkBody(errors.RESTErrorResponse({
-      type: 'invalid_request',
-      error: 'restINVALID_PARAMETER',
-      message: 'Parameter must be a boolean: immediate_or_cancel'
-    })))
-    .end(done);
+      .post('/v1/accounts/' + addresses.VALID + '/orders')
+      .send(fixtures.order({
+        immediate_or_cancel: 'test'
+      }))
+      .expect(testutils.checkStatus(400))
+      .expect(testutils.checkHeaders)
+      .expect(testutils.checkBody(errors.RESTErrorResponse({
+        type: 'invalid_request',
+        error: 'restINVALID_PARAMETER',
+        message: 'Parameter must be a boolean: immediate_or_cancel'
+      })))
+      .end(done);
   });
 
   test('/orders -- fill_or_kill invalid', function(done) {
-    self.wss.once('request_account_info', function() {
-      assert(false, 'should not request account info');
-    });
-
-    self.wss.once('request_submit', function() {
-      assert(false, 'should not submit request');
-    });
-
     self.app
-    .post('/v1/accounts/' + addresses.VALID + '/orders')
-    .send(fixtures.order({
-      fill_or_kill: 'test'
-    }))
-    .expect(testutils.checkStatus(400))
-    .expect(testutils.checkHeaders)
-    .expect(testutils.checkBody(errors.RESTErrorResponse({
-      type: 'invalid_request',
-      error: 'restINVALID_PARAMETER',
-      message: 'Parameter must be a boolean: fill_or_kill'
-    })))
-    .end(done);
+      .post('/v1/accounts/' + addresses.VALID + '/orders')
+      .send(fixtures.order({
+        fill_or_kill: 'test'
+      }))
+      .expect(testutils.checkStatus(400))
+      .expect(testutils.checkHeaders)
+      .expect(testutils.checkBody(errors.RESTErrorResponse({
+        type: 'invalid_request',
+        error: 'restINVALID_PARAMETER',
+        message: 'Parameter must be a boolean: fill_or_kill'
+      })))
+      .end(done);
   });
 
   test('/orders -- taker_gets -- xrp', function(done) {
@@ -1001,12 +840,6 @@ suite('post orders', function() {
       hash: hash,
       taker_gets: '100000000000'
     };
-
-    self.wss.once('request_account_info', function(message, conn) {
-      assert.strictEqual(message.command, 'account_info');
-      assert.strictEqual(message.account, addresses.VALID);
-      conn.send(fixtures.accountInfoResponse(message));
-    });
 
     self.wss.once('request_submit', function(message, conn) {
       var so = new ripple.SerializedObject(message.tx_blob).to_json();
@@ -1019,26 +852,26 @@ suite('post orders', function() {
     });
 
     self.app
-    .post('/v1/accounts/' + addresses.VALID + '/orders')
-    .send(fixtures.order({
-      taker_gets: {
-        currency: 'XRP',
-        value: '100000',
-        counterparty: ''
-      }
-    }))
-    .expect(testutils.checkBody(fixtures.RESTSubmitTransactionResponse({
-      hash: hash,
-      last_ledger: lastLedger,
-      taker_gets: {
-        currency: 'XRP',
-        counterparty: '',
-        value: '100000'
-      }
-    })))
-    .expect(testutils.checkStatus(200))
-    .expect(testutils.checkHeaders)
-    .end(done);
+      .post('/v1/accounts/' + addresses.VALID + '/orders')
+      .send(fixtures.order({
+        taker_gets: {
+          currency: 'XRP',
+          value: '100000',
+          counterparty: ''
+        }
+      }))
+      .expect(testutils.checkBody(fixtures.RESTSubmitTransactionResponse({
+        hash: hash,
+        last_ledger: lastLedger,
+        taker_gets: {
+          currency: 'XRP',
+          counterparty: '',
+          value: '100000'
+        }
+      })))
+      .expect(testutils.checkStatus(200))
+      .expect(testutils.checkHeaders)
+      .end(done);
   });
 
   test('/orders -- taker_pays -- xrp', function(done) {
@@ -1049,12 +882,6 @@ suite('post orders', function() {
       hash: hash,
       taker_pays: '100000000000'
     };
-
-    self.wss.once('request_account_info', function(message, conn) {
-      assert.strictEqual(message.command, 'account_info');
-      assert.strictEqual(message.account, addresses.VALID);
-      conn.send(fixtures.accountInfoResponse(message));
-    });
 
     self.wss.once('request_submit', function(message, conn) {
       var so = new ripple.SerializedObject(message.tx_blob).to_json();
@@ -1067,36 +894,30 @@ suite('post orders', function() {
     });
 
     self.app
-    .post('/v1/accounts/' + addresses.VALID + '/orders')
-    .send(fixtures.order({
-      taker_pays: {
-        currency: 'XRP',
-        value: '100000'
-      }
-    }))
-    .expect(testutils.checkStatus(200))
-    .expect(testutils.checkHeaders)
-    .expect(testutils.checkBody(fixtures.RESTSubmitTransactionResponse({
-      hash: hash,
-      last_ledger: lastLedger,
-      taker_pays: {
-        currency: 'XRP',
-        counterparty: '',
-        value: '100000'
-      }
-    })))
-    .end(done);
+      .post('/v1/accounts/' + addresses.VALID + '/orders')
+      .send(fixtures.order({
+        taker_pays: {
+          currency: 'XRP',
+          value: '100000'
+        }
+      }))
+      .expect(testutils.checkStatus(200))
+      .expect(testutils.checkHeaders)
+      .expect(testutils.checkBody(fixtures.RESTSubmitTransactionResponse({
+        hash: hash,
+        last_ledger: lastLedger,
+        taker_pays: {
+          currency: 'XRP',
+          counterparty: '',
+          value: '100000'
+        }
+      })))
+      .end(done);
   });
 
   test('/orders -- unfunded offer', function(done) {
     var lastLedger = self.remote._ledger_current_index;
     var hash = testutils.generateHash();
-
-    self.wss.once('request_account_info', function(message, conn) {
-      assert.strictEqual(message.command, 'account_info');
-      assert.strictEqual(message.account, addresses.VALID);
-      conn.send(fixtures.accountInfoResponse(message));
-    });
 
     self.wss.once('request_submit', function(message, conn) {
       assert.strictEqual(message.command, 'submit');
@@ -1109,223 +930,149 @@ suite('post orders', function() {
     });
 
     self.app
-    .post('/v1/accounts/' + addresses.VALID + '/orders')
-    .send(fixtures.order())
-    .expect(testutils.checkStatus(200))
-    .expect(testutils.checkHeaders)
-    .expect(testutils.checkBody(fixtures.RESTSubmitTransactionResponse({
-      hash: hash,
-      last_ledger: lastLedger
-    })))
-    .end(done);
+      .post('/v1/accounts/' + addresses.VALID + '/orders')
+      .send(fixtures.order())
+      .expect(testutils.checkStatus(200))
+      .expect(testutils.checkHeaders)
+      .expect(testutils.checkBody(fixtures.RESTSubmitTransactionResponse({
+        hash: hash,
+        last_ledger: lastLedger
+      })))
+      .end(done);
   });
 
   test('/orders -- secret missing', function(done) {
-    self.wss.once('request_account_info', function() {
-      assert(false, 'should not request account info');
-    });
-
-    self.wss.once('request_submit', function() {
-      assert(false, 'should not submit request');
-    });
-
     self.app
-    .post('/v1/accounts/' + addresses.VALID + '/orders')
-    .send(_.omit(fixtures.order(), 'secret'))
-    .expect(testutils.checkStatus(400))
-    .expect(testutils.checkHeaders)
-    .expect(testutils.checkBody(errors.RESTMissingSecret))
-    .end(done);
+      .post('/v1/accounts/' + addresses.VALID + '/orders')
+      .send(_.omit(fixtures.order(), 'secret'))
+      .expect(testutils.checkStatus(400))
+      .expect(testutils.checkHeaders)
+      .expect(testutils.checkBody(errors.RESTMissingSecret))
+      .end(done);
   });
 
   test('/orders -- secret invalid', function(done) {
-    self.wss.once('request_account_info', function(message, conn) {
-      assert.strictEqual(message.command, 'account_info');
-      assert.strictEqual(message.account, addresses.VALID);
-      conn.send(fixtures.accountInfoResponse(message));
-    });
-
-    self.wss.once('request_submit', function() {
-      assert(false, 'should not submit request');
-    });
-
     self.app
-    .post('/v1/accounts/' + addresses.VALID + '/orders')
-    .send(fixtures.order({
+      .post('/v1/accounts/' + addresses.VALID + '/orders')
+      .send(fixtures.order({
         secret: 'foo'
-    }))
-    .expect(testutils.checkStatus(400))
-    .expect(testutils.checkHeaders)
-    .expect(testutils.checkBody(errors.RESTInvalidSecret))
-    .end(done);
+      }))
+      .expect(testutils.checkStatus(400))
+      .expect(testutils.checkHeaders)
+      .expect(testutils.checkBody(errors.RESTInvalidSecret))
+      .end(done);
   });
 
   test('/orders -- order missing', function(done) {
-    self.wss.once('request_account_info', function() {
-      assert(false, 'should not request account info');
-    });
-
-    self.wss.once('request_submit', function() {
-      assert(false, 'should not submit request');
-    });
-
     self.app
-    .post('/v1/accounts/' + addresses.VALID + '/orders')
-    .send({
-      secret: addresses.SECRET
-    })
-    .expect(testutils.checkStatus(400))
-    .expect(testutils.checkHeaders)
-    .expect(testutils.checkBody(errors.RESTErrorResponse({
-      type: 'invalid_request',
-      error: 'restINVALID_PARAMETER',
-      message: 'Parameter missing: order'
-    })))
-    .end(done);
+      .post('/v1/accounts/' + addresses.VALID + '/orders')
+      .send({
+        secret: addresses.SECRET
+      })
+      .expect(testutils.checkStatus(400))
+      .expect(testutils.checkHeaders)
+      .expect(testutils.checkBody(errors.RESTErrorResponse({
+        type: 'invalid_request',
+        error: 'restINVALID_PARAMETER',
+        message: 'Parameter missing: order'
+      })))
+      .end(done);
   });
 
   test('/orders -- type missing', function(done) {
-    self.wss.once('request_account_info', function() {
-      assert(false, 'should not request account info');
-    });
-
-    self.wss.once('request_submit', function() {
-      assert(false, 'should not submit request');
-    });
-
     self.app
-    .post('/v1/accounts/' + addresses.VALID + '/orders')
-    .send(fixtures.order({
-      type: 'test'
-    }))
-    .expect(testutils.checkStatus(400))
-    .expect(testutils.checkHeaders)
-    .expect(testutils.checkBody(errors.RESTErrorResponse({
-      type: 'invalid_request',
-      error: 'restINVALID_PARAMETER',
-      message: 'Parameter must be "buy" or "sell": type'
-    })))
-    .end(done);
+      .post('/v1/accounts/' + addresses.VALID + '/orders')
+      .send(fixtures.order({
+        type: 'test'
+      }))
+      .expect(testutils.checkStatus(400))
+      .expect(testutils.checkHeaders)
+      .expect(testutils.checkBody(errors.RESTErrorResponse({
+        type: 'invalid_request',
+        error: 'restINVALID_PARAMETER',
+        message: 'Parameter must be "buy" or "sell": type'
+      })))
+      .end(done);
   });
 
   test('/orders -- taker_gets invalid', function(done) {
-    self.wss.once('request_account_info', function() {
-      assert(false, 'should not request account info');
-    });
-
-    self.wss.once('request_submit', function() {
-      assert(false, 'should not submit request');
-    });
-
     self.app
-    .post('/v1/accounts/' + addresses.VALID + '/orders')
-    .send(fixtures.order({
-      taker_gets: 'test'
-    }))
-    .expect(testutils.checkStatus(400))
-    .expect(testutils.checkHeaders)
-    .expect(testutils.checkBody(errors.RESTErrorResponse({
-      type: 'invalid_request',
-      error: 'restINVALID_PARAMETER',
-      message: 'Parameter must be a valid Amount object: taker_gets'
-    })))
-    .end(done);
+      .post('/v1/accounts/' + addresses.VALID + '/orders')
+      .send(fixtures.order({
+        taker_gets: 'test'
+      }))
+      .expect(testutils.checkStatus(400))
+      .expect(testutils.checkHeaders)
+      .expect(testutils.checkBody(errors.RESTErrorResponse({
+        type: 'invalid_request',
+        error: 'restINVALID_PARAMETER',
+        message: 'Parameter must be a valid Amount object: taker_gets'
+      })))
+      .end(done);
   });
 
   test('/orders -- taker_gets -- currency without issuer', function(done) {
-    self.wss.once('request_account_info', function() {
-      assert(false, 'should not request account info');
-    });
-
-    self.wss.once('request_submit', function() {
-      assert(false, 'should not submit request');
-    });
-
     self.app
-    .post('/v1/accounts/' + addresses.VALID + '/orders')
-    .send(fixtures.order({
-      taker_gets: {
-        currency: 'USD',
-        value: '100'
-      }
-    }))
-    .expect(testutils.checkStatus(400))
-    .expect(testutils.checkHeaders)
-    .expect(testutils.checkBody(errors.RESTErrorResponse({
-      type: 'invalid_request',
-      error: 'restINVALID_PARAMETER',
-      message: 'Parameter must be a valid Amount object: taker_gets'
-    })))
-    .end(done);
+      .post('/v1/accounts/' + addresses.VALID + '/orders')
+      .send(fixtures.order({
+        taker_gets: {
+          currency: 'USD',
+          value: '100'
+        }
+      }))
+      .expect(testutils.checkStatus(400))
+      .expect(testutils.checkHeaders)
+      .expect(testutils.checkBody(errors.RESTErrorResponse({
+        type: 'invalid_request',
+        error: 'restINVALID_PARAMETER',
+        message: 'Parameter must be a valid Amount object: taker_gets'
+      })))
+      .end(done);
   });
 
   test('/orders -- taker_pays invalid', function(done) {
-    self.wss.once('request_account_info', function() {
-      assert(false, 'should not request account info');
-    });
-
-    self.wss.once('request_submit', function() {
-      assert(false, 'should not submit request');
-    });
-
     self.app
-    .post('/v1/accounts/' + addresses.VALID + '/orders')
-    .send(fixtures.order({
-      taker_pays: 'test'
-    }))
-    .expect(testutils.checkStatus(400))
-    .expect(testutils.checkHeaders)
-    .expect(testutils.checkBody(errors.RESTErrorResponse({
-      type: 'invalid_request',
-      error: 'restINVALID_PARAMETER',
-      message: 'Parameter must be a valid Amount object: taker_pays'
-    })))
-    .end(done);
+      .post('/v1/accounts/' + addresses.VALID + '/orders')
+      .send(fixtures.order({
+        taker_pays: 'test'
+      }))
+      .expect(testutils.checkStatus(400))
+      .expect(testutils.checkHeaders)
+      .expect(testutils.checkBody(errors.RESTErrorResponse({
+        type: 'invalid_request',
+        error: 'restINVALID_PARAMETER',
+        message: 'Parameter must be a valid Amount object: taker_pays'
+      })))
+      .end(done);
   });
 
   test('/orders -- taker_pays -- currency without issuer', function(done) {
-    self.wss.once('request_account_info', function() {
-      assert(false, 'should not request account info');
-    });
-
-    self.wss.once('request_submit', function() {
-      assert(false, 'should not submit request');
-    });
-
     self.app
-    .post('/v1/accounts/' + addresses.VALID + '/orders')
-    .send(fixtures.order({
-      taker_pays: {
-        currency: 'USD',
-        value: '100'
-      }
-    }))
-    .expect(testutils.checkStatus(400))
-    .expect(testutils.checkHeaders)
-    .expect(testutils.checkBody(errors.RESTErrorResponse({
-      type: 'invalid_request',
-      error: 'restINVALID_PARAMETER',
-      message: 'Parameter must be a valid Amount object: taker_pays'
-    })))
-    .end(done);
+      .post('/v1/accounts/' + addresses.VALID + '/orders')
+      .send(fixtures.order({
+        taker_pays: {
+          currency: 'USD',
+          value: '100'
+        }
+      }))
+      .expect(testutils.checkStatus(400))
+      .expect(testutils.checkHeaders)
+      .expect(testutils.checkBody(errors.RESTErrorResponse({
+        type: 'invalid_request',
+        error: 'restINVALID_PARAMETER',
+        message: 'Parameter must be a valid Amount object: taker_pays'
+      })))
+      .end(done);
   });
 
   test('/orders -- account invalid', function(done) {
-    self.wss.once('request_account_info', function() {
-      assert(false, 'should not request account info');
-    });
-
-    self.wss.once('request_submit', function() {
-      assert(false, 'should not submit request');
-    });
-
     self.app
-    .post('/v1/accounts/' + addresses.INVALID + '/orders?validated=true')
-    .send(fixtures.order())
-    .expect(testutils.checkStatus(400))
-    .expect(testutils.checkHeaders)
-    .expect(testutils.checkBody(errors.RESTInvalidAccount))
-    .end(done);
+      .post('/v1/accounts/' + addresses.INVALID + '/orders?validated=true')
+      .send(fixtures.order())
+      .expect(testutils.checkStatus(400))
+      .expect(testutils.checkHeaders)
+      .expect(testutils.checkBody(errors.RESTInvalidAccount))
+      .end(done);
   });
 });
 
@@ -1338,12 +1085,6 @@ suite('delete orders', function() {
   test('/orders/:sequence?validated=true', function(done) {
     var lastLedger = self.remote._ledger_current_index;
     var hash = testutils.generateHash();
-
-    self.wss.once('request_account_info', function(message, conn) {
-      assert.strictEqual(message.command, 'account_info');
-      assert.strictEqual(message.account, addresses.VALID);
-      conn.send(fixtures.accountInfoResponse(message));
-    });
 
     self.wss.once('request_submit', function(message, conn) {
       var so = new ripple.SerializedObject(message.tx_blob).to_json();
@@ -1362,27 +1103,21 @@ suite('delete orders', function() {
     });
 
     self.app
-    .del('/v1/accounts/' + addresses.VALID + '/orders/99?validated=true')
-    .send({
-      secret: addresses.SECRET
-    })
-    .expect(testutils.checkStatus(200))
-    .expect(testutils.checkHeaders)
-    .expect(testutils.checkBody(fixtures.RESTCancelTransactionResponse({
-      state: 'validated',
-      hash: hash,
-      last_ledger: lastLedger
-    })))
-    .end(done);
+      .del('/v1/accounts/' + addresses.VALID + '/orders/99?validated=true')
+      .send({
+        secret: addresses.SECRET
+      })
+      .expect(testutils.checkStatus(200))
+      .expect(testutils.checkHeaders)
+      .expect(testutils.checkBody(fixtures.RESTCancelTransactionResponse({
+        state: 'validated',
+        hash: hash,
+        last_ledger: lastLedger
+      })))
+      .end(done);
   });
 
   test('/orders/:sequence -- ledger sequence too high', function(done) {
-    self.wss.once('request_account_info', function(message, conn) {
-      assert.strictEqual(message.command, 'account_info');
-      assert.strictEqual(message.account, addresses.VALID);
-      conn.send(fixtures.accountInfoResponse(message));
-    });
-
     self.wss.once('request_submit', function(message, conn) {
       assert.strictEqual(message.command, 'submit');
       conn.send(fixtures.ledgerSequenceTooHighResponse(message));
@@ -1390,47 +1125,31 @@ suite('delete orders', function() {
     });
 
     self.app
-    .del('/v1/accounts/' + addresses.VALID + '/orders/99')
-    .send({
-      secret: addresses.SECRET
-    })
-    .expect(testutils.checkBody(errors.RESTResponseLedgerSequenceTooHigh))
-    .expect(testutils.checkStatus(500))
-    .expect(testutils.checkHeaders)
-    .end(done);
+      .del('/v1/accounts/' + addresses.VALID + '/orders/99')
+      .send({
+        secret: addresses.SECRET
+      })
+      .expect(testutils.checkBody(errors.RESTResponseLedgerSequenceTooHigh))
+      .expect(testutils.checkStatus(500))
+      .expect(testutils.checkHeaders)
+      .end(done);
   });
 
   test('/orders/:sequence -- secret invalid', function(done) {
-    self.wss.once('request_account_info', function(message, conn) {
-      assert.strictEqual(message.command, 'account_info');
-      assert.strictEqual(message.account, addresses.VALID);
-      conn.send(fixtures.accountInfoResponse(message));
-    });
-
-    self.wss.once('request_submit', function() {
-      assert(false);
-    });
-
     self.app
-    .del('/v1/accounts/' + addresses.VALID + '/orders/99')
-    .send(fixtures.order({
-      secret: 'foo'
-    }))
-    .expect(testutils.checkStatus(400))
-    .expect(testutils.checkHeaders)
-    .expect(testutils.checkBody(errors.RESTInvalidSecret))
-    .end(done);
+      .del('/v1/accounts/' + addresses.VALID + '/orders/99')
+      .send(fixtures.order({
+        secret: 'foo'
+      }))
+      .expect(testutils.checkStatus(400))
+      .expect(testutils.checkHeaders)
+      .expect(testutils.checkBody(errors.RESTInvalidSecret))
+      .end(done);
   });
 
   test('/orders/:sequence', function(done) {
     var lastLedger = self.remote._ledger_current_index;
     var hash = testutils.generateHash();
-
-    self.wss.once('request_account_info', function(message, conn) {
-      assert.strictEqual(message.command, 'account_info');
-      assert.strictEqual(message.account, addresses.VALID);
-      conn.send(fixtures.accountInfoResponse(message));
-    });
 
     self.wss.once('request_submit', function(message, conn) {
       var so = new ripple.SerializedObject(message.tx_blob).to_json();
@@ -1443,27 +1162,21 @@ suite('delete orders', function() {
     });
 
     self.app
-    .del('/v1/accounts/' + addresses.VALID + '/orders/99')
-    .send({
-      secret: addresses.SECRET
-    })
-    .expect(testutils.checkStatus(200))
-    .expect(testutils.checkHeaders)
-    .expect(testutils.checkBody(fixtures.RESTCancelTransactionResponse({
-      hash: hash,
-      last_ledger: lastLedger
-    })))
-    .end(done);
+      .del('/v1/accounts/' + addresses.VALID + '/orders/99')
+      .send({
+        secret: addresses.SECRET
+      })
+      .expect(testutils.checkStatus(200))
+      .expect(testutils.checkHeaders)
+      .expect(testutils.checkBody(fixtures.RESTCancelTransactionResponse({
+        hash: hash,
+        last_ledger: lastLedger
+      })))
+      .end(done);
   });
 
   test('/orders/:sequence -- bad sequence', function(done) {
     var hash = testutils.generateHash();
-
-    self.wss.once('request_account_info', function(message, conn) {
-      assert.strictEqual(message.command, 'account_info');
-      assert.strictEqual(message.account, addresses.VALID);
-      conn.send(fixtures.accountInfoResponse(message));
-    });
 
     self.wss.once('request_submit', function(message, conn) {
       var so = new ripple.SerializedObject(message.tx_blob).to_json();
@@ -1479,102 +1192,68 @@ suite('delete orders', function() {
     });
 
     self.app
-    .del('/v1/accounts/' + addresses.VALID + '/orders/99')
-    .send({
-      secret: addresses.SECRET
-    })
-    .expect(testutils.checkStatus(500))
-    .expect(testutils.checkHeaders)
-    .expect(testutils.checkBody(errors.RESTErrorResponse({
-      type: 'transaction',
-      error: 'temBAD_SEQUENCE',
-      message: 'Malformed: Sequence is not in the past.'
-    })))
-    .end(done);
+      .del('/v1/accounts/' + addresses.VALID + '/orders/99')
+      .send({
+        secret: addresses.SECRET
+      })
+      .expect(testutils.checkStatus(500))
+      .expect(testutils.checkHeaders)
+      .expect(testutils.checkBody(errors.RESTErrorResponse({
+        type: 'transaction',
+        error: 'temBAD_SEQUENCE',
+        message: 'Malformed: Sequence is not in the past.'
+      })))
+      .end(done);
   });
 
   test('/orders/:sequence -- sequence invalid', function(done) {
-    self.wss.once('request_account_info', function() {
-      assert(false, 'should not request account info');
-    });
-
-    self.wss.once('request_submit', function() {
-      assert(false, 'should not submit request');
-    });
-
     self.app
-    .del('/v1/accounts/' + addresses.VALID + '/orders/foo')
-    .send({
-      secret: addresses.SECRET
-    })
-    .expect(testutils.checkStatus(400))
-    .expect(testutils.checkHeaders)
-    .expect(testutils.checkBody(errors.RESTErrorResponse({
-      type: 'invalid_request',
-      error: 'restINVALID_PARAMETER',
-      message: 'Invalid parameter: sequence. Sequence must be a positive number'
-    })))
-    .end(done);
+      .del('/v1/accounts/' + addresses.VALID + '/orders/foo')
+      .send({
+        secret: addresses.SECRET
+      })
+      .expect(testutils.checkStatus(400))
+      .expect(testutils.checkHeaders)
+      .expect(testutils.checkBody(errors.RESTErrorResponse({
+        type: 'invalid_request',
+        error: 'restINVALID_PARAMETER',
+        message: 'Invalid parameter: sequence. Sequence must be a positive number'
+      })))
+      .end(done);
   });
 
   test('/orders/:sequence -- secret missing', function(done) {
-    self.wss.once('request_account_info', function() {
-      assert(false, 'should not request account info');
-    });
-
-    self.wss.once('request_submit', function() {
-      assert(false, 'should not submit request');
-    });
-
     self.app
-    .del('/v1/accounts/' + addresses.VALID + '/orders/99')
-    .send({})
-    .expect(testutils.checkStatus(400))
-    .expect(testutils.checkHeaders)
-    .expect(testutils.checkBody(errors.RESTMissingSecret))
-    .end(done);
+      .del('/v1/accounts/' + addresses.VALID + '/orders/99')
+      .send({})
+      .expect(testutils.checkStatus(400))
+      .expect(testutils.checkHeaders)
+      .expect(testutils.checkBody(errors.RESTMissingSecret))
+      .end(done);
   });
 
   test('/orders/:sequence -- secret invalid', function(done) {
-    self.wss.once('request_account_info', function(message, conn) {
-      assert.strictEqual(message.command, 'account_info');
-      assert.strictEqual(message.account, addresses.VALID);
-      conn.send(fixtures.accountInfoResponse(message));
-    });
-
-    self.wss.once('request_submit', function() {
-      assert(false, 'should not submit request');
-    });
-
     self.app
-    .del('/v1/accounts/' + addresses.VALID + '/orders/99')
-    .send({
-      secret: 'foo'
-    })
-    .expect(testutils.checkStatus(400))
-    .expect(testutils.checkHeaders)
-    .expect(testutils.checkBody(errors.RESTInvalidSecret))
-    .end(done);
+      .del('/v1/accounts/' + addresses.VALID + '/orders/99')
+      .send({
+        secret: 'foo'
+      })
+      .expect(testutils.checkStatus(400))
+      .expect(testutils.checkHeaders)
+      .expect(testutils.checkBody(errors.RESTInvalidSecret))
+      .end(done);
   });
 
   test('/orders/:sequence -- account invalid', function(done) {
-    self.wss.once('request_account_info', function() {
-      assert(false, 'should not request account info');
-    });
-
-    self.wss.once('request_submit', function() {
-      assert(false, 'should not submit request');
-    });
-
     self.app
-    .del('/v1/accounts/' + addresses.INVALID + '/orders/99?validated=true')
-    .send({
-      secret: addresses.SECRET
-    })
-    .expect(testutils.checkStatus(400))
-    .expect(testutils.checkHeaders)
-    .expect(testutils.checkBody(errors.RESTInvalidAccount))
-    .end(done);
+      .del('/v1/accounts/' + addresses.INVALID + '/orders/99?validated=true')
+      .send({
+        secret: addresses.SECRET
+      })
+      .expect(testutils.checkStatus(400))
+      .expect(testutils.checkHeaders)
+      .expect(testutils.checkBody(errors.RESTInvalidAccount))
+      .end(done);
   });
 });
 
@@ -1585,13 +1264,6 @@ suite('get order book', function() {
   teardown(testutils.teardown.bind(self));
 
   test('v1/accounts/:account/order_book/:base/:counter', function(done) {
-    self.wss.on('request_ledger', function(message, conn) {
-      assert.strictEqual(message.ledger_index, 'validated');
-      conn.send(fixtures.requestLedgerResponse(message, {
-        ledger: LEDGER
-      }));
-    });
-
     self.wss.on('request_book_offers', function(message, conn) {
       assert.strictEqual(message.command, 'book_offers');
       assert.strictEqual(message.ledger_index, LEDGER);
@@ -1607,23 +1279,16 @@ suite('get order book', function() {
     });
 
     self.app
-    .get('/v1/accounts/' + addresses.VALID + '/order_book/BTC+' + addresses.ISSUER + '/USD+' + addresses.ISSUER)
-    .expect(testutils.checkStatus(200))
-    .expect(testutils.checkHeaders)
-    .expect(testutils.checkBody(fixtures.RESTOrderBookResponse({
-      ledger: LEDGER
-    })))
-    .end(done);
+      .get('/v1/accounts/' + addresses.VALID + '/order_book/BTC+' + addresses.ISSUER + '/USD+' + addresses.ISSUER)
+      .expect(testutils.checkStatus(200))
+      .expect(testutils.checkHeaders)
+      .expect(testutils.checkBody(fixtures.RESTOrderBookResponse({
+        ledger: LEDGER
+      })))
+      .end(done);
   });
 
   test('v1/accounts/:account/order_book/:base/:counter -- with partially funded ask', function(done) {
-    self.wss.on('request_ledger', function(message, conn) {
-      assert.strictEqual(message.ledger_index, 'validated');
-      conn.send(fixtures.requestLedgerResponse(message, {
-        ledger: LEDGER
-      }));
-    });
-
     self.wss.on('request_book_offers', function(message, conn) {
       assert.strictEqual(message.command, 'book_offers');
       assert.strictEqual(message.ledger_index, LEDGER);
@@ -1638,21 +1303,14 @@ suite('get order book', function() {
     });
 
     self.app
-    .get('/v1/accounts/' + addresses.VALID + '/order_book/BTC+' + addresses.ISSUER + '/USD+' + addresses.ISSUER)
-    .expect(testutils.checkStatus(200))
-    .expect(testutils.checkHeaders)
-    .expect(testutils.checkBody(fixtures.RESTOrderBookPartialAskResponse()))
-    .end(done);
+      .get('/v1/accounts/' + addresses.VALID + '/order_book/BTC+' + addresses.ISSUER + '/USD+' + addresses.ISSUER)
+      .expect(testutils.checkStatus(200))
+      .expect(testutils.checkHeaders)
+      .expect(testutils.checkBody(fixtures.RESTOrderBookPartialAskResponse()))
+      .end(done);
   });
 
   test('v1/accounts/:account/order_book/:base/:counter -- with partially funded bid', function(done) {
-    self.wss.on('request_ledger', function(message, conn) {
-      assert.strictEqual(message.ledger_index, 'validated');
-      conn.send(fixtures.requestLedgerResponse(message, {
-        ledger: LEDGER
-      }));
-    });
-
     self.wss.on('request_book_offers', function(message, conn) {
       assert.strictEqual(message.command, 'book_offers');
       assert.strictEqual(message.ledger_index, LEDGER);
@@ -1667,21 +1325,14 @@ suite('get order book', function() {
     });
 
     self.app
-    .get('/v1/accounts/' + addresses.VALID + '/order_book/BTC+' + addresses.ISSUER + '/USD+' + addresses.ISSUER)
-    .expect(testutils.checkStatus(200))
-    .expect(testutils.checkHeaders)
-    .expect(testutils.checkBody(fixtures.RESTOrderBookPartialBidResponse()))
-    .end(done);
+      .get('/v1/accounts/' + addresses.VALID + '/order_book/BTC+' + addresses.ISSUER + '/USD+' + addresses.ISSUER)
+      .expect(testutils.checkStatus(200))
+      .expect(testutils.checkHeaders)
+      .expect(testutils.checkBody(fixtures.RESTOrderBookPartialBidResponse()))
+      .end(done);
   });
 
   test('v1/accounts/:account/order_book/:base/:counter -- with limit', function(done) {
-    self.wss.on('request_ledger', function(message, conn) {
-      assert.strictEqual(message.ledger_index, 'validated');
-      conn.send(fixtures.requestLedgerResponse(message, {
-        ledger: LEDGER
-      }));
-    });
-
     self.wss.on('request_book_offers', function(message, conn) {
       assert.strictEqual(message.command, 'book_offers');
       assert.strictEqual(message.ledger_index, LEDGER);
@@ -1698,21 +1349,14 @@ suite('get order book', function() {
     });
 
     self.app
-    .get('/v1/accounts/' + addresses.VALID + '/order_book/BTC+' + addresses.ISSUER + '/USD+' + addresses.ISSUER + '?limit=' + LIMIT)
-    .expect(testutils.checkStatus(200))
-    .expect(testutils.checkHeaders)
-    .expect(testutils.checkBody(fixtures.RESTOrderBookResponse()))
-    .end(done);
+      .get('/v1/accounts/' + addresses.VALID + '/order_book/BTC+' + addresses.ISSUER + '/USD+' + addresses.ISSUER + '?limit=' + LIMIT)
+      .expect(testutils.checkStatus(200))
+      .expect(testutils.checkHeaders)
+      .expect(testutils.checkBody(fixtures.RESTOrderBookResponse()))
+      .end(done);
   });
 
   test('v1/accounts/:account/order_book/:base/:counter -- with XRP as base', function(done) {
-    self.wss.on('request_ledger', function(message, conn) {
-      assert.strictEqual(message.ledger_index, 'validated');
-      conn.send(fixtures.requestLedgerResponse(message, {
-        ledger: LEDGER
-      }));
-    });
-
     self.wss.on('request_book_offers', function(message, conn) {
       assert.strictEqual(message.command, 'book_offers');
       assert.strictEqual(message.ledger_index, LEDGER);
@@ -1728,23 +1372,16 @@ suite('get order book', function() {
     });
 
     self.app
-    .get('/v1/accounts/' + addresses.VALID + '/order_book/XRP/USD+' + addresses.COUNTERPARTY)
-    .expect(testutils.checkStatus(200))
-    .expect(testutils.checkHeaders)
-    .expect(testutils.checkBody(fixtures.RESTOrderBookXRPBaseResponse({
-      ledger: LEDGER
-    })))
-    .end(done);
+      .get('/v1/accounts/' + addresses.VALID + '/order_book/XRP/USD+' + addresses.COUNTERPARTY)
+      .expect(testutils.checkStatus(200))
+      .expect(testutils.checkHeaders)
+      .expect(testutils.checkBody(fixtures.RESTOrderBookXRPBaseResponse({
+        ledger: LEDGER
+      })))
+      .end(done);
   });
 
   test('v1/accounts/:account/order_book/:base/:counter -- with XRP as counter', function(done) {
-    self.wss.on('request_ledger', function(message, conn) {
-      assert.strictEqual(message.ledger_index, 'validated');
-      conn.send(fixtures.requestLedgerResponse(message, {
-        ledger: LEDGER
-      }));
-    });
-
     self.wss.on('request_book_offers', function(message, conn) {
       assert.strictEqual(message.command, 'book_offers');
       assert.strictEqual(message.ledger_index, LEDGER);
@@ -1760,132 +1397,76 @@ suite('get order book', function() {
     });
 
     self.app
-    .get('/v1/accounts/' + addresses.VALID + '/order_book/USD+' + addresses.COUNTERPARTY + '/XRP')
-    .expect(testutils.checkStatus(200))
-    .expect(testutils.checkHeaders)
-    .expect(testutils.checkBody(fixtures.RESTOrderBookXRPCounterResponse({
-      ledger: LEDGER
-    })))
-    .end(done);
+      .get('/v1/accounts/' + addresses.VALID + '/order_book/USD+' + addresses.COUNTERPARTY + '/XRP')
+      .expect(testutils.checkStatus(200))
+      .expect(testutils.checkHeaders)
+      .expect(testutils.checkBody(fixtures.RESTOrderBookXRPCounterResponse({
+        ledger: LEDGER
+      })))
+      .end(done);
   });
 
   test('v1/accounts/:account/order_book/:base/:counter -- with invalid currency as base', function(done) {
-    self.wss.on('request_ledger', function() {
-      assert(false, 'Should not request ledger info');
-    });
-
-    self.wss.on('request_book_offers', function() {
-      assert(false, 'Should not request book offers');
-    });
-
     self.app
-    .get('/v1/accounts/' + addresses.VALID + '/order_book/' + 'AAAA+' + addresses.ISSUER + '/BTC+' + addresses.ISSUER)
-    .expect(testutils.checkStatus(400))
-    .expect(testutils.checkHeaders)
-    .expect(testutils.checkBody(errors.RESTInvalidBase))
-    .end(done);
+      .get('/v1/accounts/' + addresses.VALID + '/order_book/' + 'AAAA+' + addresses.ISSUER + '/BTC+' + addresses.ISSUER)
+      .expect(testutils.checkStatus(400))
+      .expect(testutils.checkHeaders)
+      .expect(testutils.checkBody(errors.RESTInvalidBase))
+      .end(done);
   });
 
   test('v1/accounts/:account/order_book/:base/:counter -- with invalid currency as counter', function(done) {
-    self.wss.on('request_ledger', function() {
-      assert(false, 'Should not request ledger info');
-    });
-
-    self.wss.on('request_book_offers', function() {
-      assert(false, 'Should not request book offers');
-    });
-
     self.app
-    .get('/v1/accounts/' + addresses.VALID + '/order_book/' + 'BTC+' + addresses.ISSUER + '/AAAA+' + addresses.ISSUER)
-    .expect(testutils.checkStatus(400))
-    .expect(testutils.checkHeaders)
-    .expect(testutils.checkBody(errors.RESTInvalidCounter))
-    .end(done);
+      .get('/v1/accounts/' + addresses.VALID + '/order_book/' + 'BTC+' + addresses.ISSUER + '/AAAA+' + addresses.ISSUER)
+      .expect(testutils.checkStatus(400))
+      .expect(testutils.checkHeaders)
+      .expect(testutils.checkBody(errors.RESTInvalidCounter))
+      .end(done);
   });
 
   test('v1/accounts/:account/order_book/:base/:counter -- with invalid base counterparty', function(done) {
-    self.wss.on('request_ledger', function() {
-      assert(false, 'Should not request ledger info');
-    });
-
-    self.wss.on('request_book_offers', function() {
-      assert(false, 'Should not request book offers');
-    });
-
     self.app
-    .get('/v1/accounts/' + addresses.VALID + '/order_book/' + 'BTC+' + addresses.INVALID + '/USD+' + addresses.ISSUER)
-    .expect(testutils.checkStatus(400))
-    .expect(testutils.checkHeaders)
-    .expect(testutils.checkBody(errors.RESTInvalidBase))
-    .end(done);
+      .get('/v1/accounts/' + addresses.VALID + '/order_book/' + 'BTC+' + addresses.INVALID + '/USD+' + addresses.ISSUER)
+      .expect(testutils.checkStatus(400))
+      .expect(testutils.checkHeaders)
+      .expect(testutils.checkBody(errors.RESTInvalidBase))
+      .end(done);
   });
 
   test('v1/accounts/:account/order_book/:base/:counter -- with invalid counter counterparty', function(done) {
-    self.wss.on('request_ledger', function() {
-      assert(false, 'Should not request ledger info');
-    });
-
-    self.wss.on('request_book_offers', function() {
-      assert(false, 'Should not request book offers');
-    });
-
     self.app
-    .get('/v1/accounts/' + addresses.VALID + '/order_book/' + 'BTC+' + addresses.ISSUER + '/USD+' + addresses.INVALID)
-    .expect(testutils.checkStatus(400))
-    .expect(testutils.checkHeaders)
-    .expect(testutils.checkBody(errors.RESTInvalidCounter))
-    .end(done);
+      .get('/v1/accounts/' + addresses.VALID + '/order_book/' + 'BTC+' + addresses.ISSUER + '/USD+' + addresses.INVALID)
+      .expect(testutils.checkStatus(400))
+      .expect(testutils.checkHeaders)
+      .expect(testutils.checkBody(errors.RESTInvalidCounter))
+      .end(done);
   });
 
   test('v1/accounts/:account/order_book/:base/:counter -- with XRP as base with counterparty', function(done) {
-    self.wss.on('request_ledger', function() {
-      assert(false, 'Should not request ledger info');
-    });
-
-    self.wss.on('request_book_offers', function() {
-      assert(false, 'Should not request book offers');
-    });
-
     self.app
-    .get('/v1/accounts/' + addresses.VALID + '/order_book/' + 'XRP+' + addresses.ISSUER + '/USD+' + addresses.ISSUER)
-    .expect(testutils.checkStatus(400))
-    .expect(testutils.checkHeaders)
-    .expect(testutils.checkBody(errors.RESTInvalidXRPBase))
-    .end(done);
+      .get('/v1/accounts/' + addresses.VALID + '/order_book/' + 'XRP+' + addresses.ISSUER + '/USD+' + addresses.ISSUER)
+      .expect(testutils.checkStatus(400))
+      .expect(testutils.checkHeaders)
+      .expect(testutils.checkBody(errors.RESTInvalidXRPBase))
+      .end(done);
   });
 
   test('v1/accounts/:account/order_book/:base/:counter -- with XRP as counter with issuer', function(done) {
-    self.wss.on('request_ledger', function() {
-      assert(false, 'Should not request ledger info');
-    });
-
-    self.wss.on('request_book_offers', function() {
-      assert(false, 'Should not request book offers');
-    });
-
     self.app
-    .get('/v1/accounts/' + addresses.VALID + '/order_book/' + 'BTC+' + addresses.ISSUER + '/XRP+' + addresses.ISSUER)
-    .expect(testutils.checkStatus(400))
-    .expect(testutils.checkHeaders)
-    .expect(testutils.checkBody(errors.RESTInvalidXRPCounter))
-    .end(done);
+      .get('/v1/accounts/' + addresses.VALID + '/order_book/' + 'BTC+' + addresses.ISSUER + '/XRP+' + addresses.ISSUER)
+      .expect(testutils.checkStatus(400))
+      .expect(testutils.checkHeaders)
+      .expect(testutils.checkBody(errors.RESTInvalidXRPCounter))
+      .end(done);
   });
 
   test('v1/accounts/:account/order_book/:base/:counter -- with invalid account', function(done) {
-    self.wss.on('request_ledger', function() {
-      assert(false, 'Should not request ledger info');
-    });
-
-    self.wss.on('request_book_offers', function() {
-      assert(false, 'Should not request book offers');
-    });
-
     self.app
-    .get('/v1/accounts/' + addresses.INVALID + '/order_book/BTC+' + addresses.ISSUER + '/XRP')
-    .expect(testutils.checkStatus(400))
-    .expect(testutils.checkHeaders)
-    .expect(testutils.checkBody(errors.RESTInvalidAccount))
-    .end(done);
+      .get('/v1/accounts/' + addresses.INVALID + '/order_book/BTC+' + addresses.ISSUER + '/XRP')
+      .expect(testutils.checkStatus(400))
+      .expect(testutils.checkHeaders)
+      .expect(testutils.checkBody(errors.RESTInvalidAccount))
+      .end(done);
   });
 });
 
@@ -1897,6 +1478,7 @@ suite('get order', function() {
   teardown(testutils.teardown.bind(self));
 
   test('v1/accounts/:account/order/:identifier', function(done) {
+    self.wss.removeAllListeners('request_tx');
     self.wss.on('request_tx', function(message, conn) {
       assert.strictEqual(message.transaction, hash);
       conn.send(fixtures.requestTxOfferCreateResponse(message, {
@@ -1906,54 +1488,47 @@ suite('get order', function() {
     });
 
     self.app
-    .get('/v1/accounts/' + addresses.VALID + '/orders/' + hash)
-    .expect(testutils.checkStatus(200))
-    .expect(testutils.checkHeaders)
-    .expect(testutils.checkBody(fixtures.RESTOrderResponse({
-      hash: hash,
-      account: addresses.VALID
-    })))
-    .end(done);
+      .get('/v1/accounts/' + addresses.VALID + '/orders/' + hash)
+      .expect(testutils.checkStatus(200))
+      .expect(testutils.checkHeaders)
+      .expect(testutils.checkBody(fixtures.RESTOrderResponse({
+        hash: hash,
+        account: addresses.VALID
+      })))
+      .end(done);
   });
 
   test('v1/accounts/:account/order_change/:identifier -- invalid transaction hash', function(done) {
-    self.wss.on('request_tx', function() {
-      assert(false, 'should not submit request');
-    });
-
     self.app
-    .get('/v1/accounts/' + addresses.VALID + '/orders/foo')
-    .expect(testutils.checkStatus(400))
-    .expect(testutils.checkHeaders)
-    .expect(testutils.checkBody(errors.RESTInvalidTransactionHash))
-    .end(done);
+      .get('/v1/accounts/' + addresses.VALID + '/orders/foo')
+      .expect(testutils.checkStatus(400))
+      .expect(testutils.checkHeaders)
+      .expect(testutils.checkBody(errors.RESTInvalidTransactionHash))
+      .end(done);
   });
 
   test('v1/accounts/:account/order_change/:identifier -- invalid transaction (payment)', function(done) {
     var requestTxPaymentResponse = require('./fixtures').payments.transactionResponse;
 
+    self.wss.removeAllListeners('request_tx');
     self.wss.on('request_tx', function(message, conn) {
       conn.send(requestTxPaymentResponse(message));
     });
 
     self.app
-    .get('/v1/accounts/' + addresses.VALID + '/orders/' + hash)
-    .expect(testutils.checkStatus(400))
-    .expect(testutils.checkHeaders)
-    .expect(testutils.checkBody(errors.RESTInvalidTransactionNotAnOrder))
-    .end(done);
+      .get('/v1/accounts/' + addresses.VALID + '/orders/' + hash)
+      .expect(testutils.checkStatus(400))
+      .expect(testutils.checkHeaders)
+      .expect(testutils.checkBody(errors.RESTInvalidTransactionNotAnOrder))
+      .end(done);
   });
 
   test('v1/accounts/:account/order_change/:identifier -- invalid account', function(done) {
-    self.wss.once('request_tx', function() {
-      assert(false, 'Should not request transaction');
-    });
-
     self.app
-    .get('/v1/accounts/' + addresses.INVALID + '/orders/' + hash)
-    .expect(testutils.checkStatus(400))
-    .expect(testutils.checkHeaders)
-    .expect(testutils.checkBody(errors.RESTInvalidAccount))
-    .end(done);
+      .get('/v1/accounts/' + addresses.INVALID + '/orders/' + hash)
+      .expect(testutils.checkStatus(400))
+      .expect(testutils.checkHeaders)
+      .expect(testutils.checkBody(errors.RESTInvalidAccount))
+      .end(done);
   });
 });

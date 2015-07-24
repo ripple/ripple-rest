@@ -1,11 +1,11 @@
 /* global crypto: true */
 'use strict';
 var _ = require('lodash');
+var net = require('net');
 var assert = require('assert-diff');
 var supertest = require('supertest');
-var WSS = require('ws').Server;
 var ripple = require('ripple-lib');
-var fixtures = require('./fixtures').startup;
+var fixtures = require('./fixtures/mock');
 var addresses = require('./fixtures').addresses;
 var app = require('../server/express_app');
 var crypto = require('crypto');
@@ -14,6 +14,7 @@ var api = require('../server/api');
 var apiFactory = require('../server/apifactory');
 var version = require('../server/version');
 var PRNGMock = require('./prngmock');
+var makeMockRippled = require('./mock-rippled');
 
 var LEDGER_OFFSET = 3;
 
@@ -42,6 +43,41 @@ function getPrepareURL(type) {
   return getURLBase() + '/transaction/prepare/' + type;
 }
 
+function getFreePort(callback) {
+  var server = net.createServer();
+  var port;
+  server.on('listening', function() {
+    port = server.address().port;
+    server.close();
+  });
+  server.on('close', function() {
+    callback(null, port);
+  });
+  server.on('error', function(error) {
+    callback(error);
+  });
+  server.listen(0);
+}
+
+function setupServer(testcase, port, done) {
+  testcase.wss = makeMockRippled(port);
+
+  testcase.remote.once('connect', function() {
+    testcase.remote.getServer().once('ledger_closed', function() {
+      testcase.db.clear().then(function() {
+        testcase.db.init(done);
+      });
+    });
+    testcase.remote.getServer().emit('message',
+                                     JSON.parse(fixtures.ledgerClose(0)));
+  });
+
+  // testcase.remote.trace = true;
+  testcase.remote._servers = [];
+  testcase.remote.addServer('ws://localhost:' + port);
+  testcase.remote.connect();
+}
+
 function resetAPI() {
   var newAPI = apiFactory();
   api.remote = newAPI.remote;
@@ -50,41 +86,17 @@ function resetAPI() {
 
 function setup(done) {
   var self = this;
-
   self.app = supertest(app);
-
   resetAPI();
   self.remote = api.remote;
   self.db = api.db;
 
-  self.wss = new WSS({port: 5995});
-
-  self.wss.once('connection', function(conn) {
-    conn.on('message', function(message) {
-      message = JSON.parse(message);
-      self.wss.emit('request_' + message.command, message, conn);
-    });
+  getFreePort(function(error, port) {
+    if (error) {
+      throw new Error('Unable to obtain a free port: ' + error);
+    }
+    setupServer(self, port, done);
   });
-
-  self.wss.once('request_subscribe', function(message, conn) {
-    assert.strictEqual(message.command, 'subscribe');
-    assert.deepEqual(message.streams, ['ledger', 'server']);
-    conn.send(fixtures.subscribeResponse(message));
-  });
-
-  self.remote.once('connect', function() {
-    self.remote.getServer().once('ledger_closed', function() {
-      self.db.clear().then(function() {
-        self.db.init(done);
-      });
-    });
-    self.remote.getServer().emit('message', fixtures.ledgerClose(0));
-  });
-
-  // self.remote.trace = true;
-  self.remote._servers = [ ];
-  self.remote.addServer('ws://localhost:5995');
-  self.remote.connect();
 }
 
 function teardown(done) {

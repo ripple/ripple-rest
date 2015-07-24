@@ -1,4 +1,5 @@
-module.exports.startup = require('./startup');
+'use strict';
+module.exports.mock = require('./mock');
 module.exports.addresses = require('./addresses');
 module.exports.errors = require('./errors');
 module.exports.server = require('./server');
@@ -7,7 +8,6 @@ module.exports.notifications = require('./notifications');
 module.exports.payments = require('./payments');
 module.exports.orders = require('./orders');
 module.exports.paths = require('./paths');
-module.exports._payments = require('./_payments');
 module.exports.settings = require('./settings');
 module.exports.balances = require('./balances');
 module.exports.trustlines = require('./trustlines');
