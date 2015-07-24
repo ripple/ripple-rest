@@ -6,7 +6,8 @@ function submit(tx_blob, callback) {
   validate.blob(tx_blob);
   var request = new Request(this.remote, 'submit');
   request.message.tx_blob = tx_blob;
-  request.request(callback);
+  request.callback(callback);
+  request.request();
 }
 
 module.exports = submit;

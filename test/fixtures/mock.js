@@ -3,7 +3,7 @@
 var _ = require('lodash');
 var addresses = require('./addresses');
 var SerializedObject = require('ripple-lib').SerializedObject;
-var BASE_LEDGER_INDEX = 8819951;
+var BASE_LEDGER_INDEX = 8819952;
 
 module.exports.requestPath = function(address, params) {
   return '/v1/accounts/' + address + '/balances' + (params || '');

@@ -57,7 +57,6 @@ module.exports.paymentRestComplex = {
     'issuer': addresses.VALID
   },
   'invoice_id': '',
-  'paths': '[]',
   'partial_payment': false,
   'no_direct_ripple': false
 };
@@ -81,7 +80,6 @@ module.exports.paymentTx = {
   initialSubmitIndex: undefined,
   lastLedgerSequence: undefined,
   state: 'unsubmitted',
-  server: undefined,
   finalized: false
 };
 
@@ -100,7 +98,6 @@ module.exports.paymentTxXRP = {
   initialSubmitIndex: undefined,
   lastLedgerSequence: undefined,
   state: 'unsubmitted',
-  server: undefined,
   finalized: false
 };
 
@@ -128,7 +125,6 @@ module.exports.paymentTxComplex = {
   initialSubmitIndex: undefined,
   lastLedgerSequence: undefined,
   state: 'unsubmitted',
-  server: undefined,
   finalized: false
 };
 
