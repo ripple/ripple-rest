@@ -9,7 +9,7 @@ function createOrderCancellationTransaction(account, sequence) {
   validate.sequence(sequence);
 
   var transaction = new ripple.Transaction();
-  transaction.offerCancel(account, sequence);
+  transaction.offerCancel(account, parseInt(sequence, 10));
   return transaction;
 }
 

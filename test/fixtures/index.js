@@ -8,7 +8,6 @@ module.exports.notifications = require('./notifications');
 module.exports.payments = require('./payments');
 module.exports.orders = require('./orders');
 module.exports.paths = require('./paths');
-module.exports._payments = require('./_payments');
 module.exports.settings = require('./settings');
 module.exports.balances = require('./balances');
 module.exports.trustlines = require('./trustlines');

@@ -68,7 +68,8 @@ function setupServer(testcase, port, done) {
         testcase.db.init(done);
       });
     });
-    testcase.remote.getServer().emit('message', fixtures.ledgerClose(0));
+    testcase.remote.getServer().emit('message',
+                                     JSON.parse(fixtures.ledgerClose(0)));
   });
 
   // testcase.remote.trace = true;
