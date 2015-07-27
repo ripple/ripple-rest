@@ -38,7 +38,7 @@
     "nconf": "^0.6.9",
     "node-uuid": "^1.4.1",
     "ripple-lib": "^0.13.0-rc1",
-    "ripple-lib-transactionparser": "^0.3.2",
+    "ripple-lib-transactionparser": "^0.4",
     "simple-asyncify": "^0.1.0",
     "sqlite3": "^3.0.2",
     "winston": "^1.0.0"
