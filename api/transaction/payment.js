@@ -88,11 +88,18 @@ function createPaymentTransaction(account, payment) {
     }
   }
 
+
+  var isDirectPath = payment.destination_amount.currency === 'XRP'
+    && payment.source_amount.currency === 'XRP';
+
   // Paths
-  if (typeof payment.paths === 'string') {
-    transaction.paths(JSON.parse(payment.paths));
-  } else if (typeof payment.paths === 'object') {
-    transaction.paths(payment.paths);
+  // Don't set paths for XRP->XRP payment
+  if (!isDirectPath) {
+    if (typeof payment.paths === 'string') {
+      transaction.paths(JSON.parse(payment.paths));
+    } else if (typeof payment.paths === 'object') {
+      transaction.paths(payment.paths);
+    }
   }
 
   // Memos
