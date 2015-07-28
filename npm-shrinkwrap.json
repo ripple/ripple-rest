@@ -1,6 +1,6 @@
 {
   "name": "ripple-rest",
-  "version": "1.8.1-rc1",
+  "version": "1.8.1-rc2",
   "npm-shrinkwrap-version": "5.4.0",
   "node-version": "v0.12.7",
   "dependencies": {
@@ -1180,10 +1180,6 @@
                 }
               }
             },
-            "lodash": {
-              "version": "3.10.0",
-              "resolved": "https://registry.npmjs.org/lodash/-/lodash-3.10.0.tgz"
-            },
             "minimatch": {
               "version": "2.0.9",
               "resolved": "https://registry.npmjs.org/minimatch/-/minimatch-2.0.9.tgz",
@@ -1748,10 +1744,6 @@
                   "version": "1.2.11",
                   "resolved": "https://registry.npmjs.org/mime/-/mime-1.2.11.tgz"
                 },
-                "node-uuid": {
-                  "version": "1.4.3",
-                  "resolved": "https://registry.npmjs.org/node-uuid/-/node-uuid-1.4.3.tgz"
-                },
                 "oauth-sign": {
                   "version": "0.2.0",
                   "resolved": "https://registry.npmjs.org/oauth-sign/-/oauth-sign-0.2.0.tgz"
@@ -2147,10 +2139,6 @@
               }
             }
           }
-        },
-        "eventemitter2": {
-          "version": "0.4.14",
-          "resolved": "https://registry.npmjs.org/eventemitter2/-/eventemitter2-0.4.14.tgz"
         },
         "extend": {
           "version": "1.2.1",
@@ -3301,10 +3289,6 @@
                               "resolved": "https://registry.npmjs.org/mime-db/-/mime-db-1.15.0.tgz"
                             }
                           }
-                        },
-                        "node-uuid": {
-                          "version": "1.4.3",
-                          "resolved": "https://registry.npmjs.org/node-uuid/-/node-uuid-1.4.3.tgz"
                         },
                         "oauth-sign": {
                           "version": "0.8.0",
@@ -5847,10 +5831,6 @@
         "ripple-wallet-generator": {
           "version": "1.0.3",
           "resolved": "https://registry.npmjs.org/ripple-wallet-generator/-/ripple-wallet-generator-1.0.3.tgz"
-        },
-        "simple-asyncify": {
-          "version": "0.1.0",
-          "resolved": "https://registry.npmjs.org/simple-asyncify/-/simple-asyncify-0.1.0.tgz"
         },
         "sjcl-extended": {
           "version": "1.0.3",
