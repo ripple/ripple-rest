@@ -27,6 +27,7 @@ suite('unit - createPaymentTransaction', function() {
     var transaction = createPaymentTransaction(ACCOUNT,
       fixtures.paymentRestXRPtoXRP);
     assert.strictEqual(transaction.tx_json.SendMax, undefined);
+    assert.strictEqual(transaction.tx_json.Paths, undefined);
   });
 
   test(' payment XRP to non-XRP', function() {

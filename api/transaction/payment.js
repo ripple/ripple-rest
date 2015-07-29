@@ -6,11 +6,11 @@ var utils = require('./utils');
 var validate = require('../lib/validate');
 var wrapCatch = require('../lib/utils').wrapCatch;
 
-function isSendMaxAllowed(payment) {
+function isSendMaxAndPathsAllowed(payment) {
   var srcAmt = payment.source_amount;
   var dstAmt = payment.destination_amount;
 
-  // Don't set SendMax for XRP->XRP payment
+  // Don't set SendMax or Paths for XRP->XRP payment
   // temREDUNDANT_SEND_MAX removed in:
   // https://github.com/ripple/rippled/commit/
   //  c522ffa6db2648f1d8a987843e7feabf1a0b7de8/
@@ -72,8 +72,9 @@ function createPaymentTransaction(account, payment) {
     transaction.destinationTag(parseInt(payment.destination_tag, 10));
   }
 
-  // SendMax
-  if (isSendMaxAllowed(payment)) {
+  // SendMax and Paths
+  if (isSendMaxAndPathsAllowed(payment)) {
+    // SendMax
     var max_value = new BigNumber(payment.source_amount.value)
       .plus(payment.source_slippage || 0).toString();
 
@@ -86,14 +87,15 @@ function createPaymentTransaction(account, payment) {
         issuer: payment.source_amount.issuer
       });
     }
+
+    // Paths
+    if (typeof payment.paths === 'string') {
+      transaction.paths(JSON.parse(payment.paths));
+    } else if (typeof payment.paths === 'object') {
+      transaction.paths(payment.paths);
+    }
   }
 
-  // Paths
-  if (typeof payment.paths === 'string') {
-    transaction.paths(JSON.parse(payment.paths));
-  } else if (typeof payment.paths === 'object') {
-    transaction.paths(payment.paths);
-  }
 
   // Memos
   if (payment.memos && Array.isArray(payment.memos)) {
