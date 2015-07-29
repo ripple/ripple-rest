@@ -37,7 +37,8 @@ module.exports.paymentRestXRPtoXRP = {
     'value': '1',
     'currency': 'XRP',
     'issuer': ''
-  }
+  },
+  'paths': '[]'
 };
 
 module.exports.paymentRestComplex = {
