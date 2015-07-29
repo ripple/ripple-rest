@@ -1,6 +1,6 @@
 {
   "name": "ripple-rest",
-  "version": "1.8.1-rc2",
+  "version": "1.8.1-rc3",
   "npm-shrinkwrap-version": "5.4.0",
   "node-version": "v0.12.7",
   "dependencies": {
