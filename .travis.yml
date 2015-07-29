@@ -1,7 +1,7 @@
 sudo: false         # use faster docker containers
 language: node_js
 node_js:
-- '0.10'
+- '0.12'
 install:
 - npm install
 before_script:
