@@ -14,7 +14,7 @@ An example configuration file is provided [here](../config-example.json).
 
 ```js
 {
-  'config_version': '2.0.2',
+  'config_version': '2.0.3',
   'debug': false,
   'port': 5990,
   'host': 'localhost',
