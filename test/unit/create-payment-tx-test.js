@@ -10,10 +10,16 @@ var createPaymentTransaction =
 var ACCOUNT = addresses.VALID;
 
 suite('unit - createPaymentTransaction', function() {
-
   test('payment with IOU and issuer', function() {
     var transaction = createPaymentTransaction(ACCOUNT, fixtures.paymentRest);
     assert.deepEqual(transaction.summary(), fixtures.paymentTx);
+  });
+
+  test('payment with IOU and empty paths', function() {
+    var transaction = createPaymentTransaction(ACCOUNT, fixtures.exportsPaymentRestIssuers({
+      paths: '[]'
+    }));
+    assert.strictEqual(transaction.tx_json.Paths, undefined);
   });
 
   test('payment with XRP and no source amount', function() {

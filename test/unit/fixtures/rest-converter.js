@@ -139,7 +139,8 @@ module.exports.exportsPaymentRestIssuers = function(options) {
     destinationIssuer: '',
     sourceValue: '10',
     destinationCurrency: 'USD',
-    sourceCurrency: 'USD'
+    sourceCurrency: 'USD',
+    paths: '[]'
   });
 
   return {
@@ -159,7 +160,7 @@ module.exports.exportsPaymentRestIssuers = function(options) {
       issuer: options.destinationIssuer
     },
     invoice_id: '',
-    paths: '[]',
+    paths: options.paths,
     partial_payment: false,
     no_direct_ripple: false
   };
