@@ -6,7 +6,7 @@ var utils = require('./utils');
 var validate = require('../lib/validate');
 var wrapCatch = require('../lib/utils').wrapCatch;
 
-function isSendMaxAndPathsAllowed(payment) {
+function isXRPPayment(payment) {
   var srcAmt = payment.source_amount;
   var dstAmt = payment.destination_amount;
 
@@ -14,7 +14,7 @@ function isSendMaxAndPathsAllowed(payment) {
   // temREDUNDANT_SEND_MAX removed in:
   // https://github.com/ripple/rippled/commit/
   //  c522ffa6db2648f1d8a987843e7feabf1a0b7de8/
-  return srcAmt && !(srcAmt.currency === 'XRP' && dstAmt.currency === 'XRP');
+  return srcAmt && srcAmt.currency === 'XRP' && dstAmt.currency === 'XRP';
 }
 
 function createPaymentTransaction(account, payment) {
@@ -72,25 +72,29 @@ function createPaymentTransaction(account, payment) {
     transaction.destinationTag(parseInt(payment.destination_tag, 10));
   }
 
-  // SendMax and Paths
-  if (isSendMaxAndPathsAllowed(payment)) {
-    // SendMax
-    var max_value = new BigNumber(payment.source_amount.value)
-      .plus(payment.source_slippage || 0).toString();
+  // SendMax
+  if (!isXRPPayment(payment)) {
+    if (payment.source_amount) {
+      var max_value = new BigNumber(payment.source_amount.value)
+        .plus(payment.source_slippage || 0).toString();
 
-    if (payment.source_amount.currency === 'XRP') {
-      transaction.sendMax(utils.xrpToDrops(max_value));
-    } else {
-      transaction.sendMax({
-        value: max_value,
-        currency: payment.source_amount.currency,
-        issuer: payment.source_amount.issuer
-      });
+      if (payment.source_amount.currency === 'XRP') {
+        transaction.sendMax(utils.xrpToDrops(max_value));
+      } else {
+        transaction.sendMax({
+          value: max_value,
+          currency: payment.source_amount.currency,
+          issuer: payment.source_amount.issuer
+        });
+      }
     }
 
     // Paths
     if (typeof payment.paths === 'string') {
-      transaction.paths(JSON.parse(payment.paths));
+      var paths = JSON.parse(payment.paths);
+      if (paths.length > 0) {
+        transaction.paths(paths);
+      }
     } else if (typeof payment.paths === 'object') {
       transaction.paths(payment.paths);
     }
