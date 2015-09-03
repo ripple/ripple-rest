@@ -45,7 +45,7 @@ suite('unit - createPaymentTransaction', function() {
         destinationAccount: addresses.COUNTERPARTY,
         sourceIssuer: '',
         destinationIssuer: addresses.ISSUER
-    }));
+      }));
     assert.strictEqual(transaction.tx_json.SendMax, '10000000');
   });
 

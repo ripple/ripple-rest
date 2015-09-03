@@ -1,5 +1,6 @@
 /* eslint-disable new-cap */
 /* eslint-disable max-len */
+/* eslint-disable no-param-reassign */
 'use strict';
 
 var _ = require('lodash');
@@ -148,8 +149,8 @@ module.exports.exportsPaymentRestIssuers = function(options) {
     source_tag: '',
     source_amount: {
       value: options.sourceValue,
-        currency: options.sourceCurrency,
-        issuer: options.sourceIssuer
+      currency: options.sourceCurrency,
+      issuer: options.sourceIssuer
     },
     source_slippage: options.sourceSlippage,
     destination_account: options.destinationAccount,
