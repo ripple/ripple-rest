@@ -7,7 +7,7 @@ install:
 before_script:
   - npm install -g eslint
   - curl 'https://raw.githubusercontent.com/ripple/javascript-style-guide/master/eslintrc' > ./eslintrc
-  - eslint --reset -c ./eslintrc $(git --no-pager diff --name-only --diff-filter=AM --relative $(git merge-base FETCH_HEAD origin/HEAD) FETCH_HEAD | grep "\.js$")
+  - eslint -c ./eslintrc $(git --no-pager diff --name-only --diff-filter=AM --relative $(git merge-base FETCH_HEAD origin/HEAD) FETCH_HEAD | grep "\.js$")
 script:
 - npm test --coverage
 after_success:
