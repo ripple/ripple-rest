@@ -1,6 +1,6 @@
 /* eslint-disable valid-jsdoc */
 'use strict';
-var async = require('async');
+var errors = require('./errors');
 
 /**
  * If a ledger is not received in this time, consider the connection offline
@@ -53,30 +53,21 @@ function ensureConnected(remote, callback) {
  * @param {Function} callback
  */
 function getStatus(remote, callback) {
-  function checkConnectivity(_callback) {
-    ensureConnected(remote, _callback);
-  }
-
-  function requestServerInfo(connected, _callback) {
-    remote.requestServerInfo(_callback);
-  }
-
-  function prepareResponse(server_info, _callback) {
-    var results = { };
-
-    results.rippled_server_url = remote.getServer()._url;
-    results.rippled_server_status = server_info.info;
-
-    _callback(null, results);
-  }
-
-  var steps = [
-    checkConnectivity,
-    requestServerInfo,
-    prepareResponse
-  ];
-
-  async.waterfall(steps, callback);
+  remote.requestServerInfo(function(error, serverInfo) {
+    if (error) {
+      callback(error);
+    } else {
+      var server = remote.getServer();
+      if (!server) {
+        callback(new errors.RippledNetworkError('Not connected'));
+      } else {
+        callback(null, {
+          rippled_server_url: server._url,
+          rippled_server_status: serverInfo.info
+        });
+      }
+    }
+  });
 }
 
 /**
