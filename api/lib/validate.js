@@ -252,13 +252,13 @@ function validatePayment(payment) {
   if (payment.source_tag &&
       (!validator.isValid(payment.source_tag, 'UINT32'))) {
     throw error('Invalid parameter: source_tag. '
-      + 'Must be a string representation of an unsiged 32-bit integer');
+      + 'Must be a string representation of an unsigned 32-bit integer');
   }
 
   if (payment.destination_tag
       && (!validator.isValid(payment.destination_tag, 'UINT32'))) {
     throw error('Invalid parameter: '
-      + 'destination_tag. Must be a string representation of an unsiged '
+      + 'destination_tag. Must be a string representation of an unsigned '
       + '32-bit integer');
   }
 
